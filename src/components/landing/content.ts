@@ -12,51 +12,65 @@ export const IMG = {
 
 export const COSTS = [
   {
-    figure: "Clarity",
-    title: "Know what applies to you",
-    body: "Your profile maps the obligations that touch your life abroad, so nothing is a surprise.",
+    figure: "Penalties",
+    title: "A deadline you forgot",
+    body: "A DIMEX renewal in Costa Rica, a corporate tax filing in Panama. Miss it and the fine arrives before any reminder does.",
   },
   {
-    figure: "Continuity",
-    title: "Nothing falls through the cracks",
-    body: "Reminders and follow-up keep your legal life moving, even when you are busy living it.",
+    figure: "Confusion",
+    title: "Advice that contradicts itself",
+    body: "One lawyer says one thing, a forum says another. You pay for the answer twice and still are not certain.",
   },
   {
-    figure: "Confidence",
-    title: "Ask before you act",
-    body: "When a decision needs judgment, a vetted professional is one step away.",
+    figure: "Lost context",
+    title: "Telling your story again",
+    body: "Every new lawyer starts from zero. You repeat your situation, your assets, your deadlines, and something always gets dropped.",
   },
 ];
 
 export const FEATURES = [
   {
-    title: "A profile that follows you",
-    body: "One record for your country, assets, and obligations. The context follows the client.",
+    title: "A living legal profile",
+    body: "Residency status, property titles, corporate structures, vehicles, and estate preferences in one record that follows you.",
   },
   {
-    title: "Clear, reviewed updates",
-    body: "Law changes explained in plain language, checked by local professionals.",
+    title: "Transcribed history and summaries",
+    body: "Every consultation is recorded, transcribed, and summarized. Recommendations and action items are never lost.",
   },
   {
-    title: "Practical templates",
-    body: "Checklists and trackers for each country, ready when you need them.",
+    title: "A human Customer Success Manager",
+    body: "A dedicated CSM handles onboarding, gathers missing context, and manages follow-up so your attorney focuses on judgment.",
   },
   {
-    title: "Vetted legal partners",
-    body: "When you need advice, book a professional matched to your situation and language.",
+    title: "Automated compliance reminders",
+    body: "Rule-based alerts for DIMEX renewals, corporate taxes, Marchamo vehicle obligations, and municipal filings.",
   },
 ];
 
 export const STEPS = [
-  { n: "01", title: "Tell us where you are", body: "One short form: your country and what you own or run." },
-  { n: "02", title: "We map your obligations", body: "Local professionals turn your profile into the deadlines that apply." },
-  { n: "03", title: "You stay ahead", body: "Reminders arrive before each date. Reply once, we track the rest." },
+  {
+    n: "01",
+    title: "Residency and renewal alerts",
+    body: "A DIMEX renewal approaches in Costa Rica. ILP flags the milestone, prepares the brief, and your CSM coordinates a review with your immigration attorney.",
+  },
+  {
+    n: "02",
+    title: "Real estate and corporate structuring",
+    body: "You buy a property held through a local SRL. Your attorney reviews the closing while ILP logs the entity, RTBF dates, and municipal tax deadlines.",
+  },
+  {
+    n: "03",
+    title: "Catching forgotten obligations",
+    body: "An annual corporate tax deadline in Panama slips your mind. ILP flags it, drafts the reminder, and coordinates the filing through your attorney.",
+  },
 ];
 
 export const COUNTRIES = [
-  { code: "CR", name: "Costa Rica", note: "Residency renewals, CCSS, municipal property tax" },
-  { code: "PA", name: "Panama", note: "Corporate annual fees, registered agent duties" },
-  { code: "MX", name: "Mexico", note: "SAT filings, temporary residency timelines" },
+  { code: "CR", name: "Costa Rica", note: "Residency renewals, CCSS, municipal property tax", live: true },
+  { code: "PA", name: "Panama", note: "Corporate annual fees, registered agent duties", live: true },
+  { code: "MX", name: "Mexico", note: "SAT filings, temporary residency timelines", live: true },
+  { code: "ES", name: "Spain", note: "Coming soon", live: false },
+  { code: "PT", name: "Portugal", note: "Coming soon", live: false },
 ];
 
 export const QUOTES = [
@@ -124,5 +138,9 @@ export const FAQ = [
   {
     q: "Is this legal advice?",
     a: "Membership covers technical explanations and issue identification. Specific legal work is scoped, quoted, and paid separately. The judgment stays with the lawyer.",
+  },
+  {
+    q: "Which countries are live?",
+    a: "Costa Rica, Panama, and Mexico are live today. Spain and Portugal are on the roadmap and will open soon.",
   },
 ];

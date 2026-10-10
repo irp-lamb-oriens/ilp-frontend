@@ -69,10 +69,10 @@ export function FeaturesSticky() {
     <section className={`${s.wrap} ${s.sticky}`}>
       <div className={s.stickyHead}>
         <p className={s.eyebrow}>What you get</p>
-        <RevealTitle text="Your compliance, mapped and monitored." className={s.headingXl} />
+        <RevealTitle text="The ILP system at a glance." className={s.headingXl} />
         <p className={s.sub}>
-          One profile. Every obligation that touches it, watched by people who
-          practice law where you live.
+          A living profile, transcribed history, a human CSM, and automated
+          reminders. The context follows the client.
         </p>
       </div>
       <ol className={s.featureList}>
@@ -107,7 +107,7 @@ function StepsTrack({ progress, reduce }: { progress: MotionValue<number>; reduc
     <div className={s.stepsViewport}>
       <div className={s.stepsIntro}>
         <p className={s.eyebrow}>How it works</p>
-        <RevealTitle text="Three steps. No legal expertise required." className={s.headingXl} />
+        <RevealTitle text="How ILP works in practice." className={s.headingXl} />
       </div>
       <motion.ol className={s.stepsTrack} style={reduce ? undefined : { x }}>
         {STEPS.map((st) => (

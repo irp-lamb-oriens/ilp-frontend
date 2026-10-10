@@ -24,13 +24,13 @@ export function CoverageGutenberg() {
     <section className={`${s.wrap} ${s.section}`}>
       <div className={s.sectionHead}>
         <p className={s.eyebrow}>Coverage</p>
-        <RevealTitle text="Three countries. One set of eyes on every deadline." className={s.headingXl} />
+        <RevealTitle text="Live in three countries. Two more on the way." className={s.headingXl} />
       </div>
       <ul className={s.coverage}>
         {COUNTRIES.map((c, i) => {
           const align = ALIGN[i % ALIGN.length];
           const from = align === "alignEnd" ? "right" : align === "alignStart" ? "left" : "bottom";
-          const href = COUNTRY_PAGES[c.code];
+          const href = c.live ? COUNTRY_PAGES[c.code] : undefined;
           return (
             <li key={c.code} className={`${s.coverageRow} ${s[align]}`}>
               <Reveal from={from}>
@@ -183,10 +183,11 @@ export function FinalCta() {
               <button
                 key={c.code}
                 type="button"
-                className={s.chip}
-                onClick={() => openLeadForm({ country: c.code, topic: c.note })}
+                className={c.live ? s.chip : `${s.chip} ${s.chipSoon}`}
+                onClick={() => c.live && openLeadForm({ country: c.code, topic: c.note })}
               >
                 {c.name}
+                {!c.live && <span className={s.chipSoonTag}>Soon</span>}
               </button>
             ))}
           </div>

@@ -4,7 +4,7 @@ import { Reveal } from "@/components/motion/Motion";
 import s from "./landing.module.scss";
 
 const ITEMS = [
-  { value: "Three countries, one profile", label: "Costa Rica, Panama, and Mexico" },
+  { value: "Three countries live", label: "Costa Rica, Panama, and Mexico" },
   { value: "Professionally maintained rules", label: "Reviewed by local legal teams" },
   { value: "Before the due date", label: "Advance + deadline-day reminders" },
 ];

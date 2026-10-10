@@ -33,7 +33,7 @@ export default function HeroCTA() {
       >
         <div className={styles.heroCopy}>
           <Reveal delay={0.05}>
-            <p className={styles.eyebrow}>Trusted legal support for your life abroad</p>
+            <p className={styles.eyebrow}>The ILP operating system</p>
           </Reveal>
           <RevealTitle
             as="h1"
@@ -43,9 +43,9 @@ export default function HeroCTA() {
           />
           <Reveal delay={0.5}>
             <p className={styles.sub}>
-              Clear, calm guidance for living, investing, and doing business in
-              Costa Rica, Panama, and Mexico. One profile, real professionals,
-              ongoing support.
+              A living legal profile, transcribed consultations, and a dedicated
+              Customer Success Manager. Your context stays organized before,
+              during, and after your move.
             </p>
           </Reveal>
           <Reveal delay={0.7}>
@@ -55,7 +55,7 @@ export default function HeroCTA() {
                 className={styles.primary}
                 onClick={() => openLeadForm({ topic: "Membership plan" })}
               >
-                Become a member
+                Start your membership
               </button>
               <a href="#pricing" className={styles.secondary}>
                 See what is included

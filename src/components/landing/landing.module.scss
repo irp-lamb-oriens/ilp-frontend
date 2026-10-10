@@ -212,6 +212,14 @@ a.coverageName:hover { color: $color-accent; }
   transition: background 300ms $ease, border-color 300ms $ease, transform 160ms $ease;
   &:hover { background: $color-accent; border-color: $color-accent; color: $color-navy; }
 }
+.chipSoon {
+  cursor: default; color: $color-muted; background: $color-mist;
+  &:hover { background: $color-mist; border-color: $color-hairline; color: $color-muted; }
+}
+.chipSoonTag {
+  margin-inline-start: $space-2; font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: $color-accent;
+}
 .finalHint { color: $color-steel; font-size: 0.85rem; margin: 0 auto; }
 
 /* ── Footer ────────────────────────────────────── */
