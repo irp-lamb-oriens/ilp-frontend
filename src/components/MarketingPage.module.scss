@@ -1,0 +1,117 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.wrap { @include container; }
+.section { @include section; }
+.sectionHead { @include section-head; margin-bottom: $space-12; }
+.centerHead { margin-inline: auto; text-align: center; align-items: center; }
+.eyebrow { @include eyebrow; margin: 0; }
+.headingXl { @include heading-xl; margin: 0; font-size: clamp(2.25rem, 5vw, 4rem); letter-spacing: -0.035em; }
+.headingLg { @include heading-lg; margin: 0; }
+.sub { color: $color-steel; font-size: 1.125rem; line-height: 1.65; margin: 0; max-width: 52ch; }
+.primary { @include button-primary; padding: $space-4 $space-8; }
+.ghost { @include button-ghost; padding: $space-4 $space-8; }
+
+/* Two-column split with a sticky left rail. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-12;
+  align-items: start;
+
+  @include lg {
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: $space-24;
+  }
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+
+  @include lg {
+    position: sticky;
+    top: calc(64px + #{$space-12});
+  }
+}
+
+/* Numbered step cards. */
+.steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+  margin-top: $space-8;
+
+  @include md {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.step {
+  @include card;
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  h3 { font-size: 1.2rem; margin: 0; color: $color-navy; }
+  p { color: $color-steel; font-size: 0.95rem; margin: 0; }
+}
+
+.stepNum {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: $color-accent;
+}
+
+/* Feature list with checkmarks. */
+.featureList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  li {
+    color: $color-steel;
+    font-size: 0.95rem;
+    padding-inline-start: $space-6;
+    position: relative;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 10px;
+      height: 6px;
+      border-left: 2px solid $color-accent;
+      border-bottom: 2px solid $color-accent;
+      transform: rotate(-45deg);
+    }
+  }
+}
+
+/* Callout box. */
+.callout {
+  padding: $space-6;
+  border-radius: $radius-lg;
+  background: $color-mist;
+  border: 1px solid $color-hairline;
+
+  h3 { font-size: 1.1rem; margin: 0 0 $space-2; color: $color-navy; }
+  p { color: $color-steel; font-size: 0.95rem; margin: 0; }
+}
+
+/* Footer. */
+.footer {
+  background: $color-navy;
+  color: rgba(255, 255, 255, 0.8);
+  padding-block: $space-8;
+
+  p { font-size: 0.85rem; margin: 0; }
+}

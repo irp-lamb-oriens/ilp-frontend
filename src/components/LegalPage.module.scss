@@ -1,0 +1,55 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.main {
+  @include container;
+  padding-block: $space-16;
+  max-width: 760px;
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+}
+
+.eyebrow {
+  @include eyebrow;
+  margin: 0;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin: 0;
+  color: $color-navy;
+}
+
+.updated {
+  color: $color-steel;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding-top: $space-6;
+  border-top: 1px solid $color-hairline;
+}
+
+.heading {
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: $color-navy;
+}
+
+.para {
+  color: $color-steel;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+}

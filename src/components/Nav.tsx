@@ -18,6 +18,12 @@ export default function Nav() {
         <span className={styles.wordmark}>International Legal Partner</span>
       </Link>
       <div className={styles.links}>
+        <Link href="/how-it-works" className={styles.link}>
+          How it works
+        </Link>
+        <Link href="/pricing" className={styles.link}>
+          Pricing
+        </Link>
         <Link href="/costa-rica" className={styles.link}>
           Costa Rica
         </Link>
@@ -27,11 +33,8 @@ export default function Nav() {
         <Link href="/mexico" className={styles.link}>
           Mexico
         </Link>
-        <Link href="/lawyers" className={styles.link}>
-          For lawyers
-        </Link>
-        <Link href="/alerts" className={styles.link}>
-          My alerts
+        <Link href="/attorneys" className={styles.link}>
+          For attorneys
         </Link>
       </div>
       <NavCta className={styles.cta} />
