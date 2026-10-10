@@ -1,0 +1,45 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding-inline: $space-4;
+  border-bottom: 1px solid $color-hairline;
+  background: rgba($color-surface, 0.85);
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.links {
+  display: none;
+  gap: $space-6;
+
+  @media (min-width: $bp-md) {
+    display: flex;
+  }
+}
+
+.link {
+  color: $color-steel;
+  font-size: 0.9rem;
+  transition: color 150ms ease-out;
+
+  &:hover {
+    color: $color-ink;
+  }
+}
+
+.cta {
+  @include button-primary;
+}

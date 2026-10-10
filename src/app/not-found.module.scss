@@ -1,0 +1,36 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.main {
+  @include container;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: $space-4;
+  padding-block: $space-16;
+}
+
+.eyebrow {
+  @include eyebrow;
+  margin: 0;
+}
+
+.title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin: 0;
+  max-width: 18ch;
+}
+
+.body {
+  color: $color-steel;
+  margin: 0 0 $space-6;
+}
+
+.cta {
+  @include button-primary;
+  padding: $space-4 $space-8;
+}

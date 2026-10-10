@@ -1,0 +1,58 @@
+@use "reset";
+@use "variables" as *;
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: $color-canvas;
+  color: $color-ink;
+  font-family: $font-sans;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+p {
+  max-width: 65ch;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.24);
+  color: $color-ink;
+}
+
+:focus-visible {
+  outline: 2px solid $color-accent;
+  outline-offset: 3px;
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}

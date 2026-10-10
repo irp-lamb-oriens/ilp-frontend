@@ -1,0 +1,211 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+$ink-deep: #0f1720;
+$ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+.wrap { @include container; }
+.section { @include section; }
+.sectionHead { @include section-head; margin-bottom: $space-12; }
+.centerHead { margin-inline: auto; text-align: center; align-items: center; }
+.eyebrow { @include eyebrow; margin: 0; }
+.headingXl { @include heading-xl; margin: 0; font-size: clamp(2.25rem, 5vw, 4rem); letter-spacing: -0.035em; }
+.sub { color: $color-steel; font-size: 1.125rem; line-height: 1.65; margin: 0; max-width: 52ch; }
+.primary { @include button-primary; padding: $space-4 $space-8; }
+.ghost { @include button-ghost; padding: $space-4 $space-8; }
+
+/* ── Trust strip ───────────────────────────────── */
+.trustBar { background: $ink-deep; color: #f9fafb; }
+.trustInner { @include container; padding-block: $space-8; }
+.trustStats {
+  display: grid; gap: $space-6; grid-template-columns: 1fr;
+  @include md { grid-template-columns: 1.2fr 1fr 1fr; }
+}
+.stat { display: flex; flex-direction: column; gap: $space-1; padding-inline-start: $space-4; border-left: 1px solid rgba(255, 255, 255, 0.14); }
+.statValue { font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 700; letter-spacing: -0.02em; }
+.statLabel { color: rgba(255, 255, 255, 0.62); font-size: 0.875rem; }
+
+/* ── Costs: pinned morph stage ─────────────────── */
+.costs { background: $ink-deep; color: #f9fafb; }
+.costsStage { padding: $space-16 $space-4; }
+.costsKicker {
+  @include eyebrow; color: #6ee7b7; position: absolute; top: calc(64px + #{$space-8});
+  left: 50%; transform: translateX(-50%); margin: 0; white-space: nowrap;
+}
+.costsLayer { position: relative; width: min(1200px, 100%); min-height: 60dvh; }
+.costSlot { position: absolute; inset: 0; display: grid; align-content: center; gap: $space-6; padding-inline: $space-4; }
+.costStatic { display: grid; gap: $space-6; padding: $space-8 $space-4; }
+.costFigure {
+  font-size: clamp(5rem, 19vw, 16rem); font-weight: 800; letter-spacing: -0.06em;
+  line-height: 0.85; color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.85);
+}
+.costText {
+  justify-self: end; max-width: 420px; text-align: right;
+  h3 { font-size: clamp(1.5rem, 2.5vw, 2rem); margin: 0 0 $space-3; color: #fff; }
+  p { color: rgba(255, 255, 255, 0.72); margin: 0 0 0 auto; }
+}
+.costTextLeft { justify-self: start; text-align: left; p { margin: 0; } }
+.rail {
+  position: absolute; bottom: $space-8; left: 50%; transform: translateX(-50%);
+  width: min(320px, 60vw); height: 2px; background: rgba(255, 255, 255, 0.14); border-radius: 2px; overflow: hidden;
+}
+.railFill { width: 100%; height: 100%; background: $color-accent; transform-origin: left; }
+
+/* ── Sticky split (features + FAQ) ─────────────── */
+.sticky {
+  display: grid; grid-template-columns: 1fr; gap: $space-12; padding-block: $space-24;
+  @include lg { grid-template-columns: 0.9fr 1.1fr; gap: $space-24; align-items: start; }
+}
+.stickyHead {
+  display: flex; flex-direction: column; gap: $space-6;
+  @include lg { position: sticky; top: calc(64px + #{$space-12}); }
+}
+.featureList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: $space-6; }
+.feature {
+  @include card; padding: clamp(1.75rem, 3vw, 2.5rem); display: grid; gap: $space-3;
+  transition: transform 500ms $ease, box-shadow 500ms $ease;
+  h3 { font-size: 1.35rem; margin: 0; }
+  p { color: $color-steel; margin: 0; }
+  @media (hover: hover) and (pointer: fine) {
+    &:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -20px rgba(15, 23, 32, 0.18); }
+  }
+}
+.featureList li:nth-child(even) .feature { @include lg { margin-inline-start: 12%; } }
+.featureIndex { font-family: $font-mono; font-size: 0.8rem; color: $color-accent; }
+
+/* ── Steps: horizontal pan inside a pinned stage ── */
+.steps { background: $color-accent-soft; }
+.stepsStage { place-items: stretch; }
+.stepsViewport {
+  @include container; display: flex; flex-direction: column; justify-content: center;
+  gap: $space-12; min-height: 100dvh; padding-block: calc(64px + #{$space-8}) $space-16;
+}
+.stepsIntro { display: flex; flex-direction: column; gap: $space-4; max-width: 720px; }
+.stepsTrack {
+  list-style: none; margin: 0; padding: 0; display: flex; gap: $space-6; width: max-content;
+}
+.stepCard {
+  @include card; width: min(78vw, 460px); flex-shrink: 0; padding: clamp(2rem, 4vw, 3rem);
+  h3 { font-size: 1.5rem; margin: $space-4 0 $space-3; }
+  p { color: $color-steel; margin: 0; }
+}
+.stepNum { font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; color: $color-accent; line-height: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stepsTrack { width: 100%; flex-wrap: wrap; }
+}
+
+/* ── Coverage: Gutenberg zig-zag ───────────────── */
+.coverage { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.coverageRow { display: flex; padding-block: $space-8; border-top: 1px solid $color-hairline; }
+.coverageRow:last-child { border-bottom: 1px solid $color-hairline; }
+.alignStart { justify-content: flex-start; text-align: left; }
+.alignEnd { justify-content: flex-end; text-align: right; }
+.alignCenter { justify-content: center; text-align: center; }
+.alignEnd .coverageNote { margin-inline-start: auto; }
+.alignCenter .coverageNote { margin-inline: auto; }
+.coverageCode { display: block; font-family: $font-mono; font-size: 0.8rem; color: $color-accent; margin-bottom: $space-2; }
+.coverageName {
+  display: inline-block; font-size: clamp(2.5rem, 7vw, 5.5rem); font-weight: 700;
+  letter-spacing: -0.045em; line-height: 1; color: $color-ink;
+  transition: color 300ms $ease, transform 500ms $ease;
+}
+a.coverageName:hover { color: $color-accent; }
+.coverageNote { color: $color-steel; margin: $space-3 0 0; max-width: 40ch; }
+
+/* ── Quotes: offset wall ───────────────────────── */
+.quoteWall {
+  display: grid; grid-template-columns: 1fr; gap: $space-6;
+  @include md { grid-template-columns: repeat(3, 1fr); align-items: start; }
+}
+.quoteWall > :nth-child(2) { @include md { margin-top: $space-16; } }
+.quoteWall > :nth-child(3) { @include md { margin-top: $space-8; } }
+.quote {
+  @include card; padding: clamp(1.75rem, 3vw, 2.5rem); display: flex; flex-direction: column; gap: $space-6;
+  blockquote { margin: 0; font-size: 1.15rem; line-height: 1.55; letter-spacing: -0.01em; }
+}
+.attribution { display: flex; align-items: center; gap: $space-3; }
+.avatar {
+  width: 44px; height: 44px; border-radius: 14px; background: $ink-deep; color: #6ee7b7;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;
+}
+.attributionName { font-weight: 600; font-size: 0.95rem; }
+.attributionRole { color: $color-steel; font-size: 0.85rem; }
+
+/* ── Pricing ───────────────────────────────────── */
+.pricingGrid {
+  display: grid; grid-template-columns: 1fr; gap: $space-6; align-items: stretch;
+  @include md { grid-template-columns: 1fr 1.15fr 1fr; align-items: center; }
+}
+.plan { @include card; position: relative; padding: clamp(1.75rem, 3vw, 2.5rem); display: flex; flex-direction: column; gap: $space-6; }
+.planHero {
+  background: $ink-deep; color: #f9fafb; border: 1px solid rgba(16, 185, 129, 0.5);
+  @include md { padding-block: clamp(2.5rem, 4vw, 3.5rem); }
+  .planPerDay, .planFeatures li { color: rgba(255, 255, 255, 0.72); }
+}
+.planFlag {
+  @include eyebrow; position: absolute; top: $space-6; right: $space-6;
+  padding: $space-1 $space-3; border-radius: $radius-pill; background: rgba(16, 185, 129, 0.16); color: #6ee7b7;
+}
+.planName { font-size: 1.25rem; font-weight: 700; }
+.planPrice { font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.planUnit { font-size: 1rem; font-weight: 500; letter-spacing: 0; opacity: 0.7; }
+.planPerDay { color: $color-steel; font-size: 0.875rem; margin-top: $space-2; }
+.planFeatures {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: $space-3; flex: 1;
+  li {
+    color: $color-steel; font-size: 0.95rem; padding-inline-start: $space-6; position: relative;
+    &::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 10px; height: 6px;
+      border-left: 2px solid $color-accent; border-bottom: 2px solid $color-accent; transform: rotate(-45deg); }
+  }
+}
+.plan button { align-self: stretch; }
+
+/* ── FAQ ───────────────────────────────────────── */
+.faqList { border-top: 1px solid $color-hairline; }
+.faqItem { border-bottom: 1px solid $color-hairline; }
+.faqButton {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: $space-4;
+  padding: $space-6 $space-1; background: transparent; border: none; cursor: pointer; text-align: left;
+  font-family: inherit; font-size: 1.15rem; font-weight: 600; color: $color-ink;
+}
+.faqIcon { font-size: 1.6rem; color: $color-steel; line-height: 1; transition: transform 300ms $ease; flex-shrink: 0; }
+.faqIconOpen { transform: rotate(45deg); color: $color-accent; }
+.faqAnswer { padding: 0 $space-1 $space-6; color: $color-steel; margin: 0; max-width: 60ch; }
+
+/* ── Final CTA: glass over a legal photo ───────── */
+.finalCta {
+  position: relative; isolation: isolate; overflow: hidden;
+  background-size: cover; background-position: center; background-attachment: scroll;
+  padding-block: clamp(6rem, 16vh, 10rem);
+}
+.finalScrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10, 14, 20, 0.55), rgba(10, 14, 20, 0.82)); }
+.finalGlass {
+  max-width: 760px; margin-inline: auto; text-align: center; color: #f9fafb;
+  padding: clamp(2rem, 5vw, 3.5rem); border-radius: 28px;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px) saturate(170%); -webkit-backdrop-filter: blur(20px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+.finalKicker { @include eyebrow; color: #6ee7b7; margin: 0 0 $space-6; }
+.finalTitle { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; color: #fff; margin: 0 0 $space-6; }
+.finalSub { color: rgba(255, 255, 255, 0.8); margin: 0 auto $space-8; }
+.finalChips { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-3; margin-bottom: $space-6; }
+.chip {
+  @include press; padding: $space-3 $space-6; border-radius: $radius-pill; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.06);
+  color: #fff; font-weight: 600; font-size: 0.95rem;
+  transition: background 300ms $ease, border-color 300ms $ease, transform 160ms $ease;
+  &:hover { background: $color-accent; border-color: $color-accent; }
+}
+.finalHint { color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; margin: 0 auto; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .finalGlass { background: rgba(15, 23, 32, 0.94); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* ── Footer ────────────────────────────────────── */
+.footer {
+  background: $ink-deep; color: rgba(255, 255, 255, 0.6); padding-block: $space-8;
+  p { font-size: 0.85rem; margin: 0; }
+}

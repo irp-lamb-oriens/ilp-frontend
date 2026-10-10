@@ -1,0 +1,41 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.main {
+  @include container;
+  padding-block: $space-16;
+}
+
+.headline {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.025em;
+  margin-bottom: $space-4;
+}
+
+.sub {
+  color: $color-steel;
+  font-size: 1.05rem;
+  margin-bottom: $space-8;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-4 $space-6;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+}
+
+.download {
+  @include press;
+  color: $color-accent;
+  font-weight: 600;
+}

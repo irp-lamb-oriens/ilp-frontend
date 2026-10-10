@@ -1,0 +1,61 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.main {
+  @include container;
+  padding-block: $space-12;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: $space-8;
+}
+
+.title {
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.actor {
+  color: $color-steel;
+  font-size: 0.9rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-6;
+  background: $color-surface;
+  border-radius: $radius-lg;
+  border: 1px solid $color-hairline;
+}
+
+.value {
+  font-family: $font-mono;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.label {
+  color: $color-steel;
+  font-size: 0.85rem;
+}
+
+.error {
+  color: $color-error;
+  font-weight: 600;
+}
