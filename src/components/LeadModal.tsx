@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { submitLead } from "@/lib/clientDomain";
 import { OPEN_LEAD_EVENT, type OpenLeadDetail } from "@/lib/leadEvents";
 import { EASE_OUT_EXPO } from "@/components/motion/Motion";
+import StepForm from "@/components/StepForm";
 import s from "./LeadModal.module.scss";
 
 const COUNTRIES = [
@@ -12,6 +13,8 @@ const COUNTRIES = [
   { value: "PA", label: "Panama" },
   { value: "MX", label: "Mexico" },
 ] as const;
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Global lead-capture dialog. Mounted once in the root layout; any CTA opens
@@ -58,8 +61,7 @@ export default function LeadModal() {
     if (!busy) setOpen(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleComplete = async () => {
     setBusy(true);
     setError(null);
     try {
@@ -74,6 +76,46 @@ export default function LeadModal() {
       setBusy(false);
     }
   };
+
+  const steps = [
+    {
+      title: "Who are you?",
+      validate: () => {
+        if (!email || !EMAIL_RE.test(email)) return "Enter a valid email to continue.";
+        return null;
+      },
+      body: (
+        <>
+          <label htmlFor="lead-name">Name</label>
+          <input id="lead-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" autoComplete="name" />
+          <label htmlFor="lead-email">Email</label>
+          <input id="lead-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
+        </>
+      ),
+    },
+    {
+      title: "Where are you?",
+      body: (
+        <>
+          <label htmlFor="lead-country">Country</label>
+          <select id="lead-country" value={country} onChange={(e) => setCountry(e.target.value)}>
+            {COUNTRIES.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </>
+      ),
+    },
+    {
+      title: "What do you need tracked?",
+      body: (
+        <>
+          <label htmlFor="lead-topic">Topic</label>
+          <input id="lead-topic" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Residency renewal" />
+        </>
+      ),
+    },
+  ];
 
   return (
     <AnimatePresence>
@@ -91,7 +133,7 @@ export default function LeadModal() {
             className={s.modal}
             role="dialog"
             aria-modal="true"
-            aria-label="Start your free compliance alert"
+            aria-label="Start your membership"
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -109,25 +151,16 @@ export default function LeadModal() {
                 <button type="button" className={s.primary} onClick={close}>Done</button>
               </div>
             ) : (
-              <form className={s.form} onSubmit={handleSubmit}>
-                <h2>Start your free compliance alert</h2>
-                <label htmlFor="lead-name">Name</label>
-                <input id="lead-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" autoComplete="name" />
-                <label htmlFor="lead-email">Email</label>
-                <input id="lead-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" autoComplete="email" />
-                <label htmlFor="lead-country">Country</label>
-                <select id="lead-country" value={country} onChange={(e) => setCountry(e.target.value)}>
-                  {COUNTRIES.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
-                <label htmlFor="lead-topic">What do you need tracked?</label>
-                <input id="lead-topic" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Residency renewal" />
+              <>
+                <h2 className={s.heading}>Start your membership</h2>
                 {error && <p className={s.errorText} role="alert">{error}</p>}
-                <button type="submit" className={s.primary} disabled={busy}>
-                  {busy ? "Sending…" : "Create my profile"}
-                </button>
-              </form>
+                <StepForm
+                  steps={steps}
+                  onComplete={handleComplete}
+                  submitLabel="Create my profile"
+                  busy={busy}
+                />
+              </>
             )}
           </motion.div>
         </motion.div>

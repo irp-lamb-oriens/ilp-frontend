@@ -1,0 +1,96 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.progress {
+  height: 4px;
+  border-radius: 2px;
+  background: $color-cool-gray;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: $color-accent;
+  border-radius: 2px;
+}
+
+.stage {
+  position: relative;
+  min-height: 220px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.stepTitle {
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: $color-navy;
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: $space-2;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: $space-3 $space-4;
+    border: 1px solid rgba(24, 24, 27, 0.14);
+    border-radius: $radius-md;
+    background: $color-surface;
+    color: $color-ink;
+    font-size: 1rem;
+    font-family: inherit;
+
+    &:focus-visible {
+      outline: 2px solid $color-accent;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.error {
+  color: $color-error;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.back {
+  @include button-ghost;
+  padding: $space-3 $space-6;
+}
+
+.next {
+  @include button-primary;
+  padding: $space-3 $space-6;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}

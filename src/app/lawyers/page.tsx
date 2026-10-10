@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import ParallaxBand from "@/components/ParallaxBand";
 import GutenbergList from "@/components/GutenbergList";
 import { Reveal, RevealTitle } from "@/components/motion/Motion";
+import StepForm from "@/components/StepForm";
 import { submitLead } from "@/lib/clientDomain";
 import s from "./page.module.scss";
 
@@ -26,8 +27,7 @@ export default function LawyersPage() {
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [error, setError] = useState("");
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleComplete = async () => {
     setState("busy");
     try {
       await submitLead({ name, email, country, topic: `Lawyer application: ${specialty}` });
@@ -37,6 +37,51 @@ export default function LawyersPage() {
       setState("error");
     }
   };
+
+  const steps = [
+    {
+      title: "Your details",
+      validate: () => {
+        if (!name.trim()) return "Enter your full name.";
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Enter a valid work email.";
+        return null;
+      },
+      body: (
+        <>
+          <label htmlFor="l-name">Full name</label>
+          <input id="l-name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+          <label htmlFor="l-email">Work email</label>
+          <input id="l-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+        </>
+      ),
+    },
+    {
+      title: "Your jurisdiction",
+      body: (
+        <>
+          <label htmlFor="l-country">Jurisdiction</label>
+          <select id="l-country" value={country} onChange={(e) => setCountry(e.target.value)}>
+            <option value="CR">Costa Rica</option>
+            <option value="PA">Panama</option>
+            <option value="MX">Mexico</option>
+          </select>
+        </>
+      ),
+    },
+    {
+      title: "Your specialty",
+      validate: () => {
+        if (!specialty.trim()) return "Enter your primary specialty.";
+        return null;
+      },
+      body: (
+        <>
+          <label htmlFor="l-specialty">Primary specialty</label>
+          <input id="l-specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder="e.g. Immigration, corporate" />
+        </>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -75,24 +120,15 @@ export default function LawyersPage() {
                   <p>Thank you. Our partnerships team will be in touch shortly.</p>
                 </div>
               ) : (
-                <form className={s.form} onSubmit={submit}>
-                  <label htmlFor="l-name">Full name</label>
-                  <input id="l-name" required value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-                  <label htmlFor="l-email">Work email</label>
-                  <input id="l-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-                  <label htmlFor="l-country">Jurisdiction</label>
-                  <select id="l-country" value={country} onChange={(e) => setCountry(e.target.value)}>
-                    <option value="CR">Costa Rica</option>
-                    <option value="PA">Panama</option>
-                    <option value="MX">Mexico</option>
-                  </select>
-                  <label htmlFor="l-specialty">Primary specialty</label>
-                  <input id="l-specialty" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder="e.g. Immigration, corporate" />
+                <>
                   {state === "error" && <p className={s.error} role="alert">{error}</p>}
-                  <button type="submit" className={s.primary} disabled={state === "busy"}>
-                    {state === "busy" ? "Sending…" : "Submit application"}
-                  </button>
-                </form>
+                  <StepForm
+                    steps={steps}
+                    onComplete={handleComplete}
+                    submitLabel="Submit application"
+                    busy={state === "busy"}
+                  />
+                </>
               )}
             </Reveal>
           </div>
