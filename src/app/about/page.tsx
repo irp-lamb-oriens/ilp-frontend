@@ -53,7 +53,7 @@ export default function AboutPage() {
             <div className={s.featureList}>
               <li>ILP provides the platform, the client profile, and the Customer Success coordination.</li>
               <li>Vetted local attorneys provide the legal judgment, matched to your specialty and language.</li>
-              <li>Relocation expertise and content bridge the gap between moving abroad and staying compliant.</li>
+              <li>Cross-border legal expertise and content bridge the gap between living abroad and staying compliant.</li>
             </div>
           </div>
         </section>

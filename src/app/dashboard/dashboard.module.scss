@@ -23,6 +23,84 @@
   font-size: 0.9rem;
 }
 
+.actorRow {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+}
+
+.login {
+  max-width: 420px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.sub {
+  color: $color-steel;
+  font-size: 0.95rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $color-ink;
+  }
+
+  input {
+    padding: $space-3 $space-4;
+    border: 1px solid $color-hairline;
+    border-radius: $radius-md;
+    font-size: 1rem;
+    background: $color-surface;
+
+    &:focus {
+      outline: 2px solid $color-accent;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.notice {
+  color: $color-success;
+  font-size: 0.9rem;
+}
+
+.primary {
+  padding: $space-3 $space-4;
+  border: none;
+  border-radius: $radius-md;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.secondary {
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-ink;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr;
