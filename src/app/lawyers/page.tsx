@@ -43,21 +43,21 @@ export default function LawyersPage() {
       <Nav />
       <main>
         <ParallaxBand
-          image={IMG(5668790)}
-          alt="Lawyer working at a desk with legal books"
+          image={IMG(3184325)}
+          alt="A clean, modern workspace"
           eyebrow="For legal partners"
           title="Vetted clients, routed to your specialty."
-          body="Join a managed legal network. ILP handles intake, reminders, and client organization so your time goes to the work only a lawyer can do."
+          body="Join a managed legal network. ILP handles intake, reminders, and client organization so your time goes to the work only a professional can do."
           align="left"
         />
 
-        <section className={s.dark}>
+        <section className={s.light}>
           <div className={s.wrap}>
             <div className={s.head}>
-              <p className={s.eyebrow}>Why partners join</p>
+              <p className={s.eyebrowLight}>Why partners join</p>
               <RevealTitle text="Less admin. Better-prepared clients." className={s.headingXl} />
             </div>
-            <GutenbergList items={POINTS} rhythm="stair" tone="dark" />
+            <GutenbergList items={POINTS} rhythm="stair" />
           </div>
         </section>
 
@@ -85,8 +85,6 @@ export default function LawyersPage() {
                     <option value="CR">Costa Rica</option>
                     <option value="PA">Panama</option>
                     <option value="MX">Mexico</option>
-                    <option value="ES">Spain</option>
-                    <option value="PT">Portugal</option>
                   </select>
                   <label htmlFor="l-specialty">Primary specialty</label>
                   <input id="l-specialty" required value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder="e.g. Immigration, corporate" />

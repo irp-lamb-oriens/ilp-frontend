@@ -11,8 +11,6 @@ const COUNTRIES = [
   { value: "CR", label: "Costa Rica" },
   { value: "PA", label: "Panama" },
   { value: "MX", label: "Mexico" },
-  { value: "ES", label: "Spain" },
-  { value: "PT", label: "Portugal" },
 ] as const;
 
 /**

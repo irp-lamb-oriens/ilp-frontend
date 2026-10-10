@@ -1,80 +1,79 @@
-/** Copy for the ILP landing narrative. Kept as data so sections stay layout-only. */
+/** Copy for the ILP landing narrative. Calm, direct, international. */
 
 export const IMG = {
-  justice:
-    "https://images.pexels.com/photos/5668473/pexels-photo-5668473.jpeg?auto=compress&cs=tinysrgb&w=2000",
-  scales:
-    "https://images.pexels.com/photos/5669602/pexels-photo-5669602.jpeg?auto=compress&cs=tinysrgb&w=2000",
+  // Real people in decision-making moments and clean workspaces (no gavels/scales).
+  people:
+    "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=2000",
+  workspace:
+    "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=2000",
   documents:
-    "https://images.pexels.com/photos/7856660/pexels-photo-7856660.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=2000",
 };
 
 export const COSTS = [
   {
-    figure: "Late",
-    title: "Filings compound",
-    body: "Penalties and interest grow every week a tax or corporate filing waits.",
+    figure: "Clarity",
+    title: "Know what applies to you",
+    body: "Your profile maps the obligations that touch your life abroad, so nothing is a surprise.",
   },
   {
-    figure: "Lapsed",
-    title: "Permits expire silently",
-    body: "A residency or vehicle permit that runs out unnoticed can mean starting over.",
+    figure: "Continuity",
+    title: "Nothing falls through the cracks",
+    body: "Reminders and follow-up keep your legal life moving, even when you are busy living it.",
   },
   {
-    figure: "Fined",
-    title: "Not knowing is no defense",
-    body: "Governments do not waive fees because the rule was new to you.",
+    figure: "Confidence",
+    title: "Ask before you act",
+    body: "When a decision needs judgment, a vetted professional is one step away.",
   },
 ];
 
 export const FEATURES = [
   {
-    title: "Smart Compliance Alerts",
-    body: "Reminders keyed to your country, municipality, and assets. Answer in one click and we route the follow-up.",
+    title: "A profile that follows you",
+    body: "One record for your country, assets, and obligations. The context follows the client.",
   },
   {
-    title: "Reviewed legal updates",
-    body: "Law changes in plain language, checked by the local team before they reach you.",
+    title: "Clear, reviewed updates",
+    body: "Law changes explained in plain language, checked by local professionals.",
   },
   {
-    title: "Jurisdiction templates",
-    body: "Versioned checklists and trackers for each country, ready to download.",
+    title: "Practical templates",
+    body: "Checklists and trackers for each country, ready when you need them.",
   },
   {
     title: "Vetted legal partners",
-    body: "When an alert needs judgment, book a lawyer matched to your specialty and language.",
+    body: "When you need advice, book a professional matched to your situation and language.",
   },
 ];
 
 export const STEPS = [
-  { n: "01", title: "Tell us your country", body: "One short form: where you live and what you own or run." },
-  { n: "02", title: "We map your obligations", body: "Local lawyers turn your profile into the deadlines that apply." },
-  { n: "03", title: "Alerted before it is due", body: "Reminders arrive ahead of each date. Reply once, we track the rest." },
+  { n: "01", title: "Tell us where you are", body: "One short form: your country and what you own or run." },
+  { n: "02", title: "We map your obligations", body: "Local professionals turn your profile into the deadlines that apply." },
+  { n: "03", title: "You stay ahead", body: "Reminders arrive before each date. Reply once, we track the rest." },
 ];
 
 export const COUNTRIES = [
   { code: "CR", name: "Costa Rica", note: "Residency renewals, CCSS, municipal property tax" },
   { code: "PA", name: "Panama", note: "Corporate annual fees, registered agent duties" },
   { code: "MX", name: "Mexico", note: "SAT filings, temporary residency timelines" },
-  { code: "ES", name: "Spain", note: "Modelo 720, NIE and residency card renewals" },
-  { code: "PT", name: "Portugal", note: "NIF obligations, D7 and golden visa renewals" },
 ];
 
 export const QUOTES = [
   {
-    quote: "I nearly missed a corporate filing that would have cost more than the filing itself. The alert came three weeks out.",
+    quote: "I finally have one place where my residency, taxes, and company filings all live together.",
     name: "Mariana Solís",
     role: "Runs two companies in Costa Rica",
   },
   {
-    quote: "The alert pointed to the exact obligation and the next step. I stopped digging through government sites.",
+    quote: "The reminders are calm and clear. I stopped digging through government sites.",
     name: "Tomás Herrera",
     role: "Moved to Panama in 2024",
   },
   {
-    quote: "My residency renewals run on their own now. When I said I needed help, a lawyer called the same week.",
+    quote: "When I had a real question, a lawyer who understood my situation called the same week.",
     name: "Elena Varela",
-    role: "Dual citizen, Spain",
+    role: "Living in Mexico",
   },
 ];
 
@@ -83,7 +82,7 @@ export const PLANS = [
     name: "Free",
     price: "$0",
     perDay: "Free forever",
-    features: ["One country", "Core obligation alerts", "Email reminders"],
+    features: ["One country", "Core obligation reminders", "Email updates"],
     cta: "Start free",
     topic: "Free plan",
     hero: false,
@@ -93,7 +92,7 @@ export const PLANS = [
     price: "$168",
     perDay: "$14 a month, about 46¢ a day, billed yearly",
     features: [
-      "All five countries",
+      "All three countries",
       "Every obligation category",
       "Advance + deadline-day reminders",
       "Full template library",
@@ -121,14 +120,14 @@ export const FAQ = [
   },
   {
     q: "How do you know my deadlines?",
-    a: "You tell us your country and situation. Local lawyers maintain the rules that map your profile to the obligations that apply.",
+    a: "You tell us your country and situation. Local professionals maintain the rules that map your profile to the obligations that apply.",
   },
   {
     q: "Is the free plan really free?",
-    a: "Yes. One country, core alerts, and email reminders, with no card. Pro adds every country and the full template library.",
+    a: "Yes. One country, core reminders, and email updates, with no card. Pro adds every country and the full template library.",
   },
   {
     q: "Is this legal advice?",
-    a: "No. ILP surfaces deadlines and connects you with vetted lawyers when you need advice. The judgment stays with the lawyer.",
+    a: "No. ILP organizes your obligations and connects you with vetted professionals when you need advice. The judgment stays with the lawyer.",
   },
 ];

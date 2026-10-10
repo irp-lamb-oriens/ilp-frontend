@@ -1,11 +1,8 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
-$ink-deep: #0f1720;
-
 .wrap { @include container; }
 .head { @include section-head; margin-bottom: $space-16; }
-.eyebrow { @include eyebrow; color: #6ee7b7; margin: 0; }
 .eyebrowLight { @include eyebrow; margin: 0; }
 .headingXl { margin: 0; font-size: clamp(2.25rem, 5vw, 3.75rem); letter-spacing: -0.035em; line-height: 1.05; }
 .sub { color: $color-steel; font-size: 1.1rem; margin: 0; max-width: 44ch; }
@@ -15,12 +12,9 @@ $ink-deep: #0f1720;
   &:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
-.dark {
-  background: $ink-deep;
-  color: #f9fafb;
+.light {
+  background: $color-mist;
   padding-block: clamp(5rem, 12vh, 9rem);
-
-  .headingXl { color: #fff; }
 }
 
 .apply { padding-block: clamp(5rem, 12vh, 9rem); }

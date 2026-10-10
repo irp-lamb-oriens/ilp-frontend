@@ -1,7 +1,6 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
-$ink-deep: #0f1720;
 $ease: cubic-bezier(0.16, 1, 0.3, 1);
 
 .wrap { @include container; }
@@ -15,21 +14,21 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .ghost { @include button-ghost; padding: $space-4 $space-8; }
 
 /* ── Trust strip ───────────────────────────────── */
-.trustBar { background: $ink-deep; color: #f9fafb; }
+.trustBar { background: $color-mist; }
 .trustInner { @include container; padding-block: $space-8; }
 .trustStats {
   display: grid; gap: $space-6; grid-template-columns: 1fr;
   @include md { grid-template-columns: 1.2fr 1fr 1fr; }
 }
-.stat { display: flex; flex-direction: column; gap: $space-1; padding-inline-start: $space-4; border-left: 1px solid rgba(255, 255, 255, 0.14); }
-.statValue { font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 700; letter-spacing: -0.02em; }
-.statLabel { color: rgba(255, 255, 255, 0.62); font-size: 0.875rem; }
+.stat { display: flex; flex-direction: column; gap: $space-1; padding-inline-start: $space-4; border-left: 2px solid $color-accent; }
+.statValue { font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 700; letter-spacing: -0.02em; color: $color-navy; }
+.statLabel { color: $color-steel; font-size: 0.875rem; }
 
 /* ── Costs: pinned morph stage ─────────────────── */
-.costs { background: $ink-deep; color: #f9fafb; }
+.costs { background: $color-mist; }
 .costsStage { padding: $space-16 $space-4; }
 .costsKicker {
-  @include eyebrow; color: #6ee7b7; position: absolute; top: calc(64px + #{$space-8});
+  @include eyebrow; position: absolute; top: calc(64px + #{$space-8});
   left: 50%; transform: translateX(-50%); margin: 0; white-space: nowrap;
 }
 .costsLayer { position: relative; width: min(1200px, 100%); min-height: 60dvh; }
@@ -37,17 +36,17 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .costStatic { display: grid; gap: $space-6; padding: $space-8 $space-4; }
 .costFigure {
   font-size: clamp(5rem, 19vw, 16rem); font-weight: 800; letter-spacing: -0.06em;
-  line-height: 0.85; color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.85);
+  line-height: 0.85; color: transparent; -webkit-text-stroke: 1.5px $color-navy;
 }
 .costText {
   justify-self: end; max-width: 420px; text-align: right;
-  h3 { font-size: clamp(1.5rem, 2.5vw, 2rem); margin: 0 0 $space-3; color: #fff; }
-  p { color: rgba(255, 255, 255, 0.72); margin: 0 0 0 auto; }
+  h3 { font-size: clamp(1.5rem, 2.5vw, 2rem); margin: 0 0 $space-3; color: $color-navy; }
+  p { color: $color-steel; margin: 0 0 0 auto; }
 }
 .costTextLeft { justify-self: start; text-align: left; p { margin: 0; } }
 .rail {
   position: absolute; bottom: $space-8; left: 50%; transform: translateX(-50%);
-  width: min(320px, 60vw); height: 2px; background: rgba(255, 255, 255, 0.14); border-radius: 2px; overflow: hidden;
+  width: min(320px, 60vw); height: 2px; background: $color-cool-gray; border-radius: 2px; overflow: hidden;
 }
 .railFill { width: 100%; height: 100%; background: $color-accent; transform-origin: left; }
 
@@ -126,7 +125,7 @@ a.coverageName:hover { color: $color-accent; }
 }
 .attribution { display: flex; align-items: center; gap: $space-3; }
 .avatar {
-  width: 44px; height: 44px; border-radius: 14px; background: $ink-deep; color: #6ee7b7;
+  width: 44px; height: 44px; border-radius: 14px; background: $color-navy; color: $color-accent;
   display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;
 }
 .attributionName { font-weight: 600; font-size: 0.95rem; }
@@ -139,13 +138,15 @@ a.coverageName:hover { color: $color-accent; }
 }
 .plan { @include card; position: relative; padding: clamp(1.75rem, 3vw, 2.5rem); display: flex; flex-direction: column; gap: $space-6; }
 .planHero {
-  background: $ink-deep; color: #f9fafb; border: 1px solid rgba(16, 185, 129, 0.5);
+  background: $color-navy; color: #ffffff; border: 1px solid $color-navy;
   @include md { padding-block: clamp(2.5rem, 4vw, 3.5rem); }
-  .planPerDay, .planFeatures li { color: rgba(255, 255, 255, 0.72); }
+  .planPerDay, .planFeatures li { color: rgba(255, 255, 255, 0.78); }
+  .planName { color: #ffffff; }
+  .planPrice { color: #ffffff; }
 }
 .planFlag {
   @include eyebrow; position: absolute; top: $space-6; right: $space-6;
-  padding: $space-1 $space-3; border-radius: $radius-pill; background: rgba(16, 185, 129, 0.16); color: #6ee7b7;
+  padding: $space-1 $space-3; border-radius: $radius-pill; background: $color-accent; color: $color-navy;
 }
 .planName { font-size: 1.25rem; font-weight: 700; }
 .planPrice { font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
@@ -173,39 +174,31 @@ a.coverageName:hover { color: $color-accent; }
 .faqIconOpen { transform: rotate(45deg); color: $color-accent; }
 .faqAnswer { padding: 0 $space-1 $space-6; color: $color-steel; margin: 0; max-width: 60ch; }
 
-/* ── Final CTA: glass over a legal photo ───────── */
+/* ── Final CTA: calm, light close ──────────────── */
 .finalCta {
-  position: relative; isolation: isolate; overflow: hidden;
-  background-size: cover; background-position: center; background-attachment: scroll;
-  padding-block: clamp(6rem, 16vh, 10rem);
+  background: $color-mist;
+  padding-block: clamp(5rem, 12vh, 8rem);
 }
-.finalScrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10, 14, 20, 0.55), rgba(10, 14, 20, 0.82)); }
 .finalGlass {
-  max-width: 760px; margin-inline: auto; text-align: center; color: #f9fafb;
-  padding: clamp(2rem, 5vw, 3.5rem); border-radius: 28px;
-  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(20px) saturate(170%); -webkit-backdrop-filter: blur(20px) saturate(170%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 30px 80px rgba(0, 0, 0, 0.35);
+  max-width: 760px; margin-inline: auto; text-align: center;
+  padding: clamp(2rem, 5vw, 3.5rem); border-radius: $radius-lg;
+  background: $color-surface; border: 1px solid $color-hairline;
 }
-.finalKicker { @include eyebrow; color: #6ee7b7; margin: 0 0 $space-6; }
-.finalTitle { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; color: #fff; margin: 0 0 $space-6; }
-.finalSub { color: rgba(255, 255, 255, 0.8); margin: 0 auto $space-8; }
+.finalKicker { @include eyebrow; margin: 0 0 $space-6; }
+.finalTitle { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; color: $color-navy; margin: 0 0 $space-6; }
+.finalSub { color: $color-steel; margin: 0 auto $space-8; }
 .finalChips { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-3; margin-bottom: $space-6; }
 .chip {
   @include press; padding: $space-3 $space-6; border-radius: $radius-pill; cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.06);
-  color: #fff; font-weight: 600; font-size: 0.95rem;
+  border: 1px solid $color-hairline; background: $color-surface;
+  color: $color-navy; font-weight: 600; font-size: 0.95rem;
   transition: background 300ms $ease, border-color 300ms $ease, transform 160ms $ease;
-  &:hover { background: $color-accent; border-color: $color-accent; }
+  &:hover { background: $color-accent; border-color: $color-accent; color: $color-navy; }
 }
-.finalHint { color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; margin: 0 auto; }
-
-@media (prefers-reduced-transparency: reduce) {
-  .finalGlass { background: rgba(15, 23, 32, 0.94); backdrop-filter: none; -webkit-backdrop-filter: none; }
-}
+.finalHint { color: $color-steel; font-size: 0.85rem; margin: 0 auto; }
 
 /* ── Footer ────────────────────────────────────── */
 .footer {
-  background: $ink-deep; color: rgba(255, 255, 255, 0.6); padding-block: $space-8;
+  background: $color-navy; color: rgba(255, 255, 255, 0.8); padding-block: $space-8;
   p { font-size: 0.85rem; margin: 0; }
 }

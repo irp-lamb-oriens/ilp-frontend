@@ -1,12 +1,10 @@
 @use "../styles/variables" as *;
 @use "../styles/mixins" as *;
 
-$ink-deep: #0f1720;
-
 .wrap { @include container; }
 .section { @include section; }
 .sectionHead { @include section-head; margin-bottom: $space-12; }
-.eyebrow { @include eyebrow; color: #6ee7b7; margin: 0 0 $space-4; }
+.eyebrow { @include eyebrow; margin: 0 0 $space-4; }
 .eyebrowDark { @include eyebrow; margin: 0; }
 .headingXl { margin: 0; font-size: clamp(2.25rem, 5vw, 3.75rem); letter-spacing: -0.035em; line-height: 1.05; }
 .primary { @include button-primary; padding: $space-4 $space-8; }
@@ -14,44 +12,42 @@ $ink-deep: #0f1720;
 /* ── Hero ───────────────────────────────────────── */
 .hero {
   position: relative; isolation: isolate; overflow: hidden;
-  min-height: 88dvh; display: flex; align-items: center; background: $ink-deep;
+  min-height: 70dvh; display: flex; align-items: center; background: $color-mist;
 }
 .heroBg { position: absolute; inset: 0; z-index: -2; background-size: cover; background-position: center; }
 .heroScrim {
   position: absolute; inset: 0; z-index: -1;
-  background: linear-gradient(95deg, rgba(10, 14, 20, 0.78) 0%, rgba(10, 14, 20, 0.2) 70%);
+  background: linear-gradient(95deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.55) 70%);
 }
 .heroRight .heroScrim {
-  background: linear-gradient(265deg, rgba(10, 14, 20, 0.78) 0%, rgba(10, 14, 20, 0.2) 70%);
+  background: linear-gradient(265deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.55) 70%);
 }
 .heroInner { @include container; width: 100%; display: flex; padding-block: calc(64px + #{$space-12}) $space-16; }
 .heroRight .heroInner { justify-content: flex-end; }
 .heroGlass {
-  max-width: 620px; color: #f9fafb;
-  padding: clamp(1.75rem, 4vw, 3rem); border-radius: 24px;
-  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(18px) saturate(170%); -webkit-backdrop-filter: blur(18px) saturate(170%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36), 0 24px 70px rgba(0, 0, 0, 0.32);
+  max-width: 620px;
+  padding: clamp(1.75rem, 4vw, 3rem); border-radius: $radius-lg;
+  background: $color-surface; border: 1px solid $color-hairline;
 }
-.headline { font-size: clamp(2.25rem, 5.5vw, 4.25rem); letter-spacing: -0.04em; line-height: 1.02; color: #fff; margin: 0 0 $space-6; }
-.sub { color: rgba(255, 255, 255, 0.84); font-size: 1.1rem; line-height: 1.6; margin: 0 0 $space-8; }
+.headline { font-size: clamp(2.25rem, 5.5vw, 4.25rem); letter-spacing: -0.04em; line-height: 1.02; color: $color-navy; margin: 0 0 $space-6; }
+.sub { color: $color-steel; font-size: 1.1rem; line-height: 1.6; margin: 0 0 $space-8; }
 
 /* ── Pinned obligations (Panama) ────────────────── */
-.pinned { background: $ink-deep; color: #f9fafb; }
+.pinned { background: $color-mist; }
 .pinnedInner { @include container; width: 100%; display: grid; gap: $space-8; padding-block: calc(64px + #{$space-8}) $space-12; }
-.pinnedKicker { @include eyebrow; color: #6ee7b7; margin: 0; }
+.pinnedKicker { @include eyebrow; margin: 0; }
 .pinnedLayer { position: relative; min-height: 52dvh; }
 .pinnedStatic { display: grid; gap: $space-6; }
 .pinnedCard, .pinnedCardStatic {
   max-width: 760px;
-  padding: clamp(2rem, 5vw, 3.5rem); border-radius: 24px;
-  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12);
-  h3 { font-size: clamp(2rem, 4.5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; margin: $space-4 0 $space-4; color: #fff; }
-  p { color: rgba(255, 255, 255, 0.72); font-size: 1.1rem; margin: 0; }
+  padding: clamp(2rem, 5vw, 3.5rem); border-radius: $radius-lg;
+  background: $color-surface; border: 1px solid $color-hairline;
+  h3 { font-size: clamp(2rem, 4.5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; margin: $space-4 0 $space-4; color: $color-navy; }
+  p { color: $color-steel; font-size: 1.1rem; margin: 0; }
 }
 .pinnedCard { position: absolute; inset: 0 auto auto 0; width: 100%; }
 .pinnedCard:nth-child(even) { left: auto; right: 0; }
-.pinnedIndex { font-family: $font-mono; font-size: 0.85rem; color: #6ee7b7; }
+.pinnedIndex { font-family: $font-mono; font-size: 0.85rem; color: $color-accent; }
 
 /* ── Updates ────────────────────────────────────── */
 .updatesList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: $space-3; }
@@ -68,7 +64,3 @@ $ink-deep: #0f1720;
 .closeInner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: $space-6; }
 .closeTitle { margin: 0; font-size: clamp(2rem, 4.5vw, 3.25rem); letter-spacing: -0.035em; line-height: 1.05; max-width: 20ch; }
 .closeHint { color: $color-steel; font-size: 0.9rem; margin: 0; }
-
-@media (prefers-reduced-transparency: reduce) {
-  .heroGlass { background: rgba(15, 23, 32, 0.94); backdrop-filter: none; -webkit-backdrop-filter: none; }
-}

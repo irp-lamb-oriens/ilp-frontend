@@ -31,11 +31,11 @@ export default function HomePage() {
         <CostsMorph />
 
         <ParallaxBand
-          image={IMG.justice}
-          alt="Lady Justice statue holding scales"
-          eyebrow="The stakes"
-          title="A missed deadline is never a surprise to the state."
-          body="Late fees, lapsed permits, and compound interest all start the same way: no reminder and no plan. ILP makes sure you see each one coming."
+          image={IMG.people}
+          alt="People in a meeting reviewing documents"
+          eyebrow="Clarity"
+          title="Know what applies to you, before it matters."
+          body="Your profile maps the obligations that touch your life abroad, so nothing is a surprise. Ask before you act."
           align="left"
         />
 
@@ -43,11 +43,11 @@ export default function HomePage() {
         <StepsPan />
 
         <ParallaxBand
-          image={IMG.scales}
-          alt="Scales of justice on a lawyer's desk"
+          image={IMG.workspace}
+          alt="A clean, modern workspace"
           eyebrow="Vetted partners"
-          title="Legal judgment when you need it. Reminders when you do not."
-          body="Lawyers in each country maintain the rules. When an alert needs a human, book a partner vetted for your specialty and language."
+          title="Real professionals, when you need them."
+          body="Local professionals maintain the rules in each country. When a decision needs judgment, book a partner matched to your situation and language."
           align="right"
         />
 
@@ -59,7 +59,7 @@ export default function HomePage() {
 
         <footer className={s.footer}>
           <div className={s.wrap}>
-            <p>International Legal Partner. Compliance reminders, not legal advice.</p>
+            <p>International Legal Partner. Trusted legal support for your life abroad.</p>
           </div>
         </footer>
       </main>

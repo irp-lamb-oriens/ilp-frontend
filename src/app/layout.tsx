@@ -6,7 +6,10 @@ import "@/styles/global.scss";
 export const metadata: Metadata = {
   title: "International Legal Partner",
   description:
-    "Smart Compliance Alerts, legal updates, templates, and consultations across Costa Rica, Panama, and beyond.",
+    "Trusted legal support for your life abroad. Clear, calm guidance for living, investing, and doing business in Costa Rica, Panama, and Mexico.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

@@ -16,9 +16,24 @@
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.logo {
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.wordmark {
+  @media (max-width: 480px) {
+    display: none;
+  }
 }
 
 .links {

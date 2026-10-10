@@ -1,32 +1,38 @@
-// ILP design tokens. Single source of truth for color, spacing, radii.
-// Based on the LexCorpJuriCenter token pattern, adapted to the ILP brand.
+// ILP design tokens — International Legal Partner brand book v1.0.
+// "Less color. More clarity. More trust."
 
-// Neutrals (Zinc family — one consistent cool-neutral base)
-$color-canvas: #f9fafb;
+// Brand palette
+$color-accent: #5cccf7; // ILP Light Blue — CTAs, accents, status
+$color-navy: #123b5d; // Deep Navy — headlines, section titles, formal info
+$color-charcoal: #202a33; // Charcoal — primary body text
+$color-canvas: #ffffff; // White — dominant canvas
+$color-mist: #eff7fb; // Mist — secondary background tint
+$color-cool-gray: #d9e1e6; // Cool Gray — supporting neutral
+
+// Functional aliases (kept so existing components keep working)
 $color-surface: #ffffff;
-$color-ink: #18181b;
-$color-steel: #71717a;
-$color-muted: #94a3b8;
-$color-hairline: rgba(226, 232, 240, 0.6);
+$color-ink: $color-charcoal;
+$color-steel: #4a5a66; // readable secondary text on white
+$color-muted: #7a8a96;
+$color-hairline: rgba(18, 59, 93, 0.14);
 
-// Single accent (Emerald Signal)
-$color-accent: #10b981;
-$color-accent-ink: #ffffff;
-$color-accent-soft: #ecfdf5;
+// Accent ink: navy reads best on the light-blue field
+$color-accent-ink: #123b5d;
+$color-accent-soft: #eaf7fd;
 
 // Semantic
-$color-error: #e11d48;
-$color-warning: #f59e0b;
-$color-success: #10b981;
+$color-error: #c0392b;
+$color-warning: #b7791f;
+$color-success: #1f7a5c;
 
-// Radius scale
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
+// Radius scale (flat, restrained)
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
 $radius-pill: 999px;
 
-// Shadow
-$shadow-card: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+// Shadow — minimal, per "avoid drop shadows / clutter"
+$shadow-card: 0 1px 2px rgba(18, 59, 93, 0.06);
 
 // Spacing scale
 $space-1: 0.25rem;
@@ -44,7 +50,6 @@ $bp-md: 768px;
 $bp-lg: 1024px;
 $bp-xl: 1280px;
 
-// Type
-$font-sans: "Satoshi", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI",
-  sans-serif;
-$font-mono: "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
+// Type — Helvetica Neue / Arial-style system stack
+$font-sans: "Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif;
+$font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;

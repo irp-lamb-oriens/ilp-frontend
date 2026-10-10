@@ -4,15 +4,15 @@ import { Reveal } from "@/components/motion/Motion";
 import s from "./landing.module.scss";
 
 const ITEMS = [
-  { value: "5 countries, one profile", label: "Costa Rica, Panama, Mexico, Spain, Portugal" },
-  { value: "Lawyer-maintained rules", label: "Reviewed by local legal teams" },
+  { value: "Three countries, one profile", label: "Costa Rica, Panama, and Mexico" },
+  { value: "Professionally maintained rules", label: "Reviewed by local legal teams" },
   { value: "Before the due date", label: "Advance + deadline-day reminders" },
 ];
 
 /**
- * First beat after the hero: a dark proof strip whose stats stagger up the
+ * First beat after the hero: a light proof strip whose stats stagger up the
  * moment it enters, so there is no empty scroll between the hero and the
- * signature morph. Uses a gentle reduce delay on mobile.
+ * signature morph.
  */
 export default function TrustStrip() {
   return (

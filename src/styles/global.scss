@@ -29,6 +29,7 @@ h2,
 h3 {
   line-height: 1.1;
   letter-spacing: -0.02em;
+  color: $color-navy;
 }
 
 p {
@@ -43,8 +44,8 @@ textarea {
 }
 
 ::selection {
-  background: rgba(16, 185, 129, 0.24);
-  color: $color-ink;
+  background: rgba(92, 204, 247, 0.32);
+  color: $color-navy;
 }
 
 :focus-visible {

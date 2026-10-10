@@ -5,11 +5,15 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Reveal, RevealTitle, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
-import { COUNTRIES, QUOTES, PLANS, FAQ, IMG } from "./content";
+import { COUNTRIES, QUOTES, PLANS, FAQ } from "./content";
 import s from "./landing.module.scss";
 
 const ALIGN = ["alignStart", "alignEnd", "alignCenter"] as const;
-const COUNTRY_PAGES: Record<string, string> = { CR: "/costa-rica", PA: "/panama" };
+const COUNTRY_PAGES: Record<string, string> = {
+  CR: "/costa-rica",
+  PA: "/panama",
+  MX: "/mexico",
+};
 
 /**
  * Gutenberg coverage: each country row takes the justification opposite to
@@ -20,7 +24,7 @@ export function CoverageGutenberg() {
     <section className={`${s.wrap} ${s.section}`}>
       <div className={s.sectionHead}>
         <p className={s.eyebrow}>Coverage</p>
-        <RevealTitle text="Five countries. One set of eyes on every deadline." className={s.headingXl} />
+        <RevealTitle text="Three countries. One set of eyes on every deadline." className={s.headingXl} />
       </div>
       <ul className={s.coverage}>
         {COUNTRIES.map((c, i) => {
@@ -80,7 +84,7 @@ export function Pricing() {
     <section className={`${s.wrap} ${s.section}`} id="pricing">
       <div className={`${s.sectionHead} ${s.centerHead}`}>
         <p className={s.eyebrow}>Pricing</p>
-        <RevealTitle text="One late fee costs more than a year of Pro." className={s.headingXl} />
+        <RevealTitle text="Start free. Upgrade when you need more." className={s.headingXl} />
       </div>
       <div className={s.pricingGrid}>
         {PLANS.map((p, i) => (
@@ -155,12 +159,11 @@ export function FaqSplit() {
 /** Final CTA: the visitor picks their country and the form opens pre-filled. */
 export function FinalCta() {
   return (
-    <section className={s.finalCta} style={{ backgroundImage: `url("${IMG.documents}")` }}>
-      <div className={s.finalScrim} aria-hidden="true" />
+    <section className={s.finalCta}>
       <div className={s.wrap}>
         <Reveal className={s.finalGlass}>
-          <p className={s.finalKicker}>Your next deadline is already on a calendar</p>
-          <RevealTitle text="Find out what you owe before it costs you." className={s.finalTitle} />
+          <p className={s.finalKicker}>Trusted legal support for your life abroad</p>
+          <RevealTitle text="Your legal life abroad, organized." className={s.finalTitle} />
           <p className={s.finalSub}>Pick your country. We open your free check with it already selected.</p>
           <div className={s.finalChips}>
             {COUNTRIES.map((c) => (
