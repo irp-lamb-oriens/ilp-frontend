@@ -53,12 +53,12 @@ export default function HeroCTA() {
               <button
                 type="button"
                 className={styles.primary}
-                onClick={() => openLeadForm({ topic: "Free compliance check" })}
+                onClick={() => openLeadForm({ topic: "Membership plan" })}
               >
-                Start free
+                Become a member
               </button>
               <a href="#pricing" className={styles.secondary}>
-                See plans
+                See what is included
               </a>
             </div>
           </Reveal>

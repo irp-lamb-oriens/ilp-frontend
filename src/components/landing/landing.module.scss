@@ -131,36 +131,53 @@ a.coverageName:hover { color: $color-accent; }
 .attributionName { font-weight: 600; font-size: 0.95rem; }
 .attributionRole { color: $color-steel; font-size: 0.85rem; }
 
-/* ── Pricing ───────────────────────────────────── */
-.pricingGrid {
-  display: grid; grid-template-columns: 1fr; gap: $space-6; align-items: stretch;
-  @include md { grid-template-columns: 1fr 1.15fr 1fr; align-items: center; }
+/* ── Membership pricing ────────────────────────── */
+.membershipCard {
+  @include card;
+  max-width: 720px;
+  margin-inline: auto;
+  padding: clamp(2rem, 5vw, 3.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  border-top: 4px solid $color-accent;
 }
-.plan { @include card; position: relative; padding: clamp(1.75rem, 3vw, 2.5rem); display: flex; flex-direction: column; gap: $space-6; }
-.planHero {
-  background: $color-navy; color: #ffffff; border: 1px solid $color-navy;
-  @include md { padding-block: clamp(2.5rem, 4vw, 3.5rem); }
-  .planPerDay, .planFeatures li { color: rgba(255, 255, 255, 0.78); }
-  .planName { color: #ffffff; }
-  .planPrice { color: #ffffff; }
+.membershipHead {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-6;
+
+  @include md { grid-template-columns: 1fr 1fr; align-items: start; }
 }
-.planFlag {
-  @include eyebrow; position: absolute; top: $space-6; right: $space-6;
-  padding: $space-1 $space-3; border-radius: $radius-pill; background: $color-accent; color: $color-navy;
+.planName { font-size: 1.25rem; font-weight: 700; color: $color-navy; }
+.planPrice { font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: $color-navy; }
+.planUnit { font-size: 1.1rem; font-weight: 500; letter-spacing: 0; color: $color-steel; }
+.planPerDay { color: $color-steel; font-size: 0.9rem; margin-top: $space-2; }
+.allowance {
+  display: flex; flex-direction: column; gap: $space-2;
+  padding: $space-4; border-radius: $radius-md; background: $color-mist;
+  strong { color: $color-navy; font-size: 1rem; }
+  span { color: $color-steel; font-size: 0.9rem; }
 }
-.planName { font-size: 1.25rem; font-weight: 700; }
-.planPrice { font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
-.planUnit { font-size: 1rem; font-weight: 500; letter-spacing: 0; opacity: 0.7; }
-.planPerDay { color: $color-steel; font-size: 0.875rem; margin-top: $space-2; }
 .planFeatures {
-  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: $space-3; flex: 1;
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: $space-3;
   li {
     color: $color-steel; font-size: 0.95rem; padding-inline-start: $space-6; position: relative;
     &::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 10px; height: 6px;
       border-left: 2px solid $color-accent; border-bottom: 2px solid $color-accent; transform: rotate(-45deg); }
   }
 }
-.plan button { align-self: stretch; }
+.membershipCard button { align-self: flex-start; }
+
+.addons {
+  display: grid; grid-template-columns: 1fr; gap: $space-4; margin-top: $space-8;
+  @include md { grid-template-columns: 1fr 1fr; }
+}
+.addon {
+  @include card; padding: $space-6;
+  h3 { font-size: 1.1rem; margin: 0 0 $space-2; color: $color-navy; }
+  p { color: $color-steel; font-size: 0.9rem; margin: 0; }
+}
 
 /* ── FAQ ───────────────────────────────────────── */
 .faqList { border-top: 1px solid $color-hairline; }

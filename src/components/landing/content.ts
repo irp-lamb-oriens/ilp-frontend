@@ -77,39 +77,34 @@ export const QUOTES = [
   },
 ];
 
-export const PLANS = [
+export const MEMBERSHIP = {
+  name: "Membership",
+  price: "$79.99",
+  unit: "/ month",
+  activation: "$100 one-time activation",
+  allowance: "Up to 60 minutes of consultations a month",
+  allowanceDetail: "Up to 3 consultations, 20 minutes each. Unused minutes do not roll over.",
+  features: [
+    "1-on-1 consultations with vetted local attorneys",
+    "Living client legal profile and document vault",
+    "Dedicated Customer Success Manager",
+    "Transcribed history and AI summaries",
+    "Automated compliance reminders",
+    "Multi-specialty routing across five practice areas",
+    "Up to $100,000 professional liability protection",
+  ],
+  cta: "Become a member",
+  topic: "Membership plan",
+};
+
+export const ADDONS = [
   {
-    name: "Free",
-    price: "$0",
-    perDay: "Free forever",
-    features: ["One country", "Core obligation reminders", "Email updates"],
-    cta: "Start free",
-    topic: "Free plan",
-    hero: false,
+    title: "Rush / same-day consultations",
+    body: "Available on demand when a suitable specialist is free. An additional fee may apply.",
   },
   {
-    name: "Pro",
-    price: "$168",
-    perDay: "$14 a month, about 46¢ a day, billed yearly",
-    features: [
-      "All three countries",
-      "Every obligation category",
-      "Advance + deadline-day reminders",
-      "Full template library",
-      "Priority support",
-    ],
-    cta: "Get Pro",
-    topic: "Pro plan",
-    hero: true,
-  },
-  {
-    name: "Concierge",
-    price: "Custom",
-    perDay: "For families, brokers, and teams",
-    features: ["Everything in Pro", "Vetted lawyer consults", "Written compliance plan"],
-    cta: "Talk to us",
-    topic: "Concierge plan",
-    hero: false,
+    title: "Individualized legal projects",
+    body: "Due diligence, contract drafting, closings, formal opinions, and filings are scoped, quoted, and paid separately.",
   },
 ];
 
@@ -123,11 +118,11 @@ export const FAQ = [
     a: "You tell us your country and situation. Local professionals maintain the rules that map your profile to the obligations that apply.",
   },
   {
-    q: "Is the free plan really free?",
-    a: "Yes. One country, core reminders, and email updates, with no card. Pro adds every country and the full template library.",
+    q: "What does membership include?",
+    a: "Up to 60 minutes of consultations a month, a living legal profile and document vault, a dedicated CSM, transcribed history, automated reminders, and multi-specialty routing.",
   },
   {
     q: "Is this legal advice?",
-    a: "No. ILP organizes your obligations and connects you with vetted professionals when you need advice. The judgment stays with the lawyer.",
+    a: "Membership covers technical explanations and issue identification. Specific legal work is scoped, quoted, and paid separately. The judgment stays with the lawyer.",
   },
 ];

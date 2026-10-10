@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Reveal, RevealTitle, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
-import { COUNTRIES, QUOTES, PLANS, FAQ } from "./content";
+import { COUNTRIES, QUOTES, MEMBERSHIP, ADDONS, FAQ } from "./content";
 import s from "./landing.module.scss";
 
 const ALIGN = ["alignStart", "alignEnd", "alignCenter"] as const;
@@ -78,36 +78,49 @@ export function QuotesWall() {
   );
 }
 
-/** Anchored pricing: the recommended plan sits in the middle, raised. */
+/** Membership pricing: one plan, clearly stated, with add-ons below. */
 export function Pricing() {
   return (
     <section className={`${s.wrap} ${s.section}`} id="pricing">
       <div className={`${s.sectionHead} ${s.centerHead}`}>
-        <p className={s.eyebrow}>Pricing</p>
-        <RevealTitle text="Start free. Upgrade when you need more." className={s.headingXl} />
+        <p className={s.eyebrow}>Membership</p>
+        <RevealTitle text="One plan. Real professionals. Ongoing support." className={s.headingXl} />
       </div>
-      <div className={s.pricingGrid}>
-        {PLANS.map((p, i) => (
-          <Reveal key={p.name} delay={i * 0.1} className={p.hero ? `${s.plan} ${s.planHero}` : s.plan}>
-            {p.hero && <span className={s.planFlag}>Most chosen</span>}
-            <div className={s.planName}>{p.name}</div>
-            <div>
-              <div className={s.planPrice}>
-                {p.price}
-                {p.hero && <span className={s.planUnit}> / year</span>}
-              </div>
-              <div className={s.planPerDay}>{p.perDay}</div>
+
+      <Reveal className={s.membershipCard}>
+        <div className={s.membershipHead}>
+          <div>
+            <div className={s.planName}>{MEMBERSHIP.name}</div>
+            <div className={s.planPrice}>
+              {MEMBERSHIP.price}
+              <span className={s.planUnit}>{MEMBERSHIP.unit}</span>
             </div>
-            <ul className={s.planFeatures}>
-              {p.features.map((f) => <li key={f}>{f}</li>)}
-            </ul>
-            <button
-              type="button"
-              className={p.hero ? s.primary : s.ghost}
-              onClick={() => openLeadForm({ topic: p.topic })}
-            >
-              {p.cta}
-            </button>
+            <div className={s.planPerDay}>{MEMBERSHIP.activation}</div>
+          </div>
+          <div className={s.allowance}>
+            <strong>{MEMBERSHIP.allowance}</strong>
+            <span>{MEMBERSHIP.allowanceDetail}</span>
+          </div>
+        </div>
+
+        <ul className={s.planFeatures}>
+          {MEMBERSHIP.features.map((f) => <li key={f}>{f}</li>)}
+        </ul>
+
+        <button
+          type="button"
+          className={s.primary}
+          onClick={() => openLeadForm({ topic: MEMBERSHIP.topic })}
+        >
+          {MEMBERSHIP.cta}
+        </button>
+      </Reveal>
+
+      <div className={s.addons}>
+        {ADDONS.map((a, i) => (
+          <Reveal key={a.title} className={s.addon} delay={i * 0.1}>
+            <h3>{a.title}</h3>
+            <p>{a.body}</p>
           </Reveal>
         ))}
       </div>
@@ -164,7 +177,7 @@ export function FinalCta() {
         <Reveal className={s.finalGlass}>
           <p className={s.finalKicker}>Trusted legal support for your life abroad</p>
           <RevealTitle text="Your legal life abroad, organized." className={s.finalTitle} />
-          <p className={s.finalSub}>Pick your country. We open your free check with it already selected.</p>
+          <p className={s.finalSub}>Pick your country. We open your membership check with it already selected.</p>
           <div className={s.finalChips}>
             {COUNTRIES.map((c) => (
               <button
@@ -177,7 +190,7 @@ export function FinalCta() {
               </button>
             ))}
           </div>
-          <p className={s.finalHint}>Free for one country. No card required.</p>
+          <p className={s.finalHint}>$79.99 a month plus a one-time $100 activation.</p>
         </Reveal>
       </div>
     </section>
