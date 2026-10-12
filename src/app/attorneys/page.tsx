@@ -2,22 +2,12 @@
 
 import { useState } from "react";
 import Nav from "@/components/Nav";
-import ParallaxBand from "@/components/ParallaxBand";
-import GutenbergList from "@/components/GutenbergList";
+import ValueChain from "@/components/ValueChain";
 import { Reveal, RevealTitle } from "@/components/motion/Motion";
 import StepForm from "@/components/StepForm";
 import { submitLead } from "@/lib/clientDomain";
+import { openLeadForm } from "@/lib/leadEvents";
 import s from "./page.module.scss";
-
-const IMG = (id: number) =>
-  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=2000`;
-
-const POINTS = [
-  { kicker: "Intake", title: "Clients arrive briefed", body: "Every consultation comes with the client's country, obligation, deadline, and history. No discovery call needed." },
-  { kicker: "Fit", title: "Routed to your specialty", body: "We match by practice area, jurisdiction, and language, so you only see matters you want." },
-  { kicker: "Operations", title: "We handle the follow-up", body: "Reminders, scheduling, and document chasing run on our side. You spend the hour on legal judgment." },
-  { kicker: "Reputation", title: "Quality tracked, not guessed", body: "Response time, punctuality, and client satisfaction are measured and shared with you." },
-];
 
 export default function AttorneysPage() {
   const [name, setName] = useState("");
@@ -61,6 +51,7 @@ export default function AttorneysPage() {
         <>
           <label htmlFor="a-country">Jurisdiction</label>
           <select id="a-country" value={country} onChange={(e) => setCountry(e.target.value)}>
+            <option value="CO">Colombia</option>
             <option value="CR">Costa Rica</option>
             <option value="PA">Panama</option>
             <option value="MX">Mexico</option>
@@ -87,25 +78,76 @@ export default function AttorneysPage() {
     <>
       <Nav />
       <main>
-        <ParallaxBand
-          image={IMG(3184325)}
-          alt="A clean, modern workspace"
-          eyebrow="For attorneys"
-          title="Vetted clients, routed to your specialty."
-          body="Join a managed legal network. ILP handles intake, reminders, and client organization so your time goes to the work only a professional can do."
-          align="left"
-        />
-
-        <section className={s.light}>
-          <div className={s.wrap}>
-            <div className={s.head}>
-              <p className={s.eyebrowLight}>Why partners join</p>
-              <RevealTitle text="Less admin. Better-prepared clients." className={s.headingXl} />
+        {/* Hero: headline + subheading left, CTA right */}
+        <section className={s.hero}>
+          <div className={s.heroGrid}>
+            <div className={s.heroCopy}>
+              <Reveal delay={0.05}>
+                <p className={s.eyebrowLight}>For lawyers</p>
+              </Reveal>
+              <RevealTitle
+                as="h1"
+                text="You should focus on your career."
+                className={s.heroTitle}
+                delay={0.15}
+              />
+              <Reveal delay={0.4}>
+                <p className={s.heroSub}>
+                  We help you bring, organize, retain, reactivate, and nurture
+                  your clients so you can 5x your business.
+                </p>
+              </Reveal>
             </div>
-            <GutenbergList items={POINTS} rhythm="stair" />
+            <Reveal className={s.heroCta} from="right" delay={0.6}>
+              <button
+                type="button"
+                className={s.primary}
+                onClick={() => openLeadForm({ topic: "Attorney application" })}
+              >
+                Join the network
+              </button>
+            </Reveal>
           </div>
         </section>
 
+        {/* Value chain gallery */}
+        <section className={s.chainSection}>
+          <div className={s.wrap}>
+            <div className={s.head}>
+              <p className={s.eyebrowLight}>The lawyer value chain</p>
+              <RevealTitle
+                text="Everything that used to eat your week, handled."
+                className={s.headingXl}
+              />
+            </div>
+            <ValueChain />
+          </div>
+        </section>
+
+        {/* Centered CTA */}
+        <section className={s.ctaSection}>
+          <div className={s.wrap}>
+            <Reveal className={s.ctaInner}>
+              <RevealTitle
+                text="Ready to 5x your practice?"
+                className={s.ctaTitle}
+              />
+              <p className={s.ctaSub}>
+                Join a managed legal network where intake, reminders, and client
+                organization run on our side.
+              </p>
+              <button
+                type="button"
+                className={s.primary}
+                onClick={() => openLeadForm({ topic: "Attorney application" })}
+              >
+                Apply to join
+              </button>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Application form */}
         <section className={s.apply} id="apply">
           <div className={s.applyGrid}>
             <div className={s.applyCopy}>

@@ -6,12 +6,96 @@
 .eyebrowLight { @include eyebrow; margin: 0; }
 .headingXl { margin: 0; font-size: clamp(2.25rem, 5vw, 3.75rem); letter-spacing: -0.035em; line-height: 1.05; }
 .sub { color: $color-steel; font-size: 1.1rem; margin: 0; max-width: 44ch; }
+.primary { @include button-primary; padding: $space-4 $space-8; font-size: 1rem; }
 
-.light {
+/* ── Hero ───────────────────────────────────────── */
+.hero {
+  background: $color-canvas;
+  padding-block: clamp(3rem, 8vh, 6rem);
+}
+
+.heroGrid {
+  @include container;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-12;
+  align-items: center;
+
+  @include lg {
+    grid-template-columns: 1.4fr 1fr;
+    gap: $space-16;
+  }
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  margin: 0;
+  color: $color-navy;
+  max-width: 16ch;
+}
+
+.heroSub {
+  color: $color-steel;
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 44ch;
+  font-weight: 500;
+}
+
+.heroCta {
+  display: flex;
+  justify-content: flex-start;
+
+  @include lg {
+    justify-content: flex-end;
+  }
+}
+
+/* ── Value chain gallery ────────────────────────── */
+.chainSection {
   background: $color-mist;
   padding-block: clamp(5rem, 12vh, 9rem);
 }
 
+/* ── Centered CTA ───────────────────────────────── */
+.ctaSection {
+  background: $color-accent-soft;
+  padding-block: clamp(5rem, 12vh, 8rem);
+}
+
+.ctaInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: $space-6;
+}
+
+.ctaTitle {
+  margin: 0;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: $color-navy;
+}
+
+.ctaSub {
+  color: $color-steel;
+  font-size: 1.1rem;
+  margin: 0;
+  max-width: 52ch;
+}
+
+/* ── Application form ───────────────────────────── */
 .apply { padding-block: clamp(5rem, 12vh, 9rem); }
 
 .applyGrid {
