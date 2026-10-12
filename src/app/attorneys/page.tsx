@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import Nav from "@/components/Nav";
 import ValueChain from "@/components/ValueChain";
 import { Reveal, RevealTitle } from "@/components/motion/Motion";
@@ -9,7 +10,18 @@ import { submitLead } from "@/lib/clientDomain";
 import { openLeadForm } from "@/lib/leadEvents";
 import s from "./page.module.scss";
 
+const HERO_IMAGE =
+  "https://images.pexels.com/photos/8112164/pexels-photo-8112164.jpeg";
+
 export default function AttorneysPage() {
+  const heroRef = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "28%"]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState("CR");
@@ -79,8 +91,15 @@ export default function AttorneysPage() {
       <Nav />
       <main>
         {/* Hero: headline + subheading left, CTA right */}
-        <section className={s.hero}>
-          <div className={s.heroGrid}>
+        <section
+          ref={heroRef}
+          className={s.hero}
+          style={{ backgroundImage: `url("${HERO_IMAGE}")` }}
+        >
+          <motion.div
+            className={s.heroGrid}
+            style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
+          >
             <div className={s.heroCopy}>
               <Reveal delay={0.05}>
                 <p className={s.eyebrowLight}>For lawyers</p>
@@ -94,7 +113,7 @@ export default function AttorneysPage() {
               <Reveal delay={0.4}>
                 <p className={s.heroSub}>
                   We help you bring, organize, retain, reactivate, and nurture
-                  your clients so you can 5x your business.
+                  your clients so you can 5x your career.
                 </p>
               </Reveal>
             </div>
@@ -107,7 +126,7 @@ export default function AttorneysPage() {
                 Join the network
               </button>
             </Reveal>
-          </div>
+          </motion.div>
         </section>
 
         {/* Value chain gallery */}
@@ -116,7 +135,7 @@ export default function AttorneysPage() {
             <div className={s.head}>
               <p className={s.eyebrowLight}>The lawyer value chain</p>
               <RevealTitle
-                text="Everything that used to eat your week, handled."
+                text="Everything that took too much time, handled."
                 className={s.headingXl}
               />
             </div>

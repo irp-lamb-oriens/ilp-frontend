@@ -91,25 +91,87 @@ export const QUOTES = [
   },
 ];
 
-export const MEMBERSHIP = {
-  name: "Membership",
-  price: "$79.99",
-  unit: "/ month",
-  activation: "$100 one-time activation",
-  allowance: "Up to 60 minutes of consultations a month",
-  allowanceDetail: "Up to 3 consultations, 20 minutes each. Unused minutes do not roll over.",
-  features: [
-    "1-on-1 consultations with vetted local attorneys",
-    "Living client legal profile and document vault",
-    "Dedicated Customer Success Manager",
-    "Transcribed history and AI summaries",
-    "Automated compliance reminders",
-    "Multi-specialty routing across five practice areas",
-    "Up to $100,000 professional liability protection",
-  ],
-  cta: "Become a member",
-  topic: "Membership plan",
-};
+export interface Plan {
+  id: string;
+  name: string;
+  tagline: string;
+  price: string;
+  unit: string;
+  activation: string;
+  allowance: string;
+  allowanceDetail: string;
+  features: string[];
+  cta: string;
+  topic: string;
+  highlight?: boolean;
+}
+
+export const PLANS: Plan[] = [
+  {
+    id: "smart-alerts",
+    name: "Smart Alerts",
+    tagline: "Freebie / Lead Magnet",
+    price: "$0",
+    unit: "/ month",
+    activation: "Optional $5/month premium",
+    allowance: "Automated compliance reminders",
+    allowanceDetail: "Calendar alerts, legislative updates, and a basic living legal profile.",
+    features: [
+      "Push notifications and calendar alerts",
+      "Basic living legal profile",
+      "Template library for common contracts",
+      "Legislative change summaries",
+    ],
+    cta: "Start free",
+    topic: "Smart Alerts",
+  },
+  {
+    id: "core-membership",
+    name: "Core Membership",
+    tagline: "Flagship",
+    price: "$79.99",
+    unit: "/ month",
+    activation: "$100 one-time activation",
+    allowance: "Up to 60 minutes of consultations a month",
+    allowanceDetail: "Up to 3 consultations, 20 minutes each. Unused minutes do not roll over.",
+    features: [
+      "Everything in Smart Alerts",
+      "1-on-1 consultations with vetted local attorneys",
+      "Living client legal profile and document vault",
+      "Dedicated Customer Success Manager",
+      "Transcribed history and AI summaries",
+      "Automated compliance reminders",
+      "Multi-specialty routing across five practice areas",
+      "Up to $100,000 professional liability protection",
+    ],
+    cta: "Become a member",
+    topic: "Membership plan",
+    highlight: true,
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise & Business",
+    tagline: "Corporate",
+    price: "$499.99",
+    unit: "/ month",
+    activation: "$150 one-time activation",
+    allowance: "Up to 120 minutes of consultations a month",
+    allowanceDetail: "Priority access and same-day scheduling.",
+    features: [
+      "Everything in Core Membership",
+      "Contract review and due diligence coordination",
+      "Extended and priority consultations",
+      "Multi-entity management (SRL/SA, properties, vehicles)",
+      "Labor and corporate compliance tracking",
+      "Dedicated project management",
+    ],
+    cta: "Contact sales",
+    topic: "Enterprise plan",
+  },
+];
+
+/** Backward-compatible alias: the flagship Core plan. */
+export const MEMBERSHIP = PLANS[1];
 
 export const ADDONS = [
   {

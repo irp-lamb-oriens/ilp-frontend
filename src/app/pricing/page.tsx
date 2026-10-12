@@ -3,17 +3,17 @@
 import Nav from "@/components/Nav";
 import { Reveal, RevealTitle } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
-import { MEMBERSHIP, ADDONS } from "@/components/landing/content";
+import { PLANS, ADDONS } from "@/components/landing/content";
 import s from "@/components/MarketingPage.module.scss";
 
 const FAQ = [
   {
-    q: "What does the $100 activation fee cover?",
+    q: "What does the activation fee cover?",
     a: "Your CSM onboarding, legal profile setup, document intake, and initial account configuration.",
   },
   {
     q: "Do unused consultation minutes roll over?",
-    a: "No. Each month includes up to 60 minutes across up to 3 consultations. Unused minutes do not carry forward.",
+    a: "No. Core Membership includes up to 60 minutes across up to 3 consultations. Enterprise includes up to 120 minutes. Unused minutes do not carry forward.",
   },
   {
     q: "What is not included?",
@@ -29,22 +29,42 @@ export default function PricingPage() {
         <section className={`${s.wrap} ${s.section}`}>
           <div className={`${s.sectionHead} ${s.centerHead}`}>
             <p className={s.eyebrow}>Membership</p>
-            <RevealTitle text="One plan. Real professionals. Ongoing support." className={s.headingXl} />
+            <RevealTitle text="Three plans. Real professionals. Ongoing support." className={s.headingXl} />
           </div>
 
-          <Reveal className={s.callout}>
-            <h3>{MEMBERSHIP.name}</h3>
-            <p>
-              <strong>{MEMBERSHIP.price}{MEMBERSHIP.unit}</strong> plus {MEMBERSHIP.activation}.
-              {` ${MEMBERSHIP.allowance}. ${MEMBERSHIP.allowanceDetail}`}
-            </p>
-          </Reveal>
+          <div className={s.plansGrid}>
+            {PLANS.map((plan, i) => (
+              <Reveal
+                key={plan.id}
+                className={`${s.planCard} ${plan.highlight ? s.planHighlight : ""}`}
+                delay={i * 0.1}
+              >
+                <div className={s.planTagline}>{plan.tagline}</div>
+                <h3 className={s.planName}>{plan.name}</h3>
+                <div className={s.planPrice}>
+                  {plan.price}
+                  <span className={s.planUnit}>{plan.unit}</span>
+                </div>
+                <div className={s.planPerDay}>{plan.activation}</div>
 
-          <div className={s.section}>
-            <h2 className={s.headingLg}>Included</h2>
-            <ul className={s.featureList}>
-              {MEMBERSHIP.features.map((f) => <li key={f}>{f}</li>)}
-            </ul>
+                <div className={s.allowance}>
+                  <strong>{plan.allowance}</strong>
+                  <span>{plan.allowanceDetail}</span>
+                </div>
+
+                <ul className={s.planFeatures}>
+                  {plan.features.map((f) => <li key={f}>{f}</li>)}
+                </ul>
+
+                <button
+                  type="button"
+                  className={plan.highlight ? s.primary : s.ghost}
+                  onClick={() => openLeadForm({ topic: plan.topic })}
+                >
+                  {plan.cta}
+                </button>
+              </Reveal>
+            ))}
           </div>
 
           <div className={s.section}>
@@ -74,9 +94,9 @@ export default function PricingPage() {
           <button
             type="button"
             className={s.primary}
-            onClick={() => openLeadForm({ topic: MEMBERSHIP.topic })}
+            onClick={() => openLeadForm({ topic: PLANS[1].topic })}
           >
-            {MEMBERSHIP.cta}
+            {PLANS[1].cta}
           </button>
         </section>
 

@@ -67,19 +67,16 @@ export default function Nav() {
         <span className={styles.divider} aria-hidden="true" />
 
         {COUNTRIES.map((c) => (
-          <Link key={c.code} href={c.href} className={styles.link}>
+          <Link key={c.code} href={c.href} className={styles.link} aria-label={c.name}>
             <Flag code={c.code} name={c.name} />
-            {c.name}
           </Link>
         ))}
 
         <span className={styles.divider} aria-hidden="true" />
 
         {COMING_SOON.map((c) => (
-          <span key={c.code} className={styles.soon}>
+          <span key={c.code} className={styles.soon} aria-label={`${c.name} (coming soon)`}>
             <Flag code={c.code} name={c.name} />
-            {c.name}
-            <span className={styles.soonBadge}>Soon</span>
           </span>
         ))}
       </div>

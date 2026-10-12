@@ -6,6 +6,9 @@ import { RevealTitle, Reveal } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
 import styles from "./HeroCTA.module.scss";
 
+const HERO_IMAGE =
+  "https://images.pexels.com/photos/4226140/pexels-photo-4226140.jpeg";
+
 const VALUE_STACK = [
   "Living Legal Profile",
   "Better Local Attorneys",
@@ -28,14 +31,18 @@ export default function HeroCTA() {
   const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
 
   return (
-    <section ref={heroRef} className={styles.hero}>
+    <section
+      ref={heroRef}
+      className={styles.hero}
+      style={{ backgroundImage: `url("${HERO_IMAGE}")` }}
+    >
       <motion.div
         className={styles.heroGrid}
         style={reduce ? undefined : { y: copyY }}
       >
         <div className={styles.heroCopy}>
           <Reveal delay={0.05}>
-            <p className={styles.eyebrow}>The ILP operating system</p>
+            <p className={styles.eyebrow}>For You</p>
           </Reveal>
           <RevealTitle
             as="h1"

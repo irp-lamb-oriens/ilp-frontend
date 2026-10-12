@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Reveal, RevealTitle, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
-import { COUNTRIES, QUOTES, MEMBERSHIP, ADDONS, FAQ } from "./content";
+import { COUNTRIES, QUOTES, PLANS, ADDONS, FAQ } from "./content";
 import s from "./landing.module.scss";
 
 const ALIGN = ["alignStart", "alignEnd", "alignCenter"] as const;
@@ -78,43 +78,49 @@ export function QuotesWall() {
   );
 }
 
-/** Membership pricing: one plan, clearly stated, with add-ons below. */
+/** Membership pricing: three tiers, flagship highlighted, with add-ons below. */
 export function Pricing() {
   return (
     <section className={`${s.wrap} ${s.section}`} id="pricing">
       <div className={`${s.sectionHead} ${s.centerHead}`}>
         <p className={s.eyebrow}>Membership</p>
-        <RevealTitle text="One plan. Real professionals. Ongoing support." className={s.headingXl} />
+        <RevealTitle text="Three plans. Real professionals. Ongoing support." className={s.headingXl} />
       </div>
 
-      <Reveal className={s.membershipCard}>
-        <div className={s.membershipHead}>
-          <div>
-            <div className={s.planName}>{MEMBERSHIP.name}</div>
+      <div className={s.plansGrid}>
+        {PLANS.map((plan, i) => (
+          <Reveal
+            key={plan.id}
+            className={`${s.planCard} ${plan.highlight ? s.planHighlight : ""}`}
+            delay={i * 0.1}
+          >
+            <div className={s.planTagline}>{plan.tagline}</div>
+            <div className={s.planName}>{plan.name}</div>
             <div className={s.planPrice}>
-              {MEMBERSHIP.price}
-              <span className={s.planUnit}>{MEMBERSHIP.unit}</span>
+              {plan.price}
+              <span className={s.planUnit}>{plan.unit}</span>
             </div>
-            <div className={s.planPerDay}>{MEMBERSHIP.activation}</div>
-          </div>
-          <div className={s.allowance}>
-            <strong>{MEMBERSHIP.allowance}</strong>
-            <span>{MEMBERSHIP.allowanceDetail}</span>
-          </div>
-        </div>
+            <div className={s.planPerDay}>{plan.activation}</div>
 
-        <ul className={s.planFeatures}>
-          {MEMBERSHIP.features.map((f) => <li key={f}>{f}</li>)}
-        </ul>
+            <div className={s.allowance}>
+              <strong>{plan.allowance}</strong>
+              <span>{plan.allowanceDetail}</span>
+            </div>
 
-        <button
-          type="button"
-          className={s.primary}
-          onClick={() => openLeadForm({ topic: MEMBERSHIP.topic })}
-        >
-          {MEMBERSHIP.cta}
-        </button>
-      </Reveal>
+            <ul className={s.planFeatures}>
+              {plan.features.map((f) => <li key={f}>{f}</li>)}
+            </ul>
+
+            <button
+              type="button"
+              className={plan.highlight ? s.primary : s.ghost}
+              onClick={() => openLeadForm({ topic: plan.topic })}
+            >
+              {plan.cta}
+            </button>
+          </Reveal>
+        ))}
+      </div>
 
       <div className={s.addons}>
         {ADDONS.map((a, i) => (
@@ -191,7 +197,7 @@ export function FinalCta() {
               </button>
             ))}
           </div>
-          <p className={s.finalHint}>$79.99 a month plus a one-time $100 activation.</p>
+          <p className={s.finalHint}>Plans from $0. Core Membership is $79.99 a month plus a one-time $100 activation.</p>
         </Reveal>
       </div>
     </section>

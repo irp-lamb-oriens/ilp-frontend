@@ -7,17 +7,26 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  gap: $space-8;
 }
 
 .stage {
-  position: relative;
-  padding-block: $space-8;
-  padding-inline-start: $space-8;
-  border-left: 2px solid $color-hairline;
+  display: flex;
+  justify-content: flex-start;
+}
 
-  &:last-child {
-    border-left-color: transparent;
-  }
+.stage.right {
+  justify-content: flex-end;
+}
+
+.stageCard {
+  @include card;
+  width: 100%;
+  max-width: 640px;
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
 }
 
 .stageHead {
@@ -48,7 +57,8 @@
 
 .noMore {
   display: inline-block;
-  margin-top: $space-4;
+  align-self: flex-start;
+  margin-top: $space-2;
   padding: $space-2 $space-4;
   border-radius: $radius-pill;
   background: $color-accent-soft;
@@ -62,7 +72,7 @@
 
 .items {
   list-style: none;
-  margin: $space-4 0 0;
+  margin: $space-2 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;

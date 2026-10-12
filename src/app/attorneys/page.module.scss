@@ -10,8 +10,26 @@
 
 /* ── Hero ───────────────────────────────────────── */
 .hero {
-  background: $color-canvas;
-  padding-block: clamp(3rem, 8vh, 6rem);
+  position: relative;
+  isolation: isolate;
+  background-color: $color-navy;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding-block: clamp(6rem, 18vh, 12rem);
+
+  /* Dark scrim so the light copy stays legible over the photo. */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 18, 28, 0.72) 0%,
+      rgba(10, 18, 28, 0.55) 100%
+    );
+  }
 }
 
 .heroGrid {
@@ -33,17 +51,21 @@
   gap: $space-6;
 }
 
+.heroCopy .eyebrowLight {
+  color: $color-accent;
+}
+
 .heroTitle {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   letter-spacing: -0.04em;
   line-height: 1.02;
   margin: 0;
-  color: $color-navy;
+  color: #ffffff;
   max-width: 16ch;
 }
 
 .heroSub {
-  color: $color-steel;
+  color: rgba(255, 255, 255, 0.85);
   font-size: clamp(1.15rem, 1.6vw, 1.4rem);
   line-height: 1.5;
   margin: 0;

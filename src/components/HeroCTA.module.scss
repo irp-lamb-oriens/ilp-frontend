@@ -3,8 +3,24 @@
 
 .hero {
   position: relative;
-  background: $color-canvas;
-  padding-block: clamp(3rem, 8vh, 6rem);
+  isolation: isolate;
+  background-color: $color-navy;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding-block: clamp(6rem, 18vh, 12rem);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 18, 28, 0.72) 0%,
+      rgba(10, 18, 28, 0.55) 100%
+    );
+  }
 }
 
 .heroGrid {
@@ -29,6 +45,7 @@
 .eyebrow {
   @include eyebrow;
   margin: 0;
+  color: $color-accent;
 }
 
 .headline {
@@ -36,12 +53,12 @@
   letter-spacing: -0.04em;
   line-height: 1.02;
   margin: 0;
-  color: $color-navy;
+  color: #ffffff;
   max-width: 16ch;
 }
 
 .sub {
-  color: $color-steel;
+  color: rgba(255, 255, 255, 0.85);
   font-size: clamp(1.15rem, 1.6vw, 1.4rem);
   line-height: 1.4;
   margin: 0;
@@ -62,7 +79,7 @@
   display: flex;
   align-items: center;
   gap: $space-3;
-  color: $color-ink;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.05rem;
   font-weight: 500;
 }
@@ -104,11 +121,11 @@
   align-items: center;
   padding: $space-3 $space-6;
   border-radius: $radius-pill;
-  color: $color-navy;
+  color: #ffffff;
   font-weight: 600;
-  border: 1px solid $color-hairline;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 
   &:hover {
-    background: $color-mist;
+    background: rgba(255, 255, 255, 0.12);
   }
 }

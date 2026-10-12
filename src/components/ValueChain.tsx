@@ -60,54 +60,58 @@ const STAGES: ValueStage[] = [
 ];
 
 /**
- * The lawyer value chain, rendered as a vertical tree. Each stage shows its
- * title, then a "No more" tag that drops down on scroll, then the sub-items
- * stagger in beneath it. Mirrors the homepage zig-zag reveal rhythm but as a
- * single descending spine.
+ * The lawyer value chain, rendered as a zig-zag. Each stage alternates left
+ * and right so the eye travels down the reading diagonal. The "No more" tag
+ * drops in on scroll, then the sub-items stagger beneath it.
  */
 export default function ValueChain() {
   const reduce = useReducedMotion();
 
   return (
     <ol className={s.chain}>
-      {STAGES.map((stage, i) => (
-        <li key={stage.title} className={s.stage}>
-          <div className={s.stageHead}>
-            <span className={s.stageIndex}>{String(i + 1).padStart(2, "0")}</span>
-            <RevealTitle as="h3" text={stage.title} className={s.stageTitle} />
-            <span className={s.stageSubtitle}>{stage.subtitle}</span>
-          </div>
+      {STAGES.map((stage, i) => {
+        const side = i % 2 === 0 ? "left" : "right";
+        return (
+          <li key={stage.title} className={`${s.stage} ${s[side]}`}>
+            <div className={s.stageCard}>
+              <div className={s.stageHead}>
+                <span className={s.stageIndex}>{String(i + 1).padStart(2, "0")}</span>
+                <RevealTitle as="h3" text={stage.title} className={s.stageTitle} />
+                <span className={s.stageSubtitle}>{stage.subtitle}</span>
+              </div>
 
-          <motion.span
-            className={s.noMore}
-            initial={reduce ? false : { y: -24, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            No more
-          </motion.span>
-
-          <ul className={s.items}>
-            {stage.items.map((item, j) => (
-              <motion.li
-                key={item}
-                className={s.item}
-                initial={reduce ? false : { y: 16, opacity: 0 }}
+              <motion.span
+                className={s.noMore}
+                initial={reduce ? false : { y: -24, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ once: true, amount: 0.6 }}
-                transition={{
-                  duration: 0.5,
-                  ease: [0.16, 1, 0.3, 1],
-                  delay: j * 0.08,
-                }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
-                {item}
-              </motion.li>
-            ))}
-          </ul>
-        </li>
-      ))}
+                No more
+              </motion.span>
+
+              <ul className={s.items}>
+                {stage.items.map((item, j) => (
+                  <motion.li
+                    key={item}
+                    className={s.item}
+                    initial={reduce ? false : { y: 16, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    viewport={{ once: true, amount: 0.6 }}
+                    transition={{
+                      duration: 0.5,
+                      ease: [0.16, 1, 0.3, 1],
+                      delay: j * 0.08,
+                    }}
+                  >
+                    {item}
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        );
+      })}
     </ol>
   );
 }

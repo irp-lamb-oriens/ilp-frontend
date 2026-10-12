@@ -13,9 +13,11 @@ export default function TermsPage() {
           ],
         },
         {
-          heading: "Membership",
+          heading: "Membership plans",
           body: [
-            "Membership is $79.99 per month plus a one-time $100 activation fee. It includes up to 60 minutes of consultation time per month, structured as up to 3 consultations of 20 minutes each.",
+            "Smart Alerts is free, with an optional $5 per month premium for calendar sync and personalized push notifications.",
+            "Core Membership is $79.99 per month plus a one-time $100 activation fee. It includes up to 60 minutes of consultation time per month, structured as up to 3 consultations of 20 minutes each.",
+            "Enterprise & Business is $499.99 per month plus a one-time $150 activation fee. It includes up to 120 minutes of consultation time per month with priority access.",
             "Unused consultation minutes do not roll over to subsequent months.",
           ],
         },
