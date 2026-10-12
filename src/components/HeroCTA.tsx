@@ -1,19 +1,22 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { RevealTitle, Reveal } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
 import styles from "./HeroCTA.module.scss";
 
-const HERO_IMAGE =
-  "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1600";
+const VALUE_STACK = [
+  "Living Legal Profile",
+  "Better Local Attorneys",
+  "Customer Success Lawyer",
+  "Smart Compliance Alerts",
+];
 
 /**
- * Landing hero: calm, light, and direct. Navy headline on a white/mist
- * canvas, a light-blue CTA, and a real-people photo on the right. The photo
- * drifts gently while the copy lifts as the hero scrolls away.
+ * Landing hero: slogan + subheading + value stack on the left, the primary
+ * CTA on the right. Navy headline on a white/mist canvas with a light-blue
+ * CTA. The copy lifts gently as the hero scrolls away.
  */
 export default function HeroCTA() {
   const heroRef = useRef<HTMLElement>(null);
@@ -22,7 +25,6 @@ export default function HeroCTA() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
   const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
 
   return (
@@ -37,47 +39,40 @@ export default function HeroCTA() {
           </Reveal>
           <RevealTitle
             as="h1"
-            text="Your legal life abroad, organized."
+            text="Live with Confidence"
             className={styles.headline}
             delay={0.15}
           />
-          <Reveal delay={0.5}>
+          <Reveal delay={0.4}>
             <p className={styles.sub}>
-              A living legal profile, transcribed consultations, and a dedicated
-              Customer Success Manager. Your context stays organized before,
-              during, and after your move.
+              {"That's Your Legal Life Abroad Solved"}
             </p>
           </Reveal>
-          <Reveal delay={0.7}>
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={styles.primary}
-                onClick={() => openLeadForm({ topic: "Membership plan" })}
-              >
-                Start your membership
-              </button>
-              <a href="#pricing" className={styles.secondary}>
-                See what is included
-              </a>
-            </div>
+          <Reveal delay={0.55}>
+            <ul className={styles.valueStack}>
+              {VALUE_STACK.map((item) => (
+                <li key={item} className={styles.valueItem}>
+                  <span className={styles.valueCheck} aria-hidden="true">
+                    ✓
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </div>
 
-        <Reveal className={styles.heroMedia} from="right" delay={0.4}>
-          <motion.div
-            className={styles.mediaFrame}
-            style={reduce ? undefined : { y: imgY }}
+        <Reveal className={styles.heroCta} from="right" delay={0.7}>
+          <button
+            type="button"
+            className={styles.primary}
+            onClick={() => openLeadForm({ topic: "Membership plan" })}
           >
-            <Image
-              src={HERO_IMAGE}
-              alt="People reviewing documents together at a table"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className={styles.mediaImg}
-              priority
-            />
-          </motion.div>
+            Start your membership
+          </button>
+          <a href="#pricing" className={styles.secondary}>
+            See what is included
+          </a>
         </Reveal>
       </motion.div>
     </section>

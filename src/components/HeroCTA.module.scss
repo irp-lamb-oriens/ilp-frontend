@@ -15,7 +15,7 @@
   align-items: center;
 
   @include lg {
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: 1.4fr 1fr;
     gap: $space-16;
   }
 }
@@ -42,17 +42,54 @@
 
 .sub {
   color: $color-steel;
-  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
-  line-height: 1.6;
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+  line-height: 1.4;
   margin: 0;
-  max-width: 48ch;
+  max-width: 30ch;
+  font-weight: 600;
 }
 
-.actions {
+.valueStack {
+  list-style: none;
+  margin: $space-2 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.valueItem {
   display: flex;
   align-items: center;
+  gap: $space-3;
+  color: $color-ink;
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.valueCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  color: $color-accent-ink;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.heroCta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: $space-4;
-  flex-wrap: wrap;
+
+  @include lg {
+    align-items: flex-end;
+  }
 }
 
 .primary {
@@ -74,22 +111,4 @@
   &:hover {
     background: $color-mist;
   }
-}
-
-.heroMedia {
-  position: relative;
-}
-
-.mediaFrame {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: $radius-lg;
-  overflow: hidden;
-  background: $color-mist;
-  border: 1px solid $color-hairline;
-}
-
-.mediaImg {
-  object-fit: cover;
 }
