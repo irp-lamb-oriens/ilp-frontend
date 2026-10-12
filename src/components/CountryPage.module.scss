@@ -57,3 +57,9 @@
 .closeInner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: $space-6; }
 .closeTitle { margin: 0; font-size: clamp(2rem, 4.5vw, 3.25rem); letter-spacing: -0.035em; line-height: 1.05; max-width: 20ch; }
 .closeHint { color: $color-steel; font-size: 0.9rem; margin: 0; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .heroGlass {
+    background: $color-surface;
+  }
+}
