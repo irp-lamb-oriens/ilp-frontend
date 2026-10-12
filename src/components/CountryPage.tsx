@@ -47,7 +47,6 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
       <main>
         <section className={`${s.hero} ${variant === "pinned" ? s.heroRight : ""}`}>
           <div className={s.heroBg} role="img" aria-label={story.heroAlt} style={{ backgroundImage: `url("${story.heroImage}")` }} />
-          <div className={s.heroScrim} aria-hidden="true" />
           <div className={s.heroInner}>
             <Reveal className={s.heroGlass} from={variant === "pinned" ? "right" : "left"}>
               <p className={s.eyebrow}>{countryCode} · {country}</p>

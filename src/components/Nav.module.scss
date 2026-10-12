@@ -38,6 +38,7 @@
 
 .links {
   display: none;
+  align-items: center;
   gap: $space-4;
 
   @media (min-width: $bp-lg) {
@@ -46,6 +47,9 @@
 }
 
 .link {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
   color: $color-steel;
   font-size: 0.9rem;
   transition: color 150ms ease-out;
@@ -53,6 +57,45 @@
   &:hover {
     color: $color-ink;
   }
+}
+
+.audience {
+  font-weight: 600;
+}
+
+.active {
+  color: $color-navy;
+  font-weight: 700;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: $color-hairline;
+}
+
+.flag {
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.soon {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  color: $color-muted;
+  font-size: 0.9rem;
+}
+
+.soonBadge {
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $color-muted;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  padding: 1px 6px;
 }
 
 .cta {

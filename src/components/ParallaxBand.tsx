@@ -49,7 +49,6 @@ export default function ParallaxBand({
           ...(reduce ? {} : { y, scale }),
         }}
       />
-      <div className={s.scrim} aria-hidden="true" />
       <div className={s.inner}>
         <Reveal className={s.glass} from={align === "right" ? "right" : "left"}>
           <p className={s.eyebrow}>{eyebrow}</p>
