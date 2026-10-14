@@ -1,5 +1,9 @@
 /** Copy for the ILP landing narrative. Calm, direct, international. */
 
+/** One claim, repeated as a single CTA across the homepage and every country landing. */
+export const CLAIM = "One missed deadline can cost you your life abroad.";
+export const CHECK_CTA = "Check your deadlines free";
+
 export const IMG = {
   // Real people in decision-making moments and clean workspaces (no gavels/scales).
   people:
@@ -122,8 +126,8 @@ export const PLANS: Plan[] = [
       "Template library for common contracts",
       "Legislative change summaries",
     ],
-    cta: "Start free",
-    topic: "Smart Alerts",
+    cta: "Check free",
+    topic: "Free deadline check",
   },
   {
     id: "core-membership",

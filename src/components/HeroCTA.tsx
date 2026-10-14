@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { RevealTitle, Reveal } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
+import { CLAIM, CHECK_CTA } from "@/components/landing/content";
 import styles from "./HeroCTA.module.scss";
 
 const HERO_IMAGE =
@@ -46,13 +47,13 @@ export default function HeroCTA() {
           </Reveal>
           <RevealTitle
             as="h1"
-            text="Live with Confidence"
+            text={CLAIM}
             className={styles.headline}
             delay={0.15}
           />
           <Reveal delay={0.4}>
             <p className={styles.sub}>
-              {"That's Your Legal Life Abroad Solved"}
+              A free check maps every renewal, filing, and payment to your calendar before any of them comes due.
             </p>
           </Reveal>
           <Reveal delay={0.55}>
@@ -73,9 +74,9 @@ export default function HeroCTA() {
           <button
             type="button"
             className={styles.primary}
-            onClick={() => openLeadForm({ topic: "Membership plan" })}
+            onClick={() => openLeadForm({ topic: "Free deadline check" })}
           >
-            Start your membership
+            {CHECK_CTA}
           </button>
           <a href="#pricing" className={styles.secondary}>
             See what is included

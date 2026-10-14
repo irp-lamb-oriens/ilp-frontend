@@ -9,6 +9,7 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
+import Term, { tokenizeTitle } from "@/components/Term";
 import s from "./Motion.module.scss";
 
 export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
@@ -25,15 +26,18 @@ export function RevealTitle({
   as = "h2",
   className,
   delay = 0,
+  glossary,
 }: {
   text: string;
   as?: Tag;
   className?: string;
   delay?: number;
+  /** Country-specific terms and their plain-language glosses. */
+  glossary?: Record<string, string>;
 }) {
   const reduce = useReducedMotion();
   const Comp = motion[as];
-  const words = text.split(" ");
+  const words = tokenizeTitle(text, glossary);
 
   return (
     <Comp
@@ -43,8 +47,8 @@ export function RevealTitle({
       viewport={{ once: true, amount: 0.6 }}
       aria-label={text}
     >
-      {words.map((w, i) => (
-        <span key={`${w}-${i}`} className={s.slot} aria-hidden="true">
+      {words.map((seg, i) => (
+        <span key={`${seg.text}-${i}`} className={s.slot} aria-hidden="true">
           <motion.span
             className={s.word}
             variants={{
@@ -53,9 +57,15 @@ export function RevealTitle({
             }}
             transition={{ duration: 0.9, ease: EASE_OUT_EXPO, delay: delay + i * 0.06 }}
           >
-            {w}
+            {seg.gloss ? (
+              <Term gloss={seg.gloss} tabbable={false}>
+                {seg.text}
+              </Term>
+            ) : (
+              seg.text
+            )}
           </motion.span>
-          {i < words.length - 1 ? "\u00a0" : null}
+          {seg.spaceAfter ? "\u00a0" : null}
         </span>
       ))}
     </Comp>

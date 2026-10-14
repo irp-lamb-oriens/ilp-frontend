@@ -8,6 +8,7 @@ import { MorphStage, MorphItem, Reveal, RevealTitle } from "@/components/motion/
 import { renderGlossary } from "@/components/Term";
 import { fetchUpdates, type PublicUpdate } from "@/lib/public";
 import { openLeadForm } from "@/lib/leadEvents";
+import { CLAIM, CHECK_CTA } from "@/components/landing/content";
 import s from "./CountryPage.module.scss";
 
 export interface CountryStory {
@@ -53,10 +54,11 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
           <div className={s.heroInner}>
             <Reveal className={s.heroGlass} from={variant === "pinned" ? "right" : "left"}>
               <p className={s.eyebrow}>{countryCode} · {country}</p>
-              <RevealTitle as="h1" text={story.headline} className={s.headline} />
+              <RevealTitle as="h1" text={story.headline} className={s.headline} glossary={story.glossary} />
+              <p className={s.claim}>{CLAIM}</p>
               <p className={s.sub}>{renderGlossary(story.sub, story.glossary)}</p>
               <button type="button" className={s.primary} onClick={start}>
-                Start free {country} alerts
+                {CHECK_CTA}
               </button>
             </Reveal>
           </div>
@@ -104,7 +106,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
             <Reveal className={s.closeInner}>
               <RevealTitle text={`Your next ${country} deadline, on your calendar first.`} className={s.closeTitle} />
               <button type="button" className={s.primary} onClick={start}>
-                Check my {country} deadlines
+                {CHECK_CTA}
               </button>
               <p className={s.closeHint}>Free for one country. No card required.</p>
             </Reveal>
@@ -145,7 +147,7 @@ function PinnedObligations({
                     className={reduce ? s.pinnedCardStatic : s.pinnedCard}
                   >
                     <span className={s.pinnedIndex}>{it.kicker ?? String(i + 1).padStart(2, "0")}</span>
-                    <h3>{it.title}</h3>
+                    <h3>{renderGlossary(it.title, glossary)}</h3>
                     <p>{renderGlossary(it.body, glossary)}</p>
                   </MorphItem>
                 );

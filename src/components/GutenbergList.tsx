@@ -40,7 +40,7 @@ export default function GutenbergList({
           <li key={item.title} className={`${s.row} ${s[side]}`} style={style}>
             <Reveal className={s.block} from={side === "end" ? "right" : "left"}>
               <span className={s.index}>{item.kicker ?? String(i + 1).padStart(2, "0")}</span>
-              <RevealTitle as="h3" text={item.title} className={s.title} />
+              <RevealTitle as="h3" text={item.title} className={s.title} glossary={glossary} />
               <p className={s.body}>{renderGlossary(item.body, glossary)}</p>
             </Reveal>
           </li>

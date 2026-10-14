@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Reveal, RevealTitle, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
-import { COUNTRIES, QUOTES, PLANS, ADDONS, FAQ } from "./content";
+import { COUNTRIES, QUOTES, PLANS, ADDONS, FAQ, CLAIM, CHECK_CTA } from "./content";
 import s from "./landing.module.scss";
 
 const ALIGN = ["alignStart", "alignEnd", "alignCenter"] as const;
@@ -183,9 +183,9 @@ export function FinalCta() {
     <section className={s.finalCta}>
       <div className={s.wrap}>
         <Reveal className={s.finalGlass}>
-          <p className={s.finalKicker}>Trusted legal support for your life abroad</p>
-          <RevealTitle text="Your legal life abroad, organized." className={s.finalTitle} />
-          <p className={s.finalSub}>Pick your country. We open your membership check with it already selected.</p>
+          <p className={s.finalKicker}>{CLAIM}</p>
+          <RevealTitle text="Check before you act. It takes a minute and costs nothing." className={s.finalTitle} />
+          <p className={s.finalSub}>Pick your country. We open your free deadline check with it already selected.</p>
           <div className={s.finalChips}>
             {COUNTRIES.map((c) => (
               <button
@@ -199,7 +199,7 @@ export function FinalCta() {
               </button>
             ))}
           </div>
-          <p className={s.finalHint}>Plans from $0. Core Membership is $79.99 a month plus a one-time $100 activation.</p>
+          <p className={s.finalHint}>{CHECK_CTA}. Plans from $0. Core Membership is $79.99 a month plus a one-time $100 activation.</p>
         </Reveal>
       </div>
     </section>
