@@ -24,6 +24,7 @@ const story: CountryStory = {
   glossary: {
     "cédula de extranjería": "Colombia's identification card for foreign residents.",
     DIAN: "Colombia's tax authority, which you file your returns with.",
+    RUT: "Colombia's tax registration number, which you must keep current with DIAN.",
     predial: "The yearly property tax paid to your local government in Colombia.",
     "Cámara de Comercio": "The Chamber of Commerce where your company registers each year in Colombia.",
   },

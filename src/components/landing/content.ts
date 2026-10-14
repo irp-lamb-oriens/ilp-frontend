@@ -1,7 +1,7 @@
 /** Copy for the ILP landing narrative. Calm, direct, international. */
 
 /** One claim, repeated as a single CTA across the homepage and every country landing. */
-export const CLAIM = "One missed legal deadline can cost you your life abroad.";
+export const CLAIM = "If you are an expat and need confidence to live abroad.";
 export const CHECK_CTA = "Check your deadlines free";
 
 export const IMG = {

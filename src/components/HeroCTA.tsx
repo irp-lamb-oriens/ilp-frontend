@@ -56,21 +56,19 @@ export default function HeroCTA() {
               A free check maps every renewal, filing, and payment to your calendar before any of them comes due.
             </p>
           </Reveal>
-          <Reveal delay={0.55}>
-            <ul className={styles.valueStack}>
-              {VALUE_STACK.map((item) => (
-                <li key={item} className={styles.valueItem}>
-                  <span className={styles.valueCheck} aria-hidden="true">
-                    ✓
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
         </div>
 
         <Reveal className={styles.heroCta} from="right" delay={0.7}>
+          <ul className={styles.valueStack}>
+            {VALUE_STACK.map((item) => (
+              <li key={item} className={styles.valueItem}>
+                <span className={styles.valueCheck} aria-hidden="true">
+                  ✓
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
           <button
             type="button"
             className={styles.primary}
