@@ -69,8 +69,8 @@ export const COUNTRIES = [
   { code: "CR", name: "Costa Rica", note: "Residency renewals, CCSS, municipal property tax", live: true },
   { code: "PA", name: "Panama", note: "Corporate annual fees, registered agent duties", live: true },
   { code: "MX", name: "Mexico", note: "SAT filings, temporary residency timelines", live: true },
-  { code: "ES", name: "Spain", note: "Coming soon", live: false },
-  { code: "PT", name: "Portugal", note: "Coming soon", live: false },
+  { code: "ES", name: "Spain", note: "TIE renewals, modelo filings, IBI", live: true },
+  { code: "PT", name: "Portugal", note: "Residence permits, IRS filings, IMI", live: true },
 ];
 
 export const QUOTES = [
@@ -203,6 +203,6 @@ export const FAQ = [
   },
   {
     q: "Which countries are live?",
-    a: "Costa Rica, Panama, and Mexico are live today. Spain and Portugal are on the roadmap and will open soon.",
+    a: "Costa Rica, Panama, Mexico, Spain, and Portugal are live today.",
   },
 ];

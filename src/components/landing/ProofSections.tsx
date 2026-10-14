@@ -13,6 +13,8 @@ const COUNTRY_PAGES: Record<string, string> = {
   CR: "/costa-rica",
   PA: "/panama",
   MX: "/mexico",
+  ES: "/spain",
+  PT: "/portugal",
 };
 
 /**
@@ -24,7 +26,7 @@ export function CoverageGutenberg() {
     <section className={`${s.wrap} ${s.section}`}>
       <div className={s.sectionHead}>
         <p className={s.eyebrow}>Coverage</p>
-        <RevealTitle text="Live in three countries. Two more on the way." className={s.headingXl} />
+        <RevealTitle text="Live in five countries." className={s.headingXl} />
       </div>
       <ul className={s.coverage}>
         {COUNTRIES.map((c, i) => {

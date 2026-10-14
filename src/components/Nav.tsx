@@ -11,11 +11,8 @@ const COUNTRIES = [
   { code: "CR", name: "Costa Rica", href: "/costa-rica" },
   { code: "PA", name: "Panama", href: "/panama" },
   { code: "MX", name: "Mexico", href: "/mexico" },
-];
-
-const COMING_SOON = [
-  { code: "ES", name: "Spain" },
-  { code: "PT", name: "Portugal" },
+  { code: "ES", name: "Spain", href: "/spain" },
+  { code: "PT", name: "Portugal", href: "/portugal" },
 ];
 
 function Flag({ code, name }: { code: string; name: string }) {
@@ -72,13 +69,6 @@ export default function Nav() {
           </Link>
         ))}
 
-        <span className={styles.divider} aria-hidden="true" />
-
-        {COMING_SOON.map((c) => (
-          <span key={c.code} className={styles.soon} aria-label={`${c.name} (coming soon)`}>
-            <Flag code={c.code} name={c.name} />
-          </span>
-        ))}
       </div>
       <NavCta className={styles.cta} />
     </nav>
