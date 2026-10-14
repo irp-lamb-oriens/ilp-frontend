@@ -79,6 +79,25 @@
   flex-shrink: 0;
 }
 
+.countryLink {
+  padding: 4px;
+  border-radius: 6px;
+  transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
+
+  &:hover {
+    background-color: rgba($color-navy, 0.06);
+  }
+}
+
+.countryActive {
+  background-color: rgba($color-navy, 0.1);
+  box-shadow: 0 0 0 1px $color-navy;
+
+  .flag {
+    filter: saturate(1.1);
+  }
+}
+
 .soon {
   display: inline-flex;
   align-items: center;

@@ -31,6 +31,7 @@ function Flag({ code, name }: { code: string; name: string }) {
 export default function Nav() {
   const pathname = usePathname();
   const isLawyers = pathname === "/attorneys" || pathname === "/lawyers";
+  const isCountry = (href: string) => pathname === href;
 
   return (
     <nav className={styles.nav}>
@@ -64,7 +65,13 @@ export default function Nav() {
         <span className={styles.divider} aria-hidden="true" />
 
         {COUNTRIES.map((c) => (
-          <Link key={c.code} href={c.href} className={styles.link} aria-label={c.name}>
+          <Link
+            key={c.code}
+            href={c.href}
+            className={`${styles.link} ${styles.countryLink} ${isCountry(c.href) ? styles.countryActive : ""}`}
+            aria-label={c.name}
+            aria-current={isCountry(c.href) ? "page" : undefined}
+          >
             <Flag code={c.code} name={c.name} />
           </Link>
         ))}

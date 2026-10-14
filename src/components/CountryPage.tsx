@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import ParallaxBand from "@/components/ParallaxBand";
 import GutenbergList, { type GutenbergItem } from "@/components/GutenbergList";
 import { MorphStage, MorphItem, Reveal, RevealTitle } from "@/components/motion/Motion";
+import { renderGlossary } from "@/components/Term";
 import { fetchUpdates, type PublicUpdate } from "@/lib/public";
 import { openLeadForm } from "@/lib/leadEvents";
 import s from "./CountryPage.module.scss";
@@ -16,6 +17,8 @@ export interface CountryStory {
   sub: string;
   obligations: GutenbergItem[];
   band: { image: string; alt: string; eyebrow: string; title: string; body: string };
+  /** Country-specific terms and their plain-language glosses. */
+  glossary?: Record<string, string>;
 }
 
 interface CountryPageProps {
@@ -51,7 +54,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
             <Reveal className={s.heroGlass} from={variant === "pinned" ? "right" : "left"}>
               <p className={s.eyebrow}>{countryCode} · {country}</p>
               <RevealTitle as="h1" text={story.headline} className={s.headline} />
-              <p className={s.sub}>{story.sub}</p>
+              <p className={s.sub}>{renderGlossary(story.sub, story.glossary)}</p>
               <button type="button" className={s.primary} onClick={start}>
                 Start free {country} alerts
               </button>
@@ -66,11 +69,11 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
                 <p className={s.eyebrowDark}>What we track in {country}</p>
                 <RevealTitle text={`The ${country} obligations that cost people most.`} className={s.headingXl} />
               </div>
-              <GutenbergList items={story.obligations} rhythm="zigzag" />
+              <GutenbergList items={story.obligations} rhythm="zigzag" glossary={story.glossary} />
             </div>
           </section>
         ) : (
-          <PinnedObligations items={story.obligations} country={country} />
+          <PinnedObligations items={story.obligations} country={country} glossary={story.glossary} />
         )}
 
         <ParallaxBand {...story.band} align={variant === "pinned" ? "left" : "right"} />
@@ -113,7 +116,15 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
 }
 
 /** Panama choreography: each obligation slides in, holds, and exits sideways. */
-function PinnedObligations({ items, country }: { items: GutenbergItem[]; country: string }) {
+function PinnedObligations({
+  items,
+  country,
+  glossary,
+}: {
+  items: GutenbergItem[];
+  country: string;
+  glossary?: Record<string, string>;
+}) {
   const slice = 1 / items.length;
   return (
     <section className={s.pinned} aria-label={`What we track in ${country}`}>
@@ -135,7 +146,7 @@ function PinnedObligations({ items, country }: { items: GutenbergItem[]; country
                   >
                     <span className={s.pinnedIndex}>{it.kicker ?? String(i + 1).padStart(2, "0")}</span>
                     <h3>{it.title}</h3>
-                    <p>{it.body}</p>
+                    <p>{renderGlossary(it.body, glossary)}</p>
                   </MorphItem>
                 );
               })}
