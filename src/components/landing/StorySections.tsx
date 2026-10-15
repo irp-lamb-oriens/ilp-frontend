@@ -29,7 +29,7 @@ export function CostsMorph() {
                 ];
                 return (
                   <div key={c.figure} className={reduce ? s.costStatic : s.costSlot}>
-                    <MorphItem progress={progress} range={range} reduce={reduce} className={s.costFigure}>
+                    <MorphItem progress={progress} range={range} reduce={reduce} className={s.costFigure} initialVisible={i === 0}>
                       {c.figure}
                     </MorphItem>
                     <MorphItem
@@ -38,6 +38,7 @@ export function CostsMorph() {
                       reduce={reduce}
                       axis="x"
                       className={i % 2 === 0 ? s.costText : `${s.costText} ${s.costTextLeft}`}
+                      initialVisible={i === 0}
                     >
                       <h3>{c.title}</h3>
                       <p>{c.body}</p>

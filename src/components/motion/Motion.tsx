@@ -172,6 +172,7 @@ export function MorphItem({
   className,
   children,
   axis = "y",
+  initialVisible = false,
 }: {
   progress: MotionValue<number>;
   range: [number, number, number, number];
@@ -179,12 +180,30 @@ export function MorphItem({
   className?: string;
   children: ReactNode;
   axis?: "x" | "y";
+  /** Start fully visible (opacity 1, no shift/scale/blur) and only morph out. */
+  initialVisible?: boolean;
 }) {
   const [a, b, c, d] = range;
-  const opacity = useTransform(progress, [a, b, c, d], [0, 1, 1, 0]);
-  const shift = useTransform(progress, [a, b, c, d], [80, 0, 0, -80]);
-  const scale = useTransform(progress, [a, b, c, d], [0.92, 1, 1, 0.96]);
-  const blur = useTransform(progress, [a, b, c, d], [8, 0, 0, 6]);
+  const opacity = useTransform(
+    progress,
+    [a, b, c, d],
+    initialVisible ? [1, 1, 1, 0] : [0, 1, 1, 0],
+  );
+  const shift = useTransform(
+    progress,
+    [a, b, c, d],
+    initialVisible ? [0, 0, 0, -80] : [80, 0, 0, -80],
+  );
+  const scale = useTransform(
+    progress,
+    [a, b, c, d],
+    initialVisible ? [1, 1, 1, 0.96] : [0.92, 1, 1, 0.96],
+  );
+  const blur = useTransform(
+    progress,
+    [a, b, c, d],
+    initialVisible ? [0, 0, 0, 6] : [8, 0, 0, 6],
+  );
   const filter = useTransform(blur, (v) => `blur(${v}px)`);
 
   if (reduce) return <div className={className}>{children}</div>;
