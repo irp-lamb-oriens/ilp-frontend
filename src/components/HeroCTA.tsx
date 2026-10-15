@@ -16,10 +16,10 @@ const HERO_IMAGE =
   "https://images.pexels.com/photos/4226140/pexels-photo-4226140.jpeg";
 
 const VALUE_STACK = [
-  "Living Legal Profile",
-  "Better Local Attorneys",
-  "Customer Success Lawyer",
-  "Smart Compliance Alerts",
+  "Smart Compliance Alert",
+  "legal advice on a membership",
+  "Vetted International attorneys",
+  "Legal customer support",
 ];
 
 /**
@@ -99,7 +99,7 @@ export default function HeroCTA() {
           />
           <Reveal delay={0.4}>
             <p className={styles.sub}>
-              A free check maps every renewal, filing, and payment to your calendar before any of them comes due.
+              Get a free check that shows every renewal, filing, and payment before your deadlines arrive.
             </p>
           </Reveal>
         </div>
