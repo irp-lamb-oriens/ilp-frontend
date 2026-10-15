@@ -70,6 +70,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: $space-4;
@@ -78,6 +79,7 @@
 .valueItem {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: $space-3;
   color: rgba(255, 255, 255, 0.92);
   font-size: 1.05rem;
@@ -85,18 +87,24 @@
   line-height: 1.3;
 }
 
+.valueLabel {
+  text-align: right;
+}
+
 .valueCheck {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.6rem;
+  height: 1.6rem;
   flex: none;
-  border-radius: $radius-pill;
-  background: rgba(92, 204, 247, 0.16);
   color: $color-accent;
-  font-size: 0.8rem;
-  font-weight: 700;
+}
+
+.checkCircle {
+  fill: rgba(92, 204, 247, 0.16);
+  stroke: rgba(92, 204, 247, 0.55);
+  stroke-width: 1.5;
 }
 
 .heroCta {
