@@ -212,7 +212,7 @@ a.coverageName:hover { color: $color-accent; }
   padding: clamp(2rem, 5vw, 3.5rem); border-radius: $radius-lg;
   background: $color-surface; border: 1px solid $color-hairline;
 }
-.finalKicker { @include eyebrow; margin: 0 0 $space-6; }
+.finalKicker { @include eyebrow; margin: 0 auto $space-6; }
 .finalTitle { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; color: $color-navy; margin: 0 0 $space-6; }
 .finalSub { color: $color-steel; margin: 0 auto $space-8; }
 .finalChips { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-3; margin-bottom: $space-6; }
