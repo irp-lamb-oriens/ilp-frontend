@@ -69,7 +69,7 @@ export function FeaturesSticky() {
     <section className={`${s.wrap} ${s.sticky}`}>
       <div className={s.stickyHead}>
         <p className={s.eyebrow}>What you get</p>
-        <RevealTitle text="The ILP system at a glance." className={s.headingXl} />
+        <RevealTitle text="The ILP system at a glance." className={s.headingXl} immediate />
         <p className={s.sub}>
           A living profile, transcribed history, a human CSM, and automated
           reminders. The context follows the client.
@@ -78,7 +78,7 @@ export function FeaturesSticky() {
       <ol className={s.featureList}>
         {FEATURES.map((f, i) => (
           <li key={f.title}>
-            <Reveal className={s.feature} from={i % 2 === 0 ? "right" : "bottom"}>
+            <Reveal className={s.feature} from={i % 2 === 0 ? "right" : "bottom"} immediate>
               <span className={s.featureIndex}>{String(i + 1).padStart(2, "0")}</span>
               <h3>{f.title}</h3>
               <p>{f.body}</p>
@@ -107,7 +107,7 @@ function StepsTrack({ progress, reduce }: { progress: MotionValue<number>; reduc
     <div className={s.stepsViewport}>
       <div className={s.stepsIntro}>
         <p className={s.eyebrow}>How it works</p>
-        <RevealTitle text="How ILP works in practice." className={s.headingXl} />
+        <RevealTitle text="How ILP works in practice." className={s.headingXl} immediate />
       </div>
       <motion.ol className={s.stepsTrack} style={reduce ? undefined : { x }}>
         {STEPS.map((st) => (

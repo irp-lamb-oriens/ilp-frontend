@@ -27,6 +27,7 @@ export function RevealTitle({
   className,
   delay = 0,
   glossary,
+  immediate = false,
 }: {
   text: string;
   as?: Tag;
@@ -34,6 +35,8 @@ export function RevealTitle({
   delay?: number;
   /** Country-specific terms and their plain-language glosses. */
   glossary?: Record<string, string>;
+  /** Skip the hidden initial state and render the title fully visible. */
+  immediate?: boolean;
 }) {
   const reduce = useReducedMotion();
   const Comp = motion[as];
@@ -42,7 +45,7 @@ export function RevealTitle({
   return (
     <Comp
       className={className}
-      initial="hidden"
+      initial={immediate ? "show" : "hidden"}
       whileInView="show"
       viewport={{ once: true, amount: 0.6 }}
       aria-label={text}
@@ -78,11 +81,14 @@ export function Reveal({
   className,
   delay = 0,
   from = "bottom",
+  immediate = false,
 }: {
   children: ReactNode;
   className?: string;
   delay?: number;
   from?: "bottom" | "left" | "right";
+  /** Skip the hidden initial state and render the content fully visible. */
+  immediate?: boolean;
 }) {
   const reduce = useReducedMotion();
   const offset =
@@ -91,7 +97,7 @@ export function Reveal({
   return (
     <motion.div
       className={className}
-      initial={reduce ? false : { opacity: 0, ...offset }}
+      initial={immediate ? false : reduce ? false : { opacity: 0, ...offset }}
       whileInView={{ opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.9, ease: EASE_OUT_QUART, delay }}
