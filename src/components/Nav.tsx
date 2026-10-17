@@ -76,6 +76,15 @@ export default function Nav() {
           </Link>
         ))}
 
+        <span className={styles.divider} aria-hidden="true" />
+
+        <Link
+          href="/status"
+          className={`${styles.link} ${pathname.startsWith("/status") ? styles.active : ""}`}
+        >
+          Track your matter
+        </Link>
+
       </div>
       <NavCta className={styles.cta} />
     </nav>

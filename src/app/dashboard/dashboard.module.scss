@@ -137,3 +137,14 @@
   color: $color-error;
   font-weight: 600;
 }
+
+.section {
+  margin-top: $space-12;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $color-navy;
+  margin-bottom: $space-4;
+}

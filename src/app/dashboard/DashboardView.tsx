@@ -20,6 +20,28 @@ interface FunnelMetrics {
   confirmedConsultations: number;
 }
 
+interface DashboardMetrics {
+  pipeline: {
+    stageCounts: Record<string, number>;
+    stageLabels: Array<{ id: string; label: string }>;
+    total: number;
+  };
+  emailQueue: { pending: number; sent: number; dead: number; total: number };
+  llmCosts: { totalCostUSD: number; totalCalls: number };
+  monthlyLeads: Record<string, number>;
+  sourceBreakdown: Record<string, number>;
+  jurisdictionBreakdown: Record<string, number>;
+  stageRatings: {
+    perStage: Array<{ stage: string; label: string; average: number; count: number }>;
+    globalAverage: number;
+    totalRatings: number;
+  };
+  activity: {
+    calls: { total: number; perClient: Array<{ clientName: string; total: number }> };
+    quotes: { total: number; accepted: number };
+  };
+}
+
 type Stage = "loading" | "login" | "verify" | "ready";
 
 export default function DashboardView() {
@@ -27,6 +49,7 @@ export default function DashboardView() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [metrics, setMetrics] = useState<FunnelMetrics | null>(null);
+  const [dashMetrics, setDashMetrics] = useState<DashboardMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -41,8 +64,12 @@ export default function DashboardView() {
 
   async function loadMetrics() {
     try {
-      const data = await dashboardFetch<FunnelMetrics>("/api/analytics/funnel");
-      setMetrics(data);
+      const [funnel, dash] = await Promise.all([
+        dashboardFetch<FunnelMetrics>("/api/analytics/funnel"),
+        dashboardFetch<DashboardMetrics>("/api/dashboard/metrics"),
+      ]);
+      setMetrics(funnel);
+      setDashMetrics(dash);
       setStage("ready");
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -90,6 +117,7 @@ export default function DashboardView() {
   function logout() {
     clearDashboardToken();
     setMetrics(null);
+    setDashMetrics(null);
     setCode("");
     setStage("login");
   }
@@ -199,6 +227,100 @@ export default function DashboardView() {
           </div>
         ))}
       </section>
+
+      {dashMetrics && (
+        <>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Pipeline</h2>
+            <div className={styles.grid}>
+              {dashMetrics.pipeline.stageLabels.map((s) => (
+                <div key={s.id} className={styles.tile}>
+                  <span className={styles.value}>
+                    {dashMetrics.pipeline.stageCounts[s.id] ?? 0}
+                  </span>
+                  <span className={styles.label}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Stage satisfaction</h2>
+            <div className={styles.grid}>
+              {dashMetrics.stageRatings.perStage.map((r) => (
+                <div key={r.stage} className={styles.tile}>
+                  <span className={styles.value}>
+                    {r.count > 0 ? `${r.average.toFixed(1)}★` : "—"}
+                  </span>
+                  <span className={styles.label}>
+                    {r.label} · {r.count} rating{r.count === 1 ? "" : "s"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Activity</h2>
+            <div className={styles.grid}>
+              <div className={styles.tile}>
+                <span className={styles.value}>{dashMetrics.activity.calls.total}</span>
+                <span className={styles.label}>Completed calls</span>
+              </div>
+              <div className={styles.tile}>
+                <span className={styles.value}>{dashMetrics.activity.quotes.total}</span>
+                <span className={styles.label}>Quotes</span>
+              </div>
+              <div className={styles.tile}>
+                <span className={styles.value}>{dashMetrics.activity.quotes.accepted}</span>
+                <span className={styles.label}>Quotes accepted</span>
+              </div>
+              <div className={styles.tile}>
+                <span className={styles.value}>{dashMetrics.llmCosts.totalCalls}</span>
+                <span className={styles.label}>LLM calls</span>
+              </div>
+              <div className={styles.tile}>
+                <span className={styles.value}>
+                  ${dashMetrics.llmCosts.totalCostUSD.toFixed(2)}
+                </span>
+                <span className={styles.label}>LLM cost</span>
+              </div>
+              <div className={styles.tile}>
+                <span className={styles.value}>{dashMetrics.emailQueue.pending}</span>
+                <span className={styles.label}>Emails pending</span>
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Sources</h2>
+            <div className={styles.grid}>
+              {Object.entries(dashMetrics.sourceBreakdown)
+                .sort((a, b) => b[1] - a[1])
+                .map(([source, count]) => (
+                  <div key={source} className={styles.tile}>
+                    <span className={styles.value}>{count}</span>
+                    <span className={styles.label}>{source}</span>
+                  </div>
+                ))}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Jurisdictions</h2>
+            <div className={styles.grid}>
+              {Object.entries(dashMetrics.jurisdictionBreakdown)
+                .sort((a, b) => b[1] - a[1])
+                .map(([jurisdiction, count]) => (
+                  <div key={jurisdiction} className={styles.tile}>
+                    <span className={styles.value}>{count}</span>
+                    <span className={styles.label}>{jurisdiction}</span>
+                  </div>
+                ))}
+            </div>
+          </section>
+        </>
+      )}
     </main>
   );
 }
