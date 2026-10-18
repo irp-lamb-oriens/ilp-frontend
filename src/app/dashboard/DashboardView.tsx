@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
   dashboardFetch,
   getDashboardToken,
@@ -136,17 +137,31 @@ export default function DashboardView() {
 
   if (stage === "login" || stage === "verify") {
     return (
-      <main className={styles.main}>
-        <form
-          className={styles.login}
-          onSubmit={stage === "login" ? requestOtp : verifyOtp}
-        >
-          <h1 className={styles.title}>ILP dashboard</h1>
-          <p className={styles.sub}>
-            {stage === "login"
-              ? "Enter your ILP team email to receive a login code."
-              : `Enter the 6-digit code sent to ${email}.`}
-          </p>
+      <main className={styles.auth}>
+        <div className={styles.authCard}>
+          <div className={styles.brand}>
+            <Image
+              src="/logo.png"
+              alt="International Legal Partner"
+              width={48}
+              height={48}
+              className={styles.logo}
+              priority
+            />
+            <div className={styles.brandText}>
+              <h1 className={styles.title}>ILP dashboard</h1>
+              <p className={styles.brandSub}>International Legal Partner</p>
+            </div>
+          </div>
+          <form
+            className={styles.login}
+            onSubmit={stage === "login" ? requestOtp : verifyOtp}
+          >
+            <p className={styles.sub}>
+              {stage === "login"
+                ? "Enter your ILP team email to receive a login code."
+                : `Enter the 6-digit code sent to ${email}.`}
+            </p>
 
           {stage === "login" ? (
             <label className={styles.field}>
@@ -197,7 +212,14 @@ export default function DashboardView() {
               Use a different email
             </button>
           )}
-        </form>
+          </form>
+        </div>
+        <footer className={styles.footer}>
+          <p>
+            © {new Date().getFullYear()} International Legal Partner. All rights
+            reserved.
+          </p>
+        </footer>
       </main>
     );
   }
