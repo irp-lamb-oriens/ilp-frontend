@@ -1,0 +1,103 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  max-width: 420px;
+  width: 100%;
+  text-align: left;
+  background: $color-mist;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding-bottom: $space-2;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $color-success;
+  flex: none;
+}
+
+.title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-block: $space-1;
+}
+
+.msg {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  max-width: 88%;
+  word-break: break-word;
+}
+
+.user {
+  align-self: flex-end;
+  background: $color-accent;
+  color: $color-accent-ink;
+}
+
+.assistant {
+  align-self: flex-start;
+  background: $color-surface;
+  color: $color-ink;
+  border: 1px solid $color-hairline;
+}
+
+.error {
+  font-size: 0.8rem;
+  color: $color-error;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  gap: $space-2;
+}
+
+.input {
+  flex: 1;
+  padding: $space-3;
+  border: 1px solid $color-cool-gray;
+  border-radius: $radius-md;
+  font-family: $font-sans;
+  font-size: 0.9rem;
+  background: $color-surface;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.send {
+  @include button-primary;
+  padding: $space-3 $space-4;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

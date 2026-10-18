@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getUser } from "@/lib/auth";
+import { getClientToken } from "@/lib/status";
 import s from "./PortalShell.module.scss";
 
 const NAV = [
@@ -26,8 +27,13 @@ export default function PortalShell({
 }) {
   const pathname = usePathname();
   const user = getUser();
+  // The portal is also reachable via the OTP client-status session
+  // (x-client-token). Accept either auth model so /app reflects the same
+  // session established by the /status flow.
+  const hasClientSession = typeof window !== "undefined" && !!getClientToken();
+  const hasCustomerJwt = !!user && user.role === "customer";
 
-  if (!user || user.role !== "customer") {
+  if (!hasCustomerJwt && !hasClientSession) {
     return (
       <main className={s.gate}>
         <div className={s.gateCard}>
@@ -58,7 +64,7 @@ export default function PortalShell({
           ))}
         </nav>
         <div className={s.user}>
-          <span className={s.userEmail}>{user.email}</span>
+          <span className={s.userEmail}>{user?.email ?? "Client"}</span>
         </div>
       </aside>
       <main className={s.content}>

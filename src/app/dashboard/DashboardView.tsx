@@ -8,6 +8,9 @@ import {
   clearDashboardToken,
   ApiError,
 } from "@/lib/api";
+import ClientsPanel from "@/components/dashboard/ClientsPanel";
+import ImportExportModal from "@/components/dashboard/ImportExportModal";
+import AdminViews from "@/components/dashboard/AdminViews";
 import styles from "./dashboard.module.scss";
 
 interface FunnelMetrics {
@@ -52,6 +55,7 @@ export default function DashboardView() {
   const [dashMetrics, setDashMetrics] = useState<DashboardMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {
     if (!getDashboardToken()) {
@@ -214,11 +218,24 @@ export default function DashboardView() {
         <h1 className={styles.title}>ILP dashboard</h1>
         <div className={styles.actorRow}>
           <p className={styles.actor}>{email}</p>
+          <button
+            type="button"
+            className={styles.secondary}
+            onClick={() => setShowImport((v) => !v)}
+          >
+            Import clients
+          </button>
           <button type="button" className={styles.secondary} onClick={logout}>
             Log out
           </button>
         </div>
       </header>
+
+      <ClientsPanel />
+
+      <AdminViews />
+
+      {showImport && <ImportExportModal onClose={() => setShowImport(false)} />}
       <section className={styles.grid}>
         {tiles.map((tile) => (
           <div key={tile.label} className={styles.tile}>
