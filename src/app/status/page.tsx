@@ -82,6 +82,7 @@ export default function StatusLookupPage() {
       notice={notice}
       error={error}
       busy={busy}
+      busyLabel={step === "lookup" ? "Sending code…" : "Verifying…"}
       primaryLabel={step === "lookup" ? "Send code" : "Verify"}
       onSubmit={step === "lookup" ? requestOtp : verifyOtp}
       secondaryVisible={step === "verify"}

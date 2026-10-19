@@ -19,6 +19,7 @@ interface AuthShellProps {
   error?: string | null;
   primaryLabel: string;
   busy?: boolean;
+  busyLabel?: string;
   onSubmit: (e: FormEvent) => void;
   secondaryLabel?: string;
   onSecondary?: () => void;
@@ -40,6 +41,7 @@ export default function AuthShell({
   error,
   primaryLabel,
   busy = false,
+  busyLabel,
   onSubmit,
   secondaryLabel,
   onSecondary,
@@ -76,7 +78,12 @@ export default function AuthShell({
           {notice && <p className={styles.notice}>{notice}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
-          <AuthButton type="submit" variant="primary" busy={busy}>
+          <AuthButton
+            type="submit"
+            variant="primary"
+            busy={busy}
+            busyLabel={busyLabel}
+          >
             {primaryLabel}
           </AuthButton>
 

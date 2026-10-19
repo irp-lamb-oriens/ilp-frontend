@@ -198,6 +198,7 @@ export default function LawyerPage() {
   const [finance, setFinance] = useState<LawyerFinance | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
   const [tab, setTab] = useState<Tab>("kanban");
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [selected, setSelected] = useState<LawyerClient | null>(null);
@@ -238,6 +239,7 @@ export default function LawyerPage() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    setAuthBusy(true);
     try {
       await providerFetch("/api/provider/auth/request-otp", {
         method: "POST",
@@ -247,12 +249,15 @@ export default function LawyerPage() {
       setStage("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send code.");
+    } finally {
+      setAuthBusy(false);
     }
   }
 
   async function verifyOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setAuthBusy(true);
     try {
       const res = await providerFetch<{ token: string }>(
         "/api/provider/auth/verify-otp",
@@ -262,6 +267,8 @@ export default function LawyerPage() {
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code.");
+    } finally {
+      setAuthBusy(false);
     }
   }
 
@@ -320,6 +327,8 @@ export default function LawyerPage() {
         }
         notice={notice}
         error={error}
+        busy={authBusy}
+        busyLabel={stage === "login" ? "Sending code…" : "Verifying…"}
         primaryLabel={stage === "login" ? "Send code" : "Verify"}
         onSubmit={stage === "login" ? requestOtp : verifyOtp}
         secondaryVisible={stage === "verify"}

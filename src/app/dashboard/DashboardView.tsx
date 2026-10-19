@@ -180,6 +180,7 @@ export default function DashboardView() {
         notice={notice}
         error={error}
         busy={authBusy}
+        busyLabel={stage === "login" ? "Sending code…" : "Verifying…"}
         primaryLabel={stage === "login" ? "Send code" : "Verify"}
         onSubmit={stage === "login" ? requestOtp : verifyOtp}
         secondaryVisible={stage === "verify"}
