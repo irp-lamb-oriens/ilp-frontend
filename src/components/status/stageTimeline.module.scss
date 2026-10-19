@@ -1,0 +1,106 @@
+@use "../../styles/variables" as *;
+
+.timeline {
+  position: relative;
+  display: flex;
+  gap: $space-4;
+}
+
+.railTrack {
+  position: relative;
+  flex-shrink: 0;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.railFill {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  background: $color-accent;
+  border-radius: 2px;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  flex: 1;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3;
+  border-radius: $radius-md;
+  border: 1px solid $color-hairline;
+  background: $color-surface;
+}
+
+.stepActive {
+  border-color: $color-accent;
+  background: $color-accent-soft;
+}
+
+.stepDone {
+  opacity: 0.7;
+}
+
+.marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: $radius-pill;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $color-steel;
+  background: $color-mist;
+
+  .stepActive & {
+    background: $color-accent;
+    color: $color-accent-ink;
+  }
+
+  .stepDone & {
+    background: $color-success;
+    color: #fff;
+  }
+}
+
+.stepLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: $color-ink;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.star {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: $color-cool-gray;
+  padding: 0;
+
+  &:hover:not(:disabled) {
+    color: $color-warning;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.starFilled {
+  color: $color-warning;
+}

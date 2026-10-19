@@ -13,6 +13,9 @@ import {
   type StatusComment,
 } from "@/lib/status";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
+import StageTimeline from "@/components/status/StageTimeline";
+import { Reveal } from "@/components/motion/Motion";
+import CountUp from "@/components/motion/CountUp";
 import s from "../status.module.scss";
 
 export default function StatusProjectPage() {
@@ -143,7 +146,6 @@ export default function StatusProjectPage() {
   }
 
   const { project, stages, stageLabels, clientFields } = payload;
-  const currentIdx = stages.indexOf(project.stage);
   const stageLabel = (id: string) => stageLabels.find((l) => l.id === id)?.label ?? id;
 
   const tabs: TabItem[] = [
@@ -151,37 +153,15 @@ export default function StatusProjectPage() {
       id: "progress",
       label: "Progress",
       content: (
-        <div className={s.stepper}>
-          {stages.map((stage, i) => {
-            const done = i < currentIdx;
-            const active = i === currentIdx;
-            const existing = project.stageRatings[stage];
-            return (
-              <div
-                key={stage}
-                className={`${s.step} ${active ? s.stepActive : ""} ${done ? s.stepDone : ""}`}
-              >
-                <span className={s.stepLabel}>{stageLabel(stage)}</span>
-                {project.viewerIsPrincipal && (done || active) && (
-                  <span className={s.stars}>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        className={`${s.star} ${existing && existing.rating >= n ? s.starFilled : ""}`}
-                        onClick={() => rateStage(stage, n)}
-                        disabled={ratingBusy === stage}
-                        aria-label={`Rate ${stageLabel(stage)} ${n} stars`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <StageTimeline
+          stages={stages}
+          stageLabels={stageLabels}
+          currentStage={project.stage}
+          stageRatings={project.stageRatings}
+          viewerIsPrincipal={project.viewerIsPrincipal}
+          ratingBusy={ratingBusy}
+          onRate={rateStage}
+        />
       ),
     },
     {
@@ -217,11 +197,17 @@ export default function StatusProjectPage() {
           <div className={s.totals}>
             <div className={s.totalRow}>
               <span>Received</span>
-              <span>${charges.totals.received.toFixed(2)}</span>
+              <CountUp
+                value={charges.totals.received}
+                formatter={(v) => `$${v.toFixed(2)}`}
+              />
             </div>
             <div className={s.totalRow}>
               <span>Balance due</span>
-              <span>${charges.totals.balanceDue.toFixed(2)}</span>
+              <CountUp
+                value={charges.totals.balanceDue}
+                formatter={(v) => `$${v.toFixed(2)}`}
+              />
             </div>
           </div>
         </>
@@ -310,24 +296,28 @@ export default function StatusProjectPage() {
 
   return (
     <main className={s.main}>
-      <header className={s.header}>
-        <div>
-          <h1 className={s.title}>
-            {project.name || project.email || "Your matter"}
-          </h1>
-          <p className={s.sub}>
-            {project.legalArea ? `${project.legalArea} · ` : ""}
-            {project.jurisdiction ?? ""}
-          </p>
-        </div>
-        <span className={s.stageBadge}>{stageLabel(project.stage)}</span>
-      </header>
+      <Reveal>
+        <header className={s.header}>
+          <div>
+            <h1 className={s.title}>
+              {project.name || project.email || "Your matter"}
+            </h1>
+            <p className={s.sub}>
+              {project.legalArea ? `${project.legalArea} · ` : ""}
+              {project.jurisdiction ?? ""}
+            </p>
+          </div>
+          <span className={s.stageBadge}>{stageLabel(project.stage)}</span>
+        </header>
+      </Reveal>
 
       {error && <p className={s.error}>{error}</p>}
 
-      <section className={s.card}>
-        <AnimatedTabs tabs={tabs} defaultTab="progress" />
-      </section>
+      <Reveal>
+        <section className={s.card}>
+          <AnimatedTabs tabs={tabs} defaultTab="progress" />
+        </section>
+      </Reveal>
     </main>
   );
 }

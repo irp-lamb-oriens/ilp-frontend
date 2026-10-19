@@ -6,11 +6,28 @@
   padding-block: $space-12;
 }
 
+.shell {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollArea {
+  @include container;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: $space-12;
+}
+
 .header {
+  @include container;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: $space-8;
+  padding-top: $space-6;
 }
 
 .title {

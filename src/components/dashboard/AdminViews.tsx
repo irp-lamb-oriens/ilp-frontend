@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
+import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import {
   RankedBarChart,
   DonutChart,
@@ -12,8 +13,6 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
-
-type ViewKey = "providers" | "vendors" | "finance" | "sales" | "emails";
 
 interface Provider {
   id: string;
@@ -33,44 +32,22 @@ interface Vendor {
 
 /**
  * R5.5 — admin views consuming the Phase 5 routers (providers, vendors,
- * finance metrics/ledger, sales report) plus the email queue tab (R5.2). These
- * were mounted on the backend but had zero frontend consumers.
+ * finance metrics/ledger, sales report) plus the email queue tab (R5.2).
  */
 export default function AdminViews() {
-  const [view, setView] = useState<ViewKey>("providers");
+  const tabs: TabItem[] = [
+    { id: "providers", label: "Providers", content: <ProvidersList /> },
+    { id: "vendors", label: "Vendors", content: <VendorsList /> },
+    { id: "finance", label: "Finance", content: <FinanceView /> },
+    { id: "sales", label: "Sales report", content: <SalesView /> },
+    { id: "emails", label: "Emails", content: <EmailsList /> },
+    { id: "assignment", label: "Assignment", content: <AssignmentView /> },
+  ];
 
   return (
-    <section style={{ marginTop: "1.5rem" }}>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-        {([["providers", "Providers"], ["vendors", "Vendors"], ["finance", "Finance"], ["sales", "Sales report"], ["emails", "Emails"]] as [ViewKey, string][]).map(
-          ([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setView(key)}
-              style={{
-                padding: "0.4rem 0.9rem",
-                border: "1px solid rgba(18,59,93,0.14)",
-                borderRadius: 999,
-                background: view === key ? "#5cccf7" : "transparent",
-                color: view === key ? "#123b5d" : "#4a5a66",
-                fontWeight: 600,
-                cursor: "pointer",
-                fontSize: "0.85rem",
-              }}
-            >
-              {label}
-            </button>
-          ),
-        )}
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 14, padding: "1rem", minHeight: 200 }}>
-        {view === "providers" && <ProvidersList />}
-        {view === "vendors" && <VendorsList />}
-        {view === "finance" && <FinanceView />}
-        {view === "sales" && <SalesView />}
-        {view === "emails" && <EmailsList />}
+    <section className={styles.wrap}>
+      <div className={styles.panel}>
+        <AnimatedTabs tabs={tabs} defaultTab="providers" />
       </div>
     </section>
   );
@@ -92,18 +69,20 @@ function ProvidersList() {
       pageSize: 20,
     });
 
-  if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
-  if (rows === null) return <p style={{ color: "#7a8a96" }}>Loading providers…</p>;
-  if (rows.length === 0) return <p style={{ color: "#7a8a96" }}>No providers yet.</p>;
+  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (rows === null) return <p className={styles.muted}>Loading providers…</p>;
+  if (rows.length === 0) return <p className={styles.muted}>No providers yet.</p>;
 
   return (
-    <div style={{ display: "grid", gap: "0.5rem" }}>
+    <div className={styles.listStack}>
       <SearchInput value={query} onChange={setQuery} placeholder="Search providers…" resultCount={total} />
       {pageItems.map((p) => (
-        <div key={p.id} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem" }}>
-          <div style={{ fontWeight: 600, color: "#202a33" }}>{p.name ?? p.id}</div>
-          <div style={{ color: "#7a8a96", fontSize: "0.85rem" }}>
-            {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "—"}
+        <div key={p.id} className={styles.listItem}>
+          <div>
+            <div className={styles.itemTitle}>{p.name ?? p.id}</div>
+            <div className={styles.itemSub}>
+              {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "—"}
+            </div>
           </div>
         </div>
       ))}
@@ -128,17 +107,17 @@ function VendorsList() {
       pageSize: 20,
     });
 
-  if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
-  if (rows === null) return <p style={{ color: "#7a8a96" }}>Loading vendors…</p>;
-  if (rows.length === 0) return <p style={{ color: "#7a8a96" }}>No vendors yet.</p>;
+  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (rows === null) return <p className={styles.muted}>Loading vendors…</p>;
+  if (rows.length === 0) return <p className={styles.muted}>No vendors yet.</p>;
 
   return (
-    <div style={{ display: "grid", gap: "0.5rem" }}>
+    <div className={styles.listStack}>
       <SearchInput value={query} onChange={setQuery} placeholder="Search vendors…" resultCount={total} />
       {pageItems.map((v) => (
-        <div key={v.id} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem", display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 600, color: "#202a33" }}>{v.name ?? v.id}</span>
-          <span style={{ color: v.active === false ? "#c0392b" : "#1f7a5c", fontSize: "0.8rem" }}>
+        <div key={v.id} className={styles.listItem}>
+          <span className={styles.itemTitle}>{v.name ?? v.id}</span>
+          <span className={v.active === false ? styles.itemInactive : styles.itemActive}>
             {v.active === false ? "Inactive" : "Active"}
           </span>
         </div>
@@ -206,12 +185,11 @@ function FinanceView() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load finance metrics."));
   }, []);
 
-  if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
-  if (metrics === null) return <p style={{ color: "#7a8a96" }}>Loading finance…</p>;
+  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (metrics === null) return <p className={styles.muted}>Loading finance…</p>;
 
   const totals = metrics.totals;
 
-  // Revenue vs cost vs margin across the four pipeline buckets.
   const totalsData = [
     { label: "Won", revenue: totals.won.revenue, cost: totals.won.cost, margin: totals.won.margin },
     { label: "Open", revenue: totals.openPipeline.revenue, cost: totals.openPipeline.cost, margin: totals.openPipeline.margin },
@@ -327,19 +305,19 @@ function SalesView() {
       pageSize: 20,
     });
 
-  if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
-  if (rows === null) return <p style={{ color: "#7a8a96" }}>Loading sales…</p>;
-  if (rows.length === 0) return <p style={{ color: "#7a8a96" }}>No sales data.</p>;
+  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (rows === null) return <p className={styles.muted}>Loading sales…</p>;
+  if (rows.length === 0) return <p className={styles.muted}>No sales data.</p>;
 
   return (
-    <div style={{ display: "grid", gap: "0.5rem" }}>
+    <div className={styles.listStack}>
       <SearchInput value={query} onChange={setQuery} placeholder="Search sales…" resultCount={total} />
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
           <thead>
             <tr>
               {keys.map((k) => (
-                <th key={k} style={{ textAlign: "left", padding: "0.4rem", color: "#123b5d", borderBottom: "1px solid rgba(18,59,93,0.14)" }}>
+                <th key={k} className={styles.tableHead}>
                   {k}
                 </th>
               ))}
@@ -349,7 +327,7 @@ function SalesView() {
             {pageItems.map((r, i) => (
               <tr key={i}>
                 {keys.map((k) => (
-                  <td key={k} style={{ padding: "0.4rem", color: "#4a5a66", borderBottom: "1px solid #f0f4f7" }}>
+                  <td key={k} className={styles.tableCell}>
                     {r[k] == null ? "—" : String(r[k])}
                   </td>
                 ))}
@@ -365,8 +343,155 @@ function SalesView() {
 
 function EmailsList() {
   return (
-    <p style={{ color: "#7a8a96" }}>
+    <p className={styles.muted}>
       Email queue management lives in the Emails tab of the client detail panel.
     </p>
+  );
+}
+
+interface AssignmentProvider {
+  id: string;
+  name: string | null;
+  email: string | null;
+  score: number;
+  legalAreas: string[];
+  jurisdictions: string[];
+}
+
+interface AssignmentClient {
+  id: string;
+  email: string;
+  name: string | null;
+  surname: string | null;
+  legalArea: string | null;
+  jurisdiction: string | null;
+  stage: string;
+}
+
+interface AssignmentQueue {
+  unassigned: AssignmentClient[];
+  providers: AssignmentProvider[];
+  unassignedCount: number;
+}
+
+function AssignmentView() {
+  const [queue, setQueue] = useState<AssignmentQueue | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const load = () => {
+    dashboardFetch<AssignmentQueue>("/api/dashboard/assignment/queue")
+      .then(setQueue)
+      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load assignment queue."));
+  };
+
+  useEffect(load, []);
+
+  async function assign(clientId: string, providerId: string) {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await dashboardFetch(`/api/dashboard/clients/${clientId}/assign`, {
+        method: "POST",
+        body: JSON.stringify({ providerId }),
+      });
+      setNotice(`Assigned ${clientId} to ${providerId}.`);
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Assignment failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function autoAssign() {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await dashboardFetch<{ assigned: number }>(
+        "/api/dashboard/assignment/auto",
+        { method: "POST", body: JSON.stringify({}) },
+      );
+      setNotice(`Auto-assigned ${res.assigned} clients by score.`);
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Auto-assignment failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (queue === null) return <p className={styles.muted}>Loading assignment queue…</p>;
+
+  return (
+    <div className={styles.listStack}>
+      <div className={styles.assignmentBar}>
+        <span className={styles.muted}>{queue.unassignedCount} unassigned clients</span>
+        <button
+          type="button"
+          className={styles.assignBtn}
+          onClick={autoAssign}
+          disabled={busy || queue.unassignedCount === 0}
+        >
+          {busy ? "Assigning…" : "Auto-assign by score"}
+        </button>
+      </div>
+
+      {notice && <p className={styles.notice}>{notice}</p>}
+
+      <h3 className={styles.financeTitle}>Lawyers (by score)</h3>
+      {queue.providers.map((p) => (
+        <div key={p.id} className={styles.listItem}>
+          <div>
+            <div className={styles.itemTitle}>
+              {p.name ?? p.email ?? p.id}
+              <span className={styles.scoreBadge}>{p.score.toFixed(1)}</span>
+            </div>
+            <div className={styles.itemSub}>
+              {(p.legalAreas ?? []).join(", ") || "—"}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <h3 className={styles.financeTitle}>Unassigned clients</h3>
+      {queue.unassigned.length === 0 && (
+        <p className={styles.muted}>No unassigned clients.</p>
+      )}
+      {queue.unassigned.map((c) => (
+        <div key={c.id} className={styles.listItem}>
+          <div>
+            <div className={styles.itemTitle}>
+              {[c.name, c.surname].filter(Boolean).join(" ") || c.email}
+            </div>
+            <div className={styles.itemSub}>
+              {c.legalArea ?? "—"}
+              {c.jurisdiction ? ` · ${c.jurisdiction}` : ""}
+            </div>
+          </div>
+          <select
+            className={styles.assignSelect}
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) assign(c.id, e.target.value);
+            }}
+            disabled={busy}
+          >
+            <option value="" disabled>
+              Assign to…
+            </option>
+            {queue.providers.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name ?? p.email ?? p.id} ({p.score.toFixed(1)})
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
+    </div>
   );
 }

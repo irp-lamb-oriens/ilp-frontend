@@ -1,0 +1,552 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// ── Auth (unchanged flow, kept cohesive) ────────────────────────────────────
+.main {
+  @include container;
+  padding-block: $space-12;
+}
+
+.muted {
+  color: $color-muted;
+}
+
+.auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-6 $space-4;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(92, 204, 247, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(18, 59, 93, 0.05) 0%, transparent 50%),
+    $color-canvas;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 440px;
+  padding: $space-8;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: $space-6;
+}
+
+.brandSub {
+  color: $color-steel;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.login {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.sub {
+  color: $color-steel;
+  font-size: 0.95rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $color-ink;
+  }
+
+  input {
+    padding: $space-3 $space-4;
+    border: 1px solid $color-hairline;
+    border-radius: $radius-md;
+    font-size: 1rem;
+    background: $color-surface;
+
+    &:focus {
+      outline: 2px solid $color-accent;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.notice {
+  color: $color-success;
+  font-size: 0.9rem;
+}
+
+.error {
+  color: $color-error;
+  font-weight: 600;
+}
+
+.primary {
+  padding: $space-3 $space-4;
+  border: none;
+  border-radius: $radius-md;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.secondary {
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-ink;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ── Workspace shell (creative-tool layout) ──────────────────────────────────
+// Fixed 100dvh outer shell; only the central canvas scrolls internally.
+.shell {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: $color-canvas;
+}
+
+// Glass top bar — frosted, 1px hairline, inner highlight (glassmorphism).
+.topbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  padding: $space-3 $space-6;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid $color-hairline;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  z-index: 10;
+}
+
+.topbarBrand {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.topbarMark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-md;
+  background: $color-navy;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.topbarTitle {
+  font-weight: 600;
+  color: $color-navy;
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+
+.topbarSub {
+  color: $color-steel;
+  font-size: 0.8rem;
+}
+
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+// Icon rail — fixed 64px left hub.
+.rail {
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-4 0;
+  background: $color-mist;
+  border-right: 1px solid $color-hairline;
+}
+
+.railBtn,
+.railActive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 48px;
+  padding: $space-2 0;
+  border: none;
+  border-radius: $radius-md;
+  background: transparent;
+  cursor: pointer;
+  color: $color-steel;
+}
+
+.railActive {
+  background: $color-accent-soft;
+  color: $color-navy;
+}
+
+.railIcon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.railLabel {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+// Central canvas — the only internally scrolling region.
+.canvas {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: $space-6;
+}
+
+// ── Kanban board ────────────────────────────────────────────────────────────
+.board {
+  display: flex;
+  gap: $space-4;
+  align-items: flex-start;
+  min-height: 100%;
+}
+
+.column {
+  flex: 0 0 280px;
+  background: $color-mist;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 140px);
+}
+
+.columnHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-3 $space-4;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.columnTitle {
+  font-weight: 600;
+  color: $color-navy;
+  font-size: 0.9rem;
+}
+
+.columnCount {
+  color: $color-muted;
+  font-size: 0.8rem;
+  background: $color-surface;
+  border-radius: $radius-pill;
+  padding: 0.1rem 0.5rem;
+}
+
+.columnBody {
+  padding: $space-3;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  overflow-y: auto;
+}
+
+.empty {
+  color: $color-muted;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: $space-4 0;
+}
+
+.card {
+  position: relative;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-3;
+  cursor: grab;
+  box-shadow: $shadow-card;
+  transition: box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(18, 59, 93, 0.1);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.cardName {
+  font-weight: 600;
+  color: $color-ink;
+  font-size: 0.9rem;
+}
+
+.cardMeta {
+  color: $color-muted;
+  font-size: 0.8rem;
+  margin-top: $space-1;
+}
+
+.cardPending {
+  margin-top: $space-2;
+  font-size: 0.75rem;
+  color: $color-warning;
+  font-weight: 600;
+}
+
+// Cursor-following tooltip (contextual meta-gesture).
+.tooltip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-2 $space-3;
+  background: $color-navy;
+  color: #fff;
+  border-radius: $radius-md;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(18, 59, 93, 0.25);
+}
+
+.tooltipEmail {
+  font-weight: 600;
+}
+
+.tooltipMatter {
+  opacity: 0.8;
+}
+
+// ── Finance ─────────────────────────────────────────────────────────────────
+.finance {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+}
+
+// Dynamic content-dense grid (auto-fit, no media queries).
+.matrixGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: $space-4;
+  perspective: 800px;
+}
+
+.tilt {
+  transform-style: preserve-3d;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-6;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.kpiValue {
+  font-family: $font-mono;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.kpiLabel {
+  color: $color-steel;
+  font-size: 0.85rem;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $color-navy;
+  margin: 0 0 $space-4;
+}
+
+.ledger {
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-6;
+}
+
+.ledgerRow {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-hairline;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ledgerAmount {
+  font-family: $font-mono;
+  font-weight: 600;
+  color: $color-ink;
+  min-width: 90px;
+}
+
+.ledgerMeta {
+  color: $color-muted;
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.paid {
+  color: $color-success;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.unpaid {
+  color: $color-warning;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+// ── Inspector slide-over ────────────────────────────────────────────────────
+.inspector {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  background: $color-surface;
+  border-left: 1px solid $color-hairline;
+  box-shadow: -8px 0 24px rgba(18, 59, 93, 0.06);
+  z-index: 5;
+}
+
+.inspectorHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-4 $space-6;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.inspectorTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-navy;
+  margin: 0;
+}
+
+.inspectorClose {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: $color-muted;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-ink;
+  }
+}
+
+.inspectorBody {
+  padding: $space-6;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  overflow-y: auto;
+}
+
+.inspectorRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inspectorLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-muted;
+}
+
+.inspectorValue {
+  font-size: 0.9rem;
+  color: $color-ink;
+}
+
+.inspectorField {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $color-ink;
+  }
+}
+
+.assignSelect {
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-ink;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:focus {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+// ── Reduced motion ──────────────────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .tilt {
+    transform: none !important;
+  }
+}

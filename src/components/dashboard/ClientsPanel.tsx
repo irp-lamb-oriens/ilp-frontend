@@ -8,6 +8,7 @@ import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
+import styles from "./clientsPanel.module.scss";
 
 export interface ClientSummary {
   id: string;
@@ -35,7 +36,7 @@ export interface ClientSummary {
 /**
  * Staff CRM client list + detail panel. Fetches /api/dashboard/clients and
  * renders a selectable list plus a tabbed detail view (overview / notes /
- * activity). This is the primary missing dashboard UI (R5.1).
+ * activity / actions / lily / emails).
  */
 export default function ClientsPanel() {
   const [clients, setClients] = useState<ClientSummary[] | null>(null);
@@ -70,8 +71,8 @@ export default function ClientsPanel() {
     pageSize: 20,
   });
 
-  if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
-  if (clients === null) return <p style={{ color: "#4a5a66" }}>Loading clients…</p>;
+  if (error) return <p className={styles.empty} style={{ color: "#c0392b" }}>{error}</p>;
+  if (clients === null) return <p className={styles.empty}>Loading clients…</p>;
 
   const c = selected;
   const notes = Array.isArray(c?.notes) ? (c.notes as Array<Record<string, unknown>>) : [];
@@ -83,7 +84,7 @@ export default function ClientsPanel() {
           id: "overview",
           label: "Overview",
           content: (
-            <div style={{ display: "grid", gap: "0.5rem" }}>
+            <div className={styles.overview}>
               <Row label="Email" value={c.email} />
               <Row label="Phone" value={c.phone ?? "—"} />
               <Row label="Legal area" value={c.legalArea ?? "—"} />
@@ -100,12 +101,12 @@ export default function ClientsPanel() {
           id: "notes",
           label: "Notes",
           content: (
-            <div style={{ display: "grid", gap: "0.5rem" }}>
-              {notes.length === 0 && <p style={{ color: "#7a8a96" }}>No notes.</p>}
+            <div className={styles.list}>
+              {notes.length === 0 && <p className={styles.empty}>No notes.</p>}
               {notes.map((n, i) => (
-                <div key={i} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem" }}>
-                  <div style={{ fontSize: "0.85rem", color: "#202a33" }}>{String(n.text ?? "")}</div>
-                  <div style={{ fontSize: "0.75rem", color: "#7a8a96" }}>
+                <div key={i} className={styles.listCard}>
+                  <div className={styles.listCardBody}>{String(n.text ?? "")}</div>
+                  <div className={styles.listCardMeta}>
                     {String(n.author ?? "—")} · {String(n.createdAt ?? "")}
                   </div>
                 </div>
@@ -117,12 +118,12 @@ export default function ClientsPanel() {
           id: "activity",
           label: "Activity",
           content: (
-            <div style={{ display: "grid", gap: "0.5rem" }}>
-              {activity.length === 0 && <p style={{ color: "#7a8a96" }}>No activity.</p>}
+            <div className={styles.list}>
+              {activity.length === 0 && <p className={styles.empty}>No activity.</p>}
               {activity.map((a, i) => (
-                <div key={i} style={{ fontSize: "0.85rem", display: "flex", gap: "0.75rem" }}>
-                  <span style={{ color: "#7a8a96", whiteSpace: "nowrap" }}>{String(a.timestamp ?? "").slice(0, 19)}</span>
-                  <span style={{ color: "#202a33" }}>{String(a.type ?? a.actor ?? "")}</span>
+                <div key={i} className={styles.activityRow}>
+                  <span className={styles.activityTime}>{String(a.timestamp ?? "").slice(0, 19)}</span>
+                  <span className={styles.activityText}>{String(a.type ?? a.actor ?? "")}</span>
                 </div>
               ))}
             </div>
@@ -135,11 +136,9 @@ export default function ClientsPanel() {
     : [];
 
   return (
-    <section style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "280px 1fr", gap: "1rem", alignItems: "start" }}>
-      <div style={{ background: "#fff", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 14, padding: "0.75rem", maxHeight: "70vh", overflowY: "auto" }}>
-        <div style={{ fontWeight: 600, color: "#123b5d", marginBottom: "0.5rem" }}>
-          Clients ({total})
-        </div>
+    <section className={styles.section}>
+      <div className={styles.listPane}>
+        <h2 className={styles.listTitle}>Clients ({total})</h2>
         <SearchInput
           value={query}
           onChange={setQuery}
@@ -151,43 +150,31 @@ export default function ClientsPanel() {
             key={cl.id}
             type="button"
             onClick={() => setSelected(cl)}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "0.5rem 0.6rem",
-              border: "none",
-              borderRadius: 8,
-              background: selected?.id === cl.id ? "#eaf7fd" : "transparent",
-              cursor: "pointer",
-              marginBottom: "0.25rem",
-            }}
+            className={`${styles.clientItem} ${
+              selected?.id === cl.id ? styles.clientItemSelected : ""
+            }`}
           >
-            <div style={{ fontWeight: 600, color: "#202a33", fontSize: "0.9rem" }}>
+            <div className={styles.clientName}>
               {[cl.name, cl.surname].filter(Boolean).join(" ") || cl.email}
             </div>
-            <div style={{ color: "#7a8a96", fontSize: "0.8rem" }}>
+            <div className={styles.clientMeta}>
               {stageLabel(cl.stage)}
               {cl.pendingCount > 0 ? ` · ${cl.pendingCount} pending` : ""}
             </div>
           </button>
         ))}
-        {pageItems.length === 0 && <p style={{ color: "#7a8a96", fontSize: "0.85rem" }}>No clients yet.</p>}
+        {pageItems.length === 0 && <p className={styles.empty}>No clients yet.</p>}
         <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 14, padding: "1rem", minHeight: 400 }}>
+      <div className={styles.detailPane}>
         {!c ? (
-          <p style={{ color: "#7a8a96" }}>Select a client to see details.</p>
+          <p className={styles.empty}>Select a client to see details.</p>
         ) : (
           <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.75rem" }}>
-              <h2 style={{ margin: 0, fontSize: "1.1rem", color: "#123b5d" }}>
-                {[c.name, c.surname].filter(Boolean).join(" ") || c.email}
-              </h2>
-              <span style={{ color: "#123b5d", backgroundColor: "#eaf7fd", borderRadius: 999, padding: "0.15rem 0.7rem", fontSize: "0.8rem" }}>
-                {stageLabel(c.stage)}
-              </span>
+            <div className={styles.detailHead}>
+              <h2>{[c.name, c.surname].filter(Boolean).join(" ") || c.email}</h2>
+              <span className={styles.stageBadge}>{stageLabel(c.stage)}</span>
             </div>
 
             <AnimatedTabs tabs={detailTabs} defaultTab="overview" />
@@ -200,9 +187,9 @@ export default function ClientsPanel() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.9rem" }}>
-      <span style={{ color: "#7a8a96", minWidth: 120 }}>{label}</span>
-      <span style={{ color: "#202a33" }}>{value}</span>
+    <div className={styles.row}>
+      <span className={styles.rowLabel}>{label}</span>
+      <span className={styles.rowValue}>{value}</span>
     </div>
   );
 }

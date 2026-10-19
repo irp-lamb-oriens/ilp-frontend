@@ -1,0 +1,156 @@
+@use "../../styles/variables" as *;
+
+.auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $space-6 $space-4;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(92, 204, 247, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(18, 59, 93, 0.05) 0%, transparent 50%),
+    $color-canvas;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 440px;
+  padding: $space-8;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  margin-bottom: $space-6;
+}
+
+.logo {
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+  margin: 0;
+}
+
+.brandSub {
+  color: $color-steel;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  .title {
+    color: $color-navy;
+  }
+}
+
+.sub {
+  color: $color-steel;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $color-ink;
+  }
+
+  input {
+    padding: $space-3 $space-4;
+    border: 1px solid $color-hairline;
+    border-radius: $radius-md;
+    font-size: 1rem;
+    background: $color-surface;
+    font-family: $font-sans;
+
+    &:focus {
+      outline: 2px solid $color-accent;
+      outline-offset: 1px;
+    }
+  }
+}
+
+.notice {
+  color: $color-success;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.error {
+  color: $color-error;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.primary {
+  padding: $space-3 $space-4;
+  border: none;
+  border-radius: $radius-md;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+.secondary {
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-ink;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.footer {
+  margin-top: $space-6;
+  text-align: center;
+  color: $color-muted;
+  font-size: 0.8rem;
+
+  p {
+    margin: 0;
+  }
+}

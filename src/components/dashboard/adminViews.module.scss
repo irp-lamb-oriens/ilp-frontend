@@ -1,5 +1,85 @@
 @use "../../styles/variables" as *;
 
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.panel {
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-4;
+  min-height: 200px;
+}
+
+.muted {
+  color: $color-muted;
+}
+
+.errorText {
+  color: $color-error;
+}
+
+.listStack {
+  display: grid;
+  gap: $space-2;
+}
+
+.listItem {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-2 $space-3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-3;
+}
+
+.itemTitle {
+  font-weight: 600;
+  color: $color-ink;
+}
+
+.itemSub {
+  color: $color-muted;
+  font-size: 0.85rem;
+}
+
+.itemActive {
+  color: $color-success;
+  font-size: 0.8rem;
+}
+
+.itemInactive {
+  color: $color-error;
+  font-size: 0.8rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tableHead {
+  text-align: left;
+  padding: $space-2;
+  color: $color-navy;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.tableCell {
+  padding: $space-2;
+  color: $color-steel;
+  border-bottom: 1px solid $color-mist;
+}
+
 .finance {
   display: flex;
   flex-direction: column;
@@ -41,4 +121,64 @@
   color: $color-muted;
   font-size: 0.8rem;
   margin: 0;
+}
+
+// ── Assignment ──────────────────────────────────────────────────────────────
+.assignmentBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  flex-wrap: wrap;
+}
+
+.assignBtn {
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-pill;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+.notice {
+  color: $color-success;
+  font-size: 0.9rem;
+}
+
+.scoreBadge {
+  display: inline-block;
+  margin-left: $space-2;
+  padding: 0.05rem 0.5rem;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  color: $color-navy;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.assignSelect {
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-ink;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:focus {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
 }

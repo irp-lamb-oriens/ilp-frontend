@@ -8,7 +8,8 @@ import {
   emailToProjectId,
   projectIdToEmail,
 } from "@/lib/status";
-import s from "./status.module.scss";
+import AuthShell from "@/components/auth/AuthShell";
+import authStyles from "@/components/auth/authShell.module.scss";
 
 type Step = "lookup" | "verify";
 
@@ -71,68 +72,54 @@ export default function StatusLookupPage() {
   }
 
   return (
-    <main className={s.main}>
-      <form
-        className={s.login}
-        onSubmit={step === "lookup" ? requestOtp : verifyOtp}
-      >
-        <h1 className={s.title}>Track your matter</h1>
-        <p className={s.sub}>
-          {step === "lookup"
-            ? "Enter your email to receive a secure login code."
-            : `Enter the 6-digit code sent to ${email}.`}
-        </p>
-
-        {step === "lookup" ? (
-          <label className={s.field}>
-            <span>Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoFocus
-            />
-          </label>
-        ) : (
-          <label className={s.field}>
-            <span>Verification code</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="000000"
-              maxLength={6}
-              required
-              autoFocus
-            />
-          </label>
-        )}
-
-        {notice && <p className={s.notice}>{notice}</p>}
-        {error && <p className={s.error}>{error}</p>}
-
-        <button type="submit" className={s.primary} disabled={busy}>
-          {busy ? "Please wait…" : step === "lookup" ? "Send code" : "Verify"}
-        </button>
-
-        {step === "verify" && (
-          <button
-            type="button"
-            className={s.secondary}
-            onClick={() => {
-              setStep("lookup");
-              setCode("");
-              setError(null);
-              setNotice(null);
-            }}
-          >
-            Use different details
-          </button>
-        )}
-      </form>
-    </main>
+    <AuthShell
+      title="Track your matter"
+      sub={
+        step === "lookup"
+          ? "Enter your email to receive a secure login code."
+          : `Enter the 6-digit code sent to ${email}.`
+      }
+      notice={notice}
+      error={error}
+      busy={busy}
+      primaryLabel={step === "lookup" ? "Send code" : "Verify"}
+      onSubmit={step === "lookup" ? requestOtp : verifyOtp}
+      secondaryVisible={step === "verify"}
+      secondaryLabel="Use different details"
+      onSecondary={() => {
+        setStep("lookup");
+        setCode("");
+        setError(null);
+        setNotice(null);
+      }}
+    >
+      {step === "lookup" ? (
+        <label className={authStyles.field}>
+          <span>Email</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoFocus
+          />
+        </label>
+      ) : (
+        <label className={authStyles.field}>
+          <span>Verification code</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="000000"
+            maxLength={6}
+            required
+            autoFocus
+          />
+        </label>
+      )}
+    </AuthShell>
   );
 }

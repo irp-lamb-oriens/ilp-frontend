@@ -1,0 +1,152 @@
+@use "../../styles/variables" as *;
+
+.section {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: $space-4;
+  align-items: start;
+
+  @media (max-width: $bp-md) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.listPane {
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-3;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.listTitle {
+  font-weight: 600;
+  color: $color-navy;
+  margin: 0 0 $space-2;
+}
+
+.clientItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: $space-2 $space-3;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  margin-bottom: $space-1;
+  font-family: $font-sans;
+
+  &:hover {
+    background: $color-mist;
+  }
+}
+
+.clientItemSelected {
+  background: $color-accent-soft;
+}
+
+.clientName {
+  font-weight: 600;
+  color: $color-ink;
+  font-size: 0.9rem;
+}
+
+.clientMeta {
+  color: $color-muted;
+  font-size: 0.8rem;
+}
+
+.empty {
+  color: $color-muted;
+  font-size: 0.85rem;
+  padding: $space-3 0;
+}
+
+.detailPane {
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-4;
+  min-height: 400px;
+}
+
+.detailHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: $space-4;
+  margin-bottom: $space-3;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: $color-navy;
+  }
+}
+
+.stageBadge {
+  color: $color-accent-ink;
+  background: $color-accent-soft;
+  border-radius: $radius-pill;
+  padding: $space-1 $space-3;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.overview {
+  display: grid;
+  gap: $space-2;
+}
+
+.row {
+  display: flex;
+  gap: $space-3;
+  font-size: 0.9rem;
+}
+
+.rowLabel {
+  color: $color-muted;
+  min-width: 120px;
+}
+
+.rowValue {
+  color: $color-ink;
+}
+
+.list {
+  display: grid;
+  gap: $space-2;
+}
+
+.listCard {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-2 $space-3;
+}
+
+.listCardBody {
+  font-size: 0.85rem;
+  color: $color-ink;
+}
+
+.listCardMeta {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+.activityRow {
+  font-size: 0.85rem;
+  display: flex;
+  gap: $space-3;
+}
+
+.activityTime {
+  color: $color-muted;
+  white-space: nowrap;
+}
+
+.activityText {
+  color: $color-ink;
+}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import {
   dashboardFetch,
   getDashboardToken,
@@ -13,8 +12,13 @@ import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import AdminViews from "@/components/dashboard/AdminViews";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
+import AuthShell from "@/components/auth/AuthShell";
+import { Reveal } from "@/components/motion/Motion";
+import CountUp from "@/components/motion/CountUp";
+import TiltCard from "@/components/motion/TiltCard";
 import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import styles from "./dashboard.module.scss";
+import authStyles from "@/components/auth/authShell.module.scss";
 
 interface FunnelMetrics {
   qualifiedProfiles: number;
@@ -50,6 +54,15 @@ interface DashboardMetrics {
 
 type Stage = "loading" | "login" | "verify" | "ready";
 
+type TileValue =
+  | { kind: "number"; value: number; formatter?: (v: number) => string }
+  | { kind: "text"; value: string };
+
+interface Tile {
+  label: string;
+  value: TileValue;
+}
+
 export default function DashboardView() {
   const [stage, setStage] = useState<Stage>("loading");
   const [email, setEmail] = useState("");
@@ -59,6 +72,7 @@ export default function DashboardView() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [showImport, setShowImport] = useState(false);
+  const [authBusy, setAuthBusy] = useState(false);
 
   useEffect(() => {
     if (!getDashboardToken()) {
@@ -70,10 +84,6 @@ export default function DashboardView() {
   }, []);
 
   async function loadMetrics() {
-    // Fetch the two endpoints independently so a failure in one (e.g. the
-    // funnel's template_downloads collection) never blocks the other. The
-    // pipeline + stage-satisfaction charts depend on /api/dashboard/metrics,
-    // so that fetch must resolve on its own.
     const [funnelResult, dashResult] = await Promise.allSettled([
       dashboardFetch<FunnelMetrics>("/api/analytics/funnel"),
       dashboardFetch<DashboardMetrics>("/api/dashboard/metrics"),
@@ -104,6 +114,7 @@ export default function DashboardView() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+    setAuthBusy(true);
     try {
       await dashboardFetch("/api/dashboard/auth/request-otp", {
         method: "POST",
@@ -113,12 +124,15 @@ export default function DashboardView() {
       setStage("verify");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send code.");
+    } finally {
+      setAuthBusy(false);
     }
   }
 
   async function verifyOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setAuthBusy(true);
     try {
       const res = await dashboardFetch<{ token: string; email: string }>(
         "/api/dashboard/auth/verify-otp",
@@ -128,6 +142,8 @@ export default function DashboardView() {
       await loadMetrics();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code.");
+    } finally {
+      setAuthBusy(false);
     }
   }
 
@@ -149,102 +165,79 @@ export default function DashboardView() {
 
   if (stage === "login" || stage === "verify") {
     return (
-      <main className={styles.auth}>
-        <div className={styles.authCard}>
-          <div className={styles.brand}>
-            <Image
-              src="/logo.png"
-              alt="International Legal Partner"
-              width={48}
-              height={48}
-              className={styles.logo}
-              priority
+      <AuthShell
+        title="ILP dashboard"
+        brand={{
+          src: "/logo.png",
+          name: "International Legal Partner",
+          sub: "International Legal Partner",
+        }}
+        sub={
+          stage === "login"
+            ? "Enter your ILP team email to receive a login code."
+            : `Enter the 6-digit code sent to ${email}.`
+        }
+        notice={notice}
+        error={error}
+        busy={authBusy}
+        primaryLabel={stage === "login" ? "Send code" : "Verify"}
+        onSubmit={stage === "login" ? requestOtp : verifyOtp}
+        secondaryVisible={stage === "verify"}
+        secondaryLabel="Use a different email"
+        onSecondary={() => {
+          setStage("login");
+          setCode("");
+          setError(null);
+          setNotice(null);
+        }}
+      >
+        {stage === "login" ? (
+          <label className={authStyles.field}>
+            <span>Team email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@internationallegalpartner.com"
+              required
+              autoFocus
             />
-            <div className={styles.brandText}>
-              <h1 className={styles.title}>ILP dashboard</h1>
-              <p className={styles.brandSub}>International Legal Partner</p>
-            </div>
-          </div>
-          <form
-            className={styles.login}
-            onSubmit={stage === "login" ? requestOtp : verifyOtp}
-          >
-            <p className={styles.sub}>
-              {stage === "login"
-                ? "Enter your ILP team email to receive a login code."
-                : `Enter the 6-digit code sent to ${email}.`}
-            </p>
-
-          {stage === "login" ? (
-            <label className={styles.field}>
-              <span>Team email</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@internationallegalpartner.com"
-                required
-                autoFocus
-              />
-            </label>
-          ) : (
-            <label className={styles.field}>
-              <span>Verification code</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="000000"
-                maxLength={6}
-                required
-                autoFocus
-              />
-            </label>
-          )}
-
-          {notice && <p className={styles.notice}>{notice}</p>}
-          {error && <p className={styles.error}>{error}</p>}
-
-          <button type="submit" className={styles.primary}>
-            {stage === "login" ? "Send code" : "Verify"}
-          </button>
-
-          {stage === "verify" && (
-            <button
-              type="button"
-              className={styles.secondary}
-              onClick={() => {
-                setStage("login");
-                setCode("");
-                setError(null);
-                setNotice(null);
-              }}
-            >
-              Use a different email
-            </button>
-          )}
-          </form>
-        </div>
-        <footer className={styles.footer}>
-          <p>
-            © {new Date().getFullYear()} International Legal Partner. All rights
-            reserved.
-          </p>
-        </footer>
-      </main>
+          </label>
+        ) : (
+          <label className={authStyles.field}>
+            <span>Verification code</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="000000"
+              maxLength={6}
+              required
+              autoFocus
+            />
+          </label>
+        )}
+      </AuthShell>
     );
   }
 
-  const tiles = metrics
+  const tiles: Tile[] = metrics
     ? [
-        { label: "Qualified profiles", value: metrics.qualifiedProfiles },
-        { label: "Template downloads", value: metrics.templateDownloads },
-        { label: "Alerts dispatched", value: metrics.alertsDispatched },
-        { label: "Alert responses", value: metrics.alertResponses },
-        { label: "Needs help rate", value: `${metrics.needsHelpRate.toFixed(1)}%` },
-        { label: "Booked consultations", value: metrics.bookedConsultations },
-        { label: "Confirmed consultations", value: metrics.confirmedConsultations },
+        { label: "Qualified profiles", value: { kind: "number", value: metrics.qualifiedProfiles } },
+        { label: "Template downloads", value: { kind: "number", value: metrics.templateDownloads } },
+        { label: "Alerts dispatched", value: { kind: "number", value: metrics.alertsDispatched } },
+        { label: "Alert responses", value: { kind: "number", value: metrics.alertResponses } },
+        {
+          label: "Needs help rate",
+          value: {
+            kind: "number",
+            value: metrics.needsHelpRate,
+            formatter: (v) => `${v.toFixed(1)}%`,
+          },
+        },
+        { label: "Booked consultations", value: { kind: "number", value: metrics.bookedConsultations } },
+        { label: "Confirmed consultations", value: { kind: "number", value: metrics.confirmedConsultations } },
       ]
     : [];
 
@@ -257,10 +250,18 @@ export default function DashboardView() {
       content: (
         <section className={styles.grid}>
           {tiles.map((tile) => (
-            <div key={tile.label} className={styles.tile}>
-              <span className={styles.value}>{tile.value}</span>
+            <TiltCard key={tile.label} className={styles.tile}>
+              {tile.value.kind === "number" ? (
+                <CountUp
+                  className={styles.value}
+                  value={tile.value.value}
+                  formatter={tile.value.formatter ?? ((v) => String(Math.round(v)))}
+                />
+              ) : (
+                <span className={styles.value}>{tile.value.value}</span>
+              )}
               <span className={styles.label}>{tile.label}</span>
-            </div>
+            </TiltCard>
           ))}
         </section>
       ),
@@ -303,32 +304,32 @@ export default function DashboardView() {
         label: "Activity",
         content: (
           <div className={styles.grid}>
-            <div className={styles.tile}>
-              <span className={styles.value}>{dashMetrics.activity.calls.total}</span>
-              <span className={styles.label}>Completed calls</span>
-            </div>
-            <div className={styles.tile}>
-              <span className={styles.value}>{dashMetrics.activity.quotes.total}</span>
-              <span className={styles.label}>Quotes</span>
-            </div>
-            <div className={styles.tile}>
-              <span className={styles.value}>{dashMetrics.activity.quotes.accepted}</span>
-              <span className={styles.label}>Quotes accepted</span>
-            </div>
-            <div className={styles.tile}>
-              <span className={styles.value}>{dashMetrics.llmCosts.totalCalls}</span>
-              <span className={styles.label}>LLM calls</span>
-            </div>
-            <div className={styles.tile}>
-              <span className={styles.value}>
-                ${dashMetrics.llmCosts.totalCostUSD.toFixed(2)}
-              </span>
-              <span className={styles.label}>LLM cost</span>
-            </div>
-            <div className={styles.tile}>
-              <span className={styles.value}>{dashMetrics.emailQueue.pending}</span>
-              <span className={styles.label}>Emails pending</span>
-            </div>
+            {(
+              [
+                { label: "Completed calls", value: { kind: "number", value: dashMetrics.activity.calls.total } },
+                { label: "Quotes", value: { kind: "number", value: dashMetrics.activity.quotes.total } },
+                { label: "Quotes accepted", value: { kind: "number", value: dashMetrics.activity.quotes.accepted } },
+                { label: "LLM calls", value: { kind: "number", value: dashMetrics.llmCosts.totalCalls } },
+                {
+                  label: "LLM cost",
+                  value: {
+                    kind: "number",
+                    value: dashMetrics.llmCosts.totalCostUSD,
+                    formatter: (v) => `$${v.toFixed(2)}`,
+                  },
+                },
+                { label: "Emails pending", value: { kind: "number", value: dashMetrics.emailQueue.pending } },
+              ] as Tile[]
+            ).map((tile) => (
+              <div key={tile.label} className={styles.tile}>
+                <CountUp
+                  className={styles.value}
+                  value={tile.value.value as number}
+                  formatter={(tile.value as { formatter?: (v: number) => string }).formatter ?? ((v) => String(Math.round(v)))}
+                />
+                <span className={styles.label}>{tile.label}</span>
+              </div>
+            ))}
           </div>
         ),
       },
@@ -368,7 +369,7 @@ export default function DashboardView() {
   }
 
   return (
-    <main className={styles.main}>
+    <main className={styles.shell}>
       <header className={styles.header}>
         <h1 className={styles.title}>ILP dashboard</h1>
         <div className={styles.actorRow}>
@@ -386,17 +387,29 @@ export default function DashboardView() {
         </div>
       </header>
 
-      <ClientsPanel />
+      <div className={styles.scrollArea}>
+        <Reveal>
+          {analyticsTabs.length > 0 && (
+            <section className={styles.section}>
+              <AnimatedTabs tabs={analyticsTabs} defaultTab="overview" />
+            </section>
+          )}
+        </Reveal>
 
-      <AdminViews />
+        <Reveal>
+          <section className={styles.section}>
+            <ClientsPanel />
+          </section>
+        </Reveal>
+
+        <Reveal>
+          <section className={styles.section}>
+            <AdminViews />
+          </section>
+        </Reveal>
+      </div>
 
       {showImport && <ImportExportModal onClose={() => setShowImport(false)} />}
-
-      {analyticsTabs.length > 0 && (
-        <section className={styles.section}>
-          <AnimatedTabs tabs={analyticsTabs} defaultTab="overview" />
-        </section>
-      )}
     </main>
   );
 }
