@@ -12,6 +12,7 @@ import {
   type StatusChatMessage,
   type StatusComment,
 } from "@/lib/status";
+import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import s from "../status.module.scss";
 
 export default function StatusProjectPage() {
@@ -145,125 +146,110 @@ export default function StatusProjectPage() {
   const currentIdx = stages.indexOf(project.stage);
   const stageLabel = (id: string) => stageLabels.find((l) => l.id === id)?.label ?? id;
 
-  return (
-    <main className={s.main}>
-      <header className={s.header}>
-        <div>
-          <h1 className={s.title}>
-            {project.name || project.email || "Your matter"}
-          </h1>
-          <p className={s.sub}>
-            {project.legalArea ? `${project.legalArea} · ` : ""}
-            {project.jurisdiction ?? ""}
-          </p>
-        </div>
-        <span className={s.stageBadge}>{stageLabel(project.stage)}</span>
-      </header>
-
-      {error && <p className={s.error}>{error}</p>}
-
-      <div className={s.grid}>
-        {/* Stage stepper + ratings */}
-        <section className={s.card}>
-          <h2 className={s.cardTitle}>Progress</h2>
-          <div className={s.stepper}>
-            {stages.map((stage, i) => {
-              const done = i < currentIdx;
-              const active = i === currentIdx;
-              const existing = project.stageRatings[stage];
-              return (
-                <div
-                  key={stage}
-                  className={`${s.step} ${active ? s.stepActive : ""} ${done ? s.stepDone : ""}`}
-                >
-                  <span className={s.stepLabel}>{stageLabel(stage)}</span>
-                  {project.viewerIsPrincipal && (done || active) && (
-                    <span className={s.stars}>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          className={`${s.star} ${existing && existing.rating >= n ? s.starFilled : ""}`}
-                          onClick={() => rateStage(stage, n)}
-                          disabled={ratingBusy === stage}
-                          aria-label={`Rate ${stageLabel(stage)} ${n} stars`}
-                        >
-                          ★
-                        </button>
-                      ))}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Client fields */}
-        <section className={s.card}>
-          <h2 className={s.cardTitle}>Your details</h2>
-          <div className={s.fieldList}>
-            {clientFields.length === 0 && <p className={s.empty}>No details on file.</p>}
-            {clientFields.map((f) => (
-              <div key={f.id} className={s.fieldRow}>
-                <span className={s.fieldLabel}>{f.label}</span>
-                <span className={s.fieldValue}>
-                  {f.value === "" || f.value == null ? "—" : String(f.value)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Charges */}
-        <section className={s.card}>
-          <h2 className={s.cardTitle}>Charges</h2>
-          {charges && charges.charges.length > 0 ? (
-            <>
-              {charges.charges.map((c, i) => (
-                <div key={i} className={s.chargeRow}>
-                  <span className={s.chargeLabel}>{c.label ?? "Charge"}</span>
-                  <span className={s.chargeAmount}>
-                    ${c.total.toFixed(2)} · {c.status.replace("_", " ")}
+  const tabs: TabItem[] = [
+    {
+      id: "progress",
+      label: "Progress",
+      content: (
+        <div className={s.stepper}>
+          {stages.map((stage, i) => {
+            const done = i < currentIdx;
+            const active = i === currentIdx;
+            const existing = project.stageRatings[stage];
+            return (
+              <div
+                key={stage}
+                className={`${s.step} ${active ? s.stepActive : ""} ${done ? s.stepDone : ""}`}
+              >
+                <span className={s.stepLabel}>{stageLabel(stage)}</span>
+                {project.viewerIsPrincipal && (done || active) && (
+                  <span className={s.stars}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={`${s.star} ${existing && existing.rating >= n ? s.starFilled : ""}`}
+                        onClick={() => rateStage(stage, n)}
+                        disabled={ratingBusy === stage}
+                        aria-label={`Rate ${stageLabel(stage)} ${n} stars`}
+                      >
+                        ★
+                      </button>
+                    ))}
                   </span>
-                </div>
-              ))}
-              <div className={s.totals}>
-                <div className={s.totalRow}>
-                  <span>Received</span>
-                  <span>${charges.totals.received.toFixed(2)}</span>
-                </div>
-                <div className={s.totalRow}>
-                  <span>Balance due</span>
-                  <span>${charges.totals.balanceDue.toFixed(2)}</span>
-                </div>
+                )}
               </div>
-            </>
-          ) : (
-            <p className={s.empty}>No charges yet.</p>
-          )}
-        </section>
-
-        {/* Quotes */}
-        <section className={s.card}>
-          <h2 className={s.cardTitle}>Quotes</h2>
-          {quotes.length > 0 ? (
-            quotes.map((q) => (
-              <div key={q.id} className={s.quote}>
-                <div className={s.quoteTitle}>{q.title ?? q.id}</div>
-                <div className={s.quoteMeta}>
-                  {q.status} · {q.currency ?? "USD"} {q.total != null ? q.total : ""}
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className={s.empty}>No quotes yet.</p>
-          )}
-        </section>
-
-        {/* Comments */}
-        <section className={s.card}>
-          <h2 className={s.cardTitle}>Comments</h2>
+            );
+          })}
+        </div>
+      ),
+    },
+    {
+      id: "details",
+      label: "Your details",
+      content: (
+        <div className={s.fieldList}>
+          {clientFields.length === 0 && <p className={s.empty}>No details on file.</p>}
+          {clientFields.map((f) => (
+            <div key={f.id} className={s.fieldRow}>
+              <span className={s.fieldLabel}>{f.label}</span>
+              <span className={s.fieldValue}>
+                {f.value === "" || f.value == null ? "—" : String(f.value)}
+              </span>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: "charges",
+      label: "Charges",
+      content: charges && charges.charges.length > 0 ? (
+        <>
+          {charges.charges.map((c, i) => (
+            <div key={i} className={s.chargeRow}>
+              <span className={s.chargeLabel}>{c.label ?? "Charge"}</span>
+              <span className={s.chargeAmount}>
+                ${c.total.toFixed(2)} · {c.status.replace("_", " ")}
+              </span>
+            </div>
+          ))}
+          <div className={s.totals}>
+            <div className={s.totalRow}>
+              <span>Received</span>
+              <span>${charges.totals.received.toFixed(2)}</span>
+            </div>
+            <div className={s.totalRow}>
+              <span>Balance due</span>
+              <span>${charges.totals.balanceDue.toFixed(2)}</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <p className={s.empty}>No charges yet.</p>
+      ),
+    },
+    {
+      id: "quotes",
+      label: "Quotes",
+      content: quotes.length > 0 ? (
+        quotes.map((q) => (
+          <div key={q.id} className={s.quote}>
+            <div className={s.quoteTitle}>{q.title ?? q.id}</div>
+            <div className={s.quoteMeta}>
+              {q.status} · {q.currency ?? "USD"} {q.total != null ? q.total : ""}
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className={s.empty}>No quotes yet.</p>
+      ),
+    },
+    {
+      id: "comments",
+      label: "Comments",
+      content: (
+        <>
           <div className={s.commentList}>
             {project.statusComments.length === 0 && <p className={s.empty}>No comments yet.</p>}
             {project.statusComments.map((c) => (
@@ -287,11 +273,14 @@ export default function StatusProjectPage() {
               Post
             </button>
           </form>
-        </section>
-
-        {/* Lily chat */}
-        <section className={s.card}>
-          <h2 className={s.cardTitle}>Ask about your matter</h2>
+        </>
+      ),
+    },
+    {
+      id: "lily",
+      label: "Ask Lily",
+      content: (
+        <>
           <div className={s.chat}>
             {thread.length === 0 && <p className={s.empty}>Ask a question about your matter.</p>}
             {thread.map((m, i) => (
@@ -314,8 +303,31 @@ export default function StatusProjectPage() {
               Send
             </button>
           </form>
-        </section>
-      </div>
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <main className={s.main}>
+      <header className={s.header}>
+        <div>
+          <h1 className={s.title}>
+            {project.name || project.email || "Your matter"}
+          </h1>
+          <p className={s.sub}>
+            {project.legalArea ? `${project.legalArea} · ` : ""}
+            {project.jurisdiction ?? ""}
+          </p>
+        </div>
+        <span className={s.stageBadge}>{stageLabel(project.stage)}</span>
+      </header>
+
+      {error && <p className={s.error}>{error}</p>}
+
+      <section className={s.card}>
+        <AnimatedTabs tabs={tabs} defaultTab="progress" />
+      </section>
     </main>
   );
 }

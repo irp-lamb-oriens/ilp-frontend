@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
+import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -31,8 +32,6 @@ export interface ClientSummary {
   lastUpdated: string | null;
 }
 
-type Tab = "overview" | "notes" | "activity" | "actions" | "lily" | "emails";
-
 /**
  * Staff CRM client list + detail panel. Fetches /api/dashboard/clients and
  * renders a selectable list plus a tabbed detail view (overview / notes /
@@ -41,7 +40,6 @@ type Tab = "overview" | "notes" | "activity" | "actions" | "lily" | "emails";
 export default function ClientsPanel() {
   const [clients, setClients] = useState<ClientSummary[] | null>(null);
   const [selected, setSelected] = useState<ClientSummary | null>(null);
-  const [tab, setTab] = useState<Tab>("overview");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -79,6 +77,63 @@ export default function ClientsPanel() {
   const notes = Array.isArray(c?.notes) ? (c.notes as Array<Record<string, unknown>>) : [];
   const activity = Array.isArray(c?.activityLog) ? (c.activityLog as Array<Record<string, unknown>>) : [];
 
+  const detailTabs: TabItem[] = c
+    ? [
+        {
+          id: "overview",
+          label: "Overview",
+          content: (
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              <Row label="Email" value={c.email} />
+              <Row label="Phone" value={c.phone ?? "—"} />
+              <Row label="Legal area" value={c.legalArea ?? "—"} />
+              <Row label="Legal matter" value={c.legalMatter ?? "—"} />
+              <Row label="Jurisdiction" value={c.jurisdiction ?? "—"} />
+              <Row label="Source" value={c.source ?? "—"} />
+              <Row label="Quotes" value={String(c.quotes?.length ?? 0)} />
+              <Row label="Charges" value={String(c.charges?.length ?? 0)} />
+              <Row label="Pending actions" value={String(c.pendingCount)} />
+            </div>
+          ),
+        },
+        {
+          id: "notes",
+          label: "Notes",
+          content: (
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              {notes.length === 0 && <p style={{ color: "#7a8a96" }}>No notes.</p>}
+              {notes.map((n, i) => (
+                <div key={i} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem" }}>
+                  <div style={{ fontSize: "0.85rem", color: "#202a33" }}>{String(n.text ?? "")}</div>
+                  <div style={{ fontSize: "0.75rem", color: "#7a8a96" }}>
+                    {String(n.author ?? "—")} · {String(n.createdAt ?? "")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: "activity",
+          label: "Activity",
+          content: (
+            <div style={{ display: "grid", gap: "0.5rem" }}>
+              {activity.length === 0 && <p style={{ color: "#7a8a96" }}>No activity.</p>}
+              {activity.map((a, i) => (
+                <div key={i} style={{ fontSize: "0.85rem", display: "flex", gap: "0.75rem" }}>
+                  <span style={{ color: "#7a8a96", whiteSpace: "nowrap" }}>{String(a.timestamp ?? "").slice(0, 19)}</span>
+                  <span style={{ color: "#202a33" }}>{String(a.type ?? a.actor ?? "")}</span>
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        { id: "actions", label: "Actions", content: <ClientActions clientId={c.id} stage={c.stage} /> },
+        { id: "lily", label: "Lily", content: <CrmLilyTab clientId={c.id} /> },
+        { id: "emails", label: "Emails", content: <EmailsTab /> },
+      ]
+    : [];
+
   return (
     <section style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "280px 1fr", gap: "1rem", alignItems: "start" }}>
       <div style={{ background: "#fff", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 14, padding: "0.75rem", maxHeight: "70vh", overflowY: "auto" }}>
@@ -95,7 +150,7 @@ export default function ClientsPanel() {
           <button
             key={cl.id}
             type="button"
-            onClick={() => { setSelected(cl); setTab("overview"); }}
+            onClick={() => setSelected(cl)}
             style={{
               display: "block",
               width: "100%",
@@ -135,73 +190,7 @@ export default function ClientsPanel() {
               </span>
             </div>
 
-            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-              {(["overview", "notes", "activity", "actions", "lily", "emails"] as Tab[]).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTab(t)}
-                  style={{
-                    padding: "0.4rem 0.9rem",
-                    border: "1px solid rgba(18,59,93,0.14)",
-                    borderRadius: 999,
-                    background: tab === t ? "#5cccf7" : "transparent",
-                    color: tab === t ? "#123b5d" : "#4a5a66",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  {t[0].toUpperCase() + t.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {tab === "overview" && (
-              <div style={{ display: "grid", gap: "0.5rem" }}>
-                <Row label="Email" value={c.email} />
-                <Row label="Phone" value={c.phone ?? "—"} />
-                <Row label="Legal area" value={c.legalArea ?? "—"} />
-                <Row label="Legal matter" value={c.legalMatter ?? "—"} />
-                <Row label="Jurisdiction" value={c.jurisdiction ?? "—"} />
-                <Row label="Source" value={c.source ?? "—"} />
-                <Row label="Quotes" value={String(c.quotes?.length ?? 0)} />
-                <Row label="Charges" value={String(c.charges?.length ?? 0)} />
-                <Row label="Pending actions" value={String(c.pendingCount)} />
-              </div>
-            )}
-
-            {tab === "notes" && (
-              <div style={{ display: "grid", gap: "0.5rem" }}>
-                {notes.length === 0 && <p style={{ color: "#7a8a96" }}>No notes.</p>}
-                {notes.map((n, i) => (
-                  <div key={i} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem" }}>
-                    <div style={{ fontSize: "0.85rem", color: "#202a33" }}>{String(n.text ?? "")}</div>
-                    <div style={{ fontSize: "0.75rem", color: "#7a8a96" }}>
-                      {String(n.author ?? "—")} · {String(n.createdAt ?? "")}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tab === "activity" && (
-              <div style={{ display: "grid", gap: "0.5rem" }}>
-                {activity.length === 0 && <p style={{ color: "#7a8a96" }}>No activity.</p>}
-                {activity.map((a, i) => (
-                  <div key={i} style={{ fontSize: "0.85rem", display: "flex", gap: "0.75rem" }}>
-                    <span style={{ color: "#7a8a96", whiteSpace: "nowrap" }}>{String(a.timestamp ?? "").slice(0, 19)}</span>
-                    <span style={{ color: "#202a33" }}>{String(a.type ?? a.actor ?? "")}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {tab === "actions" && <ClientActions clientId={c.id} stage={c.stage} />}
-
-            {tab === "lily" && <CrmLilyTab clientId={c.id} />}
-
-            {tab === "emails" && <EmailsTab />}
+            <AnimatedTabs tabs={detailTabs} defaultTab="overview" />
           </>
         )}
       </div>

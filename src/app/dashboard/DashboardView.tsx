@@ -12,6 +12,7 @@ import {
 import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import AdminViews from "@/components/dashboard/AdminViews";
+import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import styles from "./dashboard.module.scss";
 
@@ -247,6 +248,125 @@ export default function DashboardView() {
       ]
     : [];
 
+  const analyticsTabs: TabItem[] = [];
+
+  if (tiles.length > 0) {
+    analyticsTabs.push({
+      id: "overview",
+      label: "Overview",
+      content: (
+        <section className={styles.grid}>
+          {tiles.map((tile) => (
+            <div key={tile.label} className={styles.tile}>
+              <span className={styles.value}>{tile.value}</span>
+              <span className={styles.label}>{tile.label}</span>
+            </div>
+          ))}
+        </section>
+      ),
+    });
+  }
+
+  if (dashMetrics) {
+    analyticsTabs.push(
+      {
+        id: "pipeline",
+        label: "Pipeline",
+        content: (
+          <SimpleBarChart
+            data={dashMetrics.pipeline.stageLabels.map((s) => ({
+              label: s.label,
+              value: dashMetrics.pipeline.stageCounts[s.id] ?? 0,
+            }))}
+            color={PALETTE.accent}
+            emptyMessage="No clients in the pipeline yet."
+          />
+        ),
+      },
+      {
+        id: "satisfaction",
+        label: "Satisfaction",
+        content: (
+          <SimpleBarChart
+            data={dashMetrics.stageRatings.perStage.map((r) => ({
+              label: r.label,
+              value: r.count > 0 ? r.average : 0,
+            }))}
+            color={PALETTE.success}
+            emptyMessage="No stage ratings yet."
+            valueFormatter={(v) => `${v.toFixed(1)}★`}
+          />
+        ),
+      },
+      {
+        id: "activity",
+        label: "Activity",
+        content: (
+          <div className={styles.grid}>
+            <div className={styles.tile}>
+              <span className={styles.value}>{dashMetrics.activity.calls.total}</span>
+              <span className={styles.label}>Completed calls</span>
+            </div>
+            <div className={styles.tile}>
+              <span className={styles.value}>{dashMetrics.activity.quotes.total}</span>
+              <span className={styles.label}>Quotes</span>
+            </div>
+            <div className={styles.tile}>
+              <span className={styles.value}>{dashMetrics.activity.quotes.accepted}</span>
+              <span className={styles.label}>Quotes accepted</span>
+            </div>
+            <div className={styles.tile}>
+              <span className={styles.value}>{dashMetrics.llmCosts.totalCalls}</span>
+              <span className={styles.label}>LLM calls</span>
+            </div>
+            <div className={styles.tile}>
+              <span className={styles.value}>
+                ${dashMetrics.llmCosts.totalCostUSD.toFixed(2)}
+              </span>
+              <span className={styles.label}>LLM cost</span>
+            </div>
+            <div className={styles.tile}>
+              <span className={styles.value}>{dashMetrics.emailQueue.pending}</span>
+              <span className={styles.label}>Emails pending</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "sources",
+        label: "Sources",
+        content: (
+          <div className={styles.grid}>
+            {Object.entries(dashMetrics.sourceBreakdown)
+              .sort((a, b) => b[1] - a[1])
+              .map(([source, count]) => (
+                <div key={source} className={styles.tile}>
+                  <span className={styles.value}>{count}</span>
+                  <span className={styles.label}>{source}</span>
+                </div>
+              ))}
+          </div>
+        ),
+      },
+      {
+        id: "jurisdictions",
+        label: "Jurisdictions",
+        content: (
+          <div className={styles.grid}>
+            {Object.entries(dashMetrics.jurisdictionBreakdown)
+              .sort((a, b) => b[1] - a[1])
+              .map(([jurisdiction, count]) => (
+                <div key={jurisdiction} className={styles.tile}>
+                  <span className={styles.value}>{count}</span>
+                  <span className={styles.label}>{jurisdiction}</span>
+                </div>
+              ))}
+          </div>
+        ),
+      },
+    );
+  }
+
   return (
     <main className={styles.main}>
       <header className={styles.header}>
@@ -271,104 +391,11 @@ export default function DashboardView() {
       <AdminViews />
 
       {showImport && <ImportExportModal onClose={() => setShowImport(false)} />}
-      {tiles.length > 0 && (
-        <section className={styles.grid}>
-          {tiles.map((tile) => (
-            <div key={tile.label} className={styles.tile}>
-              <span className={styles.value}>{tile.value}</span>
-              <span className={styles.label}>{tile.label}</span>
-            </div>
-          ))}
+
+      {analyticsTabs.length > 0 && (
+        <section className={styles.section}>
+          <AnimatedTabs tabs={analyticsTabs} defaultTab="overview" />
         </section>
-      )}
-
-      {dashMetrics && (
-        <>
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Pipeline</h2>
-            <SimpleBarChart
-              data={dashMetrics.pipeline.stageLabels.map((s) => ({
-                label: s.label,
-                value: dashMetrics.pipeline.stageCounts[s.id] ?? 0,
-              }))}
-              color={PALETTE.accent}
-              emptyMessage="No clients in the pipeline yet."
-            />
-          </section>
-
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Stage satisfaction</h2>
-            <SimpleBarChart
-              data={dashMetrics.stageRatings.perStage.map((r) => ({
-                label: r.label,
-                value: r.count > 0 ? r.average : 0,
-              }))}
-              color={PALETTE.success}
-              emptyMessage="No stage ratings yet."
-              valueFormatter={(v) => `${v.toFixed(1)}★`}
-            />
-          </section>
-
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Activity</h2>
-            <div className={styles.grid}>
-              <div className={styles.tile}>
-                <span className={styles.value}>{dashMetrics.activity.calls.total}</span>
-                <span className={styles.label}>Completed calls</span>
-              </div>
-              <div className={styles.tile}>
-                <span className={styles.value}>{dashMetrics.activity.quotes.total}</span>
-                <span className={styles.label}>Quotes</span>
-              </div>
-              <div className={styles.tile}>
-                <span className={styles.value}>{dashMetrics.activity.quotes.accepted}</span>
-                <span className={styles.label}>Quotes accepted</span>
-              </div>
-              <div className={styles.tile}>
-                <span className={styles.value}>{dashMetrics.llmCosts.totalCalls}</span>
-                <span className={styles.label}>LLM calls</span>
-              </div>
-              <div className={styles.tile}>
-                <span className={styles.value}>
-                  ${dashMetrics.llmCosts.totalCostUSD.toFixed(2)}
-                </span>
-                <span className={styles.label}>LLM cost</span>
-              </div>
-              <div className={styles.tile}>
-                <span className={styles.value}>{dashMetrics.emailQueue.pending}</span>
-                <span className={styles.label}>Emails pending</span>
-              </div>
-            </div>
-          </section>
-
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Sources</h2>
-            <div className={styles.grid}>
-              {Object.entries(dashMetrics.sourceBreakdown)
-                .sort((a, b) => b[1] - a[1])
-                .map(([source, count]) => (
-                  <div key={source} className={styles.tile}>
-                    <span className={styles.value}>{count}</span>
-                    <span className={styles.label}>{source}</span>
-                  </div>
-                ))}
-            </div>
-          </section>
-
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>Jurisdictions</h2>
-            <div className={styles.grid}>
-              {Object.entries(dashMetrics.jurisdictionBreakdown)
-                .sort((a, b) => b[1] - a[1])
-                .map(([jurisdiction, count]) => (
-                  <div key={jurisdiction} className={styles.tile}>
-                    <span className={styles.value}>{count}</span>
-                    <span className={styles.label}>{jurisdiction}</span>
-                  </div>
-                ))}
-            </div>
-          </section>
-        </>
       )}
     </main>
   );
