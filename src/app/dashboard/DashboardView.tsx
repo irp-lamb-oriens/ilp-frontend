@@ -69,24 +69,34 @@ export default function DashboardView() {
   }, []);
 
   async function loadMetrics() {
-    try {
-      const [funnel, dash] = await Promise.all([
-        dashboardFetch<FunnelMetrics>("/api/analytics/funnel"),
-        dashboardFetch<DashboardMetrics>("/api/dashboard/metrics"),
-      ]);
-      setMetrics(funnel);
-      setDashMetrics(dash);
-      setStage("ready");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        clearDashboardToken();
-        setStage("login");
-        setError("Session expired. Please log in again.");
-      } else {
-        setError(err instanceof Error ? err.message : "Failed to load metrics.");
-        setStage("login");
-      }
+    // Fetch the two endpoints independently so a failure in one (e.g. the
+    // funnel's template_downloads collection) never blocks the other. The
+    // pipeline + stage-satisfaction charts depend on /api/dashboard/metrics,
+    // so that fetch must resolve on its own.
+    const [funnelResult, dashResult] = await Promise.allSettled([
+      dashboardFetch<FunnelMetrics>("/api/analytics/funnel"),
+      dashboardFetch<DashboardMetrics>("/api/dashboard/metrics"),
+    ]);
+
+    if (funnelResult.status === "fulfilled") {
+      setMetrics(funnelResult.value);
+    } else if (funnelResult.reason instanceof ApiError && funnelResult.reason.status === 401) {
+      clearDashboardToken();
+      setStage("login");
+      setError("Session expired. Please log in again.");
+      return;
     }
+
+    if (dashResult.status === "fulfilled") {
+      setDashMetrics(dashResult.value);
+    } else if (dashResult.reason instanceof ApiError && dashResult.reason.status === 401) {
+      clearDashboardToken();
+      setStage("login");
+      setError("Session expired. Please log in again.");
+      return;
+    }
+
+    setStage("ready");
   }
 
   async function requestOtp(e: React.FormEvent) {
@@ -225,15 +235,17 @@ export default function DashboardView() {
     );
   }
 
-  const tiles = [
-    { label: "Qualified profiles", value: metrics!.qualifiedProfiles },
-    { label: "Template downloads", value: metrics!.templateDownloads },
-    { label: "Alerts dispatched", value: metrics!.alertsDispatched },
-    { label: "Alert responses", value: metrics!.alertResponses },
-    { label: "Needs help rate", value: `${metrics!.needsHelpRate.toFixed(1)}%` },
-    { label: "Booked consultations", value: metrics!.bookedConsultations },
-    { label: "Confirmed consultations", value: metrics!.confirmedConsultations },
-  ];
+  const tiles = metrics
+    ? [
+        { label: "Qualified profiles", value: metrics.qualifiedProfiles },
+        { label: "Template downloads", value: metrics.templateDownloads },
+        { label: "Alerts dispatched", value: metrics.alertsDispatched },
+        { label: "Alert responses", value: metrics.alertResponses },
+        { label: "Needs help rate", value: `${metrics.needsHelpRate.toFixed(1)}%` },
+        { label: "Booked consultations", value: metrics.bookedConsultations },
+        { label: "Confirmed consultations", value: metrics.confirmedConsultations },
+      ]
+    : [];
 
   return (
     <main className={styles.main}>
@@ -259,14 +271,16 @@ export default function DashboardView() {
       <AdminViews />
 
       {showImport && <ImportExportModal onClose={() => setShowImport(false)} />}
-      <section className={styles.grid}>
-        {tiles.map((tile) => (
-          <div key={tile.label} className={styles.tile}>
-            <span className={styles.value}>{tile.value}</span>
-            <span className={styles.label}>{tile.label}</span>
-          </div>
-        ))}
-      </section>
+      {tiles.length > 0 && (
+        <section className={styles.grid}>
+          {tiles.map((tile) => (
+            <div key={tile.label} className={styles.tile}>
+              <span className={styles.value}>{tile.value}</span>
+              <span className={styles.label}>{tile.label}</span>
+            </div>
+          ))}
+        </section>
+      )}
 
       {dashMetrics && (
         <>
