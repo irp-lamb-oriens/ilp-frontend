@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -32,9 +33,17 @@ export default function Nav() {
   const pathname = usePathname();
   const isLawyers = pathname === "/attorneys" || pathname === "/lawyers";
   const isCountry = (href: string) => pathname === href;
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className={styles.nav}>
+    <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ""}`}>
       <Link href="/" className={styles.brand} aria-label="International Legal Partner">
         <Image
           src="/logo.png"
