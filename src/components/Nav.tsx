@@ -78,12 +78,23 @@ export default function Nav() {
 
         <span className={styles.divider} aria-hidden="true" />
 
-        <Link
-          href="/status"
-          className={`${styles.link} ${pathname.startsWith("/status") ? styles.active : ""}`}
-        >
-          Track your matter
-        </Link>
+        {!isLawyers && (
+          <Link
+            href="/status"
+            className={`${styles.link} ${pathname.startsWith("/status") ? styles.active : ""}`}
+          >
+            Track your matter
+          </Link>
+        )}
+
+        {isLawyers && (
+          <Link
+            href="/lawyer"
+            className={`${styles.link} ${pathname.startsWith("/lawyer") ? styles.active : ""}`}
+          >
+            Lawyer portal
+          </Link>
+        )}
 
       </div>
       <NavCta className={styles.cta} />
