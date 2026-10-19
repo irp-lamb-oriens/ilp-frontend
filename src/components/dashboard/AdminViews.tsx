@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
+import {
+  RankedBarChart,
+  DonutChart,
+  TrendChart,
+  GroupedBarChart,
+  PALETTE,
+} from "@/components/dashboard/charts";
+import styles from "./adminViews.module.scss";
 
 type ViewKey = "providers" | "vendors" | "finance" | "sales" | "emails";
 
@@ -122,12 +130,60 @@ function VendorsList() {
   );
 }
 
+interface MoneyStats {
+  n: number;
+  revenue: number;
+  cost: number;
+  margin: number;
+  marginPct: number | null;
+  avgDealSize: number | null;
+}
+
+interface FinanceBucket extends MoneyStats {
+  key: string;
+  label: string;
+}
+
+interface FinanceMetrics {
+  baseCurrency: string;
+  generatedAt: string;
+  totals: {
+    won: MoneyStats;
+    openPipeline: MoneyStats;
+    draft: MoneyStats;
+    all: MoneyStats;
+  };
+  winRate: { sentOrBeyond: number; won: number; pct: number | null };
+  cycleDays: { n: number; median: number | null };
+  byMonth: Array<FinanceBucket & { month: string }>;
+  byRoute: FinanceBucket[];
+  byService: FinanceBucket[];
+  byProvider: FinanceBucket[];
+  byStage: FinanceBucket[];
+  skipped: {
+    currency: number;
+    zeroTotal: number;
+    exclusiveAlternates: number;
+    currencies: Record<string, number>;
+  };
+  marginUnknown: number;
+  quotesRead: number;
+  clientsRead: number;
+}
+
+const money = (v: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(v);
+
 function FinanceView() {
-  const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null);
+  const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    dashboardFetch<Record<string, unknown>>("/api/dashboard/finance/metrics")
+    dashboardFetch<FinanceMetrics>("/api/dashboard/finance/metrics")
       .then(setMetrics)
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load finance metrics."));
   }, []);
@@ -135,14 +191,102 @@ function FinanceView() {
   if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
   if (metrics === null) return <p style={{ color: "#7a8a96" }}>Loading finance…</p>;
 
+  const totals = metrics.totals;
+
+  // Revenue vs cost vs margin across the four pipeline buckets.
+  const totalsData = [
+    { label: "Won", revenue: totals.won.revenue, cost: totals.won.cost, margin: totals.won.margin },
+    { label: "Open", revenue: totals.openPipeline.revenue, cost: totals.openPipeline.cost, margin: totals.openPipeline.margin },
+    { label: "Draft", revenue: totals.draft.revenue, cost: totals.draft.cost, margin: totals.draft.margin },
+    { label: "All", revenue: totals.all.revenue, cost: totals.all.cost, margin: totals.all.margin },
+  ];
+
+  const monthData = metrics.byMonth.map((m) => ({ label: m.month, value: m.revenue }));
+  const routeData = metrics.byRoute.map((r) => ({ label: r.label, value: r.revenue }));
+  const serviceData = metrics.byService.map((s) => ({ label: s.label, value: s.revenue }));
+  const providerData = metrics.byProvider.map((p) => ({ label: p.label, value: p.revenue }));
+  const stageData = metrics.byStage.map((s) => ({ label: s.label, value: s.revenue }));
+
   return (
-    <div style={{ display: "grid", gap: "0.5rem", fontSize: "0.9rem" }}>
-      {Object.entries(metrics).map(([k, v]) => (
-        <div key={k} style={{ display: "flex", gap: "0.75rem" }}>
-          <span style={{ color: "#7a8a96", minWidth: 200 }}>{k}</span>
-          <span style={{ color: "#202a33" }}>{typeof v === "object" ? JSON.stringify(v) : String(v)}</span>
+    <div className={styles.finance}>
+      <div className={styles.financeMeta}>
+        <span>Base currency: {metrics.baseCurrency}</span>
+        <span>{metrics.quotesRead} quotes · {metrics.clientsRead} clients</span>
+      </div>
+
+      <div className={styles.financeGrid}>
+        <div className={styles.financeCard}>
+          <h3 className={styles.financeTitle}>Revenue vs cost vs margin</h3>
+          <GroupedBarChart
+            data={totalsData}
+            series={[
+              { key: "revenue", name: "Revenue" },
+              { key: "cost", name: "Cost" },
+              { key: "margin", name: "Margin" },
+            ]}
+            colors={[PALETTE.accent, PALETTE.error, PALETTE.success]}
+            valueFormatter={money}
+            emptyMessage="No priced quotes yet."
+          />
         </div>
-      ))}
+
+        <div className={styles.financeCard}>
+          <h3 className={styles.financeTitle}>Win rate</h3>
+          <DonutChart
+            value={metrics.winRate.won}
+            total={metrics.winRate.sentOrBeyond}
+            label="won"
+            color={PALETTE.success}
+            emptyMessage="No client-facing quotes yet."
+          />
+          <p className={styles.financeSub}>
+            {metrics.winRate.won} of {metrics.winRate.sentOrBeyond} quotes won
+            {metrics.cycleDays.median != null
+              ? ` · median cycle ${metrics.cycleDays.median} days`
+              : ""}
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.financeCard}>
+        <h3 className={styles.financeTitle}>Revenue by month</h3>
+        <TrendChart
+          data={monthData}
+          color={PALETTE.accent}
+          valueFormatter={money}
+          emptyMessage="No won revenue yet."
+        />
+      </div>
+
+      <div className={styles.financeGrid}>
+        <div className={styles.financeCard}>
+          <h3 className={styles.financeTitle}>Revenue by route</h3>
+          <RankedBarChart data={routeData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No route data yet." />
+        </div>
+        <div className={styles.financeCard}>
+          <h3 className={styles.financeTitle}>Revenue by service</h3>
+          <RankedBarChart data={serviceData} color={PALETTE.success} valueFormatter={money} emptyMessage="No service data yet." />
+        </div>
+      </div>
+
+      <div className={styles.financeGrid}>
+        <div className={styles.financeCard}>
+          <h3 className={styles.financeTitle}>Revenue by provider</h3>
+          <RankedBarChart data={providerData} color={PALETTE.warning} valueFormatter={money} emptyMessage="No provider data yet." />
+        </div>
+        <div className={styles.financeCard}>
+          <h3 className={styles.financeTitle}>Revenue by stage</h3>
+          <RankedBarChart data={stageData} color={PALETTE.steel} valueFormatter={money} emptyMessage="No stage data yet." />
+        </div>
+      </div>
+
+      {(metrics.skipped.currency > 0 ||
+        metrics.skipped.zeroTotal > 0 ||
+        metrics.skipped.exclusiveAlternates > 0) && (
+        <p className={styles.financeSub}>
+          Skipped: {metrics.skipped.currency} wrong-currency, {metrics.skipped.zeroTotal} zero-total, {metrics.skipped.exclusiveAlternates} exclusive alternates.
+        </p>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
 import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import AdminViews from "@/components/dashboard/AdminViews";
+import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import styles from "./dashboard.module.scss";
 
 interface FunnelMetrics {
@@ -271,32 +272,27 @@ export default function DashboardView() {
         <>
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Pipeline</h2>
-            <div className={styles.grid}>
-              {dashMetrics.pipeline.stageLabels.map((s) => (
-                <div key={s.id} className={styles.tile}>
-                  <span className={styles.value}>
-                    {dashMetrics.pipeline.stageCounts[s.id] ?? 0}
-                  </span>
-                  <span className={styles.label}>{s.label}</span>
-                </div>
-              ))}
-            </div>
+            <SimpleBarChart
+              data={dashMetrics.pipeline.stageLabels.map((s) => ({
+                label: s.label,
+                value: dashMetrics.pipeline.stageCounts[s.id] ?? 0,
+              }))}
+              color={PALETTE.accent}
+              emptyMessage="No clients in the pipeline yet."
+            />
           </section>
 
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Stage satisfaction</h2>
-            <div className={styles.grid}>
-              {dashMetrics.stageRatings.perStage.map((r) => (
-                <div key={r.stage} className={styles.tile}>
-                  <span className={styles.value}>
-                    {r.count > 0 ? `${r.average.toFixed(1)}★` : "—"}
-                  </span>
-                  <span className={styles.label}>
-                    {r.label} · {r.count} rating{r.count === 1 ? "" : "s"}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <SimpleBarChart
+              data={dashMetrics.stageRatings.perStage.map((r) => ({
+                label: r.label,
+                value: r.count > 0 ? r.average : 0,
+              }))}
+              color={PALETTE.success}
+              emptyMessage="No stage ratings yet."
+              valueFormatter={(v) => `${v.toFixed(1)}★`}
+            />
           </section>
 
           <section className={styles.section}>

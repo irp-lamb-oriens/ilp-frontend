@@ -1,0 +1,47 @@
+@use "../../styles/variables" as *;
+
+.chart {
+  width: 100%;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-4;
+}
+
+.empty {
+  color: $color-muted;
+  font-size: 0.85rem;
+  padding: $space-6;
+  text-align: center;
+  background: $color-surface;
+  border: 1px dashed $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.donutWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donutCenter {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.donutValue {
+  font-family: $font-mono;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.donutLabel {
+  color: $color-steel;
+  font-size: 0.8rem;
+}

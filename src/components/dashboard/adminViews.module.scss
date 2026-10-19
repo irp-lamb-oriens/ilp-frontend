@@ -1,0 +1,44 @@
+@use "../../styles/variables" as *;
+
+.finance {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.financeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  color: $color-steel;
+  font-size: 0.85rem;
+}
+
+.financeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.financeCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.financeTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-navy;
+  margin: 0;
+}
+
+.financeSub {
+  color: $color-muted;
+  font-size: 0.8rem;
+  margin: 0;
+}
