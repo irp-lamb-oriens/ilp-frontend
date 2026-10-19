@@ -1,13 +1,13 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import styles from "./tabs.module.scss";
 
 export interface TabItem {
   id: string;
   label: string;
-  content: React.ReactNode;
+  content: ReactNode;
 }
 
 interface AnimatedTabsProps {
