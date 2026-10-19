@@ -27,6 +27,31 @@ export function clearClientToken(): void {
   }
 }
 
+/**
+ * Derive the email-normalized project id from a raw email. Mirrors the
+ * server's `emailToDocId` (replace `@` and `.` with `_`).
+ */
+export function emailToProjectId(email: string): string {
+  return email.toLowerCase().trim().replace(/[@.]/g, "_");
+}
+
+/**
+ * Reconstruct the bare email from an email-normalized project id. Mirrors the
+ * server's `resolvePrincipalEmail` (last two dot-segments are domain.tld, the
+ * rest is the local part).
+ */
+export function projectIdToEmail(projectId: string): string {
+  const dotted = projectId.replace(/_/g, ".");
+  const parts = dotted.split(".");
+  if (parts.length >= 2) {
+    const tld = parts.pop();
+    const dom = parts.pop();
+    const user = parts.join(".");
+    return `${user}@${dom}.${tld}`.toLowerCase().trim();
+  }
+  return dotted.toLowerCase().trim();
+}
+
 /** Fetch against the client-status API using the client session token. */
 export async function statusFetch<T = unknown>(
   path: string,

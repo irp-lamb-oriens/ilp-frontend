@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { statusFetch, setClientToken } from "@/lib/status";
+import {
+  statusFetch,
+  setClientToken,
+  emailToProjectId,
+  projectIdToEmail,
+} from "@/lib/status";
 import s from "./status.module.scss";
 
 type Step = "lookup" | "verify";
@@ -11,11 +16,20 @@ export default function StatusLookupPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("lookup");
   const [email, setEmail] = useState("");
-  const [projectId, setProjectId] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // When the URL already carries a project id (e.g. /status?project=...),
+  // prefill the email field with the reconstructed bare email.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("project") ?? params.get("id");
+    if (fromUrl) {
+      setEmail(projectIdToEmail(fromUrl));
+    }
+  }, []);
 
   async function requestOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -23,6 +37,7 @@ export default function StatusLookupPage() {
     setNotice(null);
     setBusy(true);
     try {
+      const projectId = emailToProjectId(email);
       await statusFetch("/api/client-status/auth/request-otp", {
         method: "POST",
         body: JSON.stringify({ email, projectId }),
@@ -41,6 +56,7 @@ export default function StatusLookupPage() {
     setError(null);
     setBusy(true);
     try {
+      const projectId = emailToProjectId(email);
       const res = await statusFetch<{ token: string }>(
         "/api/client-status/auth/verify-otp",
         { method: "POST", body: JSON.stringify({ email, projectId, code }) },
@@ -63,34 +79,22 @@ export default function StatusLookupPage() {
         <h1 className={s.title}>Track your matter</h1>
         <p className={s.sub}>
           {step === "lookup"
-            ? "Enter your email and project ID to receive a secure login code."
+            ? "Enter your email to receive a secure login code."
             : `Enter the 6-digit code sent to ${email}.`}
         </p>
 
         {step === "lookup" ? (
-          <>
-            <label className={s.field}>
-              <span>Email</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                autoFocus
-              />
-            </label>
-            <label className={s.field}>
-              <span>Project ID</span>
-              <input
-                type="text"
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                placeholder="your_project_id"
-                required
-              />
-            </label>
-          </>
+          <label className={s.field}>
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              required
+              autoFocus
+            />
+          </label>
         ) : (
           <label className={s.field}>
             <span>Verification code</span>
