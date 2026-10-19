@@ -240,6 +240,10 @@ export default function LawyerPage() {
     setError(null);
     setNotice(null);
     setAuthBusy(true);
+    // Restart the session: drop any stale provider token so a new user (or a
+    // re-login after expiry) starts from a clean slate instead of carrying a
+    // dead token into the OTP flow.
+    clearProviderToken();
     try {
       await providerFetch("/api/provider/auth/request-otp", {
         method: "POST",
@@ -263,7 +267,10 @@ export default function LawyerPage() {
         "/api/provider/auth/verify-otp",
         { method: "POST", body: JSON.stringify({ email, code }) },
       );
+      // Persist the fresh session token before loading, so the subsequent
+      // providerFetch calls carry the new token (not the cleared one).
       setProviderToken(res.token);
+      setCode("");
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid code.");
