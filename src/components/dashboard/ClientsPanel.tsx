@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
+import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
+import { SearchInput, Pagination } from "./ListControls";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -57,6 +59,19 @@ export default function ClientsPanel() {
 
   const stageLabel = (id: string) => id.replace(/_/g, " ");
 
+  const {
+    query,
+    setQuery,
+    page,
+    setPage,
+    pageItems,
+    total,
+    totalPages,
+  } = usePaginatedSearch<ClientSummary>(clients ?? [], {
+    searchKeys: ["name", "surname", "email", "stage", "jurisdiction", "legalArea"],
+    pageSize: 20,
+  });
+
   if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
   if (clients === null) return <p style={{ color: "#4a5a66" }}>Loading clients…</p>;
 
@@ -68,9 +83,15 @@ export default function ClientsPanel() {
     <section style={{ marginTop: "1.5rem", display: "grid", gridTemplateColumns: "280px 1fr", gap: "1rem", alignItems: "start" }}>
       <div style={{ background: "#fff", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 14, padding: "0.75rem", maxHeight: "70vh", overflowY: "auto" }}>
         <div style={{ fontWeight: 600, color: "#123b5d", marginBottom: "0.5rem" }}>
-          Clients ({clients.length})
+          Clients ({total})
         </div>
-        {clients.map((cl) => (
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search clients…"
+          resultCount={total}
+        />
+        {pageItems.map((cl) => (
           <button
             key={cl.id}
             type="button"
@@ -96,7 +117,8 @@ export default function ClientsPanel() {
             </div>
           </button>
         ))}
-        {clients.length === 0 && <p style={{ color: "#7a8a96", fontSize: "0.85rem" }}>No clients yet.</p>}
+        {pageItems.length === 0 && <p style={{ color: "#7a8a96", fontSize: "0.85rem" }}>No clients yet.</p>}
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       <div style={{ background: "#fff", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 14, padding: "1rem", minHeight: 400 }}>

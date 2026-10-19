@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
+import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
+import { SearchInput, Pagination } from "./ListControls";
 
 interface EmailQueueItem {
   id: string;
@@ -79,13 +81,35 @@ export default function EmailsTab() {
     }
   }
 
+  const {
+    query,
+    setQuery,
+    page,
+    setPage,
+    pageItems,
+    total,
+    totalPages,
+  } = usePaginatedSearch<EmailQueueItem>(pending ?? [], {
+    searchKeys: ["to", "subject", "emailType", "status"],
+    pageSize: 20,
+  });
+
   return (
     <div style={{ display: "grid", gap: "0.75rem" }}>
       {error && <p style={{ color: "#c0392b", fontSize: "0.85rem", margin: 0 }}>{error}</p>}
       {pending === null && <p style={{ color: "#7a8a96" }}>Loading…</p>}
       {pending !== null && pending.length === 0 && <p style={{ color: "#7a8a96" }}>No pending emails.</p>}
 
-      {pending?.map((e) => (
+      {pending !== null && pending.length > 0 && (
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search emails…"
+          resultCount={total}
+        />
+      )}
+
+      {pageItems.map((e) => (
         <div
           key={e.id}
           style={{
@@ -129,6 +153,8 @@ export default function EmailsTab() {
           </div>
         </div>
       ))}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {preview && (
         <div

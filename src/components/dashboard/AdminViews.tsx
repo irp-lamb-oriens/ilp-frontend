@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
+import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
+import { SearchInput, Pagination } from "./ListControls";
 import {
   RankedBarChart,
   DonutChart,
@@ -84,13 +86,20 @@ function ProvidersList() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load providers."));
   }, []);
 
+  const { query, setQuery, page, setPage, pageItems, total, totalPages } =
+    usePaginatedSearch<Provider>(rows ?? [], {
+      searchKeys: ["name", "email", "legalAreas", "jurisdictions"],
+      pageSize: 20,
+    });
+
   if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
   if (rows === null) return <p style={{ color: "#7a8a96" }}>Loading providers…</p>;
   if (rows.length === 0) return <p style={{ color: "#7a8a96" }}>No providers yet.</p>;
 
   return (
     <div style={{ display: "grid", gap: "0.5rem" }}>
-      {rows.map((p) => (
+      <SearchInput value={query} onChange={setQuery} placeholder="Search providers…" resultCount={total} />
+      {pageItems.map((p) => (
         <div key={p.id} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem" }}>
           <div style={{ fontWeight: 600, color: "#202a33" }}>{p.name ?? p.id}</div>
           <div style={{ color: "#7a8a96", fontSize: "0.85rem" }}>
@@ -98,6 +107,7 @@ function ProvidersList() {
           </div>
         </div>
       ))}
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
@@ -112,13 +122,20 @@ function VendorsList() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load vendors."));
   }, []);
 
+  const { query, setQuery, page, setPage, pageItems, total, totalPages } =
+    usePaginatedSearch<Vendor>(rows ?? [], {
+      searchKeys: ["name", "id"],
+      pageSize: 20,
+    });
+
   if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
   if (rows === null) return <p style={{ color: "#7a8a96" }}>Loading vendors…</p>;
   if (rows.length === 0) return <p style={{ color: "#7a8a96" }}>No vendors yet.</p>;
 
   return (
     <div style={{ display: "grid", gap: "0.5rem" }}>
-      {rows.map((v) => (
+      <SearchInput value={query} onChange={setQuery} placeholder="Search vendors…" resultCount={total} />
+      {pageItems.map((v) => (
         <div key={v.id} style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.6rem", display: "flex", justifyContent: "space-between" }}>
           <span style={{ fontWeight: 600, color: "#202a33" }}>{v.name ?? v.id}</span>
           <span style={{ color: v.active === false ? "#c0392b" : "#1f7a5c", fontSize: "0.8rem" }}>
@@ -126,6 +143,7 @@ function VendorsList() {
           </span>
         </div>
       ))}
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
@@ -301,36 +319,46 @@ function SalesView() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load sales report."));
   }, []);
 
+  const keys = Array.from(new Set((rows ?? []).flatMap((r) => Object.keys(r)))).slice(0, 8);
+
+  const { query, setQuery, page, setPage, pageItems, total, totalPages } =
+    usePaginatedSearch<Record<string, unknown>>(rows ?? [], {
+      searchKeys: keys,
+      pageSize: 20,
+    });
+
   if (error) return <p style={{ color: "#c0392b" }}>{error}</p>;
   if (rows === null) return <p style={{ color: "#7a8a96" }}>Loading sales…</p>;
   if (rows.length === 0) return <p style={{ color: "#7a8a96" }}>No sales data.</p>;
 
-  const keys = Array.from(new Set(rows.flatMap((r) => Object.keys(r)))).slice(0, 8);
-
   return (
-    <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
-        <thead>
-          <tr>
-            {keys.map((k) => (
-              <th key={k} style={{ textAlign: "left", padding: "0.4rem", color: "#123b5d", borderBottom: "1px solid rgba(18,59,93,0.14)" }}>
-                {k}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
+    <div style={{ display: "grid", gap: "0.5rem" }}>
+      <SearchInput value={query} onChange={setQuery} placeholder="Search sales…" resultCount={total} />
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+          <thead>
+            <tr>
               {keys.map((k) => (
-                <td key={k} style={{ padding: "0.4rem", color: "#4a5a66", borderBottom: "1px solid #f0f4f7" }}>
-                  {r[k] == null ? "—" : String(r[k])}
-                </td>
+                <th key={k} style={{ textAlign: "left", padding: "0.4rem", color: "#123b5d", borderBottom: "1px solid rgba(18,59,93,0.14)" }}>
+                  {k}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pageItems.map((r, i) => (
+              <tr key={i}>
+                {keys.map((k) => (
+                  <td key={k} style={{ padding: "0.4rem", color: "#4a5a66", borderBottom: "1px solid #f0f4f7" }}>
+                    {r[k] == null ? "—" : String(r[k])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }
