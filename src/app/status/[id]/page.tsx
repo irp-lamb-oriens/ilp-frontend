@@ -12,6 +12,7 @@ import {
   type StatusChatMessage,
   type StatusComment,
 } from "@/lib/status";
+import { getDashboardToken } from "@/lib/api";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import StageTimeline from "@/components/status/StageTimeline";
 import { Reveal } from "@/components/motion/Motion";
@@ -38,7 +39,7 @@ export default function StatusProjectPage() {
   const [ratingBusy, setRatingBusy] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!getClientToken()) {
+    if (!getClientToken() && !getDashboardToken()) {
       router.replace("/status");
       return;
     }

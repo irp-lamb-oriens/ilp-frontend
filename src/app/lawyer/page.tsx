@@ -15,6 +15,9 @@ import {
   clearProviderToken,
   ApiError,
 } from "@/lib/provider";
+import { getDashboardToken } from "@/lib/api";
+import AuthShell from "@/components/auth/AuthShell";
+import AuthField from "@/components/auth/AuthField";
 import styles from "./lawyer.module.scss";
 
 interface LawyerMe {
@@ -224,7 +227,7 @@ export default function LawyerPage() {
   }, []);
 
   useEffect(() => {
-    if (!getProviderToken()) {
+    if (!getProviderToken() && !getDashboardToken()) {
       setStage("login");
       return;
     }
@@ -308,71 +311,50 @@ export default function LawyerPage() {
 
   if (stage === "login" || stage === "verify") {
     return (
-      <main className={styles.auth}>
-        <div className={styles.authCard}>
-          <div className={styles.brand}>
-            <h1 className={styles.title}>ILP lawyer portal</h1>
-            <p className={styles.brandSub}>International Legal Partner</p>
-          </div>
-          <form className={styles.login} onSubmit={stage === "login" ? requestOtp : verifyOtp}>
-            <p className={styles.sub}>
-              {stage === "login"
-                ? "Enter your lawyer email to receive a login code."
-                : `Enter the 6-digit code sent to ${email}.`}
-            </p>
-
-            {stage === "login" ? (
-              <label className={styles.field}>
-                <span>Lawyer email</span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@lawfirm.com"
-                  required
-                  autoFocus
-                />
-              </label>
-            ) : (
-              <label className={styles.field}>
-                <span>Verification code</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="000000"
-                  maxLength={6}
-                  required
-                  autoFocus
-                />
-              </label>
-            )}
-
-            {notice && <p className={styles.notice}>{notice}</p>}
-            {error && <p className={styles.error}>{error}</p>}
-
-            <button type="submit" className={styles.primary}>
-              {stage === "login" ? "Send code" : "Verify"}
-            </button>
-
-            {stage === "verify" && (
-              <button
-                type="button"
-                className={styles.secondary}
-                onClick={() => {
-                  setStage("login");
-                  setCode("");
-                  setError(null);
-                  setNotice(null);
-                }}
-              >
-                Use a different email
-              </button>
-            )}
-          </form>
-        </div>
-      </main>
+      <AuthShell
+        title="ILP lawyer portal"
+        sub={
+          stage === "login"
+            ? "Enter your lawyer email to receive a login code."
+            : `Enter the 6-digit code sent to ${email}.`
+        }
+        notice={notice}
+        error={error}
+        primaryLabel={stage === "login" ? "Send code" : "Verify"}
+        onSubmit={stage === "login" ? requestOtp : verifyOtp}
+        secondaryVisible={stage === "verify"}
+        secondaryLabel="Use a different email"
+        onSecondary={() => {
+          setStage("login");
+          setCode("");
+          setError(null);
+          setNotice(null);
+        }}
+      >
+        {stage === "login" ? (
+          <AuthField
+            label="Lawyer email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@lawfirm.com"
+            required
+            autoFocus
+          />
+        ) : (
+          <AuthField
+            label="Verification code"
+            type="text"
+            inputMode="numeric"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="000000"
+            maxLength={6}
+            required
+            autoFocus
+          />
+        )}
+      </AuthShell>
     );
   }
 

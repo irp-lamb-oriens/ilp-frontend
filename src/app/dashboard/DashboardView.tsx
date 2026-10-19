@@ -13,12 +13,12 @@ import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import AdminViews from "@/components/dashboard/AdminViews";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import AuthShell from "@/components/auth/AuthShell";
+import AuthField from "@/components/auth/AuthField";
 import { Reveal } from "@/components/motion/Motion";
 import CountUp from "@/components/motion/CountUp";
 import TiltCard from "@/components/motion/TiltCard";
 import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import styles from "./dashboard.module.scss";
-import authStyles from "@/components/auth/authShell.module.scss";
 
 interface FunnelMetrics {
   qualifiedProfiles: number;
@@ -192,31 +192,27 @@ export default function DashboardView() {
         }}
       >
         {stage === "login" ? (
-          <label className={authStyles.field}>
-            <span>Team email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@internationallegalpartner.com"
-              required
-              autoFocus
-            />
-          </label>
+          <AuthField
+            label="Team email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@internationallegalpartner.com"
+            required
+            autoFocus
+          />
         ) : (
-          <label className={authStyles.field}>
-            <span>Verification code</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="000000"
-              maxLength={6}
-              required
-              autoFocus
-            />
-          </label>
+          <AuthField
+            label="Verification code"
+            type="text"
+            inputMode="numeric"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="000000"
+            maxLength={6}
+            required
+            autoFocus
+          />
         )}
       </AuthShell>
     );

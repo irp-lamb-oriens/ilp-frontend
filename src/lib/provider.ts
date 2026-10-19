@@ -4,7 +4,7 @@
  * session. All lawyer-facing calls route through `providerFetch`.
  */
 
-import { API_URL, ApiError } from "./api";
+import { API_URL, ApiError, getDashboardToken } from "./api";
 
 export { ApiError };
 
@@ -37,8 +37,10 @@ export async function providerFetch<T = unknown>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = getProviderToken();
+  const dashboardToken = getDashboardToken();
   const headers = new Headers(options.headers);
-  if (token) headers.set("x-dashboard-token", token);
+  if (token) headers.set("x-provider-token", token);
+  if (dashboardToken) headers.set("x-dashboard-token", dashboardToken);
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

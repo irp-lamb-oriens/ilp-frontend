@@ -2,6 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import Image from "next/image";
+import AuthButton from "./AuthButton";
 import styles from "./authShell.module.scss";
 
 interface BrandProps {
@@ -75,18 +76,18 @@ export default function AuthShell({
           {notice && <p className={styles.notice}>{notice}</p>}
           {error && <p className={styles.error}>{error}</p>}
 
-          <button type="submit" className={styles.primary} disabled={busy}>
-            {busy ? "Please wait…" : primaryLabel}
-          </button>
+          <AuthButton type="submit" variant="primary" busy={busy}>
+            {primaryLabel}
+          </AuthButton>
 
           {secondaryVisible && onSecondary && (
-            <button
+            <AuthButton
               type="button"
-              className={styles.secondary}
+              variant="secondary"
               onClick={onSecondary}
             >
               {secondaryLabel}
-            </button>
+            </AuthButton>
           )}
         </form>
       </div>

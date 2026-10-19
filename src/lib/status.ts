@@ -6,7 +6,7 @@
  * customer JWT or the dashboard token.
  */
 
-import { API_URL, ApiError } from "./api";
+import { API_URL, ApiError, getDashboardToken } from "./api";
 
 const CLIENT_TOKEN_KEY = "ilp_client_token";
 
@@ -58,8 +58,10 @@ export async function statusFetch<T = unknown>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = getClientToken();
+  const dashboardToken = getDashboardToken();
   const headers = new Headers(options.headers);
   if (token) headers.set("x-client-token", token);
+  if (dashboardToken) headers.set("x-dashboard-token", dashboardToken);
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

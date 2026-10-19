@@ -9,7 +9,7 @@ import {
   projectIdToEmail,
 } from "@/lib/status";
 import AuthShell from "@/components/auth/AuthShell";
-import authStyles from "@/components/auth/authShell.module.scss";
+import AuthField from "@/components/auth/AuthField";
 
 type Step = "lookup" | "verify";
 
@@ -94,31 +94,27 @@ export default function StatusLookupPage() {
       }}
     >
       {step === "lookup" ? (
-        <label className={authStyles.field}>
-          <span>Email</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-            autoFocus
-          />
-        </label>
+        <AuthField
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+          autoFocus
+        />
       ) : (
-        <label className={authStyles.field}>
-          <span>Verification code</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="000000"
-            maxLength={6}
-            required
-            autoFocus
-          />
-        </label>
+        <AuthField
+          label="Verification code"
+          type="text"
+          inputMode="numeric"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="000000"
+          maxLength={6}
+          required
+          autoFocus
+        />
       )}
     </AuthShell>
   );
