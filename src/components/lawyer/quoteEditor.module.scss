@@ -1,0 +1,352 @@
+@use "../../styles/variables" as *;
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-4;
+  background: $color-mist;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.headActions {
+  display: flex;
+  gap: $space-2;
+}
+
+.cancelBtn,
+.saveBtn {
+  border-radius: $radius-sm;
+  padding: $space-1 $space-3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 140ms ease;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.cancelBtn {
+  background: transparent;
+  color: $color-steel;
+  border: 1px solid $color-hairline;
+
+  &:hover:not(:disabled) {
+    background: $color-cool-gray;
+  }
+}
+
+.saveBtn {
+  background: $color-accent;
+  color: $color-accent-ink;
+  border: none;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: $color-error;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $color-steel;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.input,
+.textarea,
+.groupTitle,
+.groupDesc,
+.lineLabel,
+.lineAmount,
+.lineMargin,
+.scheduleInput {
+  font-family: $font-sans;
+  font-size: 0.85rem;
+  color: $color-ink;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  padding: $space-2 $space-3;
+
+  &:focus {
+    outline: 2px solid $color-accent;
+    outline-offset: 0;
+    border-color: transparent;
+  }
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.group {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-3;
+  background: $color-surface;
+}
+
+.groupHead {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+
+.groupTitle {
+  flex: 1;
+  font-weight: 600;
+}
+
+.groupRole {
+  font-family: $font-sans;
+  font-size: 0.75rem;
+  color: $color-steel;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  padding: $space-1 $space-2;
+}
+
+.removeGroupBtn,
+.removeLineBtn {
+  background: transparent;
+  border: none;
+  color: $color-muted;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: $space-1;
+  border-radius: $radius-sm;
+
+  &:hover {
+    color: $color-error;
+    background: rgba(192, 57, 43, 0.08);
+  }
+}
+
+.groupDesc {
+  width: 100%;
+  margin-bottom: $space-2;
+  font-size: 0.8rem;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 1fr 90px 56px 70px 90px 24px;
+  gap: $space-2;
+  align-items: center;
+}
+
+.lineLabel {
+  min-width: 0;
+}
+
+.lineAmount,
+.lineMargin {
+  text-align: right;
+}
+
+.lineMode {
+  font-family: $font-sans;
+  font-size: 0.75rem;
+  color: $color-steel;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  padding: $space-1 $space-2;
+}
+
+.linePrice {
+  font-family: $font-mono;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $color-navy;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.addLineBtn,
+.addGroupBtn {
+  background: transparent;
+  border: 1px dashed $color-hairline;
+  color: $color-accent-ink;
+  border-radius: $radius-sm;
+  padding: $space-1 $space-3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease;
+
+  &:hover {
+    background: $color-accent-soft;
+  }
+}
+
+.addGroupBtn {
+  align-self: flex-start;
+}
+
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-3;
+  background: $color-surface;
+}
+
+.scheduleHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scheduleTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $color-steel;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.scheduleSum {
+  font-family: $font-mono;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: $color-success;
+}
+
+.scheduleOver {
+  font-family: $font-mono;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: $color-error;
+}
+
+.scheduleRow {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  gap: $space-2;
+  align-items: center;
+}
+
+.scheduleIndex {
+  font-size: 0.75rem;
+  color: $color-muted;
+  text-align: center;
+}
+
+.scheduleInput {
+  text-align: right;
+}
+
+.descHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.generateBtn {
+  background: $color-mist;
+  color: $color-accent-ink;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  padding: $space-1 $space-3;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-accent-soft;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: $space-2 $space-4;
+  align-items: baseline;
+  border-top: 1px solid $color-hairline;
+  padding-top: $space-3;
+}
+
+.totalLabel {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+.totalValue {
+  font-family: $font-mono;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $color-navy;
+  text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cancelBtn,
+  .saveBtn,
+  .addLineBtn,
+  .addGroupBtn,
+  .generateBtn {
+    transition: none;
+  }
+}

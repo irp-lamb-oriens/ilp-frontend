@@ -34,3 +34,72 @@ export interface LawyerClient {
 export function displayName(c: LawyerClient): string {
   return [c.name, c.surname].filter(Boolean).join(" ") || c.email;
 }
+
+// ── Quote editor types ────────────────────────────────────────────────────────
+
+export type QuoteLineItem = {
+  lineId: string;
+  label: string;
+  amount: number;
+  marginPct: number;
+  marginMode: "pct" | "flat";
+  marginFlat: number | null;
+  currency: string;
+  providerId: string | null;
+  notes: string | null;
+};
+
+export type QuoteGroup = {
+  groupId: string;
+  title: string;
+  labelId: string | null;
+  role: "required" | "optional" | "fixed";
+  description: string | null;
+  lineItems: QuoteLineItem[];
+};
+
+export type QuoteStatus =
+  | "draft"
+  | "pending_approval"
+  | "changes_requested"
+  | "approved"
+  | "sent_to_client"
+  | "client_accepted";
+
+export type Quote = {
+  quoteId: string;
+  clientId: string;
+  title: string;
+  lineItems: QuoteLineItem[];
+  lineGroups: QuoteGroup[] | null;
+  currency: string;
+  total: number;
+  costSubtotal: number;
+  earnings: number;
+  serviceType: string | null;
+  defaultMarginPct: number;
+  clientDescription: string | null;
+  paymentSchedule: number[] | null;
+  providerIds: string[];
+  providerSnapshots: Array<Record<string, unknown>>;
+  notes: string | null;
+  status: QuoteStatus;
+  approvals: Array<Record<string, unknown>>;
+  comments: Array<Record<string, unknown>>;
+  changeLog: Array<Record<string, unknown>>;
+  clientVisible: boolean;
+  sentToClientAt: string | null;
+  clientToken: string | null;
+  clientAcceptedAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
+export const QUOTE_STATUS_LABELS: Record<QuoteStatus, string> = {
+  draft: "Draft",
+  pending_approval: "Pending approval",
+  changes_requested: "Changes requested",
+  approved: "Approved",
+  sent_to_client: "Sent to client",
+  client_accepted: "Accepted",
+};
