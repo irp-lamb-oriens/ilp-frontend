@@ -14,7 +14,12 @@ export interface LawyerClient {
   legalArea: string | null;
   legalMatter: string | null;
   jurisdiction: string | null;
-  documents: string[] | null;
+  documents: Array<{
+    id?: string;
+    name?: string;
+    kind?: string;
+    uploadedAt?: string;
+  }> | null;
   stage: string;
   stageEnteredAt: string | null;
   rankIndex: number | null;

@@ -454,7 +454,7 @@
 
 // ── Inspector slide-over ────────────────────────────────────────────────────
 .inspector {
-  flex: 0 0 440px;
+  flex: 0 0 50vw;
   max-width: 100%;
   display: flex;
   flex-direction: column;
@@ -462,6 +462,12 @@
   border-left: 1px solid $color-hairline;
   box-shadow: -8px 0 24px rgba(18, 59, 93, 0.06);
   z-index: 5;
+}
+
+@media (max-width: 768px) {
+  .inspector {
+    flex: 0 0 100vw;
+  }
 }
 
 // ── Reduced motion ──────────────────────────────────────────────────────────

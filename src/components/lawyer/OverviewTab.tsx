@@ -52,6 +52,12 @@ export default function OverviewTab({
   );
 
   const docs = Array.isArray(client.documents) ? client.documents : [];
+  const docLabel = (d: (typeof docs)[number]): string => {
+    if (d && typeof d === "object" && "name" in d) {
+      return String(d.name ?? "Untitled document");
+    }
+    return String(d ?? "");
+  };
   const customEntries = Object.entries(client.customFields ?? {});
 
   function valueOf(key: string): string {
@@ -205,7 +211,7 @@ export default function OverviewTab({
           <div className={styles.docList}>
             {docs.map((d, i) => (
               <span key={i} className={styles.docChip}>
-                {d}
+                {docLabel(d)}
               </span>
             ))}
           </div>
