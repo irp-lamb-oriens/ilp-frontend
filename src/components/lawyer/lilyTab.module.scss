@@ -1,0 +1,114 @@
+@use "../../styles/variables" as *;
+
+.lily {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-mist;
+  min-height: 160px;
+}
+
+.empty {
+  color: $color-muted;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.bubble {
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  font-size: 0.9rem;
+  max-width: 85%;
+  overflow-wrap: anywhere;
+}
+
+.bubbleUser {
+  align-self: flex-end;
+  background: $color-accent;
+  color: $color-accent-ink;
+}
+
+.bubbleAssistant {
+  align-self: flex-start;
+  background: $color-surface;
+  color: $color-ink;
+  border: 1px solid $color-hairline;
+}
+
+.error {
+  color: $color-error;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  gap: $space-2;
+}
+
+.input {
+  flex: 1;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  font-family: $font-sans;
+  font-size: 0.9rem;
+  background: $color-surface;
+  color: $color-ink;
+
+  &:hover {
+    border-color: rgba(18, 59, 93, 0.28);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.sendBtn {
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-pill;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-navy;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sendBtn {
+    transition: none;
+  }
+}

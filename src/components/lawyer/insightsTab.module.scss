@@ -1,0 +1,137 @@
+@use "../../styles/variables" as *;
+
+.insights {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: $space-2;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.key {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-muted;
+}
+
+.value {
+  font-size: 0.9rem;
+  color: $color-ink;
+  overflow-wrap: anywhere;
+}
+
+.caption {
+  font-size: 0.72rem;
+  color: $color-muted;
+  font-style: italic;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  text-align: center;
+  padding: $space-6 $space-4;
+  background: $color-mist;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.emptyIcon {
+  font-size: 1.6rem;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-weight: 600;
+  color: $color-navy;
+  font-size: 0.95rem;
+}
+
+.emptyDesc {
+  margin: 0;
+  color: $color-muted;
+  font-size: 0.85rem;
+}
+
+.error {
+  color: $color-error;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.textarea {
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  font-family: $font-sans;
+  font-size: 0.9rem;
+  resize: vertical;
+  background: $color-surface;
+  color: $color-ink;
+
+  &:hover {
+    border-color: rgba(18, 59, 93, 0.28);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.extractBtn {
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-pill;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-navy;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .extractBtn {
+    transition: none;
+  }
+}

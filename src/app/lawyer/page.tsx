@@ -18,6 +18,8 @@ import {
 import { getDashboardToken } from "@/lib/api";
 import AuthShell from "@/components/auth/AuthShell";
 import AuthField from "@/components/auth/AuthField";
+import ClientInspector from "@/components/lawyer/ClientInspector";
+import type { LawyerClient } from "@/components/lawyer/types";
 import styles from "./lawyer.module.scss";
 
 interface LawyerMe {
@@ -29,18 +31,6 @@ interface LawyerMe {
   jurisdictions: string[];
 }
 
-interface LawyerClient {
-  id: string;
-  email: string;
-  name: string | null;
-  surname: string | null;
-  legalArea: string | null;
-  legalMatter: string | null;
-  jurisdiction: string | null;
-  stage: string;
-  pendingCount: number;
-  lastUpdated: string | null;
-}
 
 interface LawyerClientsResponse {
   clients: LawyerClient[];
@@ -513,47 +503,20 @@ export default function LawyerPage() {
         <AnimatePresence>
           {selected && (
             <motion.aside
-              initial={{ x: 320, opacity: 0 }}
+              key={selected.id}
+              initial={{ x: 440, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 320, opacity: 0 }}
+              exit={{ x: 440, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 32 }}
               className={styles.inspector}
             >
-              <div className={styles.inspectorHead}>
-                <h2 className={styles.inspectorTitle}>{displayName(selected)}</h2>
-                <button
-                  type="button"
-                  className={styles.inspectorClose}
-                  onClick={() => setSelected(null)}
-                  aria-label="Close"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className={styles.inspectorBody}>
-                <Row label="Email" value={selected.email} />
-                <Row label="Legal area" value={selected.legalArea ?? "—"} />
-                <Row label="Matter" value={selected.legalMatter ?? "—"} />
-                <Row label="Jurisdiction" value={selected.jurisdiction ?? "—"} />
-                <Row label="Stage" value={stageLabel(selected.stage)} />
-                <Row label="Pending" value={String(selected.pendingCount)} />
-
-                <label className={styles.inspectorField}>
-                  <span>Move to stage</span>
-                  <select
-                    className={styles.assignSelect}
-                    value={selected.stage}
-                    onChange={(e) => moveClient(selected.id, e.target.value)}
-                  >
-                    {board?.stages.map((s) => (
-                      <option key={s} value={s}>
-                        {stageLabel(s)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <ClientInspector
+                client={selected}
+                stageLabel={stageLabel}
+                stages={board?.stages ?? []}
+                onMoveStage={moveClient}
+                onClose={() => setSelected(null)}
+              />
             </motion.aside>
           )}
         </AnimatePresence>
@@ -562,11 +525,3 @@ export default function LawyerPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.inspectorRow}>
-      <span className={styles.inspectorLabel}>{label}</span>
-      <span className={styles.inspectorValue}>{value}</span>
-    </div>
-  );
-}

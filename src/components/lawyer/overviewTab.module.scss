@@ -1,0 +1,89 @@
+@use "../../styles/variables" as *;
+
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: $space-2;
+  border-bottom: 1px solid $color-hairline;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-muted;
+}
+
+.value {
+  font-size: 0.9rem;
+  color: $color-ink;
+  overflow-wrap: anywhere;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.blockLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $color-muted;
+}
+
+.muted {
+  color: $color-muted;
+  font-size: 0.9rem;
+}
+
+.docList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.docChip {
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  font-size: 0.8rem;
+  color: $color-steel;
+  background: $color-mist;
+}
+
+.customFields {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.customRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customKey {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.customValue {
+  font-size: 0.85rem;
+  color: $color-ink;
+  overflow-wrap: anywhere;
+}

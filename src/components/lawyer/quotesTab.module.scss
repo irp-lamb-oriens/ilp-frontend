@@ -1,0 +1,190 @@
+@use "../../styles/variables" as *;
+
+.quotes {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.empty {
+  color: $color-muted;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.quote {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  padding: $space-4;
+  transition: box-shadow 160ms ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(18, 59, 93, 0.08);
+  }
+}
+
+.quoteHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  margin-bottom: $space-3;
+}
+
+.title {
+  font-weight: 600;
+  color: $color-navy;
+  font-size: 0.95rem;
+}
+
+.statusBadge {
+  padding: $space-1 $space-3;
+  border-radius: $radius-pill;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: $color-mist;
+  color: $color-steel;
+}
+
+.status_draft {
+  background: $color-mist;
+  color: $color-steel;
+}
+
+.status_pending_approval {
+  background: rgba(183, 121, 31, 0.14);
+  color: $color-warning;
+}
+
+.status_changes_requested {
+  background: rgba(192, 57, 43, 0.12);
+  color: $color-error;
+}
+
+.status_approved {
+  background: rgba(31, 122, 92, 0.12);
+  color: $color-success;
+}
+
+.status_sent_to_client {
+  background: $color-accent-soft;
+  color: $color-accent-ink;
+}
+
+.status_client_accepted {
+  background: rgba(31, 122, 92, 0.16);
+  color: $color-success;
+}
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: $space-3;
+}
+
+.total {
+  font-family: $font-mono;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: $color-navy;
+}
+
+.subtotal,
+.earnings {
+  font-size: 0.8rem;
+  color: $color-muted;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin-bottom: $space-3;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-3;
+  font-size: 0.85rem;
+}
+
+.lineLabel {
+  color: $color-ink;
+}
+
+.lineAmount {
+  font-family: $font-mono;
+  color: $color-steel;
+}
+
+.section {
+  margin-bottom: $space-2;
+}
+
+.sectionTitle {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $color-steel;
+
+  &:hover {
+    color: $color-navy;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.group,
+.approval,
+.comment,
+.changeEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-2 0;
+  border-bottom: 1px solid $color-hairline;
+  font-size: 0.8rem;
+}
+
+.groupTitle,
+.approvalWho,
+.commentAuthor,
+.changeSummary {
+  color: $color-ink;
+  font-weight: 600;
+}
+
+.groupRole,
+.approvalDecision,
+.commentText,
+.changeMeta {
+  color: $color-muted;
+}
+
+.schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: $space-3;
+}
+
+.segment {
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  color: $color-steel;
+  background: $color-mist;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote {
+    transition: none;
+  }
+}

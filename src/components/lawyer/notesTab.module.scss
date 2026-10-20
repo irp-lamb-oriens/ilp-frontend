@@ -1,0 +1,189 @@
+@use "../../styles/variables" as *;
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.textarea {
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  font-family: $font-sans;
+  font-size: 0.9rem;
+  resize: vertical;
+  background: $color-surface;
+  color: $color-ink;
+
+  &:hover {
+    border-color: rgba(18, 59, 93, 0.28);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.addBtn,
+.saveBtn {
+  align-self: flex-end;
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-pill;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-navy;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.cancelBtn {
+  padding: $space-2 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-steel;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-mist;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.error {
+  color: $color-error;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.empty {
+  color: $color-muted;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.note {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-3;
+  transition: box-shadow 160ms ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(18, 59, 93, 0.08);
+  }
+}
+
+.noteMeta {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-bottom: $space-2;
+}
+
+.noteAuthor {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.noteTime {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+.noteText {
+  margin: 0;
+  font-size: 0.9rem;
+  color: $color-ink;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.noteActions {
+  display: flex;
+  gap: $space-2;
+  margin-top: $space-2;
+}
+
+.editBtn,
+.deleteBtn {
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-mist;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.deleteBtn {
+  color: $color-error;
+}
+
+.editBox {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.editActions {
+  display: flex;
+  gap: $space-2;
+  justify-content: flex-end;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .addBtn,
+  .saveBtn,
+  .note {
+    transition: none;
+  }
+}
