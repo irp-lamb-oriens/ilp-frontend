@@ -42,7 +42,11 @@ export default function ClientInspector({
   }
 
   const tabs: TabItem[] = [
-    { id: "overview", label: "Overview", content: <OverviewTab client={current} /> },
+    {
+      id: "overview",
+      label: "Overview",
+      content: <OverviewTab client={current} onRefreshed={setCurrent} />,
+    },
     {
       id: "insights",
       label: "Insights",
@@ -55,7 +59,11 @@ export default function ClientInspector({
       content: <NotesTab client={current} onRefreshed={setCurrent} />,
     },
     { id: "quotes", label: "Quotes", content: <QuotesTab client={current} /> },
-    { id: "activity", label: "Activity", content: <ActivityTab client={current} /> },
+    {
+      id: "activity",
+      label: "Activity",
+      content: <ActivityTab client={current} onRefreshed={setCurrent} />,
+    },
   ];
 
   return (

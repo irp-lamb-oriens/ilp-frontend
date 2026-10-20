@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./activityTab.module.scss";
 
@@ -17,6 +19,8 @@ const TYPE_ICONS: Record<string, string> = {
   client_archived: "📦",
   transcript_reviewed: "🧠",
 };
+
+const PAGE_SIZE = 10;
 
 function titleFor(e: Record<string, unknown>): string {
   const type = String(e.type ?? "other");
@@ -49,6 +53,22 @@ function titleFor(e: Record<string, unknown>): string {
   }
 }
 
+function detailFor(e: Record<string, unknown>): string {
+  const type = String(e.type ?? "other");
+  switch (type) {
+    case "stage_change":
+      return e.from ? `from ${e.from}` : "";
+    case "note_added":
+    case "note_edited":
+    case "note_deleted":
+      return typeof e.noteText === "string" ? e.noteText : "";
+    case "action_executed":
+      return e.success === false ? "failed" : "";
+    default:
+      return "";
+  }
+}
+
 function timeAgo(iso: string): string {
   try {
     const d = new Date(iso);
@@ -66,8 +86,56 @@ function timeAgo(iso: string): string {
   }
 }
 
-export default function ActivityTab({ client }: { client: LawyerClient }) {
+function exactTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+export default function ActivityTab({
+  client,
+  onRefreshed,
+}: {
+  client: LawyerClient;
+  onRefreshed: (client: LawyerClient) => void;
+}) {
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [undoing, setUndoing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const activity = (client.activityLog ?? []).slice().reverse();
+  const shown = activity.slice(0, visible);
+  const hasMore = activity.length > visible;
+
+  async function undoLast() {
+    if (undoing) return;
+    setUndoing(true);
+    setError(null);
+    try {
+      await providerFetch(`/api/provider/clients/${client.id}/undo-last`, {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      const res = await providerFetch<{ activityLog: Array<Record<string, unknown>> }>(
+        `/api/provider/clients/${client.id}`,
+      );
+      onRefreshed({ ...client, activityLog: res.activityLog ?? [] });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Undo failed.");
+    } finally {
+      setUndoing(false);
+    }
+  }
 
   if (activity.length === 0) {
     return <p className={styles.empty}>No activity yet.</p>;
@@ -75,10 +143,24 @@ export default function ActivityTab({ client }: { client: LawyerClient }) {
 
   return (
     <div className={styles.activity}>
-      {activity.map((a, i) => {
+      <div className={styles.toolbar}>
+        <button
+          type="button"
+          className={styles.undoBtn}
+          onClick={undoLast}
+          disabled={undoing}
+        >
+          {undoing ? "Undoing…" : "↩ Undo last"}
+        </button>
+      </div>
+
+      {error && <p className={styles.error}>{error}</p>}
+
+      {shown.map((a, i) => {
         const e = a as Record<string, unknown>;
         const type = String(e.type ?? "other");
         const ts = String(e.timestamp ?? e.at ?? "");
+        const detail = detailFor(e);
         return (
           <div key={i} className={styles.entry}>
             <span className={styles.icon} aria-hidden="true">
@@ -86,7 +168,8 @@ export default function ActivityTab({ client }: { client: LawyerClient }) {
             </span>
             <div className={styles.body}>
               <span className={styles.title}>{titleFor(e)}</span>
-              <span className={styles.meta}>
+              {detail && <span className={styles.detail}>{detail}</span>}
+              <span className={styles.meta} title={exactTime(ts)}>
                 {e.actor ? `${String(e.actor).split("@")[0]} · ` : ""}
                 {timeAgo(ts)}
               </span>
@@ -94,6 +177,25 @@ export default function ActivityTab({ client }: { client: LawyerClient }) {
           </div>
         );
       })}
+
+      {hasMore && (
+        <button
+          type="button"
+          className={styles.moreBtn}
+          onClick={() => setVisible((v) => v + PAGE_SIZE)}
+        >
+          Show {Math.min(PAGE_SIZE, activity.length - visible)} more
+        </button>
+      )}
+      {!hasMore && visible > PAGE_SIZE && (
+        <button
+          type="button"
+          className={styles.moreBtn}
+          onClick={() => setVisible(PAGE_SIZE)}
+        >
+          Show less
+        </button>
+      )}
     </div>
   );
 }

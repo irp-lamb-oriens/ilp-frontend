@@ -17,7 +17,9 @@ export interface LawyerClient {
   documents: string[] | null;
   stage: string;
   stageEnteredAt: string | null;
+  rankIndex: number | null;
   pendingCount: number;
+  pendingActions: Array<Record<string, unknown>>;
   notes: Array<Record<string, unknown>>;
   activityLog: Array<Record<string, unknown>>;
   quotes: Array<Record<string, unknown>>;
@@ -77,6 +79,7 @@ export type Quote = {
   costSubtotal: number;
   earnings: number;
   serviceType: string | null;
+  templateId: string | null;
   defaultMarginPct: number;
   clientDescription: string | null;
   paymentSchedule: number[] | null;

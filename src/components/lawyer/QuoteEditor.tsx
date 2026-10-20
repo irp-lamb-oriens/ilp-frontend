@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import type { Quote, QuoteGroup, QuoteLineItem } from "./types";
 import styles from "./quoteEditor.module.scss";
+
+interface TemplateOption {
+  id: string;
+  title: string;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -95,6 +100,28 @@ export default function QuoteEditor({ clientId, quote, onSaved, onCancelled }: Q
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [templateId, setTemplateId] = useState<string>(quote?.templateId ?? "");
+  const [templates, setTemplates] = useState<TemplateOption[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/templates")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: Array<Record<string, unknown>>) => {
+        if (cancelled) return;
+        setTemplates(
+          rows
+            .filter((t) => t && t.id && t.title)
+            .map((t) => ({ id: String(t.id), title: String(t.title) })),
+        );
+      })
+      .catch(() => {
+        // non-fatal; selector just stays empty
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // ── Derived math ────────────────────────────────────────────────────────────
   const lineItems = useMemo(() => groups.flatMap((g) => g.lineItems), [groups]);
@@ -206,6 +233,7 @@ export default function QuoteEditor({ clientId, quote, onSaved, onCancelled }: Q
       defaultMarginPct,
       clientDescription,
       paymentSchedule,
+      templateId: templateId || null,
       lineGroups: groups,
     };
     try {
@@ -257,6 +285,23 @@ export default function QuoteEditor({ clientId, quote, onSaved, onCancelled }: Q
           onChange={(e) => setTitle(e.target.value)}
           placeholder="New Quote"
         />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="q-template">Template</label>
+        <select
+          id="q-template"
+          className={styles.input}
+          value={templateId}
+          onChange={(e) => setTemplateId(e.target.value)}
+        >
+          <option value="">No template</option>
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.title}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className={styles.field}>

@@ -12,6 +12,188 @@
   gap: $space-2;
 }
 
+.notifications {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-mist;
+}
+
+.notificationIcon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.notificationBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.notificationTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.notificationPreview {
+  font-size: 0.8rem;
+  color: $color-steel;
+  overflow-wrap: anywhere;
+}
+
+.resolveBtn {
+  flex-shrink: 0;
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-surface;
+  color: $color-steel;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-accent-soft;
+    color: $color-accent-ink;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.recipientRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}
+
+.recipientToggle {
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-steel;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-mist;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.recipientChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+}
+
+.recipientChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px $space-2;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  color: $color-accent-ink;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.recipientRemove {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-1;
+  background: $color-surface;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.pickerEmpty {
+  padding: $space-2;
+  font-size: 0.8rem;
+  color: $color-muted;
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  padding: $space-2;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-mist;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.pickerItemActive {
+  background: $color-accent-soft;
+}
+
+.pickerName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $color-ink;
+}
+
+.pickerEmail {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
 .textarea {
   padding: $space-3;
   border: 1px solid $color-hairline;
@@ -183,7 +365,10 @@
 @media (prefers-reduced-motion: reduce) {
   .addBtn,
   .saveBtn,
-  .note {
+  .note,
+  .resolveBtn,
+  .recipientToggle,
+  .pickerItem {
     transition: none;
   }
 }

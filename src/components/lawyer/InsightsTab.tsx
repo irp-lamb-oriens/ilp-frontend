@@ -5,10 +5,13 @@ import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./insightsTab.module.scss";
 
-const INSIGHT_KEYS: Array<{ key: string; label: string }> = [
+const CORE_KEYS: Array<{ key: string; label: string }> = [
   { key: "legalArea", label: "Legal area" },
   { key: "legalMatter", label: "Legal matter" },
   { key: "jurisdiction", label: "Jurisdiction" },
+];
+
+const ADVANCED_KEYS: Array<{ key: string; label: string }> = [
   { key: "name", label: "Name" },
   { key: "surname", label: "Surname" },
   { key: "email", label: "Email" },
@@ -16,6 +19,11 @@ const INSIGHT_KEYS: Array<{ key: string; label: string }> = [
   { key: "documents", label: "Documents" },
   { key: "notes", label: "Notes" },
 ];
+
+function confidenceOf(insights: Record<string, unknown>): number {
+  const c = Number(insights.confidence);
+  return Number.isFinite(c) ? Math.max(0, Math.min(100, Math.round(c))) : 0;
+}
 
 export default function InsightsTab({
   client,
@@ -27,10 +35,13 @@ export default function InsightsTab({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualText, setManualText] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const insights = client.transcriptInsights;
   const hasInsights = !!insights && Object.keys(insights).length > 0;
   const hasTranscript = !!client.transcript;
+  const confidence = hasInsights && insights ? confidenceOf(insights) : 0;
+  const reasoning = hasInsights && insights ? String(insights.reasoning ?? "") : "";
 
   async function extract(body: Record<string, unknown>) {
     setBusy(true);
@@ -49,23 +60,74 @@ export default function InsightsTab({
     }
   }
 
+  function renderField(key: string, label: string) {
+    if (!insights) return null;
+    const v = insights[key];
+    if (v === undefined || v === null || v === "") return null;
+    const display = Array.isArray(v) ? v.join(", ") : String(v);
+    return (
+      <div key={key} className={styles.row}>
+        <span className={styles.key}>{label}</span>
+        <span className={styles.value}>{display}</span>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.insights}>
       {hasInsights && insights ? (
-        <div className={styles.grid}>
-          {INSIGHT_KEYS.map(({ key, label }) => {
-            const v = insights[key];
-            if (v === undefined || v === null || v === "") return null;
-            const display = Array.isArray(v) ? v.join(", ") : String(v);
-            return (
-              <div key={key} className={styles.row}>
-                <span className={styles.key}>{label}</span>
-                <span className={styles.value}>{display}</span>
+        <>
+          <div className={styles.hero}>
+            <div className={styles.heroTop}>
+              <span className={styles.heroBadge}>AI</span>
+              <span className={styles.heroTitle}>Extracted from transcript</span>
+            </div>
+
+            {confidence > 0 && (
+              <div className={styles.confidence}>
+                <div className={styles.confidenceHead}>
+                  <span className={styles.confidenceLabel}>Confidence</span>
+                  <span className={styles.confidenceValue}>{confidence}%</span>
+                </div>
+                <div
+                  className={styles.confidenceTrack}
+                  role="progressbar"
+                  aria-valuenow={confidence}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className={styles.confidenceFill}
+                    style={{ width: `${confidence}%` }}
+                  />
+                </div>
               </div>
-            );
-          })}
+            )}
+
+            {reasoning && <p className={styles.reasoning}>{reasoning}</p>}
+
+            <div className={styles.grid}>
+              {CORE_KEYS.map(({ key, label }) => renderField(key, label))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className={styles.advancedToggle}
+            onClick={() => setShowAdvanced((s) => !s)}
+            aria-expanded={showAdvanced}
+          >
+            {showAdvanced ? "Hide advanced fields" : "Show advanced fields"}
+          </button>
+
+          {showAdvanced && (
+            <div className={styles.grid}>
+              {ADVANCED_KEYS.map(({ key, label }) => renderField(key, label))}
+            </div>
+          )}
+
           <span className={styles.caption}>Source: AI extraction</span>
-        </div>
+        </>
       ) : hasTranscript ? (
         <div className={styles.empty}>
           <span className={styles.emptyIcon}>⚙️</span>

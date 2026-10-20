@@ -157,6 +157,9 @@
 }
 
 .portalRow {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
   margin-bottom: $space-2;
 }
 
@@ -169,6 +172,199 @@
   &:hover {
     text-decoration: underline;
   }
+}
+
+.copyBtn {
+  background: transparent;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  padding: 2px $space-2;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: $color-steel;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-mist;
+    color: $color-navy;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.toggleBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: $space-2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-accent-ink;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: $color-navy;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  margin-bottom: $space-3;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-mist;
+}
+
+.detailsLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: $color-muted;
+}
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-2;
+  border-radius: $radius-sm;
+  background: $color-surface;
+}
+
+.commentHead {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.commentAuthor {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.commentTime {
+  font-size: 0.72rem;
+  color: $color-muted;
+}
+
+.commentResolved {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: $color-success;
+}
+
+.resolveCommentBtn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  padding: 2px $space-2;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: $color-steel;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: $color-mist;
+    color: $color-navy;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.commentText {
+  margin: 0;
+  font-size: 0.82rem;
+  color: $color-ink;
+  overflow-wrap: anywhere;
+}
+
+.commentComposer {
+  display: flex;
+  gap: $space-2;
+}
+
+.commentInput {
+  flex: 1;
+  padding: $space-2;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  font-size: 0.82rem;
+  background: $color-surface;
+  color: $color-ink;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.commentAddBtn {
+  background: $color-accent;
+  color: $color-accent-ink;
+  border: none;
+  border-radius: $radius-sm;
+  padding: $space-1 $space-3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.changeLog {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.changeEntry {
+  display: flex;
+  gap: $space-2;
+  font-size: 0.78rem;
+}
+
+.changeTime {
+  flex-shrink: 0;
+  color: $color-muted;
+}
+
+.changeText {
+  color: $color-steel;
+  overflow-wrap: anywhere;
 }
 
 .actions {
@@ -227,7 +423,11 @@
 @media (prefers-reduced-motion: reduce) {
   .quote,
   .newBtn,
-  .actionBtn {
+  .actionBtn,
+  .copyBtn,
+  .toggleBtn,
+  .resolveCommentBtn,
+  .commentAddBtn {
     transition: none;
   }
 }

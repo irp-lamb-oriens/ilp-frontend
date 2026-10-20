@@ -35,6 +35,9 @@ export default function QuotesTab({ client }: { client: LawyerClient }) {
   const [editing, setEditing] = useState<Quote | null | undefined>(undefined); // undefined = closed, null = new
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -123,6 +126,38 @@ export default function QuotesTab({ client }: { client: LawyerClient }) {
         body: JSON.stringify({}),
       });
     });
+  }
+
+  async function handleAddComment(q: Quote) {
+    const text = (commentDraft[q.quoteId] ?? "").trim();
+    if (!text) return;
+    await runAction(q.quoteId, async () => {
+      await providerFetch(`/api/provider/clients/${clientId}/quotes/${q.quoteId}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ text }),
+      });
+      setCommentDraft((d) => ({ ...d, [q.quoteId]: "" }));
+    });
+  }
+
+  async function handleResolveComment(q: Quote, commentId: string) {
+    await runAction(q.quoteId, async () => {
+      await providerFetch(
+        `/api/provider/clients/${clientId}/quotes/${q.quoteId}/comments/${commentId}/resolve`,
+        { method: "PATCH", body: JSON.stringify({}) },
+      );
+    });
+  }
+
+  async function handleCopyLink(q: Quote) {
+    const url = portalUrl(q);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(q.quoteId);
+      window.setTimeout(() => setCopiedId((c) => (c === q.quoteId ? null : c)), 1500);
+    } catch {
+      setActionMsg("Could not copy link. Copy it manually.");
+    }
   }
 
   async function handleContract(q: Quote) {
@@ -230,6 +265,85 @@ export default function QuotesTab({ client }: { client: LawyerClient }) {
                 >
                   {STATUS_BASE}/{clientId}
                 </a>
+                <button
+                  type="button"
+                  className={styles.copyBtn}
+                  onClick={() => handleCopyLink(q)}
+                >
+                  {copiedId === q.quoteId ? "Copied" : "Copy link"}
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className={styles.toggleBtn}
+              onClick={() => setExpandedId((e) => (e === q.quoteId ? null : q.quoteId))}
+            >
+              {expandedId === q.quoteId ? "Hide details" : "Comments & history"}
+            </button>
+
+            {expandedId === q.quoteId && (
+              <div className={styles.details}>
+                <div className={styles.comments}>
+                  <span className={styles.detailsLabel}>Comments</span>
+                  {(q.comments ?? []).map((c) => {
+                    const cid = String(c.commentId ?? "");
+                    return (
+                      <div key={cid} className={styles.comment}>
+                        <div className={styles.commentHead}>
+                          <span className={styles.commentAuthor}>
+                            {String(c.authorEmail ?? "—").split("@")[0]}
+                          </span>
+                          <span className={styles.commentTime}>
+                            {formatDate(c.createdAt)}
+                          </span>
+                          {c.resolved ? (
+                            <span className={styles.commentResolved}>Resolved</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.resolveCommentBtn}
+                              disabled={busyId === q.quoteId}
+                              onClick={() => handleResolveComment(q, cid)}
+                            >
+                              Resolve
+                            </button>
+                          )}
+                        </div>
+                        <p className={styles.commentText}>{String(c.text ?? "")}</p>
+                      </div>
+                    );
+                  })}
+                  <div className={styles.commentComposer}>
+                    <input
+                      className={styles.commentInput}
+                      placeholder="Add a comment…"
+                      value={commentDraft[q.quoteId] ?? ""}
+                      onChange={(e) =>
+                        setCommentDraft((d) => ({ ...d, [q.quoteId]: e.target.value }))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className={styles.commentAddBtn}
+                      disabled={busyId === q.quoteId || !(commentDraft[q.quoteId] ?? "").trim()}
+                      onClick={() => handleAddComment(q)}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.changeLog}>
+                  <span className={styles.detailsLabel}>History</span>
+                  {(q.changeLog ?? []).map((e, i) => (
+                    <div key={i} className={styles.changeEntry}>
+                      <span className={styles.changeTime}>{formatDate(e.timestamp)}</span>
+                      <span className={styles.changeText}>{String(e.message ?? e.type ?? "")}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

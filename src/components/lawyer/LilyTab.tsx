@@ -11,6 +11,21 @@ interface LilyMessage {
   author?: string;
 }
 
+const QUICK_PROMPTS = [
+  "Summarize this matter",
+  "Draft a follow-up email",
+  "What documents are missing?",
+  "Summarize the client's concerns",
+  "What is the current stage?",
+];
+
+function formatTime(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
 export default function LilyTab({ clientId }: { clientId: string }) {
   const [thread, setThread] = useState<LilyMessage[]>([]);
   const [input, setInput] = useState("");
@@ -37,22 +52,27 @@ export default function LilyTab({ clientId }: { clientId: string }) {
     requestAnimationFrame(() => {
       listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
     });
-  }, [thread]);
+  }, [thread, busy]);
 
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || busy) return;
+  async function send(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
     setInput("");
     setError(null);
-    setThread((prev) => [...prev, { role: "user", content: text }]);
+    setThread((prev) => [
+      ...prev,
+      { role: "user", content: trimmed, createdAt: new Date().toISOString() },
+    ]);
     setBusy(true);
     try {
       const res = await providerFetch<{ reply: string }>(
         `/api/provider/clients/${clientId}/lily`,
-        { method: "POST", body: JSON.stringify({ message: text }) },
+        { method: "POST", body: JSON.stringify({ message: trimmed }) },
       );
-      setThread((prev) => [...prev, { role: "assistant", content: res.reply }]);
+      setThread((prev) => [
+        ...prev,
+        { role: "assistant", content: res.reply, createdAt: new Date().toISOString(), author: "lily" },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reach Lily.");
     } finally {
@@ -60,11 +80,39 @@ export default function LilyTab({ clientId }: { clientId: string }) {
     }
   }
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    send(input);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send(input);
+    }
+  }
+
   return (
     <div className={styles.lily}>
+      <div className={styles.banner}>
+        <span className={styles.avatar} aria-hidden="true">🌿</span>
+        <div className={styles.bannerText}>
+          <span className={styles.bannerName}>
+            Lily — CRM Copilot
+            <span className={styles.onlineDot} aria-label="online" />
+          </span>
+          <span className={styles.bannerDesc}>
+            Ask about this matter, draft emails, or summarize the client file.
+          </span>
+        </div>
+      </div>
+
       <div ref={listRef} className={styles.thread}>
         {thread.length === 0 && (
-          <p className={styles.empty}>Ask Lily about this matter…</p>
+          <div className={styles.empty}>
+            <p className={styles.emptyTitle}>Ask Lily about this matter</p>
+            <p className={styles.emptyDesc}>Try one of the prompts below to get started.</p>
+          </div>
         )}
         {thread.map((m, i) => (
           <div
@@ -73,19 +121,45 @@ export default function LilyTab({ clientId }: { clientId: string }) {
               m.role === "user" ? styles.bubbleUser : styles.bubbleAssistant
             }`}
           >
-            {m.content}
+            <span className={styles.bubbleText}>{m.content}</span>
+            <span className={styles.bubbleTime}>{formatTime(m.createdAt)}</span>
           </div>
         ))}
+        {busy && (
+          <div className={`${styles.bubble} ${styles.bubbleAssistant}`}>
+            <span className={styles.typing} aria-label="Lily is typing">
+              <span className={styles.typingDot} />
+              <span className={styles.typingDot} />
+              <span className={styles.typingDot} />
+            </span>
+          </div>
+        )}
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
 
-      <form className={styles.form} onSubmit={send}>
-        <input
+      <div className={styles.prompts}>
+        {QUICK_PROMPTS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            className={styles.promptChip}
+            disabled={busy}
+            onClick={() => send(p)}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <textarea
           className={styles.input}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask Lily about this matter…"
+          onKeyDown={handleKeyDown}
+          placeholder="Ask Lily about this matter… (Enter to send, Shift+Enter for newline)"
+          rows={2}
         />
         <button
           type="submit"
