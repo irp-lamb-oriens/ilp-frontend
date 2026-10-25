@@ -10,6 +10,7 @@ import {
 import { RevealTitle, Reveal, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import { openLeadForm } from "@/lib/leadEvents";
 import { CLAIM, CHECK_CTA } from "@/components/landing/content";
+import HeroChat from "@/components/HeroChat";
 import styles from "./HeroCTA.module.scss";
 
 const HERO_IMAGE =
@@ -129,6 +130,9 @@ export default function HeroCTA() {
           <a href="#pricing" className={styles.secondary}>
             See what is included
           </a>
+          <div style={{ marginTop: "1.25rem", display: "flex", justifyContent: "flex-start" }}>
+            <HeroChat />
+          </div>
         </Reveal>
       </motion.div>
     </section>
