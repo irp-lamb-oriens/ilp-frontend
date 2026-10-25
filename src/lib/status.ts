@@ -173,28 +173,3 @@ export interface StatusChatMessage {
   content: string;
   createdAt: string;
 }
-
-export interface LegalPriority {
-  id: string;
-  country: string;
-  category: string;
-  title: string;
-  description: string;
-  dateFieldLabel: string;
-  dateFieldHint?: string;
-  reminderOffsetsDays: number[];
-}
-
-export interface UserDeadline {
-  priorityId: string;
-  date: string;
-  note?: string;
-  updatedAt: string;
-}
-
-export interface StatusDeadlinesPayload {
-  jurisdiction: string | null;
-  countryCode: string | null;
-  priorities: LegalPriority[];
-  deadlines: Record<string, UserDeadline>;
-}
