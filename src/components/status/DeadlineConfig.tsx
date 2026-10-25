@@ -6,6 +6,8 @@ import {
   type LegalPriority,
   type StatusDeadlinesPayload,
 } from "@/lib/status";
+import EmptyState from "@/components/status/EmptyState";
+import { GhostField, GhostBadge } from "@/components/status/Ghost";
 import s from "./deadlineConfig.module.scss";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -92,11 +94,27 @@ export default function DeadlineConfig({ projectId }: { projectId: string }) {
 
   if (!payload.countryCode || payload.priorities.length === 0) {
     return (
-      <p className={s.empty}>
-        {"No legal priorities are configured for this project's jurisdiction"}
-        {payload.jurisdiction ? ` (${payload.jurisdiction})` : ""}. The legal
-        team can add them.
-      </p>
+      <EmptyState
+        title="Deadlines for your matter"
+        explain={
+          payload.jurisdiction
+            ? `We do not track deadlines for ${payload.jurisdiction} yet. Once your matter's jurisdiction is recognized, its legal priorities appear here.`
+            : "Once your matter's jurisdiction is set, its legal deadlines appear here."
+        }
+        steps={[
+          "Your legal team records the jurisdiction on your matter.",
+          "Each expected deadline appears as its own row.",
+          "Record a date per priority and we remind you ahead of it.",
+        ]}
+      >
+        <div className={s.ghostRowPreview}>
+          <div className={s.ghostRowHead}>
+            <GhostBadge>Priority</GhostBadge>
+            <GhostBadge>YYYY-MM-DD</GhostBadge>
+          </div>
+          <GhostField label="Deadline date" width="40%" />
+        </div>
+      </EmptyState>
     );
   }
 

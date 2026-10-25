@@ -148,3 +148,15 @@
   color: $color-muted;
   font-size: 0.9rem;
 }
+
+.ghostRowPreview {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.ghostRowHead {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}

@@ -15,6 +15,9 @@ import {
 import { getDashboardToken } from "@/lib/api";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import StageTimeline from "@/components/status/StageTimeline";
+import DeadlineConfig from "@/components/status/DeadlineConfig";
+import EmptyState from "@/components/status/EmptyState";
+import { GhostField, GhostLine, GhostBadge } from "@/components/status/Ghost";
 import { Reveal } from "@/components/motion/Motion";
 import CountUp from "@/components/motion/CountUp";
 import s from "../status.module.scss";
@@ -168,19 +171,33 @@ export default function StatusProjectPage() {
     {
       id: "details",
       label: "Your details",
-      content: (
-        <div className={s.fieldList}>
-          {clientFields.length === 0 && <p className={s.empty}>No details on file.</p>}
-          {clientFields.map((f) => (
-            <div key={f.id} className={s.fieldRow}>
-              <span className={s.fieldLabel}>{f.label}</span>
-              <span className={s.fieldValue}>
-                {f.value === "" || f.value == null ? "—" : String(f.value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      ),
+      content:
+        clientFields.length === 0 ? (
+          <EmptyState
+            title="The details of your matter"
+            explain="Fields describing your matter appear here as your legal team records them."
+            steps={[
+              "Your team captures the legal area and matter type first.",
+              "Jurisdiction and documents follow as the case forms.",
+              "Fields marked editable can be updated by you directly.",
+            ]}
+          >
+            <GhostField label="Legal area" width="55%" />
+            <GhostField label="Matter type" width="65%" />
+            <GhostField label="Jurisdiction" width="40%" />
+          </EmptyState>
+        ) : (
+          <div className={s.fieldList}>
+            {clientFields.map((f) => (
+              <div key={f.id} className={s.fieldRow}>
+                <span className={s.fieldLabel}>{f.label}</span>
+                <span className={s.fieldValue}>
+                  {f.value === "" || f.value == null ? "—" : String(f.value)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ),
     },
     {
       id: "charges",
@@ -213,7 +230,30 @@ export default function StatusProjectPage() {
           </div>
         </>
       ) : (
-        <p className={s.empty}>No charges yet.</p>
+        <EmptyState
+          title="Charges on your matter"
+          explain="Each fee the legal team posts appears here, with what has been paid and what remains."
+          steps={[
+            "A charge row shows the fee and its payment status.",
+            "Totals track received versus balance due.",
+            "Payment status updates as invoices settle.",
+          ]}
+        >
+          <div className={s.chargeRow}>
+            <span className={s.chargeLabel}>Legal fee</span>
+            <span className={s.chargeAmount}>$0.00</span>
+          </div>
+          <div className={s.totals}>
+            <div className={s.totalRow}>
+              <span>Received</span>
+              <GhostLine width="60px" height={10} />
+            </div>
+            <div className={s.totalRow}>
+              <span>Balance due</span>
+              <GhostLine width="60px" height={10} />
+            </div>
+          </div>
+        </EmptyState>
       ),
     },
     {
@@ -229,26 +269,67 @@ export default function StatusProjectPage() {
           </div>
         ))
       ) : (
-        <p className={s.empty}>No quotes yet.</p>
+        <EmptyState
+          title="Quotes for your matter"
+          explain="A quote appears here for your review before you accept it."
+          steps={[
+            "Your team prepares a quote with the scope and amount.",
+            "You review it and confirm acceptance here.",
+            "Once accepted, the matter moves to the next stage.",
+          ]}
+        >
+          <div className={s.quote}>
+            <div className={s.quoteTitle}>Quote</div>
+            <div className={s.quoteMeta}>
+              <GhostBadge>amount</GhostBadge>
+            </div>
+          </div>
+        </EmptyState>
       ),
+    },
+    {
+      id: "deadlines",
+      label: "Deadlines",
+      content: <DeadlineConfig projectId={projectId} />,
     },
     {
       id: "comments",
       label: "Comments",
       content: (
         <>
-          <div className={s.commentList}>
-            {project.statusComments.length === 0 && <p className={s.empty}>No comments yet.</p>}
-            {project.statusComments.map((c) => (
-              <div key={c.id} className={s.comment}>
+          {project.statusComments.length === 0 ? (
+            <EmptyState
+              title="Messages between you and your team"
+              explain="Post updates and questions, and your legal team replies here in the same thread."
+              steps={[
+                "Type a message and post it below.",
+                "Your team sees it and replies in this thread.",
+                "Each reply shows who wrote it and when.",
+              ]}
+            >
+              <div className={s.comment}>
                 <div className={s.commentMeta}>
-                  <span>{c.authorType === "staff" ? "ILP team" : "You"}</span>
-                  <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                  <span>ILP team</span>
+                  <GhostLine width="80px" height={8} />
                 </div>
-                <div className={s.commentBody}>{c.body}</div>
+                <div className={s.commentBody}>
+                  <GhostLine width="85%" height={10} />
+                </div>
               </div>
-            ))}
-          </div>
+            </EmptyState>
+          ) : (
+            <div className={s.commentList}>
+              {project.statusComments.map((c) => (
+                <div key={c.id} className={s.comment}>
+                  <div className={s.commentMeta}>
+                    <span>{c.authorType === "staff" ? "ILP team" : "You"}</span>
+                    <span>{new Date(c.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className={s.commentBody}>{c.body}</div>
+                </div>
+              ))}
+            </div>
+          )}
           <form className={s.chatForm} onSubmit={addComment}>
             <input
               className={s.chatInput}
@@ -268,17 +349,35 @@ export default function StatusProjectPage() {
       label: "Ask Lily",
       content: (
         <>
-          <div className={s.chat}>
-            {thread.length === 0 && <p className={s.empty}>Ask a question about your matter.</p>}
-            {thread.map((m, i) => (
-              <div
-                key={i}
-                className={`${s.chatMsg} ${m.role === "user" ? s.chatUser : s.chatAssistant}`}
-              >
-                {m.content}
+          {thread.length === 0 ? (
+            <EmptyState
+              title="Ask Lily about your matter"
+              explain="Lily answers questions using only the details of your own matter, never general legal advice."
+              steps={[
+                "Type a question in the field below.",
+                "Lily replies from your project's information.",
+                "For complex questions, your team steps in.",
+              ]}
+            >
+              <div className={`${s.chatMsg} ${s.chatUser}`}>
+                <GhostLine width="70%" height={10} />
               </div>
-            ))}
-          </div>
+              <div className={`${s.chatMsg} ${s.chatAssistant}`}>
+                <GhostLine width="85%" height={10} />
+              </div>
+            </EmptyState>
+          ) : (
+            <div className={s.chat}>
+              {thread.map((m, i) => (
+                <div
+                  key={i}
+                  className={`${s.chatMsg} ${m.role === "user" ? s.chatUser : s.chatAssistant}`}
+                >
+                  {m.content}
+                </div>
+              ))}
+            </div>
+          )}
           <form className={s.chatForm} onSubmit={sendChat}>
             <input
               className={s.chatInput}
