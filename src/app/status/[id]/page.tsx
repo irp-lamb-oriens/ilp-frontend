@@ -15,6 +15,7 @@ import {
 import { getDashboardToken } from "@/lib/api";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import StageTimeline from "@/components/status/StageTimeline";
+import DeadlineConfig from "@/components/status/DeadlineConfig";
 import { Reveal } from "@/components/motion/Motion";
 import CountUp from "@/components/motion/CountUp";
 import s from "../status.module.scss";
@@ -262,6 +263,11 @@ export default function StatusProjectPage() {
           </form>
         </>
       ),
+    },
+    {
+      id: "deadlines",
+      label: "Deadlines",
+      content: <DeadlineConfig projectId={projectId} />,
     },
     {
       id: "lily",
