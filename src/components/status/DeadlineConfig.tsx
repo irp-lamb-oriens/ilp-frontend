@@ -93,7 +93,7 @@ export default function DeadlineConfig({ projectId }: { projectId: string }) {
   if (!payload.countryCode || payload.priorities.length === 0) {
     return (
       <p className={s.empty}>
-        No legal priorities are configured for this project's jurisdiction
+        {"No legal priorities are configured for this project's jurisdiction"}
         {payload.jurisdiction ? ` (${payload.jurisdiction})` : ""}. The legal
         team can add them.
       </p>
