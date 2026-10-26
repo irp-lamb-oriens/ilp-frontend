@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, EmptyState, StatusPill } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MemberDocument } from "./api";
+import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
 import { useMember } from "./MemberContext";
 import { dateShort } from "./format";
 import s from "./DocumentsPanel.module.scss";
@@ -17,17 +18,6 @@ const CATEGORY_LABEL: Record<string, string> = {
   tax: "Tax",
   other: "Other",
 };
-const MAX_BYTES = 700 * 1024;
-
-function readBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(file);
-  });
-}
-
 function size(n: number): string {
   return n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
 }
@@ -60,20 +50,13 @@ export default function DocumentsPanel() {
   async function upload() {
     if (!file) return setMsg({ ok: false, text: "Choose a file first." });
     if (!category) return setMsg({ ok: false, text: "Choose what kind of document it is." });
-    if (file.size > MAX_BYTES) {
-      return setMsg({ ok: false, text: "That file is larger than 700 KB. Try a smaller scan or photo, or email it to your ILP team." });
+    if (file.size > DOCUMENT_MAX_BYTES) {
+      return setMsg({ ok: false, text: "That file is larger than 15 MB. Try a smaller scan, or email it to your ILP team." });
     }
     setBusy(true);
     setMsg(null);
     try {
-      const dataBase64 = await readBase64(file);
-      await memberApi.upload({
-        matterId: matterId || undefined,
-        category,
-        fileName: file.name,
-        contentType: file.type || "application/octet-stream",
-        dataBase64,
-      });
+      await uploadMemberDocument(file, { matterId: matterId || undefined, category });
       setMsg({ ok: true, text: `${file.name} is uploaded and on file for your lawyer.` });
       setFile(null);
       setCategory("");
@@ -93,7 +76,7 @@ export default function DocumentsPanel() {
       <h2 className={s.title} id="documents-title">
         Documents
       </h2>
-      <p className={s.intro}>Upload scans or photos your lawyer asked for. PDF, JPG or PNG, up to 700 KB each.</p>
+      <p className={s.intro}>Upload scans or photos your lawyer asked for. PDF, JPG, PNG, HEIC or Word, up to 15 MB each. Only you, your ILP team and your lawyer can open them.</p>
 
       <div className={s.form}>
         {home.matters.length > 1 && (
@@ -133,7 +116,7 @@ export default function DocumentsPanel() {
             ref={fileRef}
             type="file"
             className={s.file}
-            accept="application/pdf,image/jpeg,image/png,image/heic"
+            accept={DOCUMENT_ACCEPT}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </div>
