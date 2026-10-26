@@ -30,12 +30,12 @@
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: $space-2;
-  font-size: 0.95rem;
+  font-size: 1em;
 }
 
 .optionHint {
   flex-basis: 100%;
-  font-size: 0.85rem;
+  font-size: 0.85em;
   color: $color-steel;
 }
 
@@ -154,12 +154,12 @@
   gap: $space-2;
   padding: 0;
   margin-bottom: $space-1;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   font-weight: 600;
   color: $color-navy;
 
   > span + span {
-    font-size: 0.8rem;
+    font-size: 0.9em;
     font-weight: 400;
     color: $color-steel;
   }

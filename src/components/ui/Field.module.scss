@@ -9,26 +9,28 @@
   min-width: 0;
 }
 
+// Sizes are relative (em) so fields follow their context: 16px staff pages,
+// 18px client pages. Controls never go below 16px (iOS zoom).
 .label {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: $space-2;
-  font-size: 0.9rem;
+  font-size: 0.9em;
   font-weight: 600;
   line-height: 1.4;
   color: $color-navy;
 }
 
 .marker {
-  font-size: 0.8rem;
+  font-size: 0.9em;
   font-weight: 400;
   color: $color-steel;
 }
 
 .hint {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.85em;
   line-height: 1.5;
   color: $color-steel;
   max-width: 65ch;
@@ -36,7 +38,7 @@
 
 .error {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.85em;
   font-weight: 600;
   line-height: 1.5;
   color: $color-error;

@@ -9,7 +9,7 @@
   min-height: $touch-target;
   padding: $space-2 $space-3;
   font-family: $font-sans;
-  font-size: 1rem; // 16px keeps iOS from zooming on focus
+  font-size: max(1rem, 1em); // never under 16px (iOS zoom); follows 18px client pages
   line-height: 1.4;
   color: $color-charcoal;
   background: $color-surface;
@@ -100,7 +100,7 @@
     min-height: 6rem;
     padding: $space-2 $space-3;
     font-family: $font-sans;
-    font-size: 1rem;
+    font-size: max(1rem, 1em);
     line-height: 1.4;
     border: 1px solid transparent;
   }
@@ -126,7 +126,7 @@
   left: $space-3;
   display: flex;
   align-items: center;
-  font-size: 1rem;
+  font-size: max(1rem, 1em);
   color: $color-steel;
   pointer-events: none;
 }

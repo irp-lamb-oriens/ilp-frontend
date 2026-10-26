@@ -23,6 +23,8 @@ export interface RadioGroupProps {
   hint?: ReactNode;
   error?: ReactNode;
   required?: boolean;
+  /** Shows "Optional" next to the question. */
+  optional?: boolean;
   disabled?: boolean;
   /** Lay options side by side from 768px up (short labels only). */
   inline?: boolean;
@@ -39,6 +41,7 @@ export function RadioGroup({
   hint,
   error,
   required,
+  optional,
   disabled,
   inline,
   className,
@@ -54,7 +57,7 @@ export function RadioGroup({
     >
       <legend className={s.legend}>
         <span>{label}</span>
-        <FieldMarker required={required} />
+        <FieldMarker required={required} optional={optional} />
       </legend>
       <FieldHint id={ids.hintId}>{hint}</FieldHint>
       <div className={cx(s.options, inline && s.inline)}>
