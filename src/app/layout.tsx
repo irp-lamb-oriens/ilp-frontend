@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import SmoothScroll from "@/components/SmoothScroll";
 import LeadModal from "@/components/LeadModal";
+import SiteLegal from "@/components/legal/SiteLegal";
 import "@/styles/global.scss";
 
 export const metadata: Metadata = {
@@ -27,6 +28,7 @@ export default async function RootLayout({
       <body>
         <SmoothScroll>{children}</SmoothScroll>
         <LeadModal />
+        <SiteLegal />
       </body>
     </html>
   );
