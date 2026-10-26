@@ -73,6 +73,7 @@ export const COOKIES_SECTIONS: LegalSection[] = [
       ["ilp_status_matter, ilp_rating_later (this tab only)", "Remember which matter you were viewing and that you chose to rate a call later."],
       ["ilp_shell_nav_collapsed, ilp_lawyer_board_view", "Remember how you like the menu and the lawyer board laid out."],
       ["ilp_measure_choice", "Remembers your answer about the measurement id below."],
+      ["ilp_chatbot_session", "Only if you use the website chat: a random id that keeps your conversation together when you come back. No name or email."],
       ["Service worker and push subscription", "Only if you turn on notifications: lets your browser show deadline reminders."],
     ],
   },
