@@ -131,10 +131,17 @@ export interface ClientField {
   value: unknown;
 }
 
+export interface StageDetail {
+  id: string;
+  label: string;
+  description: string;
+}
+
 export interface StatusProjectPayload {
   project: StatusProject;
   stages: string[];
   stageLabels: Array<{ id: string; label: string }>;
+  stageDetails: StageDetail[];
   clientFields: ClientField[];
 }
 

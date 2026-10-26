@@ -149,7 +149,7 @@ export default function StatusProjectPage() {
     );
   }
 
-  const { project, stages, stageLabels, clientFields } = payload;
+  const { project, stages, stageLabels, stageDetails, clientFields } = payload;
   const stageLabel = (id: string) => stageLabels.find((l) => l.id === id)?.label ?? id;
 
   const tabs: TabItem[] = [
@@ -160,6 +160,7 @@ export default function StatusProjectPage() {
         <StageTimeline
           stages={stages}
           stageLabels={stageLabels}
+          stageDetails={stageDetails}
           currentStage={project.stage}
           stageRatings={project.stageRatings}
           viewerIsPrincipal={project.viewerIsPrincipal}
