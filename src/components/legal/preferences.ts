@@ -2,8 +2,8 @@
  * Optional measurement id preference (P6). The funnel id that P2's
  * lib/funnel.ts keeps in localStorage is not needed for the site to work, so
  * it is stored only after the visitor allows it, and never when the browser
- * sends Global Privacy Control. Until then lib/funnel.ts should keep its id in
- * memory only (requested from P2 in docs/workstreams/P6.md).
+ * sends Global Privacy Control. Until then lib/funnel.ts stores nothing and
+ * sends no beacon (P7).
  *
  * Every storage access is wrapped: private windows and blocked storage just
  * behave as "not allowed".
