@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api";
 import type { ConsentKind, PrivacyRequest } from "@/lib/contracts";
 import { useMember } from "@/components/status/MemberContext";
 import { type PrivacyMe, privacyApi, recordConsent } from "./consentApi";
+import { announceAiConsent } from "./aiConsent";
 import s from "./PrivacyCenter.module.scss";
 
 const KIND_LABEL: Record<PrivacyRequest["kind"], string> = {
@@ -142,6 +143,7 @@ function Choices({ me, onChange }: { me: PrivacyMe | null; onChange: () => Promi
     setMsg(null);
     try {
       const r = await recordConsent(kind, granted, "privacy_page");
+      if (kind === "ai_assistant") announceAiConsent(granted);
       if (kind === "recording" && !granted) {
         setMsg(
           r.upcomingCallsUpdated

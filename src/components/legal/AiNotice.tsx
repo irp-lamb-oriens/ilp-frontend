@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import { privacyApi, recordConsent } from "./consentApi";
+import { recordConsent } from "./consentApi";
+import { announceAiConsent, useAiConsent } from "./aiConsent";
 import s from "./AiNotice.module.scss";
 
 /**
@@ -14,25 +15,18 @@ import s from "./AiNotice.module.scss";
  * Team messages are never blocked by it.
  */
 export default function AiNotice() {
-  const [state, setState] = useState<"loading" | "show" | "hidden">("loading");
+  const granted = useAiConsent();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    privacyApi
-      .me()
-      .then((me) => setState(me.consents.ai_assistant?.granted ? "hidden" : "show"))
-      .catch(() => setState("show"));
-  }, []);
-
-  if (state !== "show") return null;
+  if (granted !== false) return null;
 
   async function accept() {
     setBusy(true);
     setError(null);
     try {
       await recordConsent("ai_assistant", true, "lily");
-      setState("hidden");
+      announceAiConsent(true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save. Try again.");
     } finally {

@@ -5,6 +5,7 @@ import { Button, EmptyState, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type ThreadItem } from "./api";
 import { isLegalTopic } from "./messageRules";
+import { announceAiConsent, useAiConsent } from "@/components/legal/aiConsent";
 import { dateShort, timeOfDay } from "./format";
 import s from "./MessagesThread.module.scss";
 
@@ -19,6 +20,8 @@ export default function MessagesThread() {
   const [busy, setBusy] = useState<"team" | "ai" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  // P6/P7: the assistant stays off until the AI notice above is accepted.
+  const aiAllowed = useAiConsent();
 
   useEffect(() => {
     memberApi
@@ -41,6 +44,7 @@ export default function MessagesThread() {
       setItems(d.items);
       setText("");
     } catch (err) {
+      if (to === "ai" && err instanceof ApiError && err.status === 403) announceAiConsent(false);
       setError(err instanceof ApiError ? err.message : "Could not send. Try again.");
     } finally {
       setBusy(null);
@@ -87,10 +91,21 @@ export default function MessagesThread() {
           <Button onClick={() => send("team")} busy={busy === "team"} disabled={!!busy}>
             Send to my team
           </Button>
-          <Button variant="secondary" onClick={() => send("ai")} busy={busy === "ai"} disabled={!!busy}>
+          <Button
+            variant="secondary"
+            onClick={() => send("ai")}
+            busy={busy === "ai"}
+            disabled={!!busy || aiAllowed !== true}
+            aria-describedby={aiAllowed === false ? "ai-off-hint" : undefined}
+          >
             Ask the AI assistant
           </Button>
         </div>
+        {aiAllowed === false && (
+          <p id="ai-off-hint" className={s.muted}>
+            To ask the AI assistant, read and accept the notice at the top of this page.
+          </p>
+        )}
       </div>
     </div>
   );
