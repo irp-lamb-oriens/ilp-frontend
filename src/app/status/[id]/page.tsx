@@ -16,6 +16,7 @@ import { getDashboardToken } from "@/lib/api";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import StageTimeline from "@/components/status/StageTimeline";
 import MatterDetails from "@/components/status/MatterDetails";
+import DeadlineConfig from "@/components/status/DeadlineConfig";
 import NotificationOptIn from "@/components/status/NotificationOptIn";
 import EmptyState from "@/components/status/EmptyState";
 import { GhostLine, GhostBadge } from "@/components/status/Ghost";
@@ -187,10 +188,16 @@ export default function StatusProjectPage() {
         <MatterDetails
           projectId={projectId}
           clientFields={clientFields}
-          jurisdiction={project.jurisdiction}
           viewerIsPrincipal={project.viewerIsPrincipal}
           onFieldSaved={handleFieldSaved}
         />
+      ),
+    },
+    {
+      id: "deadlines",
+      label: "Deadlines",
+      content: (
+        <DeadlineConfig key={project.jurisdiction || "none"} projectId={projectId} />
       ),
     },
     {

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { statusFetch, type ClientField } from "@/lib/status";
-import DeadlineConfig from "@/components/status/DeadlineConfig";
 import EmptyState from "@/components/status/EmptyState";
 import { GhostField } from "@/components/status/Ghost";
 import FieldShell from "@/components/status/fields/FieldShell";
@@ -15,27 +14,23 @@ import s from "./matterDetails.module.scss";
 /**
  * Merged "Your details" surface. The three client-editable matter fields
  * (jurisdiction, legal area, legal matter) each get a dedicated custom input
- * plus a dynamic implication line explaining what changing the value does;
- * the deadline configuration sits directly below. The principal edits and
- * saves each field; staff viewers see the same values read-only. Persists
- * through the client-status details endpoint.
+ * plus a dynamic implication line explaining what changing the value does.
+ * The principal edits and saves each field; staff viewers see the same values
+ * read-only. Persists through the client-status details endpoint.
  */
 export default function MatterDetails({
   projectId,
   clientFields,
-  jurisdiction,
   viewerIsPrincipal,
   onFieldSaved,
 }: {
   projectId: string;
   clientFields: ClientField[];
-  jurisdiction: string | null;
   viewerIsPrincipal: boolean;
   onFieldSaved: (fieldId: string, value: string) => void;
 }) {
   const [fields, setFields] = useState<Record<string, string>>({});
   const [savedFields, setSavedFields] = useState<Record<string, string>>({});
-  const [localJurisdiction, setLocalJurisdiction] = useState<string>(jurisdiction ?? "");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -50,7 +45,6 @@ export default function MatterDetails({
     }
     setFields(initial);
     setSavedFields(initial);
-    setLocalJurisdiction(jurisdiction ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -72,9 +66,6 @@ export default function MatterDetails({
       });
       setFields((prev) => ({ ...prev, [fieldId]: value }));
       setSavedFields((prev) => ({ ...prev, [fieldId]: value }));
-      if (fieldId === "jurisdiction") {
-        setLocalJurisdiction(value);
-      }
       onFieldSaved(fieldId, value);
       setNotice("Saved.");
     } catch (err) {
@@ -95,13 +86,13 @@ export default function MatterDetails({
     const draft = fields.jurisdiction ?? "";
     if (draft === saved) {
       return saved
-        ? `Your deadlines below are resolved for ${saved}.`
-        : "Select a country to see its legal deadlines below.";
+        ? `Your deadlines in the Deadlines tab are resolved for ${saved}.`
+        : "Select a country to see its legal deadlines in the Deadlines tab.";
     }
     if (!saved) {
-      return `Saving will show ${draft}'s legal deadlines below.`;
+      return `Saving will show ${draft}'s legal deadlines in the Deadlines tab.`;
     }
-    return `Saving will switch the deadlines below from ${saved} to ${draft}. Deadlines recorded for ${saved} stop sending reminders; ${draft}'s priorities appear instead.`;
+    return `Saving will switch the Deadlines tab from ${saved} to ${draft}. Deadlines recorded for ${saved} stop sending reminders; ${draft}'s priorities appear instead.`;
   }
 
   function legalAreaImplication(): string {
@@ -173,7 +164,7 @@ export default function MatterDetails({
             {jurisdictionField && (
               <FieldShell
                 label={jurisdictionField.label}
-                hint="Drives which legal deadlines appear below"
+                hint="Drives which legal deadlines appear in the Deadlines tab"
                 implication={jurisdictionImplication()}
                 busy={busyId === "jurisdiction"}
                 onSave={() => save("jurisdiction", fields.jurisdiction ?? "")}
@@ -233,11 +224,6 @@ export default function MatterDetails({
             </ul>
           </>
         )}
-      </section>
-
-      <section className={s.section}>
-        <h3 className={s.sectionTitle}>Deadlines</h3>
-        <DeadlineConfig key={localJurisdiction || "none"} projectId={projectId} />
       </section>
     </div>
   );
