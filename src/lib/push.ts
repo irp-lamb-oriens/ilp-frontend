@@ -7,7 +7,6 @@
  */
 
 import { API_URL } from "./api";
-import { getClientToken } from "./status";
 
 const SW_PATH = "/sw.js";
 
@@ -63,14 +62,12 @@ async function fetchVapidPublicKey(): Promise<string> {
 
 /**
  * Subscribe the browser to push and persist the subscription to the backend.
- * Requires an active client session (x-client-token). Returns true on success.
+ * Requires an active client session (the HttpOnly ilp_client_session cookie,
+ * sent with credentials: "include"). Returns true on success.
  */
 export async function subscribeToPush(): Promise<boolean> {
   if (!pushSupported()) return false;
   if (Notification.permission !== "granted") return false;
-
-  const token = getClientToken();
-  if (!token) return false;
 
   try {
     const registration = await registerServiceWorker();
@@ -86,10 +83,8 @@ export async function subscribeToPush(): Promise<boolean> {
 
     const res = await fetch(`${API_URL}/api/push/subscribe`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-client-token": token,
-      },
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subscription: subscription.toJSON() }),
     });
 
@@ -131,8 +126,6 @@ export async function subscribeLocally(): Promise<boolean> {
 export async function unsubscribeFromPush(): Promise<boolean> {
   if (!pushSupported()) return false;
 
-  const token = getClientToken();
-
   try {
     const registration = await navigator.serviceWorker.getRegistration(SW_PATH);
     const subscription = registration
@@ -140,12 +133,12 @@ export async function unsubscribeFromPush(): Promise<boolean> {
       : null;
     if (subscription) await subscription.unsubscribe();
 
-    if (token) {
-      await fetch(`${API_URL}/api/push/subscribe`, {
-        method: "DELETE",
-        headers: { "x-client-token": token },
-      });
-    }
+    // Best effort: without a session the server answers 401 and the
+    // browser-side subscription is already gone.
+    await fetch(`${API_URL}/api/push/subscribe`, {
+      method: "DELETE",
+      credentials: "include",
+    }).catch(() => undefined);
     return true;
   } catch {
     return false;
