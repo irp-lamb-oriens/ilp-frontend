@@ -1,0 +1,201 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  gap: $space-6;
+  align-items: start;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.head {
+  margin-bottom: $space-4;
+}
+
+.h {
+  @include heading-lg;
+  margin: 0;
+}
+
+.sub {
+  margin: $space-1 0 0;
+  color: $color-steel;
+}
+
+.link {
+  @include button-ghost;
+  @include focus-ring;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-2;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto auto;
+  gap: $space-4;
+  align-items: center;
+  padding: $space-3 $space-4;
+  min-height: $touch-target;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+  color: $color-charcoal;
+  text-decoration: none;
+  @include focus-ring;
+
+  &[data-next] {
+    border-color: $color-accent;
+    background: $color-accent-soft;
+  }
+
+  @include hover-only {
+    &:hover {
+      border-color: $color-hairline-strong;
+    }
+  }
+
+  @include below-md {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+}
+
+.time {
+  display: grid;
+}
+
+.clock {
+  font-weight: 600;
+  color: $color-navy;
+  font-variant-numeric: tabular-nums;
+}
+
+.len {
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
+
+.body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  color: $color-navy;
+  display: flex;
+  gap: $space-2;
+  align-items: center;
+}
+
+.nextTag {
+  @include eyebrow;
+  font-size: 0.6875rem;
+}
+
+.matter {
+  color: $color-steel;
+  font-size: 0.9375rem;
+}
+
+.q {
+  color: $color-charcoal;
+  font-size: 0.9375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.state {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  justify-content: flex-end;
+
+  @include below-md {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+
+.open {
+  color: $color-navy;
+  font-size: 0.875rem;
+  white-space: nowrap;
+
+  @include below-md {
+    display: none;
+  }
+}
+
+.rail {
+  border-left: 1px solid $color-hairline;
+  padding-left: $space-4;
+
+  @include below-md {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid $color-hairline;
+    padding-top: $space-4;
+  }
+}
+
+.railH {
+  margin: 0 0 $space-3;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.railEmpty {
+  color: $color-muted;
+  margin: 0;
+}
+
+.railList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-1;
+}
+
+.railRow {
+  display: grid;
+  padding: $space-2;
+  min-height: $touch-target;
+  border-radius: $radius-sm;
+  color: $color-charcoal;
+  text-decoration: none;
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+    }
+  }
+}
+
+.railWhen {
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
+
+.railName {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.railMatter {
+  font-size: 0.875rem;
+  color: $color-steel;
+}
