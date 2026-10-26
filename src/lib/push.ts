@@ -100,13 +100,15 @@ export async function subscribeToPush(): Promise<boolean> {
 }
 
 /**
- * Subscribe the browser to push during signup (no client session yet) and
- * persist the subscription under the provided email via the public endpoint.
+ * Subscribe the browser to push locally, without persisting to the backend.
+ * Used during signup, before the customer has an authenticated session. The
+ * subscription is persisted later by `subscribeToPush()` once the customer
+ * authenticates via OTP, so a subscription is never stored under an
+ * unverified email.
  */
-export async function subscribeToPushPublic(email: string): Promise<boolean> {
+export async function subscribeLocally(): Promise<boolean> {
   if (!pushSupported()) return false;
   if (Notification.permission !== "granted") return false;
-  if (!email) return false;
 
   try {
     const registration = await registerServiceWorker();
@@ -119,14 +121,7 @@ export async function subscribeToPushPublic(email: string): Promise<boolean> {
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
     }
-
-    const res = await fetch(`${API_URL}/api/push/subscribe-public`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, subscription: subscription.toJSON() }),
-    });
-
-    return res.ok;
+    return !!subscription;
   } catch {
     return false;
   }

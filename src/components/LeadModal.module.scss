@@ -54,11 +54,18 @@
 .primary {
   @include button-primary;
   padding: $space-4 $space-8;
+  text-decoration: none;
 
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
   }
+}
+
+.secondary {
+  @include button-ghost;
+  padding: $space-3 $space-6;
+  align-self: flex-start;
 }
 
 .heading {

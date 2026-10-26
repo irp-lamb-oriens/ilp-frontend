@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { submitLead } from "@/lib/clientDomain";
 import { OPEN_LEAD_EVENT, type OpenLeadDetail } from "@/lib/leadEvents";
@@ -150,11 +151,13 @@ export default function LeadModal() {
               <div className={s.done}>
                 <h2>You are in</h2>
                 <p>Your first alerts will land in your inbox before each deadline.</p>
-                <button type="button" className={s.primary} onClick={close}>Done</button>
+                <Link href="/status" className={s.primary} onClick={close}>
+                  Track your matter
+                </Link>
+                <button type="button" className={s.secondary} onClick={close}>Done</button>
               </div>
             ) : showNotificationSlide ? (
               <NotificationPermissionSlide
-                email={email}
                 onDone={() => {
                   setShowNotificationSlide(false);
                   setDone(true);

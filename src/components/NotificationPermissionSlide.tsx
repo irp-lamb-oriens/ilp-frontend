@@ -6,7 +6,7 @@ import {
   notificationPermission,
   requestNotificationPermission,
   subscribeToPush,
-  subscribeToPushPublic,
+  subscribeLocally,
 } from "@/lib/push";
 import s from "./NotificationPermissionSlide.module.scss";
 
@@ -20,11 +20,11 @@ type SlideState = "idle" | "requesting" | "granted" | "denied" | "unsupported";
  */
 export default function NotificationPermissionSlide({
   onDone,
-  email,
+  authenticated = false,
 }: {
   onDone: () => void;
-  /** When set (signup flow), subscribes via the public email-keyed endpoint. */
-  email?: string;
+  /** When true (portal), persists the subscription under the signed-in email. */
+  authenticated?: boolean;
 }) {
   const [state, setState] = useState<SlideState>("idle");
   const [busy, setBusy] = useState(false);
@@ -45,10 +45,10 @@ export default function NotificationPermissionSlide({
     try {
       const permission = await requestNotificationPermission();
       if (permission === "granted") {
-        if (email) {
-          await subscribeToPushPublic(email);
-        } else {
+        if (authenticated) {
           await subscribeToPush();
+        } else {
+          await subscribeLocally();
         }
         setState("granted");
       } else if (permission === "denied") {

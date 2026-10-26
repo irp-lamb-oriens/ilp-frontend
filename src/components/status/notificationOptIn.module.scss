@@ -1,0 +1,42 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Compact notification opt-in banner for the client portal. Maps rest, hover,
+// focus-visible, active, and busy states.
+// ─────────────────────────────────────────────────────────────────────────────
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  padding: $space-3 $space-4;
+  background: $color-accent-soft;
+  border: 1px solid rgba(18, 59, 93, 0.14);
+  border-radius: $radius-md;
+}
+
+.text {
+  color: $color-navy;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.enable {
+  @include button-primary;
+  padding: $space-2 $space-4;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enable {
+    transition: none;
+  }
+}

@@ -16,6 +16,7 @@ import { getDashboardToken } from "@/lib/api";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import StageTimeline from "@/components/status/StageTimeline";
 import DeadlineConfig from "@/components/status/DeadlineConfig";
+import NotificationOptIn from "@/components/status/NotificationOptIn";
 import EmptyState from "@/components/status/EmptyState";
 import { GhostField, GhostLine, GhostBadge } from "@/components/status/Ghost";
 import { Reveal } from "@/components/motion/Motion";
@@ -413,6 +414,10 @@ export default function StatusProjectPage() {
       </Reveal>
 
       {error && <p className={s.error}>{error}</p>}
+
+      <Reveal>
+        <NotificationOptIn />
+      </Reveal>
 
       <Reveal>
         <section className={s.card}>
