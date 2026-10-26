@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { PROFILE_FIELDS, PROFILE_SECTIONS, type ProfileSection } from "@/lib/contracts";
-import { ButtonLink, ProgressBar, StatusPill, Timeline, type TimelineItem } from "@/components/ui";
+import { PROFILE_FIELDS, PROFILE_SECTIONS, type Handoff, type ProfileSection } from "@/lib/contracts";
+import { ButtonLink, Drawer, ProgressBar, StatusPill, Timeline, type TimelineItem } from "@/components/ui";
 import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
 import { dueLabel, MEMBERSHIP_LABEL, MEMBERSHIP_TONE, memberName } from "../staff/format";
 import type { MemberBundle, QueueTask, TimelineEntry } from "../staff/types";
+import { useLawyers } from "../staff/useLawyers";
 import { TaskDrawer } from "../today/TaskDrawer";
+import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
 import { NextActions } from "./NextActions";
 import s from "./member.module.scss";
@@ -64,7 +66,9 @@ export default function MemberPage({ clientId }: { clientId: string }) {
   const [timeline, setTimeline] = useState<TimelineEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [kind, setKind] = useState<Kind | "all">("all");
+  const [handoff, setHandoff] = useState<Handoff | null>(null);
   const [task, setTask] = useState<QueueTask | null>(null);
+  const { nameOf } = useLawyers();
 
   const load = useCallback(() => {
     Promise.all([
@@ -82,6 +86,13 @@ export default function MemberPage({ clientId }: { clientId: string }) {
     load();
   }, [load]);
 
+  // ?handoff=<id> opens the handoff review straight away.
+  useEffect(() => {
+    if (!bundle || typeof window === "undefined") return;
+    const id = new URLSearchParams(window.location.search).get("handoff");
+    if (id) setHandoff(bundle.handoffs.find((h) => h.id === id) ?? null);
+  }, [bundle]);
+
   const name = memberName(bundle?.client ?? null, clientId);
   const profile = useMemo(() => {
     const c = (bundle?.client ?? {}) as Record<string, unknown>;
@@ -91,12 +102,19 @@ export default function MemberPage({ clientId }: { clientId: string }) {
   const items: TimelineItem[] = (timeline ?? [])
     .filter((e) => kind === "all" || e.kind === kind)
     .map((e) => {
+      const h = e.kind === "handoff" ? bundle?.handoffs.find((x) => x.id === e.ref) : undefined;
       return {
         id: e.id,
         at: e.at,
         actor: e.actor,
         tone: e.tone,
-        title: e.title,
+        title: h ? (
+          <button type="button" className={s.linkBtn} onClick={() => setHandoff(h)}>
+            {e.title}
+          </button>
+        ) : (
+          e.title
+        ),
         body: e.body,
         meta: <StatusPill size="sm" label={KINDS.find((k) => k.id === e.kind)?.label ?? e.kind} />,
       };
@@ -193,6 +211,24 @@ export default function MemberPage({ clientId }: { clientId: string }) {
           />
         </div>
       </div>
+
+      <Drawer
+        open={!!handoff}
+        onClose={() => setHandoff(null)}
+        size="lg"
+        title="Handoff review"
+        subtitle={handoff ? `${name} · ${nameOf(handoff.providerId)}` : undefined}
+      >
+        {handoff && (
+          <HandoffReview
+            handoff={handoff}
+            consultation={bundle.consultations.find((c) => c.id === handoff.consultationId)}
+            lawyerName={nameOf(handoff.providerId)}
+            proposalTask={bundle.tasks.find((t) => t.type === "proposal" && t.status === "open" && t.source.id === handoff.id) ?? null}
+            onChanged={load}
+          />
+        )}
+      </Drawer>
 
       <TaskDrawer
         task={task}
