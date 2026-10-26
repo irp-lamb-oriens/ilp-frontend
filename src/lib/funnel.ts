@@ -1,16 +1,23 @@
 /**
  * lib/funnel.ts — anonymous funnel beacons for PMF measurement (P2).
  *
- * Records a FunnelStep with a random id kept in this browser (localStorage,
- * wrapped in try/catch; an in-memory id is used when storage is blocked) and
- * a first-touch source (utm_source, else the referrer's host). Nothing
- * personal is sent: no email, no name, no IP is stored by the server.
- * The server keeps one event per (step, id), so repeats are harmless.
+ * Records a FunnelStep with a random id kept in this browser and a
+ * first-touch source (utm_source, else the referrer's host). Nothing personal
+ * is sent: no email, no name, no IP is stored by the server. The server keeps
+ * one event per (step, id), so repeats are harmless.
  * Server: POST /api/analytics/funnel (server/API/analytics/funnel.ts).
+ *
+ * Consent (P6/P7): nothing is stored and nothing is sent until the visitor
+ * allows measurement (`measurementAllowed()` from components/legal/preferences,
+ * which is false whenever the browser sends Global Privacy Control). Until
+ * then `funnelAnonId()` and `funnelSource()` return undefined and
+ * `trackFunnel()` is a no-op. Server-side steps keyed on the member
+ * (join_paid on activation, first_call_booked) do not depend on this.
  */
 
 import { API_URL } from "./api";
 import type { FunnelStep } from "./contracts";
+import { measurementAllowed } from "@/components/legal/preferences";
 
 const ID_KEY = "ilp_funnel_id";
 const SRC_KEY = "ilp_funnel_src";
@@ -24,8 +31,17 @@ function randomId(): string {
   }
 }
 
-/** This browser's anonymous funnel id. */
-export function funnelAnonId(): string {
+function allowed(): boolean {
+  try {
+    return typeof window !== "undefined" && measurementAllowed();
+  } catch {
+    return false;
+  }
+}
+
+/** This browser's anonymous funnel id, or undefined when measurement is not allowed. */
+export function funnelAnonId(): string | undefined {
+  if (!allowed()) return undefined;
   try {
     const have = window.localStorage.getItem(ID_KEY);
     if (have && /^[A-Za-z0-9_-]{8,64}$/.test(have)) return have;
@@ -38,8 +54,9 @@ export function funnelAnonId(): string {
   }
 }
 
-/** First-touch source: utm_source, else the referrer host (other sites only). */
+/** First-touch source: utm_source, else the referrer host (other sites only). Undefined when measurement is not allowed. */
 export function funnelSource(): string | undefined {
+  if (!allowed()) return undefined;
   let stored: string | null = null;
   try {
     stored = window.localStorage.getItem(SRC_KEY);
@@ -68,11 +85,13 @@ export function funnelSource(): string | undefined {
   return src;
 }
 
-/** Fire-and-forget beacon. Never throws, never blocks the page. */
+/** Fire-and-forget beacon. Never throws, never blocks the page. No-op until measurement is allowed. */
 export function trackFunnel(step: Exclude<FunnelStep, "first_call_booked">, extra: { leadId?: string } = {}): void {
-  if (typeof window === "undefined") return;
+  if (!allowed()) return;
+  const anonId = funnelAnonId();
+  if (!anonId) return;
   try {
-    const body = JSON.stringify({ step, anonId: funnelAnonId(), source: funnelSource(), ...(extra.leadId ? { leadId: extra.leadId } : {}) });
+    const body = JSON.stringify({ step, anonId, source: funnelSource(), ...(extra.leadId ? { leadId: extra.leadId } : {}) });
     void fetch(`${API_URL}/api/analytics/funnel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
