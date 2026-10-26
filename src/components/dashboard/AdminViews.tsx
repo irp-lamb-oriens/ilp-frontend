@@ -201,7 +201,7 @@ export function FinanceView() {
               { key: "cost", name: "Cost" },
               { key: "margin", name: "Margin" },
             ]}
-            colors={[PALETTE.accent, PALETTE.error, PALETTE.success]}
+            colors={[PALETTE.navy, PALETTE.accent, PALETTE.steel]}
             valueFormatter={money}
             emptyMessage="No priced quotes yet."
           />
@@ -242,18 +242,18 @@ export function FinanceView() {
         </div>
         <div className={styles.financeCard}>
           <h3 className={styles.financeTitle}>Revenue by service</h3>
-          <RankedBarChart data={serviceData} color={PALETTE.success} valueFormatter={money} emptyMessage="No service data yet." />
+          <RankedBarChart data={serviceData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No service data yet." />
         </div>
       </div>
 
       <div className={styles.financeGrid}>
         <div className={styles.financeCard}>
           <h3 className={styles.financeTitle}>Revenue by provider</h3>
-          <RankedBarChart data={providerData} color={PALETTE.warning} valueFormatter={money} emptyMessage="No provider data yet." />
+          <RankedBarChart data={providerData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No provider data yet." />
         </div>
         <div className={styles.financeCard}>
           <h3 className={styles.financeTitle}>Revenue by stage</h3>
-          <RankedBarChart data={stageData} color={PALETTE.steel} valueFormatter={money} emptyMessage="No stage data yet." />
+          <RankedBarChart data={stageData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No stage data yet." />
         </div>
       </div>
 

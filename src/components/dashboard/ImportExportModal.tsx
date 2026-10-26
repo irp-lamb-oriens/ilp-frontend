@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Button, Drawer } from "@/components/ui";
+import s from "./crm.module.scss";
 import { dashboardFetch, ApiError } from "@/lib/api";
 
 interface DryRunResult {
@@ -87,94 +89,77 @@ export default function ImportExportModal({ onClose }: { onClose: () => void }) 
   }
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(18,42,61,0.4)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-      }}
-      onClick={onClose}
+    <Drawer
+      open
+      onClose={onClose}
+      size="lg"
+      title="Import clients"
+      subtitle="Email is the identity key. The dry run shows what would happen before you commit."
     >
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid rgba(18,59,93,0.14)",
-          borderRadius: 14,
-          padding: "1.25rem",
-          maxWidth: 640,
-          width: "90%",
-          maxHeight: "85vh",
-          overflowY: "auto",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h2 style={{ margin: 0, fontSize: "1.1rem", color: "#123b5d" }}>Import clients</h2>
-          <button type="button" onClick={onClose} style={{ border: "none", background: "transparent", fontSize: "1.3rem", cursor: "pointer" }}>
-            ×
-          </button>
-        </div>
-
-        <p style={{ color: "#4a5a66", fontSize: "0.85rem" }}>
+      <div className={s.stack}>
+        <label htmlFor="import-json" className={s.meta}>
           Paste a JSON array of clients (or an object with a <code>clients</code> array).
-          Email is the identity key; the dry-run shows what would happen before you commit.
-        </p>
-
+        </label>
         <textarea
+          id="import-json"
+          className={s.textarea}
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
           placeholder='[{"email":"person@example.com","name":"Ana","legalArea":"immigration","jurisdiction":"Costa Rica"}]'
-          style={{ width: "100%", padding: "0.75rem", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, fontFamily: "monospace", fontSize: "0.8rem" }}
         />
 
-        {error && <p style={{ color: "#c0392b", fontSize: "0.85rem" }}>{error}</p>}
+        {error && (
+          <p className={s.error} role="alert">
+            {error}
+          </p>
+        )}
 
-        <div style={{ display: "flex", gap: "0.5rem", marginBlock: "0.75rem" }}>
-          <button type="button" onClick={runDryRun} disabled={busy} style={{ padding: "0.5rem 0.9rem", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 999, background: "transparent", cursor: "pointer", fontWeight: 600 }}>
+        <div className={s.row}>
+          <Button variant="secondary" size="sm" onClick={runDryRun} disabled={busy}>
             Dry run
-          </button>
+          </Button>
+          <label htmlFor="import-strategy" className={s.srOnly}>
+            When a client exists
+          </label>
           <select
+            id="import-strategy"
+            className={s.select}
             value={strategy}
             onChange={(e) => setStrategy(e.target.value as "skip" | "merge" | "overwrite")}
-            style={{ padding: "0.5rem", border: "1px solid rgba(18,59,93,0.14)", borderRadius: 999 }}
           >
             <option value="skip">Skip existing</option>
             <option value="merge">Merge</option>
             <option value="overwrite">Overwrite</option>
           </select>
-          <button type="button" onClick={runCommit} disabled={busy} style={{ padding: "0.5rem 0.9rem", border: "none", borderRadius: 999, background: "#5cccf7", color: "#123b5d", cursor: "pointer", fontWeight: 600 }}>
-            {busy ? "Working…" : "Commit"}
-          </button>
+          <Button size="sm" onClick={runCommit} busy={busy}>
+            Commit
+          </Button>
         </div>
 
         {dry && (
-          <div style={{ border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10, padding: "0.75rem", marginTop: "0.5rem" }}>
-            <div style={{ fontSize: "0.85rem", marginBottom: "0.5rem" }}>
+          <div className={s.result}>
+            <p className={s.meta}>
               {dry.total} total · {dry.newCount} new · {dry.duplicateCount} existing · {dry.invalid} invalid
-            </div>
+            </p>
             {dry.records.slice(0, 20).map((r) => (
-              <div key={r.index} style={{ fontSize: "0.8rem", padding: "0.3rem 0", borderBottom: "1px solid #f0f4f7" }}>
-                <span style={{ color: r.valid ? (r.exists ? "#b7791f" : "#1f7a5c") : "#c0392b", fontWeight: 600 }}>
-                  {r.valid ? (r.exists ? "EXISTS" : "NEW") : "INVALID"}
-                </span>
-                {" "}{r.email || r.docId || "(no id)"}
-                {r.warnings.length > 0 && <span style={{ color: "#7a8a96" }}> · {r.warnings.join("; ")}</span>}
+              <div key={r.index} className={s.resultRow}>
+                <span className={r.valid ? (r.exists ? s.exists : s.new) : s.invalid}>
+                  {r.valid ? (r.exists ? "Exists" : "New") : "Invalid"}
+                </span>{" "}
+                {r.email || r.docId || "(no id)"}
+                {r.warnings.length > 0 && <span className={s.itemSub}> · {r.warnings.join("; ")}</span>}
               </div>
             ))}
           </div>
         )}
 
         {result && (
-          <p style={{ color: "#1f7a5c", fontSize: "0.9rem" }}>
-            Done — {result.created} created, {result.updated} updated, {result.skipped} skipped.
+          <p className={s.ok} role="status">
+            Done: {result.created} created, {result.updated} updated, {result.skipped} skipped.
           </p>
         )}
       </div>
-    </div>
+    </Drawer>
   );
 }

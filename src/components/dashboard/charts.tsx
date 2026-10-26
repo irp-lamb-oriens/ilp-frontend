@@ -15,30 +15,26 @@ import {
   Area,
   Legend,
 } from "recharts";
+import { chart, chartSeries, color } from "@/styles/tokens";
 import styles from "./charts.module.scss";
 
-// Brand palette (mirrors styles/_variables.scss) so charts stay cohesive.
+// Colors come from styles/tokens.ts (the one file charts read colors from);
+// no hex values live in this file (rules.md section 2).
 const PALETTE = {
-  accent: "#5cccf7",
-  navy: "#123b5d",
-  charcoal: "#202a33",
-  steel: "#4a5a66",
-  muted: "#7a8a96",
-  success: "#1f7a5c",
-  warning: "#b7791f",
-  error: "#c0392b",
-  mist: "#eff7fb",
-  coolGray: "#d9e1e6",
+  accent: color.accent,
+  navy: color.navy,
+  charcoal: color.charcoal,
+  steel: color.steel,
+  muted: color.muted,
+  success: color.success,
+  warning: color.warning,
+  error: color.error,
+  mist: color.mist,
+  coolGray: color.coolGray,
 };
 
-const SERIES = [
-  PALETTE.accent,
-  PALETTE.navy,
-  PALETTE.success,
-  PALETTE.warning,
-  PALETTE.steel,
-  PALETTE.error,
-];
+/** Ordered series: one hue family, navy to accent (tokens.chartSeries). */
+const SERIES: string[] = [...chartSeries];
 
 export interface ChartDatum {
   label: string;
@@ -48,9 +44,10 @@ export interface ChartDatum {
 
 const tooltipStyle = {
   borderRadius: 10,
-  border: "1px solid rgba(18, 59, 93, 0.14)",
+  border: `1px solid ${chart.tooltipBorder}`,
+  background: chart.tooltipBg,
   fontSize: "0.8rem",
-  boxShadow: "0 1px 2px rgba(18, 59, 93, 0.06)",
+  boxShadow: "none",
 };
 
 function EmptyState({ message }: { message: string }) {
@@ -74,10 +71,10 @@ export function SimpleBarChart({
     <div className={styles.chart}>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.coolGray} vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fill: PALETTE.steel, fontSize: 12 }}
+            tick={{ fill: chart.label, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             interval={0}
@@ -86,7 +83,7 @@ export function SimpleBarChart({
             height={data.length > 6 ? 60 : 30}
           />
           <YAxis
-            tick={{ fill: PALETTE.muted, fontSize: 12 }}
+            tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={40}
@@ -128,10 +125,10 @@ export function RankedBarChart({
           layout="vertical"
           margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.coolGray} horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fill: PALETTE.muted, fontSize: 12 }}
+            tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             tickFormatter={valueFormatter}
@@ -139,7 +136,7 @@ export function RankedBarChart({
           <YAxis
             type="category"
             dataKey="label"
-            tick={{ fill: PALETTE.steel, fontSize: 12 }}
+            tick={{ fill: chart.label, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={120}
@@ -181,7 +178,7 @@ export function DonutChart({
   ];
   return (
     <div className={styles.donutWrap}>
-      <div className={styles.chart} style={{ height: 200 }}>
+      <div className={`${styles.chart} ${styles.donut}`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -232,15 +229,15 @@ export function TrendChart({
               <stop offset="100%" stopColor={color} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.coolGray} vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fill: PALETTE.steel, fontSize: 12 }}
+            tick={{ fill: chart.label, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: PALETTE.muted, fontSize: 12 }}
+            tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={40}
@@ -282,15 +279,15 @@ export function GroupedBarChart({
     <div className={styles.chart}>
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={PALETTE.coolGray} vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} vertical={false} />
           <XAxis
             dataKey="label"
-            tick={{ fill: PALETTE.steel, fontSize: 12 }}
+            tick={{ fill: chart.label, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fill: PALETTE.muted, fontSize: 12 }}
+            tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={48}

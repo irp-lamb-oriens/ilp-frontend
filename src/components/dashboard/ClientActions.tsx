@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui";
+import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 
 interface ClientAction {
@@ -69,49 +71,31 @@ export default function ClientActions({
   }
 
   return (
-    <div style={{ display: "grid", gap: "0.5rem" }}>
-      <p style={{ color: "#7a8a96", fontSize: "0.85rem", margin: 0 }}>
-        Stage: <strong style={{ color: "#4a5a66" }}>{stage}</strong>
+    <div className={s.stack}>
+      <p className={s.meta}>
+        Stage: <strong>{stage}</strong>
       </p>
-      {message && <p style={{ color: "#1f7a5c", fontSize: "0.85rem", margin: 0 }}>{message}</p>}
-      {error && <p style={{ color: "#c0392b", fontSize: "0.85rem", margin: 0 }}>{error}</p>}
+      {message && (
+        <p className={s.ok} role="status">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className={s.error} role="alert">
+          {error}
+        </p>
+      )}
 
-      {actions.length === 0 && <p style={{ color: "#7a8a96" }}>No actions for this stage.</p>}
+      {actions.length === 0 && <p className={s.meta}>No actions for this stage.</p>}
       {actions.map((a) => (
-        <div
-          key={a.actionKey}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "0.75rem",
-            padding: "0.6rem",
-            border: "1px solid rgba(18,59,93,0.14)",
-            borderRadius: 10,
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 600, color: "#202a33", fontSize: "0.9rem" }}>{a.label}</div>
-            <div style={{ color: "#7a8a96", fontSize: "0.8rem" }}>{a.description}</div>
+        <div key={a.actionKey} className={s.item}>
+          <div className={s.itemText}>
+            <div className={s.itemTitle}>{a.label}</div>
+            <div className={s.itemSub}>{a.description}</div>
           </div>
-          <button
-            type="button"
-            disabled={busy === a.actionKey}
-            onClick={() => run(a)}
-            style={{
-              padding: "0.4rem 0.9rem",
-              border: "none",
-              borderRadius: 999,
-              background: "#5cccf7",
-              color: "#123b5d",
-              fontWeight: 600,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              opacity: busy === a.actionKey ? 0.5 : 1,
-            }}
-          >
-            {busy === a.actionKey ? "…" : "Run"}
-          </button>
+          <Button size="sm" busy={busy === a.actionKey} onClick={() => run(a)}>
+            Run
+          </Button>
         </div>
       ))}
     </div>

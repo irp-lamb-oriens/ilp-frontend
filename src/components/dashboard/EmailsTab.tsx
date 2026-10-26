@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Button, Drawer } from "@/components/ui";
+import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
@@ -95,135 +97,56 @@ export default function EmailsTab() {
   });
 
   return (
-    <div style={{ display: "grid", gap: "0.75rem" }}>
-      {error && <p style={{ color: "#c0392b", fontSize: "0.85rem", margin: 0 }}>{error}</p>}
-      {pending === null && <p style={{ color: "#7a8a96" }}>Loading…</p>}
-      {pending !== null && pending.length === 0 && <p style={{ color: "#7a8a96" }}>No pending emails.</p>}
+    <div className={s.stack}>
+      {error && (
+        <p className={s.error} role="alert">
+          {error}
+        </p>
+      )}
+      {pending === null && <p className={s.meta}>Loading…</p>}
+      {pending !== null && pending.length === 0 && <p className={s.meta}>No pending emails.</p>}
 
       {pending !== null && pending.length > 0 && (
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          placeholder="Search emails…"
-          resultCount={total}
-        />
+        <SearchInput value={query} onChange={setQuery} placeholder="Search emails…" resultCount={total} />
       )}
 
       {pageItems.map((e) => (
-        <div
-          key={e.id}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "0.75rem",
-            padding: "0.6rem",
-            border: "1px solid rgba(18,59,93,0.14)",
-            borderRadius: 10,
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600, color: "#202a33", fontSize: "0.9rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {e.subject ?? "(no subject)"}
-            </div>
-            <div style={{ color: "#7a8a96", fontSize: "0.8rem" }}>
+        <div key={e.id} className={s.item}>
+          <div className={s.itemText}>
+            <div className={s.itemTitle}>{e.subject ?? "(no subject)"}</div>
+            <div className={s.itemSub}>
               {e.to ?? "—"} · {e.emailType ?? e.status ?? "pending"}
             </div>
           </div>
-          <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
-            <button
-              type="button"
-              disabled={busy === `send-${e.id}`}
-              onClick={() => sendNow(e.id)}
-              style={PILL_PRIMARY}
-            >
-              {busy === `send-${e.id}` ? "…" : "Send now"}
-            </button>
-            <button
-              type="button"
-              disabled={busy === `cancel-${e.id}`}
-              onClick={() => cancel(e.id)}
-              style={PILL_GHOST}
-            >
+          <div className={s.itemActions}>
+            <Button size="sm" busy={busy === `send-${e.id}`} onClick={() => sendNow(e.id)}>
+              Send now
+            </Button>
+            <Button size="sm" variant="ghost" busy={busy === `cancel-${e.id}`} onClick={() => cancel(e.id)}>
               Cancel
-            </button>
-            <button type="button" onClick={() => openPreview(e.id)} style={PILL_GHOST}>
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => openPreview(e.id)}>
               Preview
-            </button>
+            </Button>
           </div>
         </div>
       ))}
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {preview && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(18,42,61,0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 60,
-          }}
-          onClick={() => setPreview(null)}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 14,
-              padding: "1.25rem",
-              maxWidth: 640,
-              width: "90%",
-              maxHeight: "85vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <h3 style={{ margin: 0, color: "#123b5d" }}>{preview.subject ?? "(no subject)"}</h3>
-              <button type="button" onClick={() => setPreview(null)} style={{ border: "none", background: "transparent", fontSize: "1.3rem", cursor: "pointer" }}>
-                ×
-              </button>
-            </div>
-            <p style={{ color: "#7a8a96", fontSize: "0.8rem" }}>To: {preview.to ?? "—"}</p>
-            {preview.html ? (
-              <iframe
-                title="Email preview"
-                srcDoc={preview.html}
-                style={{ width: "100%", height: 420, border: "1px solid rgba(18,59,93,0.14)", borderRadius: 10 }}
-              />
-            ) : (
-              <pre style={{ whiteSpace: "pre-wrap", fontSize: "0.85rem", color: "#202a33" }}>
-                {preview.text ?? "(no body)"}
-              </pre>
-            )}
-          </div>
-        </div>
-      )}
+      <Drawer
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        size="lg"
+        title={preview?.subject ?? "(no subject)"}
+        subtitle={`To: ${preview?.to ?? "—"}`}
+      >
+        {preview?.html ? (
+          <iframe title="Email preview" srcDoc={preview.html} className={s.preview} />
+        ) : (
+          <pre className={s.pre}>{preview?.text ?? "(no body)"}</pre>
+        )}
+      </Drawer>
     </div>
   );
 }
-
-const PILL_PRIMARY: React.CSSProperties = {
-  padding: "0.35rem 0.7rem",
-  border: "none",
-  borderRadius: 999,
-  background: "#5cccf7",
-  color: "#123b5d",
-  fontWeight: 600,
-  cursor: "pointer",
-  fontSize: "0.8rem",
-};
-
-const PILL_GHOST: React.CSSProperties = {
-  padding: "0.35rem 0.7rem",
-  border: "1px solid rgba(18,59,93,0.14)",
-  borderRadius: 999,
-  background: "transparent",
-  color: "#4a5a66",
-  fontWeight: 600,
-  cursor: "pointer",
-  fontSize: "0.8rem",
-};
