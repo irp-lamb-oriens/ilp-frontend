@@ -60,8 +60,14 @@ export async function statusFetch<T = unknown>(
   const token = getClientToken();
   const dashboardToken = getDashboardToken();
   const headers = new Headers(options.headers);
-  if (token) headers.set("x-client-token", token);
-  if (dashboardToken) headers.set("x-dashboard-token", dashboardToken);
+  // The client token is authoritative for the portal. When present, do not
+  // also send a dashboard token: the server's staff bypass would otherwise
+  // override the principal's session and hide their edit controls.
+  if (token) {
+    headers.set("x-client-token", token);
+  } else if (dashboardToken) {
+    headers.set("x-dashboard-token", dashboardToken);
+  }
   if (options.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

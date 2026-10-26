@@ -216,16 +216,22 @@ export default function MatterDetails({
             )}
           </div>
         ) : (
-          <ul className={s.list}>
-            {editable.map((f) => (
-              <li key={f.id} className={s.row}>
-                <span className={s.label}>{f.label}</span>
-                <span className={s.value}>
-                  {f.value == null || f.value === "" ? "—" : String(f.value)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <p className={s.readOnlyNote}>
+              These details are read-only for this view. The principal contact
+              on this matter can edit them from their own account.
+            </p>
+            <ul className={s.list}>
+              {editable.map((f) => (
+                <li key={f.id} className={s.row}>
+                  <span className={s.label}>{f.label}</span>
+                  <span className={s.value}>
+                    {f.value == null || f.value === "" ? "—" : String(f.value)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 
