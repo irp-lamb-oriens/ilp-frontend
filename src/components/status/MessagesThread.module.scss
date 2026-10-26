@@ -1,0 +1,145 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-4;
+  max-width: 46rem;
+}
+
+.intro {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+.muted {
+  color: $color-steel;
+}
+
+.thread {
+  min-width: 0;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-3;
+}
+
+.head,
+.aiHead {
+  margin: 0 0 $space-1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $space-2;
+}
+
+.author {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.when {
+  font-size: 0.875rem;
+  color: $color-steel;
+}
+
+.toAi {
+  font-size: 0.875rem;
+  color: $color-steel;
+}
+
+.body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+// People are primary: full-width cards, regular weight text at 18px.
+.team {
+  @include card;
+  padding: $space-4;
+  border-left: 3px solid $color-navy;
+}
+
+.mine {
+  padding: $space-4;
+  background: $color-accent-soft;
+  border-radius: $radius-lg;
+  margin-left: $space-8;
+}
+
+// The AI assistant is secondary: indented, smaller, muted surface, always labeled.
+.ai {
+  margin-left: $space-4;
+  margin-right: $space-8;
+  padding: $space-3 $space-4;
+  background: $color-neutral-soft;
+  border-radius: $radius-md;
+  font-size: 1rem;
+  color: $color-charcoal;
+}
+
+.aiTag {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $color-steel;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  padding: 0.125rem $space-2;
+}
+
+.confirm {
+  margin: $space-2 0 0;
+  font-size: 0.9375rem;
+  color: $color-navy;
+  font-weight: 600;
+}
+
+.composer {
+  @include card;
+  padding: $space-4;
+  display: grid;
+  gap: $space-2;
+
+  // Sticky only where there is room; on phones it would cover the thread.
+  @include md {
+    position: sticky;
+    bottom: $space-4;
+  }
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.textarea {
+  @include focus-ring;
+  width: 100%;
+  padding: $space-3;
+  font: inherit;
+  font-size: 1.125rem;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  resize: vertical;
+}
+
+.err {
+  margin: 0;
+  color: $color-error;
+  font-size: 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
