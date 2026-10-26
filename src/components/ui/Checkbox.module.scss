@@ -1,0 +1,179 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Checkbox and RadioGroup share one look: a 20px box on the left, text on the
+// right, the whole row a 44px target.
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  min-height: $touch-target;
+  padding-block: $space-2;
+  cursor: pointer;
+  color: $color-charcoal;
+  line-height: 1.5;
+}
+
+.disabled {
+  cursor: not-allowed;
+  color: $color-steel;
+}
+
+.text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: $space-2;
+  font-size: 0.95rem;
+}
+
+.optionHint {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  color: $color-steel;
+}
+
+.below {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding-left: calc(20px + #{$space-3});
+
+  &:empty {
+    display: none;
+  }
+}
+
+.box {
+  position: relative;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  appearance: none;
+  background: $color-surface;
+  border: 1.5px solid $color-hairline-strong;
+  border-radius: 4px;
+  cursor: inherit;
+  transition: border-color $duration-press ease, background-color $duration-press ease;
+
+  // Check mark: two borders of a rotated box; it fades and scales in.
+  &::after {
+    content: "";
+    position: absolute;
+    left: 5.5px;
+    top: 1.5px;
+    width: 5px;
+    height: 10px;
+    border-right: 2px solid $color-accent-ink;
+    border-bottom: 2px solid $color-accent-ink;
+    opacity: 0;
+    transform: rotate(45deg) scale(0.95);
+    transition: opacity $duration-press $ease-out-strong, transform $duration-press $ease-out-strong;
+  }
+
+  &:checked {
+    background: $color-accent;
+    border-color: $color-accent-ink;
+
+    &::after {
+      opacity: 1;
+      transform: rotate(45deg) scale(1);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+
+  &[aria-invalid="true"] {
+    border-color: $color-error;
+  }
+
+  &:disabled {
+    background: $color-neutral-soft;
+    border-color: $color-hairline;
+  }
+
+  @include hover-only {
+    &:hover:not(:disabled):not(:checked) {
+      border-color: $color-navy;
+    }
+  }
+
+  @include reduced-motion {
+    transition: none;
+
+    &::after {
+      transition: opacity $duration-press ease;
+    }
+  }
+}
+
+// Radio: round box, filled center instead of a check mark.
+.radio {
+  border-radius: 50%;
+
+  &::after {
+    left: 4px;
+    top: 4px;
+    width: 9px;
+    height: 9px;
+    border: 0;
+    border-radius: 50%;
+    background: $color-accent-ink;
+    transform: scale(0.95);
+  }
+
+  &:checked::after {
+    transform: scale(1);
+  }
+}
+
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.legend {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: $space-2;
+  padding: 0;
+  margin-bottom: $space-1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $color-navy;
+
+  > span + span {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: $color-steel;
+  }
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+}
+
+.inline {
+  @include md {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: $space-6;
+  }
+}

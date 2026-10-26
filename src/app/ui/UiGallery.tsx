@@ -19,6 +19,7 @@ import {
   type StatusTone,
 } from "@/components/ui";
 import { chartSeries } from "@/styles/tokens";
+import FormsGallery from "./FormsGallery";
 import { ACTIVITY, MEMBERS, NOW, formatDate, type MemberRow } from "./sampleData";
 import s from "./UiGallery.module.scss";
 
@@ -32,6 +33,7 @@ const SECTIONS = [
   ["timeline", "Timeline"],
   ["tabs", "Tabs"],
   ["empty", "EmptyState"],
+  ["forms", "Form fields"],
   ["tokens", "Chart tokens"],
   ["shell", "RoleShell"],
   ["login", "PortalLogin"],
@@ -332,6 +334,11 @@ export default function UiGallery() {
           body="You have 60 minutes this month across up to three 20-minute calls."
           action={<Button>Book a call</Button>}
         />
+      </section>
+
+      <section id="forms" className={s.section}>
+        <h2 className={s.h2}>Form fields</h2>
+        <FormsGallery />
       </section>
 
       <section id="tokens" className={s.section}>

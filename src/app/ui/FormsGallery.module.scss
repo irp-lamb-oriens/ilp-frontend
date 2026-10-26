@@ -1,0 +1,66 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.note {
+  margin: 0;
+  max-width: 65ch;
+  font-size: 0.9rem;
+  color: $color-steel;
+
+  code {
+    font-family: $font-mono;
+    font-size: 0.875em;
+    color: $color-navy;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-8;
+
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+  max-width: 640px;
+  padding: $space-6;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+}
+
+.saved {
+  margin: 0;
+  color: $color-success;
+  font-weight: 600;
+}

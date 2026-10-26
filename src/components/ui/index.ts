@@ -25,3 +25,25 @@ export type { ProgressBarProps } from "./ProgressBar";
 export { Tabs } from "./Tabs";
 export type { TabItem, TabsProps } from "./Tabs";
 export { cx } from "./cx";
+
+// Form fields (P5). Labels always render; hint and error are wired with aria-describedby.
+export { Field, FieldError, FieldHint, FieldMarker, useFieldIds } from "./Field";
+export type { FieldBaseProps, FieldControlProps, FieldProps } from "./Field";
+export { TextInput } from "./TextInput";
+export type { TextInputProps } from "./TextInput";
+export { TextArea } from "./TextArea";
+export type { TextAreaProps } from "./TextArea";
+export { Select } from "./Select";
+export type { SelectOption, SelectProps } from "./Select";
+export { Checkbox } from "./Checkbox";
+export type { CheckboxProps } from "./Checkbox";
+export { RadioGroup } from "./RadioGroup";
+export type { RadioGroupProps, RadioOption } from "./RadioGroup";
+export { DateInput, dateInputValue, isoFromDateInput } from "./DateInput";
+export type { DateInputProps } from "./DateInput";
+export { MoneyInput, formatCentsPlain, parseMoneyToCents } from "./MoneyInput";
+export type { MoneyInputProps } from "./MoneyInput";
+export { SearchInput } from "./SearchInput";
+export type { SearchInputProps } from "./SearchInput";
+export { useForm, validators } from "./useForm";
+export type { Errors, UseFormOptions } from "./useForm";
