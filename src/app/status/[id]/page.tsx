@@ -15,10 +15,10 @@ import {
 import { getDashboardToken } from "@/lib/api";
 import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import StageTimeline from "@/components/status/StageTimeline";
-import DeadlineConfig from "@/components/status/DeadlineConfig";
+import MatterDetails from "@/components/status/MatterDetails";
 import NotificationOptIn from "@/components/status/NotificationOptIn";
 import EmptyState from "@/components/status/EmptyState";
-import { GhostField, GhostLine, GhostBadge } from "@/components/status/Ghost";
+import { GhostLine, GhostBadge } from "@/components/status/Ghost";
 import { Reveal } from "@/components/motion/Motion";
 import CountUp from "@/components/motion/CountUp";
 import s from "../status.module.scss";
@@ -134,6 +134,16 @@ export default function StatusProjectPage() {
     }
   }
 
+  function handleFieldSaved(fieldId: string, value: string) {
+    setPayload((prev) => {
+      if (!prev) return prev;
+      if (fieldId === "jurisdiction") {
+        return { ...prev, project: { ...prev.project, jurisdiction: value } };
+      }
+      return prev;
+    });
+  }
+
   if (loading) {
     return (
       <main className={s.main}>
@@ -173,33 +183,15 @@ export default function StatusProjectPage() {
     {
       id: "details",
       label: "Your details",
-      content:
-        clientFields.length === 0 ? (
-          <EmptyState
-            title="The details of your matter"
-            explain="Fields describing your matter appear here as your legal team records them."
-            steps={[
-              "Your team captures the legal area and matter type first.",
-              "Jurisdiction and documents follow as the case forms.",
-              "Fields marked editable can be updated by you directly.",
-            ]}
-          >
-            <GhostField label="Legal area" width="55%" />
-            <GhostField label="Matter type" width="65%" />
-            <GhostField label="Jurisdiction" width="40%" />
-          </EmptyState>
-        ) : (
-          <div className={s.fieldList}>
-            {clientFields.map((f) => (
-              <div key={f.id} className={s.fieldRow}>
-                <span className={s.fieldLabel}>{f.label}</span>
-                <span className={s.fieldValue}>
-                  {f.value === "" || f.value == null ? "—" : String(f.value)}
-                </span>
-              </div>
-            ))}
-          </div>
-        ),
+      content: (
+        <MatterDetails
+          projectId={projectId}
+          clientFields={clientFields}
+          jurisdiction={project.jurisdiction}
+          viewerIsPrincipal={project.viewerIsPrincipal}
+          onFieldSaved={handleFieldSaved}
+        />
+      ),
     },
     {
       id: "charges",
@@ -288,11 +280,6 @@ export default function StatusProjectPage() {
           </div>
         </EmptyState>
       ),
-    },
-    {
-      id: "deadlines",
-      label: "Deadlines",
-      content: <DeadlineConfig projectId={projectId} />,
     },
     {
       id: "comments",
