@@ -1,4 +1,4 @@
-import type { Country, NavItem, ShellRole } from "./types";
+import type { Country, MenuLink, NavItem, ShellRole } from "./types";
 
 /**
  * Default navigation per role, from docs/PLAN.md and the overhaul plan.
@@ -47,4 +47,11 @@ export const COUNTRIES: Country[] = [
   { code: "CR", name: "Costa Rica", available: true },
   { code: "PA", name: "Panama", available: false },
   { code: "MX", name: "Mexico", available: false },
+];
+
+/** Legal pages every signed-in shell links to from the user menu (P6/P7). */
+export const LEGAL_MENU_LINKS: MenuLink[] = [
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Membership" },
+  { href: "/legal/disclaimer", label: "Disclaimer" },
 ];

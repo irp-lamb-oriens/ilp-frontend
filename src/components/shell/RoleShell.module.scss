@@ -570,6 +570,19 @@
   }
 }
 
+// Group of links in the user menu (data and privacy, legal pages).
+.menuGroup {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: $space-1;
+  margin-bottom: $space-1;
+  border-bottom: 1px solid $color-hairline;
+
+  .menuItem {
+    text-decoration: none;
+  }
+}
+
 .menuMeta {
   font-size: 0.75rem;
   color: $color-muted;

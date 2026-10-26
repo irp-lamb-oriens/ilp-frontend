@@ -41,6 +41,7 @@ export function staffNav(role: StaffRole): NavItem[] {
     { href: "/dashboard/finance", label: "Finance", icon: "$", admin: true },
     { href: "/dashboard/reports", label: "Reports", icon: "▤" },
     { href: "/dashboard/settings", label: "Settings", icon: "⚙", admin: true },
+    { href: "/dashboard/privacy", label: "Privacy", icon: "◎", admin: true },
   ];
   return all.filter((i) => !i.admin || role === "admin").map(({ admin: _admin, ...rest }) => rest);
 }

@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { RoleShell } from "@/components/shell";
-import type { NavItem } from "@/components/shell";
+import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
+import type { MenuLink, NavItem } from "@/components/shell";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { Button, EmptyState } from "@/components/ui";
 import { ApiError } from "@/lib/api";
@@ -15,7 +15,10 @@ import s from "./StatusApp.module.scss";
 
 const MATTER_KEY = "ilp_status_matter";
 
-export const CLIENT_NAV: NavItem[] = [
+export /** User menu: the member's data rights page, then the legal pages (the public legal footer is not shown inside the shell). */
+const MEMBER_MENU_LINKS: MenuLink[] = [{ href: "/status/privacy", label: "Your data and privacy" }, ...LEGAL_MENU_LINKS];
+
+const CLIENT_NAV: NavItem[] = [
   { href: "/status", label: "Overview", icon: "◧", match: "exact" },
   { href: "/status/profile", label: "Profile", icon: "◔" },
   { href: "/status/money", label: "Money", icon: "$" },
@@ -152,6 +155,7 @@ export default function StatusApp({ children }: { children: ReactNode }) {
             router.replace("/status");
           });
         }}
+        menuLinks={MEMBER_MENU_LINKS}
         showCountry={false}
         bell={null}
         homeHref="/status"

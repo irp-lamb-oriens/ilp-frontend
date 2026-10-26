@@ -25,3 +25,10 @@ export interface Country {
   name: string;
   available: boolean;
 }
+
+/** A link in the user menu (e.g. "Your data and privacy", legal pages). */
+export interface MenuLink {
+  href: string;
+  label: string;
+}
+

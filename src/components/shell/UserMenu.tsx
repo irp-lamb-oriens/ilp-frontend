@@ -1,8 +1,9 @@
 "use client";
 
 import { useId } from "react";
+import Link from "next/link";
 import { cx } from "../ui/cx";
-import type { ShellUser } from "./types";
+import type { MenuLink, ShellUser } from "./types";
 import { usePopover } from "./usePopover";
 import s from "./RoleShell.module.scss";
 
@@ -12,6 +13,8 @@ export interface UserMenuProps {
   onLogout?: () => void;
   /** Optional "Log out on all devices" (the role's /auth/logout-all route). */
   onLogoutAll?: () => void;
+  /** Links listed above "Log out" (e.g. data and privacy, legal pages). */
+  links?: MenuLink[];
 }
 
 function initials(user?: ShellUser | null): string {
@@ -21,7 +24,7 @@ function initials(user?: ShellUser | null): string {
 }
 
 /** Avatar button with name, role and logout. */
-export function UserMenu({ user, roleLabel, onLogout, onLogoutAll }: UserMenuProps) {
+export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links }: UserMenuProps) {
   const menuId = useId();
   const { open, toggle, close, rootRef, triggerRef } = usePopover();
 
@@ -47,6 +50,15 @@ export function UserMenu({ user, roleLabel, onLogout, onLogoutAll }: UserMenuPro
           {user?.name && <span className={s.menuSub}>{user.email}</span>}
           <span className={s.menuSub}>{user?.title ?? roleLabel}</span>
         </div>
+        {links && links.length > 0 && (
+          <div className={s.menuGroup}>
+            {links.map((l) => (
+              <Link key={l.href} href={l.href} role="menuitem" className={s.menuItem} onClick={() => close(false)}>
+                {l.label}
+              </Link>
+            ))}
+          </div>
+        )}
         <button
           type="button"
           role="menuitem"

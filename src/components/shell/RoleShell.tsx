@@ -9,7 +9,7 @@ import { CountrySwitcher } from "./CountrySwitcher";
 import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { DEFAULT_NAV, ROLE_LABEL, SEARCH_PLACEHOLDER } from "./navConfig";
-import type { NavItem, ShellRole, ShellUser } from "./types";
+import type { MenuLink, NavItem, ShellRole, ShellUser } from "./types";
 import s from "./RoleShell.module.scss";
 
 export interface RoleShellProps {
@@ -24,6 +24,8 @@ export interface RoleShellProps {
   onLogout?: () => void;
   /** Shows "Log out on all devices" in the user menu (e.g. `() => staffApi.logoutAll().then(...)`). */
   onLogoutAll?: () => void;
+  /** Links in the user menu above "Log out" (data and privacy, legal pages). */
+  menuLinks?: MenuLink[];
   /** Called on submit of the global search. Omit to hide the search input. */
   onSearch?: (query: string) => void;
   searchPlaceholder?: string;
@@ -66,6 +68,7 @@ export function RoleShell({
   user,
   onLogout,
   onLogoutAll,
+  menuLinks,
   onSearch,
   searchPlaceholder,
   bell,
@@ -198,7 +201,7 @@ export function RoleShell({
               </div>
             )}
             {bell === undefined ? <NotificationBell /> : bell}
-            <UserMenu user={user} roleLabel={roleLabel} onLogout={onLogout} onLogoutAll={onLogoutAll} />
+            <UserMenu user={user} roleLabel={roleLabel} onLogout={onLogout} onLogoutAll={onLogoutAll} links={menuLinks} />
           </div>
         </header>
 

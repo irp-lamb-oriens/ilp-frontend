@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PortalLogin from "@/components/auth/PortalLogin";
-import { RoleShell } from "@/components/shell";
+import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
 import { ApiError } from "@/lib/provider";
 import { EmptyState, Button } from "@/components/ui";
 import { lawyerApi, type LawyerMe, USING_MOCKS } from "./lawyerApi";
@@ -86,6 +86,7 @@ export default function LawyerGate({ children }: { children: ReactNode }) {
             router.push("/lawyer");
           });
         }}
+        menuLinks={LEGAL_MENU_LINKS}
         onSearch={(q) => router.push(`/lawyer/clients?q=${encodeURIComponent(q)}`)}
         bell={null}
       >
