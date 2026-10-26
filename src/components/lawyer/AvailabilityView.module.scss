@@ -1,0 +1,228 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-4;
+  max-width: 72rem;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+  text-decoration: none;
+  @include focus-ring;
+}
+
+.head {
+  display: grid;
+  gap: $space-1;
+}
+
+.h {
+  @include heading-lg;
+  margin: 0;
+}
+
+.sub {
+  margin: 0;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: $space-6;
+  align-items: start;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sectionH {
+  margin: 0 0 $space-2;
+  font-size: 1rem;
+  color: $color-navy;
+  padding: 0;
+}
+
+.muted {
+  margin: 0 0 $space-2;
+  color: $color-steel;
+  font-size: 0.9375rem;
+}
+
+.days {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid $color-hairline;
+}
+
+.day {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: $space-3;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-hairline;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+    gap: $space-1;
+  }
+}
+
+.dayName {
+  font-weight: 600;
+  color: $color-navy;
+  padding-top: $space-2;
+}
+
+.windows {
+  display: grid;
+  gap: $space-2;
+  justify-items: start;
+}
+
+.off {
+  color: $color-muted;
+  padding-top: $space-2;
+}
+
+.window {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  color: $color-steel;
+}
+
+.time,
+.input {
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  background: $color-canvas;
+  color: $color-charcoal;
+  font: inherit;
+  @include focus-ring;
+}
+
+.input {
+  width: 100%;
+  margin-bottom: $space-3;
+}
+
+.add,
+.remove {
+  min-height: $touch-target;
+  padding: 0 $space-2;
+  border: 0;
+  background: none;
+  color: $color-navy;
+  font: inherit;
+  font-size: 0.9375rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+.remove {
+  color: $color-steel;
+}
+
+.side {
+  display: grid;
+  gap: $space-4;
+}
+
+.block {
+  margin: 0;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.label {
+  display: block;
+  margin-bottom: $space-1;
+  font-size: 0.9375rem;
+  color: $color-charcoal;
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  align-items: center;
+  margin-bottom: $space-2;
+
+  .input {
+    width: auto;
+    margin: 0;
+  }
+}
+
+.dates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid $color-hairline;
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-1;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  cursor: pointer;
+
+  input {
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: $color-navy;
+  }
+}
+
+.saveRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+}
+
+.saved {
+  margin: 0;
+  color: $color-success;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
