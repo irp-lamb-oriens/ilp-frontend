@@ -16,12 +16,30 @@ const toMin = (t: string) => {
 };
 const todayCr = () => new Date(Date.now() - 6 * 3_600_000).toISOString().slice(0, 10);
 
+/** Where the settings come from: the lawyer's own routes, or staff editing any lawyer. */
+export interface AvailabilityAdapter {
+  load(): Promise<AvailabilitySettings>;
+  save(input: Parameters<typeof callsApi.saveAvailability>[0]): Promise<AvailabilitySettings>;
+}
+
+const ownAdapter: AvailabilityAdapter = {
+  load: () => callsApi.availability(),
+  save: (input) => callsApi.saveAvailability(input),
+};
+
 /**
  * Lawyer availability: weekly hours in Costa Rica time, days off, notice,
  * calls per day, specialties and an optional Google Calendar for busy times.
  * Booking slots for members are built from exactly these settings.
+ *
+ * Staff reuse it on /dashboard/lawyers with an adapter over
+ * GET|PUT /api/dashboard/availability/:providerId (remount with `key` per lawyer).
  */
-export default function AvailabilityView() {
+export default function AvailabilityView({
+  adapter = ownAdapter,
+  title = "Your hours",
+  showBack = true,
+}: { adapter?: AvailabilityAdapter; title?: string; showBack?: boolean } = {}) {
   const [data, setData] = useState<AvailabilitySettings | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [weekly, setWeekly] = useState<WeeklyWindow[]>([]);
@@ -48,7 +66,7 @@ export default function AvailabilityView() {
   async function load() {
     setLoadError(null);
     try {
-      apply(await callsApi.availability());
+      apply(await adapter.load());
     } catch (err) {
       setLoadError(errorText(err, "Could not load your hours."));
     }
@@ -65,8 +83,8 @@ export default function AvailabilityView() {
     [weekly],
   );
 
-  if (loadError) return <EmptyState title="Your hours did not load" body={loadError} action={<Button onClick={load}>Try again</Button>} />;
-  if (!data) return <p className={s.muted} aria-busy="true">Loading your hours…</p>;
+  if (loadError) return <EmptyState title="The hours did not load" body={loadError} action={<Button onClick={load}>Try again</Button>} />;
+  if (!data) return <p className={s.muted} aria-busy="true">Loading hours…</p>;
 
   const setWindow = (i: number, patch: Partial<WeeklyWindow>) => {
     setSaved(null);
@@ -100,7 +118,7 @@ export default function AvailabilityView() {
     setError(null);
     setSaved(null);
     try {
-      const out = await callsApi.saveAvailability({
+      const out = await adapter.save({
         weekly,
         blackoutDates: blackout.filter((d) => d >= todayCr()),
         minLeadHours: lead,
@@ -121,14 +139,16 @@ export default function AvailabilityView() {
 
   return (
     <div className={s.page}>
-      <nav aria-label="Breadcrumb">
-        <Link href="/lawyer" className={s.back}>← Today</Link>
-      </nav>
+      {showBack && (
+        <nav aria-label="Breadcrumb">
+          <Link href="/lawyer" className={s.back}>← Today</Link>
+        </nav>
+      )}
       <header className={s.head}>
-        <h2 className={s.h}>Your hours</h2>
+        <h2 className={s.h}>{title}</h2>
         <p className={s.sub}>
           Members book 20-minute calls inside these hours, in Costa Rica time.
-          {data.isDefault ? " You are on the standard hours until you save your own." : ""}
+          {data.isDefault ? " Standard hours apply until hours are saved here." : ""}
         </p>
       </header>
 

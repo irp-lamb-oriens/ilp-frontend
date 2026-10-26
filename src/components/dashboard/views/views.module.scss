@@ -97,3 +97,25 @@
   margin: 0;
   color: $color-success;
 }
+
+// Lawyer picker above the staff hours editor (P4).
+.picker {
+  display: grid;
+  gap: $space-1;
+  max-width: 360px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.pickerSelect {
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  background: $color-canvas;
+  font: inherit;
+  font-weight: 400;
+  color: $color-charcoal;
+}

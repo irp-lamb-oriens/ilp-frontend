@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { DataTable, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
+import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
+import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
+import { useLawyers } from "../staff/useLawyers";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import type { LawyerCapacity } from "../staff/types";
 import s from "./views.module.scss";
@@ -12,6 +15,7 @@ import s from "./views.module.scss";
 export default function LawyersView() {
   const tabs: TabItem[] = [
     { id: "capacity", label: "Capacity", content: () => <Capacity /> },
+    { id: "hours", label: "Hours", content: () => <Hours /> },
     { id: "assignment", label: "Assignment", content: () => <AssignmentView /> },
     { id: "directory", label: "Directory", content: () => <ProvidersList /> },
   ];
@@ -64,6 +68,38 @@ function Capacity() {
         defaultSort={{ key: "open", dir: "desc" }}
         empty="No active lawyers."
       />
+    </div>
+  );
+}
+
+/** Staff edit any lawyer's weekly hours, days off, limits and specialties (P3 routes). */
+function Hours() {
+  const { lawyers } = useLawyers();
+  const [pick, setPick] = useState("");
+  const id = pick || lawyers[0]?.id || "";
+  const name = lawyers.find((l) => l.id === id)?.name ?? "Lawyer";
+  const adapter = useMemo<AvailabilityAdapter>(() => {
+    const path = `/api/dashboard/availability/${encodeURIComponent(id)}`;
+    return {
+      load: () => staffApi.get<AvailabilitySettings>(path),
+      save: (input) => staffApi.put<AvailabilitySettings>(path, input),
+    };
+  }, [id]);
+
+  if (!lawyers.length) return <p className={s.note}>Loading lawyers…</p>;
+  return (
+    <div className={s.stack}>
+      <label className={s.picker}>
+        Lawyer
+        <select className={s.pickerSelect} value={id} onChange={(e) => setPick(e.target.value)}>
+          {lawyers.map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} />
     </div>
   );
 }
