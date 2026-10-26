@@ -22,6 +22,12 @@
   margin: 0;
 }
 
+.fieldStack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
 .list {
   list-style: none;
   margin: 0;
@@ -52,67 +58,6 @@
   color: $color-ink;
 }
 
-.controls {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  flex-wrap: wrap;
-}
-
-.input {
-  flex: 1;
-  min-width: 180px;
-  padding: $space-2 $space-3;
-  border: 1px solid $color-hairline;
-  border-radius: $radius-md;
-  font-size: 0.9rem;
-  font-family: $font-sans;
-  background: $color-surface;
-  color: $color-ink;
-
-  &:focus {
-    outline: 2px solid $color-accent;
-    outline-offset: 1px;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-textarea.input {
-  resize: vertical;
-  min-height: 72px;
-}
-
-.checkbox {
-  width: 1.2rem;
-  height: 1.2rem;
-  accent-color: $color-accent;
-}
-
-.save {
-  padding: $space-2 $space-3;
-  border: none;
-  border-radius: $radius-md;
-  background: $color-accent;
-  color: $color-accent-ink;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  flex-shrink: 0;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-}
-
 .error {
   color: $color-error;
   font-weight: 600;
@@ -122,10 +67,4 @@ textarea.input {
 .notice {
   color: $color-success;
   font-size: 0.9rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .save {
-    transition: none;
-  }
 }

@@ -5,23 +5,20 @@ import { statusFetch, type ClientField } from "@/lib/status";
 import DeadlineConfig from "@/components/status/DeadlineConfig";
 import EmptyState from "@/components/status/EmptyState";
 import { GhostField } from "@/components/status/Ghost";
+import FieldShell from "@/components/status/fields/FieldShell";
+import JurisdictionInput from "@/components/status/fields/JurisdictionInput";
+import LegalAreaInput from "@/components/status/fields/LegalAreaInput";
+import LegalMatterInput from "@/components/status/fields/LegalMatterInput";
+import { areaLabel, matterLabel } from "@/components/status/fields/legalTree";
 import s from "./matterDetails.module.scss";
 
-const SUPPORTED_COUNTRIES = [
-  { code: "CR", name: "Costa Rica" },
-  { code: "PA", name: "Panama" },
-  { code: "MX", name: "Mexico" },
-  { code: "CO", name: "Colombia" },
-  { code: "ES", name: "Spain" },
-  { code: "PT", name: "Portugal" },
-];
-
 /**
- * Merged "Your details" surface: the client-editable matter fields (legal
- * area, matter type, jurisdiction) rendered as custom inputs, with the
- * deadline configuration directly below. The principal edits and saves each
- * field; staff viewers see the same values read-only. Persists through the
- * client-status details endpoint.
+ * Merged "Your details" surface. The three client-editable matter fields
+ * (jurisdiction, legal area, legal matter) each get a dedicated custom input
+ * plus a dynamic implication line explaining what changing the value does;
+ * the deadline configuration sits directly below. The principal edits and
+ * saves each field; staff viewers see the same values read-only. Persists
+ * through the client-status details endpoint.
  */
 export default function MatterDetails({
   projectId,
@@ -37,41 +34,49 @@ export default function MatterDetails({
   onFieldSaved: (fieldId: string, value: string) => void;
 }) {
   const [fields, setFields] = useState<Record<string, string>>({});
+  const [savedFields, setSavedFields] = useState<Record<string, string>>({});
   const [localJurisdiction, setLocalJurisdiction] = useState<string>(jurisdiction ?? "");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  // Seed drafts once from the initial payload. Subsequent saves update local
-  // state directly so in-progress edits in other fields are never clobbered.
+  // Seed drafts and saved values once from the initial payload. Subsequent
+  // saves update local state directly so in-progress edits in other fields are
+  // never clobbered.
   useEffect(() => {
     const initial: Record<string, string> = {};
     for (const f of clientFields) {
       initial[f.id] = f.value == null ? "" : String(f.value);
     }
     setFields(initial);
+    setSavedFields(initial);
     setLocalJurisdiction(jurisdiction ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const editable = clientFields.filter((f) => f.editable);
+  const byId = (id: string) => editable.find((f) => f.id === id);
 
-  async function save(field: ClientField) {
-    const value = (fields[field.id] ?? "").trim();
-    setBusyId(field.id);
+  const jurisdictionField = byId("jurisdiction");
+  const legalAreaField = byId("legalArea");
+  const legalMatterField = byId("legalMatter");
+
+  async function save(fieldId: string, value: string) {
+    setBusyId(fieldId);
     setError(null);
     setNotice(null);
     try {
       await statusFetch(`/api/client-status/project/${projectId}/details`, {
         method: "PATCH",
-        body: JSON.stringify({ [field.id]: value }),
+        body: JSON.stringify({ [fieldId]: value }),
       });
-      setFields((prev) => ({ ...prev, [field.id]: value }));
-      if (field.id === "jurisdiction") {
+      setFields((prev) => ({ ...prev, [fieldId]: value }));
+      setSavedFields((prev) => ({ ...prev, [fieldId]: value }));
+      if (fieldId === "jurisdiction") {
         setLocalJurisdiction(value);
       }
-      onFieldSaved(field.id, value);
-      setNotice(`${field.label} saved.`);
+      onFieldSaved(fieldId, value);
+      setNotice("Saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save.");
     } finally {
@@ -79,112 +84,71 @@ export default function MatterDetails({
     }
   }
 
-  function renderInput(field: ClientField) {
-    const value = fields[field.id] ?? "";
-    const busy = busyId === field.id;
+  function setField(fieldId: string, value: string) {
+    setFields((prev) => ({ ...prev, [fieldId]: value }));
+  }
 
-    if (field.id === "jurisdiction") {
-      return (
-        <select
-          id={`field-${field.id}`}
-          className={s.input}
-          value={value}
-          onChange={(e) => setFields((p) => ({ ...p, [field.id]: e.target.value }))}
-          disabled={busy}
-        >
-          <option value="">Select a country…</option>
-          {SUPPORTED_COUNTRIES.map((c) => (
-            <option key={c.code} value={c.name}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      );
+  // ── Dynamic implications ───────────────────────────────────────────────────
+
+  function jurisdictionImplication(): string {
+    const saved = savedFields.jurisdiction ?? "";
+    const draft = fields.jurisdiction ?? "";
+    if (draft === saved) {
+      return saved
+        ? `Your deadlines below are resolved for ${saved}.`
+        : "Select a country to see its legal deadlines below.";
     }
-
-    if (field.valueType === "enum" && field.options?.length) {
-      return (
-        <select
-          id={`field-${field.id}`}
-          className={s.input}
-          value={value}
-          onChange={(e) => setFields((p) => ({ ...p, [field.id]: e.target.value }))}
-          disabled={busy}
-        >
-          <option value="">Select…</option>
-          {field.options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-      );
+    if (!saved) {
+      return `Saving will show ${draft}'s legal deadlines below.`;
     }
+    return `Saving will switch the deadlines below from ${saved} to ${draft}. Deadlines recorded for ${saved} stop sending reminders; ${draft}'s priorities appear instead.`;
+  }
 
-    if (field.valueType === "text") {
-      return (
-        <textarea
-          id={`field-${field.id}`}
-          className={s.input}
-          value={value}
-          onChange={(e) => setFields((p) => ({ ...p, [field.id]: e.target.value }))}
-          disabled={busy}
-          placeholder={field.placeholder}
-        />
-      );
+  function legalAreaImplication(): string {
+    const saved = savedFields.legalArea ?? "";
+    const draft = fields.legalArea ?? "";
+    if (draft === saved) {
+      return saved
+        ? `Your matter options below follow ${areaLabel(saved)}.`
+        : "Choose an area to unlock its matter options.";
     }
-
-    if (field.valueType === "date") {
-      return (
-        <input
-          id={`field-${field.id}`}
-          type="date"
-          className={s.input}
-          value={value}
-          onChange={(e) => setFields((p) => ({ ...p, [field.id]: e.target.value }))}
-          disabled={busy}
-        />
-      );
+    if (!saved) {
+      return `Saving will unlock ${areaLabel(draft)}'s matter options.`;
     }
+    return `Saving will change the area from ${areaLabel(saved)} to ${areaLabel(draft)}. If your current matter is not part of ${areaLabel(draft)}, you will need to pick a new one.`;
+  }
 
-    if (field.valueType === "number") {
-      return (
-        <input
-          id={`field-${field.id}`}
-          type="number"
-          className={s.input}
-          value={value}
-          onChange={(e) => setFields((p) => ({ ...p, [field.id]: e.target.value }))}
-          disabled={busy}
-        />
-      );
+  function legalMatterImplication(): string {
+    const saved = savedFields.legalMatter ?? "";
+    const draft = fields.legalMatter ?? "";
+    if (draft === saved) {
+      return saved
+        ? `Your matter is recorded as ${matterLabel(saved)}.`
+        : "Pick a matter under your legal area.";
     }
-
-    if (field.valueType === "boolean") {
-      return (
-        <input
-          id={`field-${field.id}`}
-          type="checkbox"
-          className={s.checkbox}
-          checked={value === "true" || value === "yes" || value === "1"}
-          onChange={(e) =>
-            setFields((p) => ({ ...p, [field.id]: e.target.checked ? "true" : "false" }))
-          }
-          disabled={busy}
-        />
-      );
+    if (!saved) {
+      return `Saving will record ${matterLabel(draft)} as your matter.`;
     }
+    return `Saving will change your matter from ${matterLabel(saved)} to ${matterLabel(draft)}.`;
+  }
 
+  if (editable.length === 0) {
     return (
-      <input
-        id={`field-${field.id}`}
-        type={field.valueType === "email" ? "email" : "text"}
-        className={s.input}
-        value={value}
-        onChange={(e) => setFields((p) => ({ ...p, [field.id]: e.target.value }))}
-        disabled={busy}
-        placeholder={field.placeholder}
-      />
+      <div className={s.wrap}>
+        <EmptyState
+          title="The details of your matter"
+          explain="Fields describing your matter appear here as your legal team records them."
+          steps={[
+            "Your team captures the legal area and matter type first.",
+            "Jurisdiction and documents follow as the case forms.",
+            "Fields marked editable can be updated by you directly.",
+          ]}
+        >
+          <GhostField label="Legal area" width="55%" />
+          <GhostField label="Matter type" width="65%" />
+          <GhostField label="Jurisdiction" width="40%" />
+        </EmptyState>
+      </div>
     );
   }
 
@@ -204,41 +168,53 @@ export default function MatterDetails({
       <section className={s.section}>
         <h3 className={s.sectionTitle}>Your details</h3>
 
-        {editable.length === 0 ? (
-          <EmptyState
-            title="The details of your matter"
-            explain="Fields describing your matter appear here as your legal team records them."
-            steps={[
-              "Your team captures the legal area and matter type first.",
-              "Jurisdiction and documents follow as the case forms.",
-              "Fields marked editable can be updated by you directly.",
-            ]}
-          >
-            <GhostField label="Legal area" width="55%" />
-            <GhostField label="Matter type" width="65%" />
-            <GhostField label="Jurisdiction" width="40%" />
-          </EmptyState>
-        ) : viewerIsPrincipal ? (
-          <ul className={s.list}>
-            {editable.map((f) => (
-              <li key={f.id} className={s.row}>
-                <label className={s.label} htmlFor={`field-${f.id}`}>
-                  {f.label}
-                </label>
-                <div className={s.controls}>
-                  {renderInput(f)}
-                  <button
-                    type="button"
-                    className={s.save}
-                    disabled={busyId === f.id}
-                    onClick={() => save(f)}
-                  >
-                    {busyId === f.id ? "Saving…" : "Save"}
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+        {viewerIsPrincipal ? (
+          <div className={s.fieldStack}>
+            {jurisdictionField && (
+              <FieldShell
+                label={jurisdictionField.label}
+                hint="Drives which legal deadlines appear below"
+                implication={jurisdictionImplication()}
+                busy={busyId === "jurisdiction"}
+                onSave={() => save("jurisdiction", fields.jurisdiction ?? "")}
+              >
+                <JurisdictionInput
+                  value={fields.jurisdiction ?? ""}
+                  onChange={(v) => setField("jurisdiction", v)}
+                />
+              </FieldShell>
+            )}
+
+            {legalAreaField && (
+              <FieldShell
+                label={legalAreaField.label}
+                implication={legalAreaImplication()}
+                busy={busyId === "legalArea"}
+                onSave={() => save("legalArea", fields.legalArea ?? "")}
+              >
+                <LegalAreaInput
+                  value={fields.legalArea ?? ""}
+                  onChange={(v) => setField("legalArea", v)}
+                />
+              </FieldShell>
+            )}
+
+            {legalMatterField && (
+              <FieldShell
+                label={legalMatterField.label}
+                hint="Options depend on your legal area"
+                implication={legalMatterImplication()}
+                busy={busyId === "legalMatter"}
+                onSave={() => save("legalMatter", fields.legalMatter ?? "")}
+              >
+                <LegalMatterInput
+                  areaId={fields.legalArea ?? ""}
+                  value={fields.legalMatter ?? ""}
+                  onChange={(v) => setField("legalMatter", v)}
+                />
+              </FieldShell>
+            )}
+          </div>
         ) : (
           <ul className={s.list}>
             {editable.map((f) => (
