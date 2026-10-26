@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import FunnelHeader from "./FunnelHeader";
@@ -174,6 +175,11 @@ export default function CheckPage() {
   const step = visible[Math.min(index, visible.length - 1)];
   const done = findings !== null;
 
+  // P2 funnel: the visitor opened the check.
+  useEffect(() => {
+    trackFunnel("check_started");
+  }, []);
+
   // Move focus to the new question so screen readers and keyboards follow along.
   useEffect(() => {
     headingRef.current?.focus();
@@ -191,6 +197,7 @@ export default function CheckPage() {
       const res = await runCheck(final);
       setFindings(res.findings);
       saveCheck({ answers: final, findings: res.findings });
+      trackFunnel("check_completed");
       window.scrollTo({ top: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : "We could not run the check. Please try again.");
@@ -224,6 +231,7 @@ export default function CheckPage() {
       const res = await runCheck(answers, clean);
       setLeadId(res.leadId);
       saveCheck({ answers, findings: res.findings, email: clean, leadId: res.leadId });
+      trackFunnel("check_email_given", { leadId: res.leadId });
       setEmailState("saved");
     } catch (err) {
       setEmailError(err instanceof Error ? err.message : "We could not save your results.");

@@ -5,6 +5,7 @@ import { staffApi } from "@/lib/api";
 import { StatTile, Tabs, type TabItem } from "@/components/ui";
 import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import { SalesView } from "@/components/dashboard/AdminViews";
+import PmfPanel from "@/components/dashboard/pmf/PmfPanel";
 import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
@@ -51,6 +52,7 @@ export default function ReportsView() {
       .map(([label, value]) => ({ label, value }));
 
   const tabs: TabItem[] = [
+    { id: "pmf", label: "Member funnel", content: () => <PmfPanel /> },
     {
       id: "funnel",
       label: "Funnel",

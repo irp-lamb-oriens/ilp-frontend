@@ -65,6 +65,9 @@ export interface JoinBody {
   phone?: string;
   leadId?: string;
   acceptTerms: boolean;
+  /** P2 funnel: anonymous browser id + first-touch source (no PII). */
+  anonId?: string;
+  source?: string;
 }
 
 export function join(body: JoinBody) {

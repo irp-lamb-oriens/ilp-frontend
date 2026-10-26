@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { funnelAnonId, funnelSource, trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FunnelHeader from "@/app/check/FunnelHeader";
@@ -35,6 +36,7 @@ export default function JoinPage() {
     if (stored?.email) setEmail(stored.email);
     setCancelled(new URLSearchParams(window.location.search).get("cancelled") === "1");
     void getPlan().then((p) => setMode(p.mode));
+    trackFunnel("join_started", { leadId: stored?.leadId });
   }, []);
 
   async function submit(e: React.FormEvent) {
@@ -60,6 +62,8 @@ export default function JoinPage() {
         phone: phone.trim() || undefined,
         leadId,
         acceptTerms: true,
+        anonId: funnelAnonId(),
+        source: funnelSource(),
       });
       if (res.checkoutUrl) {
         window.location.assign(res.checkoutUrl);

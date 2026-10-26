@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FunnelHeader from "@/app/check/FunnelHeader";
@@ -74,6 +75,11 @@ export default function WelcomePage() {
   }, [token]);
 
   const active = status?.status === "active";
+
+  // P2 funnel: the visitor's membership is paid and active.
+  useEffect(() => {
+    if (active) trackFunnel("join_paid");
+  }, [active]);
 
   return (
     <div className={s.page}>
