@@ -5,6 +5,7 @@ import { Button, ButtonLink, EmptyState } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { memberApi, type SlotsPayload } from "./api";
+import { memberCalls, type RecordingChoice } from "./callsApi";
 import { useMember } from "./MemberContext";
 import { dateLong, dayKey, timeOfDay } from "./format";
 import s from "./BookingFlow.module.scss";
@@ -23,6 +24,8 @@ export default function BookingFlow() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [booked, setBooked] = useState<string | null>(null);
+  const [recording, setRecording] = useState<RecordingChoice | null>(null);
+  const [linkPending, setLinkPending] = useState(false);
 
   useEffect(() => {
     if (!cap.canBook) return;
@@ -50,7 +53,12 @@ export default function BookingFlow() {
         <h2 className={s.doneTitle}>Your call is booked</h2>
         <p className={s.doneBody}>
           {dateLong(booked)} at {timeOfDay(booked)}, Costa Rica time{data?.lawyerName ? `, with ${data.lawyerName}` : ""}. Your
-          lawyer reads your question and your profile before the call. You will get an email with the details.
+          lawyer reads your question and your profile before the call.
+        </p>
+        <p className={s.doneBody}>
+          {linkPending
+            ? "Your Google Meet link is coming by email. Your ILP team is setting it up."
+            : "The Google Meet link is in your email and on your home page. The Join button there works from 10 minutes before the call."}
         </p>
         <ButtonLink href="/status">Back to your overview</ButtonLink>
       </div>
@@ -76,10 +84,12 @@ export default function BookingFlow() {
   async function submit() {
     if (!slot) return setError("Pick a time first.");
     if (!question.trim()) return setError("Tell your lawyer what you would like to ask.");
+    if (!recording) return setError("Tell us whether the call may be recorded.");
     setBusy(true);
     setError(null);
     try {
-      await memberApi.book({ scheduledAt: slot, question: question.trim(), matterId: matter?.id });
+      const r = await memberCalls.book({ scheduledAt: slot, question: question.trim(), matterId: matter?.id, recordingConsent: recording });
+      setLinkPending(!r.consultation?.meetUrl);
       setBooked(slot);
       await refresh();
     } catch (err) {
@@ -176,9 +186,39 @@ export default function BookingFlow() {
         )}
       </section>
 
+      <section className={s.step} aria-labelledby="rec-title">
+        <h2 className={s.stepTitle} id="rec-title">
+          3. May the call be recorded?
+        </h2>
+        <p className={s.muted}>
+          A recording gives your lawyer a transcript, so you get a written summary and next steps sooner. Only your lawyer and
+          your ILP team can read it. You can change your mind when you join.
+        </p>
+        <div className={s.times} role="radiogroup" aria-labelledby="rec-title">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={recording === "granted"}
+            className={`${s.time} ${recording === "granted" ? s.selected : ""}`}
+            onClick={() => setRecording("granted")}
+          >
+            Yes, record it
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={recording === "declined"}
+            className={`${s.time} ${recording === "declined" ? s.selected : ""}`}
+            onClick={() => setRecording("declined")}
+          >
+            No recording
+          </button>
+        </div>
+      </section>
+
       <section className={s.summary} aria-labelledby="sum-title">
         <h2 className={s.stepTitle} id="sum-title">
-          3. Confirm
+          4. Confirm
         </h2>
         <p className={s.uses}>
           This call uses <strong>{len} minutes</strong> and 1 call. Afterwards you will have{" "}
@@ -195,7 +235,7 @@ export default function BookingFlow() {
             {error}
           </p>
         )}
-        <Button block busy={busy} onClick={submit} disabled={!slot}>
+        <Button block busy={busy} onClick={submit} disabled={!slot || !recording}>
           Book this call
         </Button>
       </section>

@@ -53,3 +53,82 @@
   border-left: 2px solid $color-hairline-strong;
   font-size: 1rem;
 }
+
+// ─── P3: join, change, cancel ─────────────────────────────────────────────
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  margin-top: $space-3;
+}
+
+.small {
+  margin: $space-2 0 0;
+  font-size: 1rem;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+.panel {
+  margin-top: $space-3;
+  padding: $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  background: $color-mist;
+}
+
+.panelTitle {
+  margin: 0;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.joinLink {
+  @include button-primary;
+  @include touch-target;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ghostLink {
+  @include button-ghost;
+  @include touch-target;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-top: $space-3;
+}
+
+.chip {
+  @include touch-target;
+  @include focus-ring;
+  @include press;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 1rem;
+  color: $color-navy;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.selected {
+  background: $color-accent;
+  border-color: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+}
+
+.error {
+  margin: $space-2 0 0;
+  color: $color-error;
+}
