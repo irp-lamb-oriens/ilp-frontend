@@ -114,7 +114,7 @@ export function RoleShell({
 
   return (
     <div className={cx(s.shell, collapsed && s.collapsed, embedded && s.embedded)} data-role={role}>
-      <a href="#shell-main" className={s.skip}>
+      <a href={`#shell-main-${role}`} className={s.skip}>
         Skip to content
       </a>
 
@@ -199,7 +199,7 @@ export function RoleShell({
           </div>
         </header>
 
-        <main id="shell-main" className={s.content} tabIndex={-1}>
+        <main id={`shell-main-${role}`} className={s.content} tabIndex={-1}>
           {(title || actions) && (
             <div className={s.pageHead}>
               {title && <h1 className={s.pageTitle}>{title}</h1>}

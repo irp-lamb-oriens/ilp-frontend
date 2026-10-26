@@ -1,0 +1,243 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  @include container;
+  min-height: 100dvh;
+  padding-block: $space-12 $space-24;
+  background: $color-canvas;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  max-width: 820px;
+  margin-bottom: $space-12;
+}
+
+.eyebrow {
+  @include eyebrow;
+  margin: 0;
+}
+
+.title {
+  @include heading-xl;
+  margin: 0;
+}
+
+.lede {
+  margin: 0;
+  color: $color-steel;
+
+  code {
+    font-family: $font-mono;
+    font-size: 0.875em;
+    color: $color-navy;
+  }
+}
+
+.index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.indexLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  font-size: 0.875rem;
+  color: $color-navy;
+
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+    }
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding-block: $space-8;
+  border-top: 1px solid $color-hairline;
+  scroll-margin-top: $space-4;
+}
+
+.h2 {
+  @include heading-lg;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  max-width: 560px;
+}
+
+.small {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: $color-steel;
+
+  code {
+    font-family: $font-mono;
+    font-size: 0.875em;
+    color: $color-navy;
+  }
+}
+
+// Asymmetric two-column (no equal card rows).
+.asym {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @include lg {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+// KPI strip: one large figure, smaller ones beside it.
+.kpis {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @include lg {
+    grid-template-columns: minmax(280px, 1fr) 2fr;
+  }
+}
+
+.kpiSmall {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @include md {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.shellGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @include lg {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    min-height: $touch-target;
+    padding: $space-2 0;
+    border-bottom: 1px solid $color-hairline;
+    font-size: 0.9375rem;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.swatches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+}
+
+.swatch {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: 0.875rem;
+
+  code {
+    font-family: $font-mono;
+  }
+}
+
+.chip {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  border: 1px solid $color-hairline;
+}
+
+.chip1 {
+  background: $chart-1;
+}
+.chip2 {
+  background: $chart-2;
+}
+.chip3 {
+  background: $chart-3;
+}
+.chip4 {
+  background: $chart-4;
+}
+.chip5 {
+  background: $chart-5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  max-width: 560px;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.textarea {
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  font: inherit;
+  color: $color-charcoal;
+  resize: vertical;
+
+  &:focus {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+// AuthShell is a full-viewport layout; frame it here.
+.loginFrame {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
