@@ -10,7 +10,9 @@ import s from "./member.module.scss";
 
 /**
  * Membership status, usage and renewal. Pending memberships get "Mark paid"
- * (W3's manual payment mode: POST /api/payments/memberships/:id/mark-paid).
+ * (W3's manual payment mode: POST /api/payments/memberships/:id/mark-paid);
+ * past_due memberships get "Mark renewal paid" on the same route (P2 records
+ * the renewal and clears past due).
  */
 export function MembershipPanel({ membership, onChanged }: { membership: Membership | null; onChanged?: () => void }) {
   const [ref, setRef] = useState("");
@@ -36,8 +38,17 @@ export function MembershipPanel({ membership, onChanged }: { membership: Members
     setBusy(true);
     setError(null);
     try {
-      await staffApi.post(`/api/payments/memberships/${encodeURIComponent(m.id)}/mark-paid`, { reference: ref.trim() });
-      setOk("Payment recorded. The membership is active and an onboarding task is open.");
+      const r = await staffApi.post<{ renewal?: "started" | "recorded" }>(
+        `/api/payments/memberships/${encodeURIComponent(m.id)}/mark-paid`,
+        { reference: ref.trim() },
+      );
+      setOk(
+        m.status === "pending"
+          ? "Payment recorded. The membership is active and an onboarding task is open."
+          : r?.renewal === "recorded"
+            ? "Renewal payment recorded. The new period starts on the renewal date."
+            : "Renewal payment recorded. The membership is active again with a new period.",
+      );
       onChanged?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "The payment could not be recorded.");
@@ -78,7 +89,7 @@ export function MembershipPanel({ membership, onChanged }: { membership: Members
       />
       <ProgressBar label="Calls used" value={m.callsUsed} max={m.callsIncluded} valueText={`${m.callsUsed} of ${m.callsIncluded}`} />
 
-      {m.status === "pending" && !ok && (
+      {(m.status === "pending" || m.status === "past_due") && !ok && (
         <div className={s.markPaid}>
           <label className={s.field}>
             Payment reference
@@ -90,7 +101,7 @@ export function MembershipPanel({ membership, onChanged }: { membership: Members
             />
           </label>
           <Button busy={busy} onClick={markPaid}>
-            Mark paid
+            {m.status === "past_due" ? "Mark renewal paid" : "Mark paid"}
           </Button>
         </div>
       )}
