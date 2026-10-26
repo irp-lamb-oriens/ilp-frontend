@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef } from "react";
 import { Drawer, Tabs, type TabItem } from "@/components/ui";
 import { BriefTab, MatterTab, NotesCallsTab } from "./InspectorTabs";
 import FeeQuotesTab from "./FeeQuotesTab";
+import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
 import DeadlineEditor, { providerDeadlineAdapter } from "./DeadlineEditor";
 import { areaLabel, lawyerApi, type BoardCard, type ClientBrief } from "./lawyerApi";
 import type { LawyerClient } from "./types";
@@ -17,7 +18,7 @@ interface Props {
 
 /**
  * Member inspector: opens on Brief, then Matter, Notes and calls, Quotes
- * (your fee only) and Deadlines. Tabs mount on first visit (W2 Tabs), so
+ * (your fee only), Deadlines and Documents (P1 lawyer document routes). Tabs mount on first visit (W2 Tabs), so
  * unopened tabs never fetch; brief and client data are fetched once and
  * shared between the tabs that need them.
  */
@@ -35,6 +36,7 @@ export default function ClientInspector({ card, stages, onMove, onClose }: Props
     { id: "notes", label: "Notes and calls", content: () => <NotesCallsTab loadBrief={getBrief} loadClient={getClient} /> },
     { id: "quotes", label: "Quotes", content: () => <FeeQuotesTab clientId={card.clientId} /> },
     { id: "deadlines", label: "Deadlines", content: () => <DeadlineEditor adapter={adapter} /> },
+    { id: "documents", label: "Documents", content: () => <MemberDocumentsList clientId={card.clientId} role="lawyer" title="Member's documents" /> },
   ];
 
   return (

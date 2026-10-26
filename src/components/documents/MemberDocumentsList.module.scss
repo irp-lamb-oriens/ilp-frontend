@@ -1,0 +1,75 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.block {
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: $color-error;
+}
+
+.list {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-2;
+  padding: $space-2 0;
+  border-top: 1px solid $color-hairline;
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+.main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.link {
+  @include focus-ring;
+  color: $color-navy;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

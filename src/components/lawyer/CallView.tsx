@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button, EmptyState } from "@/components/ui";
+import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
 import BriefPanel from "./BriefPanel";
 import CallPanel from "./CallPanel";
 import { errorText, lawyerApi, type Brief } from "./lawyerApi";
@@ -39,6 +40,12 @@ export default function CallView({ consultationId }: { consultationId: string })
       <div className={s.cols}>
         <div className={s.briefCol}>
           <BriefPanel brief={brief} />
+          <MemberDocumentsList
+            clientId={brief.consultation.clientId}
+            role="lawyer"
+            title="Member's documents"
+            matterTitle={(id) => brief.matters.find((m) => m.id === id)?.title}
+          />
         </div>
         <div className={s.callCol}>
           <CallPanel brief={brief} onChanged={setBrief} />

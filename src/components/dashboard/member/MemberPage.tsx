@@ -9,6 +9,7 @@ import { dueLabel, MEMBERSHIP_LABEL, MEMBERSHIP_TONE, memberName } from "../staf
 import type { MemberBundle, QueueTask, TimelineEntry } from "../staff/types";
 import { useLawyers } from "../staff/useLawyers";
 import { TaskDrawer } from "../today/TaskDrawer";
+import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
 import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
 import { NextActions } from "./NextActions";
@@ -177,6 +178,11 @@ export default function MemberPage({ clientId }: { clientId: string }) {
             </dl>
           </section>
           <MembershipPanel membership={m} onChanged={load} />
+          <MemberDocumentsList
+            clientId={clientId}
+            role="staff"
+            matterTitle={(id) => bundle.matters.find((x) => x.id === id)?.title}
+          />
         </div>
 
         <div className={s.col}>
