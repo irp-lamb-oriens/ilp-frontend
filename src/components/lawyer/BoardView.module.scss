@@ -1,0 +1,198 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  align-items: end;
+}
+
+.viewSwitch {
+  display: inline-flex;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  padding: 2px;
+}
+
+.seg {
+  font: inherit;
+  font-size: 0.875rem;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  border-radius: $radius-pill;
+  min-height: 40px;
+  padding: 0 $space-4;
+  cursor: pointer;
+  @include focus-ring;
+
+  &[aria-pressed="true"] {
+    background: $color-accent-soft;
+    color: $color-navy;
+    font-weight: 600;
+  }
+}
+
+.filter {
+  display: grid;
+  gap: 2px;
+}
+
+.filterLabel {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.select {
+  font: inherit;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  background: $color-canvas;
+  color: $color-charcoal;
+  @include focus-ring;
+}
+
+.count {
+  color: $color-muted;
+  font-size: 0.875rem;
+  margin-left: auto;
+}
+
+.sr {
+  @include visually-hidden;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+}
+
+.muted {
+  color: $color-steel;
+}
+
+.strong {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(15rem, 1fr);
+  gap: $space-3;
+  overflow-x: auto;
+  padding-bottom: $space-2;
+  align-items: start;
+
+  @include below-md {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow-x: visible;
+  }
+}
+
+.col {
+  display: grid;
+  gap: $space-2;
+  align-content: start;
+  min-height: 8rem;
+  padding: $space-2;
+  border-radius: $radius-md;
+  background: $color-mist;
+  border: 1px solid transparent;
+
+  &[data-over] {
+    border-color: $color-accent;
+    background: $color-accent-soft;
+  }
+}
+
+.colH {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: $space-1 $space-2;
+  font-size: 0.875rem;
+  color: $color-navy;
+}
+
+.colCount {
+  color: $color-muted;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-2;
+}
+
+.card {
+  background: $color-canvas;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  cursor: grab;
+  transition: opacity $duration-fast $ease-out-strong;
+
+  &[data-dragging] {
+    opacity: 0.5;
+  }
+}
+
+.cardOpen {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: $space-3 $space-3 $space-2;
+  cursor: pointer;
+  border-radius: $radius-md $radius-md 0 0;
+  @include focus-ring;
+}
+
+.cardName {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.cardTitle {
+  font-size: 0.875rem;
+  color: $color-charcoal;
+}
+
+.cardArea {
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
+
+.cardFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-2;
+  padding: 0 $space-3 $space-3;
+}
+
+.flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  align-items: center;
+}

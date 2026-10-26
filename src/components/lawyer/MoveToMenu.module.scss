@@ -1,0 +1,69 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.trigger {
+  font: inherit;
+  font-size: 0.8125rem;
+  color: $color-navy;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  min-height: 32px;
+  padding: 0 $space-3;
+  cursor: pointer;
+  @include focus-ring;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.menu {
+  position: absolute;
+  z-index: $z-popover;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 11rem;
+  list-style: none;
+  margin: 0;
+  padding: $space-1;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  transform-origin: top right;
+  animation: none;
+}
+
+.item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.875rem;
+  color: $color-charcoal;
+  background: none;
+  border: 0;
+  border-radius: $radius-sm;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: -2px;
+    background: $color-accent-soft;
+  }
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+    }
+  }
+}
