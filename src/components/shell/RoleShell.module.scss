@@ -1,0 +1,685 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// ─── Frame ──────────────────────────────────────────────────────────────────
+
+.shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100dvh;
+  background: $color-canvas;
+
+  @include md {
+    grid-template-columns: $shell-nav-width minmax(0, 1fr);
+  }
+}
+
+.collapsed {
+  @include md {
+    grid-template-columns: $shell-nav-collapsed minmax(0, 1fr);
+  }
+}
+
+// Gallery frame: same layout inside a bordered box instead of the viewport.
+.embedded {
+  position: relative;
+  min-height: 560px;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  overflow: hidden;
+
+  .sidenav {
+    position: relative;
+    height: auto;
+  }
+
+  .topbar {
+    position: relative;
+  }
+
+  .bottombar {
+    position: absolute;
+  }
+}
+
+.skip {
+  position: absolute;
+  left: $space-4;
+  top: $space-2;
+  z-index: $z-popover;
+  padding: $space-2 $space-4;
+  border-radius: $radius-md;
+  background: $color-navy;
+  color: $color-on-navy;
+  transform: translateY(-200%);
+
+  &:focus {
+    transform: translateY(0);
+  }
+}
+
+.srOnly {
+  @include visually-hidden;
+}
+
+// ─── Side nav (desktop) ─────────────────────────────────────────────────────
+
+.sidenav {
+  display: none;
+
+  @include md {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: $space-6;
+    padding: $space-4 $space-3;
+    background: $color-navy;
+    color: $color-on-navy;
+    z-index: $z-nav;
+    overflow-y: auto;
+  }
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  padding-inline: $space-2;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: $space-2;
+  color: $color-on-navy;
+
+  @include focus-ring;
+}
+
+.brandMark {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.brandRole {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: $color-on-navy-muted;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.navLink {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: $space-3;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border-radius: $radius-md;
+  color: $color-on-navy-muted;
+  font-size: 0.9375rem;
+  font-weight: 500;
+
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      color: $color-on-navy;
+      background: $color-on-navy-hover;
+    }
+  }
+}
+
+.navActive {
+  color: $color-accent-ink;
+  background: $color-accent;
+  font-weight: 600;
+
+  @include hover-only {
+    &:hover {
+      color: $color-accent-ink;
+      background: $color-accent;
+    }
+  }
+}
+
+.navIcon {
+  display: inline-flex;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.navBadge {
+  min-width: 1.5rem;
+  padding: 0 $space-2;
+  border-radius: $radius-pill;
+  background: $color-on-navy-hover;
+  color: $color-on-navy;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.navActive .navBadge {
+  background: $color-canvas;
+  color: $color-navy;
+}
+
+.collapseBtn {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: $space-3;
+  margin-top: auto;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: none;
+  border-top: 1px solid $color-on-navy-hairline;
+  border-radius: 0;
+  background: transparent;
+  color: $color-on-navy-muted;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      color: $color-on-navy;
+    }
+  }
+}
+
+.collapsed {
+  .brandRole,
+  .navLabel,
+  .navBadge {
+    @include md {
+      @include visually-hidden;
+    }
+  }
+
+  .navLink,
+  .collapseBtn {
+    @include md {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      padding: 0;
+    }
+  }
+
+  .brandRow {
+    @include md {
+      justify-content: center;
+      padding: 0;
+    }
+  }
+}
+
+// ─── Main column ────────────────────────────────────────────────────────────
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "brand actions"
+    "search search";
+  align-items: center;
+  gap: $space-2 $space-3;
+  padding: $space-2 $space-4;
+  background: $color-canvas;
+  border-bottom: 1px solid $color-hairline;
+
+  @include md {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "search actions";
+    min-height: $shell-topbar-height;
+    padding: $space-2 $space-6;
+  }
+}
+
+.topBrand {
+  grid-area: brand;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+
+  @include focus-ring;
+
+  @include md {
+    display: none;
+  }
+}
+
+.brandMarkDark {
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.search {
+  grid-area: search;
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: $space-3;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $color-muted;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: $touch-target;
+  padding: 0 $space-4 0 $space-8;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-mist;
+  color: $color-charcoal;
+  font-size: 0.9375rem;
+
+  &::placeholder {
+    color: $color-muted;
+  }
+
+  &:hover {
+    border-color: $color-hairline-strong;
+  }
+
+  &:focus {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+    background: $color-canvas;
+  }
+}
+
+.topActions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-2;
+}
+
+.countrySlot {
+  display: none;
+
+  @include md {
+    display: block;
+  }
+}
+
+.content {
+  @include container;
+  flex: 1;
+  padding-top: $space-6;
+  padding-bottom: calc(#{$shell-bottombar-height} + #{$space-8} + env(safe-area-inset-bottom));
+
+  &:focus {
+    outline: none;
+  }
+
+  @include md {
+    padding-top: $space-8;
+    padding-bottom: $space-12;
+  }
+}
+
+.pageHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-4;
+  margin-bottom: $space-6;
+}
+
+.pageTitle {
+  @include heading-lg;
+  margin: 0;
+}
+
+.pageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+// ─── Top bar controls ───────────────────────────────────────────────────────
+
+.popRoot {
+  position: relative;
+}
+
+.topButton {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: 0 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-navy;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      border-color: $color-hairline-strong;
+    }
+  }
+}
+
+.caret {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+.iconButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $touch-target;
+  height: $touch-target;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-steel;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+      color: $color-navy;
+    }
+  }
+}
+
+.bellCount {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 18px;
+  padding: 0 4px;
+  border-radius: $radius-pill;
+  background: $color-navy;
+  color: $color-on-navy;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.avatarButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $touch-target;
+  height: $touch-target;
+  padding: 0;
+  border: none;
+  border-radius: $radius-pill;
+  background: transparent;
+  cursor: pointer;
+
+  @include focus-ring;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  border: 1px solid $color-hairline;
+  color: $color-navy;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+// Menus scale from their trigger corner; visibility keeps closed menus out of
+// the tab order without breaking the exit transition.
+.menu {
+  position: absolute;
+  top: calc(100% + #{$space-2});
+  z-index: $z-popover;
+  min-width: 220px;
+  padding: $space-2;
+  background: $color-canvas;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95);
+  transition:
+    opacity 150ms $ease-out-strong,
+    transform 150ms $ease-out-strong,
+    visibility 0s linear 150ms;
+
+  @include reduced-motion {
+    transform: none;
+  }
+}
+
+.menuRight {
+  right: 0;
+  transform-origin: top right;
+}
+
+.menuOpen {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  transition-delay: 0s;
+}
+
+.menuHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-2 $space-3 $space-3;
+  margin-bottom: $space-1;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.menuName {
+  font-weight: 600;
+  color: $color-navy;
+  overflow-wrap: anywhere;
+}
+
+.menuSub {
+  font-size: 0.8125rem;
+  color: $color-steel;
+  overflow-wrap: anywhere;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+  width: 100%;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-charcoal;
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  &[aria-checked="true"] {
+    color: $color-navy;
+    font-weight: 600;
+  }
+
+  &:disabled {
+    color: $color-muted;
+    cursor: not-allowed;
+  }
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      background: $color-mist;
+    }
+  }
+}
+
+.menuMeta {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+// ─── Bottom bar (phones) ────────────────────────────────────────────────────
+
+.bottombar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $z-nav;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  min-height: $shell-bottombar-height;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: $color-canvas;
+  border-top: 1px solid $color-hairline;
+
+  @include md {
+    display: none;
+  }
+}
+
+.bottomLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: $shell-bottombar-height;
+  padding: $space-1;
+  border: none;
+  background: transparent;
+  color: $color-steel;
+  font: inherit;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong;
+
+  @include focus-ring;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.bottomActive {
+  color: $color-navy;
+
+  .bottomIcon {
+    background: $color-accent-soft;
+  }
+
+  .bottomLabel {
+    font-weight: 700;
+  }
+}
+
+.bottomIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: $radius-pill;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.bottomLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.moreList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.moreLink {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border-radius: $radius-md;
+  color: $color-charcoal;
+  font-weight: 500;
+
+  @include focus-ring;
+}
+
+.moreActive {
+  background: $color-accent-soft;
+  color: $color-navy;
+  font-weight: 600;
+}
+
+.moreCountry {
+  margin-top: $space-4;
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+}

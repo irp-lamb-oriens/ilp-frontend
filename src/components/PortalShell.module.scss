@@ -1,97 +1,14 @@
 @use "../styles/variables" as *;
 @use "../styles/mixins" as *;
 
-.shell {
-  display: grid;
-  grid-template-columns: 1fr;
+// Layout lives in components/shell/RoleShell.module.scss. This module only
+// styles the signed-out gate.
+
+.pending {
   min-height: 100dvh;
-
-  @include lg {
-    grid-template-columns: 240px 1fr;
-  }
+  background: $color-canvas;
 }
 
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: $space-8;
-  padding: $space-6;
-  background: $color-navy;
-  color: #fff;
-
-  @include lg {
-    position: sticky;
-    top: 0;
-    height: 100dvh;
-  }
-}
-
-.brand {
-  font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-
-.nav {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: $space-2;
-
-  @include lg {
-    flex-direction: column;
-  }
-}
-
-.link {
-  padding: $space-2 $space-4;
-  border-radius: $radius-md;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.95rem;
-
-  &:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-  }
-}
-
-.active {
-  color: $color-navy;
-  background: $color-accent;
-  font-weight: 600;
-
-  &:hover {
-    color: $color-navy;
-    background: $color-accent;
-  }
-}
-
-.user {
-  margin-top: auto;
-  padding-top: $space-4;
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.userEmail {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
-  word-break: break-all;
-}
-
-.content {
-  @include container;
-  padding-block: $space-12;
-}
-
-.title {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  letter-spacing: -0.03em;
-  margin: 0 0 $space-8;
-  color: $color-navy;
-}
-
-/* Sign-in gate */
 .gate {
   min-height: 100dvh;
   display: flex;
@@ -122,8 +39,24 @@
   margin: 0;
 }
 
+.gateActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-4;
+}
+
 .gateCta {
   @include button-primary;
-  align-self: flex-start;
-  padding: $space-3 $space-6;
+  min-height: $touch-target;
+}
+
+.gateLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+  font-weight: 600;
+
+  @include focus-ring;
 }
