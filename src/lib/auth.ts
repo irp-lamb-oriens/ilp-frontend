@@ -3,6 +3,8 @@
  * Tokens are the ILP user-session JWTs signed by the backend.
  */
 
+import { createApiClient, type ApiRole } from "./api";
+
 export type Role = "customer" | "provider" | "staff";
 
 export interface SessionUser {
@@ -54,4 +56,21 @@ export function clearToken(): void {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem("ilp_token");
   }
+}
+// ── Portal sessions (W2) ────────────────────────────────────────────────────
+// Staff, lawyer and client portals each keep their own session. During the
+// cookie transition a session is "present" when its legacy header token is
+// in localStorage; once W1's HttpOnly cookies land, the server is the only
+// judge and these helpers just clear the legacy token.
+
+export type PortalRole = Exclude<ApiRole, "customer">;
+
+/** True when this browser holds a legacy token for the role. */
+export function hasPortalToken(role: PortalRole): boolean {
+  return !!createApiClient(role).getToken();
+}
+
+/** Drop the role's legacy token. Pair with the server logout route when it exists. */
+export function clearPortalSession(role: PortalRole): void {
+  createApiClient(role).clearToken();
 }

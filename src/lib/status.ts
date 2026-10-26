@@ -1,30 +1,25 @@
 /**
  * lib/status.ts — client-portal API client.
  *
- * Mirrors lib/api.ts but targets the client-status endpoints and carries the
- * `x-client-token` header (the client_status_sessions token) instead of the
- * customer JWT or the dashboard token.
+ * Wraps `createApiClient("client")`: client-status endpoints, the
+ * `x-client-token` header (the client_status_sessions token) during the cookie
+ * transition, never the staff dashboard token.
  */
 
-import { API_URL, ApiError, getDashboardToken } from "./api";
+import { createApiClient, legacyFetch } from "./api";
 
-const CLIENT_TOKEN_KEY = "ilp_client_token";
+export const clientApi = createApiClient("client");
 
 export function getClientToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(CLIENT_TOKEN_KEY);
+  return clientApi.getToken();
 }
 
 export function setClientToken(token: string): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(CLIENT_TOKEN_KEY, token);
-  }
+  clientApi.setToken(token);
 }
 
 export function clearClientToken(): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(CLIENT_TOKEN_KEY);
-  }
+  clientApi.clearToken();
 }
 
 /**
@@ -52,41 +47,14 @@ export function projectIdToEmail(projectId: string): string {
   return dotted.toLowerCase().trim();
 }
 
-/** Fetch against the client-status API using the client session token. */
-export async function statusFetch<T = unknown>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const token = getClientToken();
-  const dashboardToken = getDashboardToken();
-  const headers = new Headers(options.headers);
-  // The client token is authoritative for the portal. When present, do not
-  // also send a dashboard token: the server's staff bypass would otherwise
-  // override the principal's session and hide their edit controls.
-  if (token) {
-    headers.set("x-client-token", token);
-  } else if (dashboardToken) {
-    headers.set("x-dashboard-token", dashboardToken);
-  }
-  if (options.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
-    try {
-      const data = await res.json();
-      if (data?.error) message = String(data.error);
-    } catch {
-      // ignore parse failures
-    }
-    throw new ApiError(message, res.status);
-  }
-
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+/**
+ * Client-status API fetch: the client token (x-client-token) plus the session
+ * cookie. The staff-token fallback is gone (plan overhaul 2): staff viewing a
+ * member's page must use the dashboard's own routes, which audit the access.
+ * 401s throw (no redirect) so /status keeps its own login flow.
+ */
+export function statusFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
+  return legacyFetch<T>(clientApi, path, options);
 }
 
 // ── Typed payloads ───────────────────────────────────────────────────────────
