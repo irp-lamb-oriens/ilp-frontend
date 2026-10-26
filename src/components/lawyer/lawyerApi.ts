@@ -143,8 +143,6 @@ export interface HandoffInput {
   summary: string;
   steps: LegalNextStep[];
   minutesUsed: number;
-  /** Paid legal work the lawyer recommends (scope only). Routed to the CSM, never shown back. */
-  quoteScope?: string;
 }
 
 export interface LawyerApi {
@@ -189,12 +187,12 @@ const realApi: LawyerApi = {
       status: "completed",
       minutesUsed: input.minutesUsed,
     });
-    // 2. Create the handoff; W1 emits handoff.approved (+ handoff.opportunity when a quote is recommended).
+    // 2. Create the handoff; W1 emits handoff.approved.
     try {
+      // Lawyer judgment only: commercialNotes are staff-only and never sent from here.
       const h = await providerApi.post<{ id: string }>("/api/lawyer/handoffs", {
         consultationId: id,
         legalNextSteps: input.steps,
-        ...(input.quoteScope?.trim() ? { commercialNotes: `Lawyer recommends a quote: ${input.quoteScope.trim()}` } : {}),
       });
       return { handoffId: h.id };
     } catch (err) {

@@ -29,7 +29,6 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
   const [summaryStatus, setSummaryStatus] = useState(c.summary?.status ?? null);
   const [steps, setSteps] = useState<LegalNextStep[]>(c.suggestedNextSteps.length ? c.suggestedNextSteps.slice(0, MAX_STEPS) : [blank()]);
   const [minutes, setMinutes] = useState<number>(c.minutesUsed ?? c.durationMin ?? 20);
-  const [quoteScope, setQuoteScope] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [handoffId, setHandoffId] = useState<string | null>(c.handoffId);
@@ -84,7 +83,6 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
         summary: summary.trim(),
         steps: cleanSteps.map((x) => ({ what: x.what.trim(), who: x.who, dueAt: x.dueAt })),
         minutesUsed: minutes,
-        quoteScope,
       });
       setHandoffId(r.handoffId);
       setSummaryStatus("confirmed");
@@ -210,15 +208,9 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
         )}
       </fieldset>
 
-      <div className={s.twoUp}>
-        <div className={s.field}>
-          <label htmlFor="minutes" className={s.label}>Minutes used</label>
-          <input id="minutes" type="number" min={1} max={60} className={s.input} value={minutes} onChange={(e) => setMinutes(Math.max(0, Number(e.target.value) || 0))} />
-        </div>
-        <div className={s.field}>
-          <label htmlFor="scope" className={s.label}>Paid legal work needed (optional)</label>
-          <input id="scope" className={s.input} value={quoteScope} onChange={(e) => setQuoteScope(e.target.value)} placeholder="Scope only, e.g. S.A. clean-up: two tax years, RTBF" />
-        </div>
+      <div className={s.field}>
+        <label htmlFor="minutes" className={s.label}>Minutes used</label>
+        <input id="minutes" type="number" min={1} max={60} className={s.minutes} value={minutes} onChange={(e) => setMinutes(Math.max(0, Number(e.target.value) || 0))} />
       </div>
 
       {error && <p className={s.error} role="alert">{error}</p>}

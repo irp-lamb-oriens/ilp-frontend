@@ -149,14 +149,9 @@
   }
 }
 
-.twoUp {
-  display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
-  gap: $space-3;
-
-  @include below-md {
-    grid-template-columns: 1fr;
-  }
+.minutes {
+  @extend %control;
+  width: 7rem;
 }
 
 .field {
