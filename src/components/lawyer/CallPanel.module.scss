@@ -1,0 +1,198 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.panel {
+  display: grid;
+  gap: $space-4;
+  font-size: 0.9375rem;
+}
+
+.h {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.block {
+  display: grid;
+  gap: $space-2;
+  border: 0;
+  margin: 0;
+  padding: 0 0 $space-4;
+  border-bottom: 1px solid $color-hairline;
+  min-width: 0;
+}
+
+.rowBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-2;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-steel;
+  padding: 0;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  align-items: center;
+}
+
+.transcript {
+  margin: 0;
+  max-height: 10rem;
+  overflow-y: auto;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  background: $color-mist;
+  font-family: $font-sans;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  @include focus-ring;
+}
+
+%control {
+  font: inherit;
+  color: $color-charcoal;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  min-height: $touch-target;
+  padding: $space-2 $space-3;
+  width: 100%;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.textarea {
+  @extend %control;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input {
+  @extend %control;
+}
+
+.select {
+  @extend %control;
+  width: auto;
+}
+
+.date {
+  @extend %control;
+  width: auto;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-2;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: $space-2;
+  align-items: center;
+
+  @include below-md {
+    grid-template-columns: 1fr 1fr;
+
+    .input {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.remove {
+  font: inherit;
+  font-size: 0.8125rem;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  min-height: $touch-target;
+  padding: 0 $space-2;
+  cursor: pointer;
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      color: $color-error;
+    }
+  }
+}
+
+.twoUp {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: $space-3;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+}
+
+.confirmRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  align-items: center;
+  position: sticky;
+  bottom: 0;
+  padding: $space-3 0;
+  background: $color-canvas;
+}
+
+.doneSteps {
+  margin: 0;
+  padding-left: $space-6;
+  display: grid;
+  gap: $space-1;
+}
+
+.ghostLink {
+  @include button-ghost;
+  @include focus-ring;
+  justify-self: start;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
