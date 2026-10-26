@@ -16,6 +16,7 @@ import {
   runCheck,
   saveCheck,
 } from "./joinApi";
+import { recordJoinConsents } from "@/components/legal/consentApi";
 import s from "@/app/check/funnel.module.scss";
 
 export default function JoinPage() {
@@ -25,7 +26,10 @@ export default function JoinPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [accept, setAccept] = useState(false);
+  // P6: separate, unticked consents. Terms and Privacy are required; marketing is optional.
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [marketing, setMarketing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancelled, setCancelled] = useState(false);
@@ -45,7 +49,8 @@ export default function JoinPage() {
     const cleanEmail = email.trim().toLowerCase();
     if (!fullName.trim()) return setError("Enter your full name.");
     if (!EMAIL_RE.test(cleanEmail)) return setError("Enter a valid email address.");
-    if (!accept) return setError("Please confirm you have read the membership terms.");
+    if (!acceptTerms) return setError("Please agree to the Terms of Membership, including the monthly renewal.");
+    if (!acceptPrivacy) return setError("Please agree to the Privacy Policy.");
 
     setBusy(true);
     try {
@@ -65,6 +70,9 @@ export default function JoinPage() {
         anonId: funnelAnonId(),
         source: funnelSource(),
       });
+      // Consent records (with document versions) before payment. The join itself
+      // already carries acceptTerms, so a failure here does not stop the join.
+      await recordJoinConsents(res.token, marketing).catch(() => undefined);
       if (res.checkoutUrl) {
         window.location.assign(res.checkoutUrl);
         return;
@@ -163,12 +171,31 @@ export default function JoinPage() {
               : `Our team will contact you with payment details for ${PRICE.dueToday}. Your membership starts as soon as payment is confirmed.`}
           </p>
 
+          <p className={s.help}>
+            Your membership renews automatically every month at {PRICE.monthly} until you cancel. You can cancel online
+            at any time; you keep access until the end of the month you paid for.
+          </p>
+
           <label className={s.checkRow}>
-            <input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} />
+            <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
             <span>
-              I have read the <Link href="/terms">membership terms</Link>. I understand ILP connects me with
-              independent lawyers and that legal work is quoted separately.
+              I agree to the <Link href="/terms">Terms of Membership</Link>, including the automatic monthly renewal. I
+              understand ILP is not a law firm, connects me with independent lawyers, and quotes legal work separately.
             </span>
+          </label>
+
+          <label className={s.checkRow}>
+            <input type="checkbox" checked={acceptPrivacy} onChange={(e) => setAcceptPrivacy(e.target.checked)} />
+            <span>
+              I agree to the <Link href="/privacy">Privacy Policy</Link>: ILP and my lawyers may use the information I
+              give, including documents and, if I allow it for a call, recordings, to provide the membership, and ILP&apos;s
+              providers may process it outside Costa Rica.
+            </span>
+          </label>
+
+          <label className={s.checkRow}>
+            <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} />
+            <span>Optional: email me ILP news and offers. I can stop them at any time.</span>
           </label>
 
           {error && <p className={s.error} role="alert">{error}</p>}

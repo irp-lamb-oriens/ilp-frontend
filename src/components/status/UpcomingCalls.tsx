@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { useMember } from "./MemberContext";
+import { recordConsent } from "@/components/legal/consentApi";
 import { dateLong, dayKey, relativeDue, timeOfDay } from "./format";
 import { joinState, memberCalls, type RecordingChoice, type UpcomingCall } from "./callsApi";
 import s from "./UpcomingCalls.module.scss";
@@ -51,6 +52,7 @@ function CallItem({ call: c }: { call: UpcomingCall }) {
   const chooseAndJoin = (recording: RecordingChoice) => {
     setConsent(recording);
     memberCalls.consent(c.id, recording, "join").catch(() => undefined);
+    recordConsent("recording", recording === "granted", "join_call", c.id).catch(() => undefined); // P6
   };
 
   async function cancel() {

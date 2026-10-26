@@ -7,6 +7,8 @@ import { PLAN_STANDARD } from "@/lib/contracts";
 import { memberApi, type SlotsPayload } from "./api";
 import { memberCalls, type RecordingChoice } from "./callsApi";
 import { useMember } from "./MemberContext";
+import Link from "next/link";
+import { recordConsent } from "@/components/legal/consentApi";
 import { dateLong, dayKey, timeOfDay } from "./format";
 import s from "./BookingFlow.module.scss";
 
@@ -89,6 +91,9 @@ export default function BookingFlow() {
     setError(null);
     try {
       const r = await memberCalls.book({ scheduledAt: slot, question: question.trim(), matterId: matter?.id, recordingConsent: recording });
+      // P6: ConsentRecord with the notice version; the call itself already stores the choice.
+      const consultationId = (r.consultation as { id?: string } | undefined)?.id;
+      recordConsent("recording", recording === "granted", "booking", consultationId).catch(() => undefined);
       setLinkPending(!r.consultation?.meetUrl);
       setBooked(slot);
       await refresh();
@@ -188,8 +193,11 @@ export default function BookingFlow() {
           3. May the call be recorded?
         </h2>
         <p className={s.muted}>
-          A recording gives your lawyer a transcript, so you get a written summary and next steps sooner. Only your lawyer and
-          your ILP team can read it. You can change your mind when you join.
+          A recording gives your lawyer a transcript, so you get a written summary and next steps sooner. AI drafts the
+          summary and your lawyer checks and confirms it. Only your lawyer and your ILP team can read the transcript. The
+          call is recorded only if your lawyer agrees too, and anyone joining with you must agree. Saying no changes
+          nothing else. You can change your mind when you join.{" "}
+          <Link href="/legal/recording">How recording and AI work</Link>
         </p>
         <div className={s.times} role="radiogroup" aria-labelledby="rec-title">
           <button
