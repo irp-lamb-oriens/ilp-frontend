@@ -1,0 +1,19 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.center {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: $space-4;
+  background: $color-mist;
+}
+
+.muted {
+  color: $color-steel;
+}
+
+.login {
+  min-height: 100dvh;
+  background: $color-mist;
+}

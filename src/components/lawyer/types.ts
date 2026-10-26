@@ -1,8 +1,6 @@
 /**
- * Shared types for the lawyer client-inspector tabs.
- *
- * Mirrors the widened `LawyerClient` shape returned by
- * `GET /api/provider/clients` and `GET /api/provider/clients/:id`.
+ * Shared types for the lawyer inspector. Mirrors `GET /api/provider/clients/:id`
+ * after the server strips hidden fields (no margins, no ILP priority rank).
  */
 
 export interface LawyerClient {
@@ -14,15 +12,9 @@ export interface LawyerClient {
   legalArea: string | null;
   legalMatter: string | null;
   jurisdiction: string | null;
-  documents: Array<{
-    id?: string;
-    name?: string;
-    kind?: string;
-    uploadedAt?: string;
-  }> | null;
+  documents: Array<{ id?: string; name?: string; kind?: string; uploadedAt?: string }> | null;
   stage: string;
   stageEnteredAt: string | null;
-  rankIndex: number | null;
   pendingCount: number;
   pendingActions: Array<Record<string, unknown>>;
   notes: Array<Record<string, unknown>>;
@@ -42,27 +34,17 @@ export function displayName(c: LawyerClient): string {
   return [c.name, c.surname].filter(Boolean).join(" ") || c.email;
 }
 
-// ── Quote editor types ────────────────────────────────────────────────────────
+// ── Quotes, as a lawyer sees them: your fee only ─────────────────────────────
 
-export type QuoteLineItem = {
+/** A fee line. Margin fields are never sent to or accepted from a lawyer. */
+export type FeeLine = {
   lineId: string;
   label: string;
+  /** The lawyer's fee for this line. */
   amount: number;
-  marginPct: number;
-  marginMode: "pct" | "flat";
-  marginFlat: number | null;
   currency: string;
   providerId: string | null;
   notes: string | null;
-};
-
-export type QuoteGroup = {
-  groupId: string;
-  title: string;
-  labelId: string | null;
-  role: "required" | "optional" | "fixed";
-  description: string | null;
-  lineItems: QuoteLineItem[];
 };
 
 export type QuoteStatus =
@@ -73,32 +55,17 @@ export type QuoteStatus =
   | "sent_to_client"
   | "client_accepted";
 
-export type Quote = {
+export type LawyerQuote = {
   quoteId: string;
   clientId: string;
   title: string;
-  lineItems: QuoteLineItem[];
-  lineGroups: QuoteGroup[] | null;
+  lineItems: FeeLine[];
   currency: string;
-  total: number;
-  costSubtotal: number;
-  earnings: number;
-  serviceType: string | null;
-  templateId: string | null;
-  defaultMarginPct: number;
-  clientDescription: string | null;
-  paymentSchedule: number[] | null;
-  providerIds: string[];
-  providerSnapshots: Array<Record<string, unknown>>;
+  /** Sum of this lawyer's lines (server-computed). */
+  yourFee: number;
   notes: string | null;
   status: QuoteStatus;
-  approvals: Array<Record<string, unknown>>;
   comments: Array<Record<string, unknown>>;
-  changeLog: Array<Record<string, unknown>>;
-  clientVisible: boolean;
-  sentToClientAt: string | null;
-  clientToken: string | null;
-  clientAcceptedAt: string | null;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -108,6 +75,6 @@ export const QUOTE_STATUS_LABELS: Record<QuoteStatus, string> = {
   pending_approval: "Pending approval",
   changes_requested: "Changes requested",
   approved: "Approved",
-  sent_to_client: "Sent to client",
+  sent_to_client: "Sent to member",
   client_accepted: "Accepted",
 };

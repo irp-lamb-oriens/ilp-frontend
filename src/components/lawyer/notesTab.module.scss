@@ -1,4 +1,5 @@
 @use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
 
 .notes {
   display: flex;
@@ -225,7 +226,7 @@
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: transform 120ms ease, opacity 120ms ease;
+  transition: transform 120ms $ease-out-strong, opacity 120ms $ease-out-strong;
 
   &:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -287,10 +288,11 @@
   border: 1px solid $color-hairline;
   border-radius: $radius-md;
   padding: $space-3;
-  transition: box-shadow 160ms ease;
 
-  &:hover {
-    box-shadow: 0 2px 8px rgba(18, 59, 93, 0.08);
+  @include hover-only {
+    &:hover {
+      border-color: $color-hairline-strong;
+    }
   }
 }
 
