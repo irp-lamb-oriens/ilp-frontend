@@ -1,7 +1,9 @@
 /**
- * Security headers on every page (P1 request, P4). A full Content-Security-Policy
- * is a follow-up: it needs a pass over Stripe Checkout, Google Meet links, fonts
- * and Next.js inline scripts first. Only `frame-ancestors 'none'` is set here.
+ * Security headers on every page (P1 request, P4). The full nonce-based
+ * Content-Security-Policy is set per request in src/middleware.ts (P6; it needs
+ * a fresh nonce, which static headers cannot carry). The `frame-ancestors 'none'`
+ * policy below stays as a static backstop: it also covers files the middleware
+ * skips (static assets) and still blocks framing when CSP_MODE=report-only.
  */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
