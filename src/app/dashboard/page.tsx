@@ -1,5 +1,5 @@
-import { PageHeader } from "@/components/dashboard/staff/PageHeader";
+import TodayView from "@/components/dashboard/today/TodayView";
 
 export default function TodayPage() {
-  return <PageHeader title="Today" sub="Your queue and what needs attention." />;
+  return <TodayView />;
 }

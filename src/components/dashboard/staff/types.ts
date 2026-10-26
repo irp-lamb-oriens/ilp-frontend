@@ -51,12 +51,16 @@ export interface StaffSummary {
   attention: Attention;
 }
 
-export type QueueTask = CsmTask & { overdue?: boolean };
+export type QueueTask = CsmTask & {
+  overdue?: boolean;
+  memberName?: string;
+  membershipStatus?: Membership["status"] | null;
+};
 
-export interface TodayResponse {
+export interface QueueResponse {
   owner: string;
   tasks: QueueTask[];
-  counts: { open: number; overdue: number; dueToday: number; obligationsWithin14d: number };
+  counts: { open: number; overdue: number; dueToday: number };
 }
 
 export interface MemberRow {

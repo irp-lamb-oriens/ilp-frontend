@@ -1,0 +1,298 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+// ─── Member page: profile (left) · timeline (centre) · next actions (right) ─
+.layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr) minmax(240px, 1fr);
+  gap: $space-6;
+  align-items: start;
+
+  @media (max-width: #{$bp-lg - 1px}) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+
+    > :nth-child(3) {
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+  }
+
+  @include below-md {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.col {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.block {
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  min-width: 0;
+}
+
+.blockHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-3;
+  margin: 0;
+
+  dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $color-steel;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-charcoal;
+    overflow-wrap: anywhere;
+  }
+}
+
+.sections {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sectionRow {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-2;
+  font-size: 0.875rem;
+  color: $color-charcoal;
+}
+
+.missing {
+  color: $color-warning;
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.actions {
+  display: grid;
+  gap: $space-2;
+}
+
+.taskItem {
+  display: grid;
+  gap: $space-1;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.taskTitle {
+  margin: 0;
+  font-weight: 600;
+  color: $color-charcoal;
+  font-size: 0.9375rem;
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.input {
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-weight: 400;
+  color: $color-charcoal;
+  background: $color-canvas;
+  width: 100%;
+}
+
+.textarea {
+  @include focus-ring;
+  min-height: 6rem;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-weight: 400;
+  color: $color-charcoal;
+  background: $color-canvas;
+  resize: vertical;
+  width: 100%;
+}
+
+.markPaid {
+  display: grid;
+  gap: $space-2;
+  padding-top: $space-3;
+  border-top: 1px solid $color-hairline;
+}
+
+.ok {
+  margin: 0;
+  color: $color-success;
+}
+
+.nextStep {
+  padding: $space-3 $space-4;
+  border-left: 3px solid $color-accent;
+  background: $color-accent-soft;
+  border-radius: $radius-sm;
+}
+
+.nextWhat {
+  margin: 0;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+// ─── Handoff review ────────────────────────────────────────────────────────
+.handoff {
+  display: grid;
+  gap: $space-4;
+}
+
+.handoffHead {
+  display: grid;
+  gap: $space-1;
+}
+
+.legal {
+  display: grid;
+  gap: $space-2;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-mist;
+}
+
+.steps {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding-left: $space-6;
+}
+
+.step {
+  display: grid;
+  gap: $space-1;
+}
+
+.stepWhat {
+  color: $color-charcoal;
+}
+
+.stepMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.summary {
+  margin: 0;
+  font-size: 0.875rem;
+  color: $color-charcoal;
+  max-width: 65ch;
+}
+
+.commercial {
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.commercialText {
+  margin: 0;
+  color: $color-charcoal;
+  max-width: 65ch;
+}
+
+.timelineFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.chip {
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-steel;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    border-color: $color-accent;
+    background: $color-accent-soft;
+    color: $color-accent-ink;
+    font-weight: 600;
+  }
+}
+
+.linkBtn {
+  @include focus-ring;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: $color-navy;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  text-align: left;
+}

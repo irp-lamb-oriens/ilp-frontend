@@ -9,6 +9,7 @@ import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { dueLabel } from "../staff/format";
+import { useLawyers } from "../staff/useLawyers";
 import s from "./views.module.scss";
 
 interface StageDef {
@@ -48,6 +49,7 @@ function MattersTable() {
   const [stages, setStages] = useState<StageDef[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState("");
+  const { nameOf } = useLawyers();
 
   useEffect(() => {
     Promise.all([
@@ -89,7 +91,7 @@ function MattersTable() {
       render: (m) => (m.nextStep ? `${m.nextStep.what} · ${dueLabel(m.nextStep.dueAt).text}` : "—"),
       hideOnMobile: true,
     },
-    { key: "lawyer", header: "Lawyer", render: (m) => (m.assignedProviderId ? m.assignedProviderId.replace(/^demo_prov_/, "") : "Unassigned"), hideOnMobile: true },
+    { key: "lawyer", header: "Lawyer", render: (m) => nameOf(m.assignedProviderId), sortValue: (m) => nameOf(m.assignedProviderId), hideOnMobile: true },
   ];
 
   if (error) return <ErrorText>{error}</ErrorText>;
