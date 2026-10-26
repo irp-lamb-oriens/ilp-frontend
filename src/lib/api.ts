@@ -1,12 +1,14 @@
 /**
  * Centralized API client. All frontend->backend calls route through
- * `createApiClient(role)` so the base URL, credentials, auth header, error
- * shape and 401 handling stay in one place.
+ * `createApiClient(role)` so the base URL, credentials, error shape and 401
+ * handling stay in one place.
  *
- * Transition (plan overhaul 2): requests send `credentials: "include"` so the
- * server's HttpOnly session cookies (W1) ride along, and still send the legacy
- * header token from localStorage until every route reads cookies. Each role
- * sends only its own token: no staff-token fallback on lawyer or client calls.
+ * Auth is cookie-only (P1): verify-otp sets an HttpOnly session cookie per
+ * role (ilp_staff_session, ilp_lawyer_session, ilp_client_session) and every
+ * request sends `credentials: "include"`. No session token is ever read from
+ * or written to localStorage/sessionStorage; JavaScript cannot see the
+ * session. Legacy tokens left in a browser by older builds are removed once
+ * on load (`purgeLegacyTokens`).
  */
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -26,52 +28,61 @@ export class ApiError extends Error {
 export type ApiRole = "staff" | "lawyer" | "client" | "customer";
 
 interface RoleConfig {
-  /** localStorage key of the legacy header token. */
-  tokenKey: string;
-  /** Header that carries the legacy token. */
-  header: string;
-  /** Turns the token into the header value. */
-  format: (token: string) => string;
   /** Where a 401 sends the user. */
   loginPath: string;
-  /** HttpOnly session cookie set by verify-otp (W1). Read by the server only. */
+  /** HttpOnly session cookie set by verify-otp. Read by the server only. */
   cookieName?: string;
-  /** Server route that clears the session cookie. */
+  /** Server route that ends this session and clears the cookie. */
   logoutPath?: string;
+  /** Server route that ends every session of this email ("sign out everywhere"). */
+  logoutAllPath?: string;
 }
 
 export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
   staff: {
-    tokenKey: "ilp_dashboard_token",
-    header: "x-dashboard-token",
-    format: (t) => t,
     loginPath: "/dashboard",
     cookieName: "ilp_staff_session",
     logoutPath: "/api/dashboard/auth/logout",
+    logoutAllPath: "/api/dashboard/auth/logout-all",
   },
   lawyer: {
-    tokenKey: "ilp_provider_token",
-    header: "x-provider-token",
-    format: (t) => t,
     loginPath: "/lawyer",
     cookieName: "ilp_lawyer_session",
     logoutPath: "/api/provider/auth/logout",
+    logoutAllPath: "/api/provider/auth/logout-all",
   },
   client: {
-    tokenKey: "ilp_client_token",
-    header: "x-client-token",
-    format: (t) => t,
     loginPath: "/status",
     cookieName: "ilp_client_session",
     logoutPath: "/api/client-status/auth/logout",
+    logoutAllPath: "/api/client-status/auth/logout-all",
   },
   customer: {
-    tokenKey: "ilp_token",
-    header: "Authorization",
-    format: (t) => `Bearer ${t}`,
     loginPath: "/",
   },
 };
+
+/** Keys older builds used for header tokens. Removed on load; never written. */
+const LEGACY_TOKEN_KEYS = ["ilp_dashboard_token", "ilp_provider_token", "ilp_client_token", "ilp_token"];
+
+/** Delete session tokens that older builds stored in web storage. Never throws. */
+export function purgeLegacyTokens(): void {
+  if (typeof window === "undefined") return;
+  for (const key of LEGACY_TOKEN_KEYS) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // storage unavailable
+    }
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch {
+      // storage unavailable
+    }
+  }
+}
+
+purgeLegacyTokens();
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   /** Plain objects are JSON-encoded; strings, FormData and Blobs pass through. */
@@ -79,9 +90,9 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   /** Query parameters appended to the path. Undefined values are skipped. */
   query?: Record<string, string | number | boolean | undefined | null>;
   /**
-   * On 401: "redirect" clears this role's token and sends the user to the
-   * role's login page; "throw" only throws ApiError. Typed helpers default to
-   * "redirect", the legacy *Fetch wrappers to "throw".
+   * On 401: "redirect" sends the user to the role's login page; "throw" only
+   * throws ApiError. Typed helpers default to "redirect", the legacy *Fetch
+   * wrappers to "throw".
    */
   on401?: "redirect" | "throw";
 }
@@ -89,26 +100,18 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
 export interface ApiClient {
   role: ApiRole;
   loginPath: string;
-  getToken(): string | null;
-  setToken(token: string): void;
-  clearToken(): void;
   request<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
   get<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
   post<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   del<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
-  /** Ends the session: server logout (clears the cookie), then the legacy token. Never throws. */
+  /** Absolute URL for a GET the browser opens itself (downloads): the cookie rides along. */
+  url(path: string, query?: RequestOptions["query"]): string;
+  /** Ends this session (server clears the cookie). Never throws. */
   logout(): Promise<void>;
-}
-
-function storage(): Storage | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
+  /** Ends every session of this email for the role, on every device. Throws ApiError on failure. */
+  logoutAll(): Promise<{ ended: number }>;
 }
 
 function withQuery(path: string, query?: RequestOptions["query"]): string {
@@ -160,15 +163,11 @@ export function createApiClient(role: ApiRole): ApiClient {
   const client: ApiClient = {
     role,
     loginPath: cfg.loginPath,
-    getToken: () => storage()?.getItem(cfg.tokenKey) ?? null,
-    setToken: (token) => storage()?.setItem(cfg.tokenKey, token),
-    clearToken: () => storage()?.removeItem(cfg.tokenKey),
+    url: (path, query) => `${API_URL}${withQuery(path, query)}`,
 
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
       const { body, query, on401 = "redirect", headers: rawHeaders, ...init } = options;
       const headers = new Headers(rawHeaders);
-      const token = client.getToken();
-      if (token && !headers.has(cfg.header)) headers.set(cfg.header, cfg.format(token));
       const encoded = encodeBody(body, headers);
 
       const res = await fetch(`${API_URL}${withQuery(path, query)}`, {
@@ -189,7 +188,6 @@ export function createApiClient(role: ApiRole): ApiClient {
           // ignore parse failures
         }
         if (res.status === 401 && on401 === "redirect" && !isAuthPath(path)) {
-          client.clearToken();
           redirectToLogin(cfg.loginPath);
         }
         throw new ApiError(message, res.status, data);
@@ -210,10 +208,14 @@ export function createApiClient(role: ApiRole): ApiClient {
       try {
         if (cfg.logoutPath) await client.request(cfg.logoutPath, { method: "POST", on401: "throw" });
       } catch {
-        // already signed out or offline: clearing the local token is enough
-      } finally {
-        client.clearToken();
+        // already signed out or offline: nothing else to clear on this side
       }
+    },
+
+    async logoutAll() {
+      if (!cfg.logoutAllPath) return { ended: 0 };
+      const res = await client.request<{ ended?: number }>(cfg.logoutAllPath, { method: "POST", on401: "throw" });
+      return { ended: Number(res?.ended ?? 0) };
     },
   };
 
@@ -233,29 +235,34 @@ export function legacyFetch<T>(client: ApiClient, path: string, options: Request
 }
 
 // ── Legacy exports (kept so current pages compile) ──────────────────────────
+// Sessions are HttpOnly cookies now: JavaScript can neither read nor store
+// them. These shims stay only so older call sites compile; ask the server
+// (e.g. GET /api/dashboard/auth/check) whether a session exists.
 
+/** @deprecated Cookie-only auth: always null. */
 export function getToken(): string | null {
-  return customerApi.getToken();
+  return null;
 }
 
+/** @deprecated Cookie-only auth: always null. Use GET /api/dashboard/auth/check. */
 export function getDashboardToken(): string | null {
-  return staffApi.getToken();
+  return null;
 }
 
-export function setDashboardToken(token: string): void {
-  staffApi.setToken(token);
-}
+/** @deprecated Cookie-only auth: the server sets the cookie; this does nothing. */
+export function setDashboardToken(_token?: string): void {}
 
+/** @deprecated Cookie-only auth: use `staffApi.logout()`. Removes legacy leftovers only. */
 export function clearDashboardToken(): void {
-  staffApi.clearToken();
+  purgeLegacyTokens();
 }
 
-/** Staff dashboard fetch (x-dashboard-token + session cookie). */
+/** Staff dashboard fetch (session cookie). */
 export function dashboardFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   return legacyFetch<T>(staffApi, path, options);
 }
 
-/** Customer JWT fetch (Authorization: Bearer). */
+/** Public / customer fetch (cookies only; no bearer token is stored in the browser). */
 export function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   return legacyFetch<T>(customerApi, path, options);
 }

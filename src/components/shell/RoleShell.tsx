@@ -22,6 +22,8 @@ export interface RoleShellProps {
   actions?: ReactNode;
   user?: ShellUser | null;
   onLogout?: () => void;
+  /** Shows "Log out on all devices" in the user menu (e.g. `() => staffApi.logoutAll().then(...)`). */
+  onLogoutAll?: () => void;
   /** Called on submit of the global search. Omit to hide the search input. */
   onSearch?: (query: string) => void;
   searchPlaceholder?: string;
@@ -63,6 +65,7 @@ export function RoleShell({
   actions,
   user,
   onLogout,
+  onLogoutAll,
   onSearch,
   searchPlaceholder,
   bell,
@@ -195,7 +198,7 @@ export function RoleShell({
               </div>
             )}
             {bell === undefined ? <NotificationBell /> : bell}
-            <UserMenu user={user} roleLabel={roleLabel} onLogout={onLogout} />
+            <UserMenu user={user} roleLabel={roleLabel} onLogout={onLogout} onLogoutAll={onLogoutAll} />
           </div>
         </header>
 

@@ -22,9 +22,14 @@ function newSessionId(): string {
 }
 
 export function getChatbotSessionId(): string {
+  // Anonymous chat thread id (not an auth token), a per-browser convenience.
   if (typeof window !== "undefined") {
-    const stored = window.localStorage.getItem("ilp_chatbot_session");
-    if (stored) return stored;
+    try {
+      const stored = window.localStorage.getItem("ilp_chatbot_session");
+      if (stored) return stored;
+    } catch {
+      // storage unavailable: keep the in-memory id
+    }
   }
   if (!SESSION_ID) SESSION_ID = newSessionId();
   return SESSION_ID;
@@ -33,7 +38,11 @@ export function getChatbotSessionId(): string {
 export function rememberChatbotSessionId(id: string): void {
   SESSION_ID = id;
   if (typeof window !== "undefined") {
-    window.localStorage.setItem("ilp_chatbot_session", id);
+    try {
+      window.localStorage.setItem("ilp_chatbot_session", id);
+    } catch {
+      // storage unavailable
+    }
   }
 }
 

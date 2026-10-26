@@ -1,25 +1,25 @@
 /**
  * lib/status.ts — client-portal API client.
  *
- * Wraps `createApiClient("client")`: client-status endpoints, the
- * `x-client-token` header (the client_status_sessions token) during the cookie
- * transition, never the staff dashboard token.
+ * Wraps `createApiClient("client")`: client-status endpoints, authenticated by
+ * the HttpOnly `ilp_client_session` cookie only (P1); no token is stored.
  */
 
-import { createApiClient, legacyFetch } from "./api";
+import { createApiClient, legacyFetch, purgeLegacyTokens } from "./api";
 
 export const clientApi = createApiClient("client");
 
+/** @deprecated Cookie-only auth (ilp_client_session, HttpOnly): always null. */
 export function getClientToken(): string | null {
-  return clientApi.getToken();
+  return null;
 }
 
-export function setClientToken(token: string): void {
-  clientApi.setToken(token);
-}
+/** @deprecated Cookie-only auth: the server sets the cookie; this does nothing. */
+export function setClientToken(_token?: string): void {}
 
+/** @deprecated Use `clientApi.logout()`. Removes tokens left by older builds only. */
 export function clearClientToken(): void {
-  clientApi.clearToken();
+  purgeLegacyTokens();
 }
 
 /**
@@ -48,8 +48,7 @@ export function projectIdToEmail(projectId: string): string {
 }
 
 /**
- * Client-status API fetch: the client token (x-client-token) plus the session
- * cookie. The staff-token fallback is gone (plan overhaul 2): staff viewing a
+ * Client-status API fetch: the client session cookie. The staff-token fallback is gone (plan overhaul 2): staff viewing a
  * member's page must use the dashboard's own routes, which audit the access.
  * 401s throw (no redirect) so /status keeps its own login flow.
  */

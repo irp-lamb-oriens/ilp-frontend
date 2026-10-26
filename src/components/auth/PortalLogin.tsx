@@ -26,8 +26,6 @@ const COPY: Record<PortalRole, { title: string; sub: string }> = {
 
 export interface PortalLoginResult {
   email: string;
-  /** Legacy session token, already stored for the role. Absent once cookies replace it. */
-  token?: string;
   /** Client role only: the email-derived project id. */
   projectId?: string;
   /** Staff role only: staff | csm | admin, as returned by verify-otp. */
@@ -64,7 +62,7 @@ function describe(err: unknown, step: Step): string {
  * Email → 6-digit code login shared by the three portals. Handles the
  * server's 401 (wrong or expired code), 429 (too many attempts / resend too
  * soon) and a 30-second resend cooldown. The server sets the HttpOnly session
- * cookie (ilp_<role>_session); the legacy token is also stored for the role.
+ * cookie (ilp_<role>_session); no token is stored in the browser.
  */
 export default function PortalLogin({ role, onSuccess, title, sub, initialEmail = "", brand }: PortalLoginProps) {
   const api = useRef(createApiClient(role)).current;
@@ -128,15 +126,12 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
     }
     setBusy(true);
     try {
-      const res = await api.post<{ token?: string; role?: string } | undefined>(`${base}/verify-otp`, bodyFor({ code }), {
+      const res = await api.post<{ role?: string; expiresAt?: string } | undefined>(`${base}/verify-otp`, bodyFor({ code }), {
         on401: "throw",
       });
-      const token = res?.token;
-      if (token) api.setToken(token);
       const clean = email.trim().toLowerCase();
       onSuccess({
         email: clean,
-        token,
         projectId: role === "client" ? emailToProjectId(clean) : undefined,
         staffRole: role === "staff" ? res?.role : undefined,
       });

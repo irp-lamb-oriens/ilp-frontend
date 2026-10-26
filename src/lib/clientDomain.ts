@@ -1,7 +1,7 @@
 /**
  * Typed client helpers for the customer-facing domains: consultations
  * (booking) and alerts (compliance micro-form). Both require the user's
- * session token in localStorage (set via lib/auth.ts `setToken`).
+ * session cookie (HttpOnly; no token is kept in the browser).
  */
 import { apiFetch } from "./api";
 

@@ -1,26 +1,26 @@
 /**
  * Provider (lawyer) API client. A thin wrapper over `createApiClient("lawyer")`
- * so a lawyer session never collides with a staff dashboard session. Sends
- * only the lawyer token (x-provider-token) plus the session cookie; the staff
- * token is no longer attached (plan overhaul 2).
+ * so a lawyer session never collides with a staff dashboard session. Auth is
+ * the HttpOnly `ilp_lawyer_session` cookie only (P1); no token is stored.
  */
 
-import { ApiError, createApiClient, legacyFetch } from "./api";
+import { ApiError, createApiClient, legacyFetch, purgeLegacyTokens } from "./api";
 
 export { ApiError };
 
 export const providerApi = createApiClient("lawyer");
 
+/** @deprecated Cookie-only auth (ilp_lawyer_session, HttpOnly): always null. */
 export function getProviderToken(): string | null {
-  return providerApi.getToken();
+  return null;
 }
 
-export function setProviderToken(token: string): void {
-  providerApi.setToken(token);
-}
+/** @deprecated Cookie-only auth: the server sets the cookie; this does nothing. */
+export function setProviderToken(_token?: string): void {}
 
+/** @deprecated Use `providerApi.logout()`. Removes tokens left by older builds only. */
 export function clearProviderToken(): void {
-  providerApi.clearToken();
+  purgeLegacyTokens();
 }
 
 /** Lawyer API fetch. 401s throw (no redirect) so /lawyer keeps its own login flow. */

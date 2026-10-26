@@ -1,9 +1,9 @@
 /**
- * Client-side auth helpers: token decode + role gating.
- * Tokens are the ILP user-session JWTs signed by the backend.
+ * Client-side auth helpers: token decode + role gating, portal session checks.
+ * No session token is stored in the browser (P1: HttpOnly cookies only).
  */
 
-import { createApiClient, type ApiRole } from "./api";
+import { createApiClient, purgeLegacyTokens, type ApiRole } from "./api";
 
 export type Role = "customer" | "provider" | "staff";
 
@@ -28,50 +28,65 @@ function decodeJwt<T>(token: string): T | null {
   }
 }
 
-export function getUser(): SessionUser | null {
-  const token = typeof window !== "undefined"
-    ? window.localStorage.getItem("ilp_token")
-    : null;
+/**
+ * The signed-in customer, decoded from a customer JWT. Sessions are HttpOnly
+ * cookies now (P1), so the browser holds no JWT to decode: this returns null
+ * unless a caller passes a token it received in memory.
+ */
+export function getUser(token?: string | null): SessionUser | null {
   if (!token) return null;
   const payload = decodeJwt<{ uid: string; email: string; role: Role }>(token);
   if (!payload?.uid) return null;
   return { uid: payload.uid, email: payload.email, role: payload.role };
 }
 
-export function hasRole(required: Role | Role[]): boolean {
-  const user = getUser();
+export function hasRole(required: Role | Role[], token?: string | null): boolean {
+  const user = getUser(token);
   if (!user) return false;
   return Array.isArray(required)
     ? required.includes(user.role)
     : user.role === required;
 }
 
-export function setToken(token: string): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem("ilp_token", token);
-  }
+/** @deprecated Cookie-only auth: tokens are never stored in the browser. Does nothing. */
+export function setToken(_token?: string): void {}
+
+/** @deprecated Cookie-only auth: removes tokens left by older builds only. */
+export function clearToken(): void {
+  purgeLegacyTokens();
 }
 
-export function clearToken(): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem("ilp_token");
-  }
-}
-// ── Portal sessions (W2) ────────────────────────────────────────────────────
-// Staff, lawyer and client portals each keep their own session. During the
-// cookie transition a session is "present" when its legacy header token is
-// in localStorage; once W1's HttpOnly cookies land, the server is the only
-// judge. Cookie names (W1): ilp_staff_session, ilp_lawyer_session,
-// ilp_client_session; use createApiClient(role).logout() to end a session.
+// ── Portal sessions ─────────────────────────────────────────────────────────
+// Staff, lawyer and client portals each keep their own HttpOnly cookie
+// (ilp_staff_session, ilp_lawyer_session, ilp_client_session). JavaScript
+// cannot see it: ask the server whether a session exists (an authenticated
+// GET; 401 means signed out) and use createApiClient(role).logout() to end it.
 
 export type PortalRole = Exclude<ApiRole, "customer">;
 
-/** True when this browser holds a legacy token for the role. */
-export function hasPortalToken(role: PortalRole): boolean {
-  return !!createApiClient(role).getToken();
+/** Routes that answer 200 for a live session of the role and 401 otherwise. */
+const SESSION_CHECK: Record<PortalRole, string> = {
+  staff: "/api/dashboard/auth/check",
+  lawyer: "/api/provider/auth/check",
+  client: "/api/client-status/auth/check",
+};
+
+/** True when the server accepts this browser's session cookie for the role. */
+export async function hasPortalSession(role: PortalRole): Promise<boolean> {
+  try {
+    await createApiClient(role).get(SESSION_CHECK[role], { on401: "throw" });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-/** Drop the role's legacy token. Pair with the server logout route when it exists. */
-export function clearPortalSession(role: PortalRole): void {
-  createApiClient(role).clearToken();
+/** @deprecated Cookie-only auth: the browser holds no token. Always false; use hasPortalSession(). */
+export function hasPortalToken(_role?: PortalRole): boolean {
+  return false;
+}
+
+/** End the role's session on the server (clears the cookie). Never throws. */
+export async function clearPortalSession(role: PortalRole): Promise<void> {
+  await createApiClient(role).logout();
 }

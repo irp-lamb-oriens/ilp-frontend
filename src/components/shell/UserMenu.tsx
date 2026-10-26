@@ -10,6 +10,8 @@ export interface UserMenuProps {
   user?: ShellUser | null;
   roleLabel: string;
   onLogout?: () => void;
+  /** Optional "Log out on all devices" (the role's /auth/logout-all route). */
+  onLogoutAll?: () => void;
 }
 
 function initials(user?: ShellUser | null): string {
@@ -19,7 +21,7 @@ function initials(user?: ShellUser | null): string {
 }
 
 /** Avatar button with name, role and logout. */
-export function UserMenu({ user, roleLabel, onLogout }: UserMenuProps) {
+export function UserMenu({ user, roleLabel, onLogout, onLogoutAll }: UserMenuProps) {
   const menuId = useId();
   const { open, toggle, close, rootRef, triggerRef } = usePopover();
 
@@ -56,6 +58,19 @@ export function UserMenu({ user, roleLabel, onLogout }: UserMenuProps) {
         >
           Log out
         </button>
+        {onLogoutAll && (
+          <button
+            type="button"
+            role="menuitem"
+            className={s.menuItem}
+            onClick={() => {
+              close(false);
+              onLogoutAll();
+            }}
+          >
+            Log out on all devices
+          </button>
+        )}
       </div>
     </div>
   );
