@@ -16,7 +16,7 @@ import {
   runCheck,
   saveCheck,
 } from "./joinApi";
-import { recordJoinConsents } from "@/components/legal/consentApi";
+import { joinConsents } from "@/components/legal/consentApi";
 import s from "@/app/check/funnel.module.scss";
 
 export default function JoinPage() {
@@ -67,12 +67,10 @@ export default function JoinPage() {
         phone: phone.trim() || undefined,
         leadId,
         acceptTerms: true,
+        consents: joinConsents(marketing),
         anonId: funnelAnonId(),
         source: funnelSource(),
       });
-      // Consent records (with document versions) before payment. The join itself
-      // already carries acceptTerms, so a failure here does not stop the join.
-      await recordJoinConsents(res.token, marketing).catch(() => undefined);
       if (res.checkoutUrl) {
         window.location.assign(res.checkoutUrl);
         return;

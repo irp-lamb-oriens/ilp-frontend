@@ -6,6 +6,7 @@
 
 import { API_URL, ApiError } from "@/lib/api";
 import { PLAN_STANDARD, type LeadFinding } from "@/lib/contracts";
+import type { JoinConsent } from "@/components/legal/consentApi";
 
 export type CheckAnswers = {
   country: "CR";
@@ -65,6 +66,8 @@ export interface JoinBody {
   phone?: string;
   leadId?: string;
   acceptTerms: boolean;
+  /** P6/P7: Terms + Privacy (required) and marketing (optional), recorded by the server with the join. */
+  consents: JoinConsent[];
   /** P2 funnel: anonymous browser id + first-touch source (no PII). */
   anonId?: string;
   source?: string;

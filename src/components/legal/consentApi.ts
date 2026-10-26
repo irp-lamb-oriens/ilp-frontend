@@ -3,7 +3,6 @@
  * Each consent is stored as a ConsentRecord with the version of the document
  * the person saw (versions.ts).
  */
-import { API_URL } from "@/lib/api";
 import { clientApi } from "@/lib/status";
 import type { ConsentKind, PrivacyRequest, PrivacyRequestKind } from "@/lib/contracts";
 import { LEGAL_VERSIONS } from "./versions";
@@ -18,20 +17,22 @@ export const VERSION_FOR_KIND: Record<ConsentKind, string> = {
   marketing_email: LEGAL_VERSIONS.privacy,
 };
 
-/** At join, before payment: tied to the join session token, not to a sign-in. */
-export async function recordJoinConsents(joinToken: string, marketing: boolean): Promise<void> {
-  const consents = [
+/**
+ * The consents sent inside POST /api/payments/join (P7): the server records
+ * them with the join and refuses a join without Terms and Privacy.
+ */
+export function joinConsents(marketing: boolean): JoinConsent[] {
+  return [
     { kind: "terms", granted: true, version: VERSION_FOR_KIND.terms },
     { kind: "privacy", granted: true, version: VERSION_FOR_KIND.privacy },
     { kind: "marketing_email", granted: marketing, version: VERSION_FOR_KIND.marketing_email },
   ];
-  const res = await fetch(`${API_URL}/api/privacy/consents/join`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ joinToken, consents }),
-  });
-  if (!res.ok) throw new Error(`Consent not recorded (${res.status})`);
+}
+
+export interface JoinConsent {
+  kind: Extract<ConsentKind, "terms" | "privacy" | "marketing_email">;
+  granted: boolean;
+  version: string;
 }
 
 /** A signed-in member gives or withdraws one consent. */
