@@ -16,6 +16,7 @@ export const DEFAULT_NAV: Record<ShellRole, NavItem[]> = {
     { href: "/lawyer/board", label: "Board", icon: "▦" },
     { href: "/lawyer/clients", label: "Clients", icon: "☰" },
     { href: "/lawyer/finance", label: "Finance", icon: "$" },
+    { href: "/lawyer/availability", label: "Availability", icon: "◴" },
   ],
   staff: [
     { href: "/dashboard", label: "Today", icon: "◷", match: "exact" },
