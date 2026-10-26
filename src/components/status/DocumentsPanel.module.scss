@@ -1,0 +1,133 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  @include card;
+  padding: $space-6 $space-4;
+  scroll-margin-top: calc(#{$shell-topbar-height} + #{$space-4});
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.title {
+  margin: 0 0 $space-1;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.intro {
+  margin: 0 0 $space-4;
+  font-size: 1rem;
+  color: $color-steel;
+}
+
+.form {
+  display: grid;
+  gap: $space-4;
+  padding-bottom: $space-6;
+  margin-bottom: $space-4;
+  border-bottom: 1px solid $color-hairline;
+
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.input {
+  @include touch-target;
+  @include focus-ring;
+  width: 100%;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 1.125rem;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+}
+
+.file {
+  @include touch-target;
+  @include focus-ring;
+  width: 100%;
+  font-size: 1rem;
+  padding: $space-2 0;
+}
+
+.submit {
+  display: flex;
+  align-items: end;
+}
+
+.ok,
+.err {
+  margin: 0;
+  font-size: 1rem;
+
+  @include md {
+    grid-column: 1 / -1;
+  }
+}
+
+.ok {
+  color: $color-success;
+}
+
+.err {
+  color: $color-error;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-3 0;
+
+  & + & {
+    border-top: 1px solid $color-hairline;
+  }
+}
+
+.itemMain {
+  min-width: 0;
+}
+
+.link {
+  @include focus-ring;
+  display: inline-block;
+  min-height: $touch-target;
+  line-height: $touch-target;
+  color: $color-navy;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}

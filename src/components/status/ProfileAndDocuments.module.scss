@@ -1,0 +1,188 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-6;
+  max-width: 52rem;
+}
+
+.summary {
+  @include card;
+  padding: $space-6 $space-4;
+  display: grid;
+  gap: $space-3;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.summaryHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.summaryTitle {
+  margin: 0;
+  font-size: 1.375rem;
+  color: $color-navy;
+  letter-spacing: -0.015em;
+}
+
+.summaryBody {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+.sections {
+  display: grid;
+  gap: $space-4;
+}
+
+.section {
+  @include card;
+  padding: $space-6 $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.count {
+  font-size: 0.9375rem;
+  color: $color-steel;
+  white-space: nowrap;
+}
+
+.why {
+  margin: $space-1 0 $space-4;
+  font-size: 1rem;
+  color: $color-steel;
+}
+
+.fields {
+  display: grid;
+  gap: $space-4;
+
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+  align-content: start;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-charcoal;
+  padding: 0;
+}
+
+.input {
+  @include touch-target;
+  @include focus-ring;
+  width: 100%;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 1.125rem;
+  color: $color-charcoal;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+
+  &[readonly] {
+    background: $color-neutral-soft;
+    color: $color-steel;
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}
+
+.yesno {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-1;
+}
+
+.choices {
+  display: flex;
+  gap: $space-2;
+}
+
+.choice {
+  @include touch-target;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: 0 $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  cursor: pointer;
+  font-size: 1.125rem;
+
+  input {
+    width: 1.125rem;
+    height: 1.125rem;
+    accent-color: $color-navy;
+  }
+
+  &:focus-within {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.chosen {
+  border-color: $color-navy;
+  background: $color-accent-soft;
+}
+
+.actions {
+  margin-top: $space-6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+.ok {
+  margin: 0;
+  color: $color-success;
+  font-size: 1rem;
+}
+
+.err {
+  margin: 0;
+  color: $color-error;
+  font-size: 1rem;
+}
