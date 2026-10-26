@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, TextInput } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 
@@ -78,11 +78,9 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
         </p>
       )}
       <form onSubmit={send} className={s.composer}>
-        <label htmlFor="crm-lily-input" className={s.srOnly}>
-          Ask Lily
-        </label>
-        <input
-          id="crm-lily-input"
+        <TextInput
+          label="Ask Lily"
+          hideLabel
           className={s.input}
           value={input}
           onChange={(e) => setInput(e.target.value)}

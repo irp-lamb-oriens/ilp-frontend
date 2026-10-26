@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { Membership } from "@/lib/contracts";
-import { Button, ProgressBar, StatusPill } from "@/components/ui";
+import { Button, ProgressBar, StatusPill, TextInput } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { MEMBERSHIP_LABEL, MEMBERSHIP_TONE, shortDate } from "../staff/format";
 import s from "./member.module.scss";
@@ -91,15 +91,12 @@ export function MembershipPanel({ membership, onChanged }: { membership: Members
 
       {(m.status === "pending" || m.status === "past_due") && !ok && (
         <div className={s.markPaid}>
-          <label className={s.field}>
-            Payment reference
-            <input
-              className={s.input}
-              value={ref}
-              onChange={(e) => setRef(e.target.value)}
-              placeholder="SINPE 8812-4471 or bank transfer id"
-            />
-          </label>
+          <TextInput
+            label="Payment reference"
+            value={ref}
+            onChange={(e) => setRef(e.target.value)}
+            placeholder="SINPE 8812-4471 or bank transfer id"
+          />
           <Button busy={busy} onClick={markPaid}>
             {m.status === "past_due" ? "Mark renewal paid" : "Mark paid"}
           </Button>

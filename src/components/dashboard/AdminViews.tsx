@@ -12,6 +12,7 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
+import { Select } from "@/components/ui";
 
 interface Provider {
   id: string;
@@ -447,8 +448,9 @@ export function AssignmentView() {
               {c.jurisdiction ? ` · ${c.jurisdiction}` : ""}
             </div>
           </div>
-          <select
-            className={styles.assignSelect}
+          <Select
+            label={`Assign ${[c.name, c.surname].filter(Boolean).join(" ") || c.email} to a lawyer`}
+            hideLabel
             defaultValue=""
             onChange={(e) => {
               if (e.target.value) assign(c.id, e.target.value);
@@ -463,7 +465,7 @@ export function AssignmentView() {
                 {p.name ?? p.email ?? p.id} ({p.score.toFixed(1)})
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       ))}
     </div>

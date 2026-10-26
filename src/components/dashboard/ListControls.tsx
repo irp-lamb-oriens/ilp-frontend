@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchInput as UiSearchInput } from "@/components/ui";
 import styles from "./listControls.module.scss";
 
 /**
@@ -20,13 +21,13 @@ export function SearchInput({
 }) {
   return (
     <div className={styles.search}>
-      <input
-        type="search"
+      <UiSearchInput
+        label={placeholder.replace(/…$/, "")}
+        hideLabel
+        className={styles.field}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onValueChange={onChange}
         placeholder={placeholder}
-        aria-label={placeholder}
-        autoComplete="off"
         spellCheck={false}
       />
       {resultCount !== undefined && (

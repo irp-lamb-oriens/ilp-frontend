@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Drawer } from "@/components/ui";
+import { Button, Drawer, Select, TextArea } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch, ApiError } from "@/lib/api";
 
@@ -97,12 +97,12 @@ export default function ImportExportModal({ onClose }: { onClose: () => void }) 
       subtitle="Email is the identity key. The dry run shows what would happen before you commit."
     >
       <div className={s.stack}>
-        <label htmlFor="import-json" className={s.meta}>
-          Paste a JSON array of clients (or an object with a <code>clients</code> array).
-        </label>
-        <textarea
-          id="import-json"
-          className={s.textarea}
+        <TextArea
+          label={
+            <>
+              Paste a JSON array of clients (or an object with a <code>clients</code> array).
+            </>
+          }
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
@@ -119,19 +119,16 @@ export default function ImportExportModal({ onClose }: { onClose: () => void }) 
           <Button variant="secondary" size="sm" onClick={runDryRun} disabled={busy}>
             Dry run
           </Button>
-          <label htmlFor="import-strategy" className={s.srOnly}>
-            When a client exists
-          </label>
-          <select
-            id="import-strategy"
-            className={s.select}
+          <Select
+            label="When a client exists"
+            hideLabel
             value={strategy}
             onChange={(e) => setStrategy(e.target.value as "skip" | "merge" | "overwrite")}
           >
             <option value="skip">Skip existing</option>
             <option value="merge">Merge</option>
             <option value="overwrite">Overwrite</option>
-          </select>
+          </Select>
           <Button size="sm" onClick={runCommit} busy={busy}>
             Commit
           </Button>

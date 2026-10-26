@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { Button, Tabs, type TabItem } from "@/components/ui";
+import { Button, Tabs, TextInput, type TabItem } from "@/components/ui";
 import { VendorsList } from "@/components/dashboard/AdminViews";
 import EmailsTab from "@/components/dashboard/EmailsTab";
 import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
@@ -83,23 +83,23 @@ function StageConfig() {
       <ul className={s.stageList}>
         {(stages ?? []).map((st) => (
           <li key={st.id} className={s.stageRow}>
-            <label className={s.field}>
-              <span>
-                Staff label <span className={s.stageId}>{st.id}</span>
-              </span>
-              <input className={s.input} value={st.label} onChange={(e) => edit(st.id, { label: e.target.value })} />
-            </label>
-            <label className={s.field}>
-              SLA days
-              <input
-                className={s.input}
-                type="number"
-                min={0}
-                inputMode="numeric"
-                value={st.slaDays ?? ""}
-                onChange={(e) => edit(st.id, { slaDays: e.target.value === "" ? null : Number(e.target.value) })}
-              />
-            </label>
+            <TextInput
+              label={
+                <>
+                  Staff label <span className={s.stageId}>{st.id}</span>
+                </>
+              }
+              value={st.label}
+              onChange={(e) => edit(st.id, { label: e.target.value })}
+            />
+            <TextInput
+              label="SLA days"
+              type="number"
+              min={0}
+              inputMode="numeric"
+              value={st.slaDays ?? ""}
+              onChange={(e) => edit(st.id, { slaDays: e.target.value === "" ? null : Number(e.target.value) })}
+            />
             <Button variant="secondary" size="sm" busy={busy === st.id} onClick={() => save(st)}>
               Save
             </Button>

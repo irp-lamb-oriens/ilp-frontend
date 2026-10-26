@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PLAN_STANDARD, type CsmTask } from "@/lib/contracts";
-import { Button, StatusPill } from "@/components/ui";
+import { Button, DateInput, Select, StatusPill, TextInput } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { dueLabel, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import type { MemberBundle } from "../staff/types";
@@ -131,25 +131,16 @@ function BookCall({
         </p>
       ) : (
         <form className={s.actions} onSubmit={book} noValidate>
-          <label className={s.field}>
-            Lawyer
-            <select className={s.input} value={lawyer} onChange={(e) => setLawyer(e.target.value)}>
-              <option value="">Choose a lawyer</option>
-              {lawyers.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={s.field}>
-            Date and time (your local time)
-            <input className={s.input} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
-          </label>
-          <label className={s.field}>
-            What they want to ask
-            <input className={s.input} value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Can I sell the house before the S.A. books are fixed?" />
-          </label>
+          <Select label="Lawyer" value={lawyer} onChange={(e) => setLawyer(e.target.value)}>
+            <option value="">Choose a lawyer</option>
+            {lawyers.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </Select>
+          <DateInput label="Date and time (your local time)" kind="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+          <TextInput label="What they want to ask" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Can I sell the house before the S.A. books are fixed?" />
           <Button type="submit" busy={busy}>
             Book 20 minutes
           </Button>
@@ -226,10 +217,7 @@ function Quotes({ clientId, quotes, onChanged }: { clientId: string; quotes: Quo
         );
       })}
       <form className={s.actions} onSubmit={draft} noValidate>
-        <label className={s.field}>
-          New quote title
-          <input className={s.input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="S.A. clean-up before sale" />
-        </label>
+        <TextInput label="New quote title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="S.A. clean-up before sale" />
         <Button type="submit" variant="secondary" busy={busy === "new"}>
           Draft quote
         </Button>
@@ -284,20 +272,17 @@ function AssignLawyer({
         <h2 className={s.blockTitle}>Lawyer</h2>
         <StatusPill size="sm" tone={current ? "neutral" : "warning"} label={currentName ?? "Unassigned"} />
       </div>
-      <label className={s.field}>
-        {current ? "Reassign to" : "Assign"}
-        <select className={s.input} value={pick} onChange={(e) => setPick(e.target.value)}>
-          <option value="">Choose a lawyer</option>
-          {lawyers
-            .filter((l) => l.id !== current)
-            .map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-                {l.legalAreas?.length ? ` (${l.legalAreas.join(", ").replace(/_/g, " ")})` : ""}
-              </option>
-            ))}
-        </select>
-      </label>
+      <Select label={current ? "Reassign to" : "Assign"} value={pick} onChange={(e) => setPick(e.target.value)}>
+        <option value="">Choose a lawyer</option>
+        {lawyers
+          .filter((l) => l.id !== current)
+          .map((l) => (
+            <option key={l.id} value={l.id}>
+              {l.name}
+              {l.legalAreas?.length ? ` (${l.legalAreas.join(", ").replace(/_/g, " ")})` : ""}
+            </option>
+          ))}
+      </Select>
       <Button variant="secondary" disabled={!pick} busy={busy} onClick={assign}>
         Assign lawyer
       </Button>

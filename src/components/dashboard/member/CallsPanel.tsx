@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { Consultation } from "@/lib/contracts";
-import { Button, StatusPill, type StatusTone } from "@/components/ui";
+import { Button, DateInput, Select, StatusPill, TextInput, type StatusTone } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import s from "./member.module.scss";
 
@@ -187,10 +187,7 @@ function CallItem({ call: c, lawyer, onChanged }: { call: StaffCall; lawyer: str
 
       {mode === "cancel" && (
         <div className={s.actions}>
-          <label className={s.field}>
-            Reason (optional, kept in the audit log)
-            <input className={s.input} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Member asked by phone" />
-          </label>
+          <TextInput label="Reason (optional, kept in the audit log)" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Member asked by phone" />
           <div className={s.row}>
             <Button
               size="sm"
@@ -215,21 +212,15 @@ function CallItem({ call: c, lawyer, onChanged }: { call: StaffCall; lawyer: str
 
       {mode === "reschedule" && (
         <form className={s.actions} onSubmit={reschedule} noValidate>
-          <label className={s.field}>
-            Open times for {lawyer} (Costa Rica time)
-            <select className={s.input} value={slot} onChange={(e) => setSlot(e.target.value)} disabled={!slots?.length || !!custom}>
-              <option value="">{slots === null ? "Loading…" : slots.length ? "Choose a time" : "No open times"}</option>
-              {(slots ?? []).slice(0, 60).map((t) => (
-                <option key={t} value={t}>
-                  {crTime(t)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={s.field}>
-            Or another time agreed with both (your local time)
-            <input className={s.input} type="datetime-local" value={custom} onChange={(e) => setCustom(e.target.value)} />
-          </label>
+          <Select label={<>Open times for {lawyer} (Costa Rica time)</>} value={slot} onChange={(e) => setSlot(e.target.value)} disabled={!slots?.length || !!custom}>
+            <option value="">{slots === null ? "Loading…" : slots.length ? "Choose a time" : "No open times"}</option>
+            {(slots ?? []).slice(0, 60).map((t) => (
+              <option key={t} value={t}>
+                {crTime(t)}
+              </option>
+            ))}
+          </Select>
+          <DateInput label="Or another time agreed with both (your local time)" kind="datetime-local" value={custom} onChange={(e) => setCustom(e.target.value)} />
           <div className={s.row}>
             <Button size="sm" type="submit" busy={busy === "reschedule"}>
               Move call

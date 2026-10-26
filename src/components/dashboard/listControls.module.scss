@@ -4,21 +4,11 @@
   display: flex;
   align-items: center;
   gap: $space-3;
+}
 
-  input {
-    flex: 1;
-    padding: $space-2 $space-3;
-    border: 1px solid $color-hairline;
-    border-radius: $radius-md;
-    font-size: 0.9rem;
-    background: $color-surface;
-    color: $color-ink;
-
-    &:focus {
-      outline: 2px solid $color-accent;
-      outline-offset: 1px;
-    }
-  }
+.field {
+  flex: 1;
+  min-width: 0;
 }
 
 .count {

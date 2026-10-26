@@ -133,41 +133,6 @@
   font-size: 0.9375rem;
 }
 
-.field {
-  display: grid;
-  gap: $space-1;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: $color-steel;
-}
-
-.input {
-  @include focus-ring;
-  min-height: $touch-target;
-  padding: 0 $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  font: inherit;
-  font-weight: 400;
-  color: $color-charcoal;
-  background: $color-canvas;
-  width: 100%;
-}
-
-.textarea {
-  @include focus-ring;
-  min-height: 6rem;
-  padding: $space-2 $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  font: inherit;
-  font-weight: 400;
-  color: $color-charcoal;
-  background: $color-canvas;
-  resize: vertical;
-  width: 100%;
-}
-
 .markPaid {
   display: grid;
   gap: $space-2;

@@ -1,15 +1,13 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
-import { Button } from "@/components/ui";
-import { ErrorText } from "../staff/PageHeader";
+import { Button, TextArea } from "@/components/ui";
 import s from "./member.module.scss";
 
 /** Close a CSM task. The outcome is required (server enforces it too). */
 export function CloseTaskForm({ task, onClosed }: { task: CsmTask; onClosed: (t: CsmTask) => void }) {
-  const id = useId();
   const [outcome, setOutcome] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,19 +32,14 @@ export function CloseTaskForm({ task, onClosed }: { task: CsmTask; onClosed: (t:
 
   return (
     <form className={s.actions} onSubmit={close} noValidate>
-      <label className={s.field} htmlFor={id}>
-        Outcome
-      </label>
-      <textarea
-        id={id}
-        className={s.textarea}
+      <TextArea
+        label="Outcome"
         value={outcome}
         onChange={(e) => setOutcome(e.target.value)}
         placeholder="Called Mark, profile reviewed, he will upload his DIMEX by Friday."
-        aria-invalid={!!error || undefined}
+        error={error ?? undefined}
         required
       />
-      {error && <ErrorText>{error}</ErrorText>}
       <Button type="submit" busy={busy}>
         Close task
       </Button>

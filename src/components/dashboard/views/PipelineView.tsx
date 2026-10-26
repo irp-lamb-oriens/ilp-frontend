@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { staffApi } from "@/lib/api";
 import type { Matter } from "@/lib/contracts";
-import { AgingBadge, Button, DataTable, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
+import { AgingBadge, Button, DataTable, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
 import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
@@ -99,17 +99,14 @@ function MattersTable() {
   return (
     <div>
       <div className={s.bar}>
-        <label className={s.field}>
-          Stage
-          <select className={s.input} value={stage} onChange={(e) => setStage(e.target.value)}>
-            <option value="">All stages ({matters?.length ?? 0})</option>
-            {[...counts.keys()].map((id) => (
-              <option key={id} value={id}>
-                {label.get(id) ?? id} ({counts.get(id)})
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select label="Stage" value={stage} onChange={(e) => setStage(e.target.value)}>
+          <option value="">All stages ({matters?.length ?? 0})</option>
+          {[...counts.keys()].map((id) => (
+            <option key={id} value={id}>
+              {label.get(id) ?? id} ({counts.get(id)})
+            </option>
+          ))}
+        </Select>
       </div>
       <DataTable
         caption="Open matters"

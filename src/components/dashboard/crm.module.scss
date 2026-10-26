@@ -117,29 +117,8 @@
 }
 
 .input {
-  @include focus-ring;
   flex: 1;
   min-width: 0;
-  min-height: $touch-target;
-  padding: 0 $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  font: inherit;
-  font-size: 0.9rem;
-  color: $color-charcoal;
-  background: $color-canvas;
-}
-
-.textarea {
-  @include focus-ring;
-  width: 100%;
-  padding: $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  font-family: $font-mono;
-  font-size: 0.8rem;
-  color: $color-charcoal;
-  background: $color-canvas;
 }
 
 .row {
@@ -147,16 +126,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: $space-2;
-}
-
-.select {
-  @include focus-ring;
-  min-height: $touch-target;
-  padding: 0 $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  font: inherit;
-  background: $color-canvas;
 }
 
 .result {
@@ -200,6 +169,3 @@
   color: $color-charcoal;
 }
 
-.srOnly {
-  @include visually-hidden;
-}

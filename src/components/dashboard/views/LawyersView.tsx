@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { DataTable, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
+import { DataTable, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
 import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
@@ -89,16 +89,13 @@ function Hours() {
   if (!lawyers.length) return <p className={s.note}>Loading lawyers…</p>;
   return (
     <div className={s.stack}>
-      <label className={s.picker}>
-        Lawyer
-        <select className={s.pickerSelect} value={id} onChange={(e) => setPick(e.target.value)}>
-          {lawyers.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select label="Lawyer" value={id} onChange={(e) => setPick(e.target.value)}>
+        {lawyers.map((l) => (
+          <option key={l.id} value={l.id}>
+            {l.name}
+          </option>
+        ))}
+      </Select>
       <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} />
     </div>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { staffApi } from "@/lib/api";
 import { COUNTRIES } from "@/components/shell";
-import { Button, DataTable, ProgressBar, StatusPill, type Column } from "@/components/ui";
+import { Button, DataTable, ProgressBar, SearchInput, Select, StatusPill, type Column } from "@/components/ui";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { MEMBERSHIP_LABEL, MEMBERSHIP_TONE, shortDate } from "../staff/format";
@@ -116,61 +116,45 @@ export default function MembersList() {
     <>
       <PageHeader title="Members" sub={data ? `${data.total} member${data.total === 1 ? "" : "s"} match.` : "Loading members…"} />
       <form className={s.filters} role="search" onSubmit={(e) => e.preventDefault()}>
-        <label className={s.field}>
-          Search
-          <input
-            className={s.input}
-            type="search"
-            value={q}
-            onChange={(e) => {
-              reset(setQ)(e.target.value);
-              router.replace(e.target.value ? `/dashboard/members?q=${encodeURIComponent(e.target.value)}` : "/dashboard/members", { scroll: false });
-            }}
-            placeholder="Name or email"
-          />
-        </label>
-        <label className={s.field}>
-          Membership
-          <select className={s.input} value={status} onChange={(e) => reset(setStatus)(e.target.value)}>
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending payment</option>
-            <option value="past_due">Past due</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </label>
-        <label className={s.field}>
-          CSM
-          <select className={s.input} value={csm} onChange={(e) => reset(setCsm)(e.target.value)}>
-            <option value="">Everyone</option>
-            {staff.email && !data?.csms.includes(staff.email) && <option value={staff.email}>Me</option>}
-            {(data?.csms ?? []).map((c) => (
-              <option key={c} value={c}>
-                {c === staff.email ? "Me" : c}
-              </option>
-            ))}
-            <option value="none">No CSM</option>
-          </select>
-        </label>
-        <label className={s.field}>
-          Readiness
-          <select className={s.input} value={ready} onChange={(e) => reset(setReady)(e.target.value)}>
-            <option value="">All</option>
-            <option value="ready">Consultation-ready</option>
-            <option value="not_ready">Not ready</option>
-          </select>
-        </label>
-        <label className={s.field}>
-          Country
-          <select className={s.input} value={country} onChange={(e) => reset(setCountry)(e.target.value)}>
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code} disabled={!c.available}>
-                {c.name}
-                {c.available ? "" : " (coming soon)"}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SearchInput
+          label="Search"
+          value={q}
+          onValueChange={(v) => {
+            reset(setQ)(v);
+            router.replace(v ? `/dashboard/members?q=${encodeURIComponent(v)}` : "/dashboard/members", { scroll: false });
+          }}
+          placeholder="Name or email"
+        />
+        <Select label="Membership" value={status} onChange={(e) => reset(setStatus)(e.target.value)}>
+          <option value="">All</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending payment</option>
+          <option value="past_due">Past due</option>
+          <option value="cancelled">Cancelled</option>
+        </Select>
+        <Select label="CSM" value={csm} onChange={(e) => reset(setCsm)(e.target.value)}>
+          <option value="">Everyone</option>
+          {staff.email && !data?.csms.includes(staff.email) && <option value={staff.email}>Me</option>}
+          {(data?.csms ?? []).map((c) => (
+            <option key={c} value={c}>
+              {c === staff.email ? "Me" : c}
+            </option>
+          ))}
+          <option value="none">No CSM</option>
+        </Select>
+        <Select label="Readiness" value={ready} onChange={(e) => reset(setReady)(e.target.value)}>
+          <option value="">All</option>
+          <option value="ready">Consultation-ready</option>
+          <option value="not_ready">Not ready</option>
+        </Select>
+        <Select label="Country" value={country} onChange={(e) => reset(setCountry)(e.target.value)}>
+          {COUNTRIES.map((c) => (
+            <option key={c.code} value={c.code} disabled={!c.available}>
+              {c.name}
+              {c.available ? "" : " (coming soon)"}
+            </option>
+          ))}
+        </Select>
       </form>
 
       <div className={s.sortRow} role="group" aria-label="Sort members">

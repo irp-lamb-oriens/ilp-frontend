@@ -168,17 +168,3 @@
   font-weight: 600;
 }
 
-.assignSelect {
-  padding: $space-2 $space-3;
-  border: 1px solid $color-hairline;
-  border-radius: $radius-md;
-  background: $color-surface;
-  color: $color-ink;
-  font-size: 0.85rem;
-  cursor: pointer;
-
-  &:focus {
-    outline: 2px solid $color-accent;
-    outline-offset: 1px;
-  }
-}
