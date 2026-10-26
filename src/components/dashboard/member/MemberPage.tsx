@@ -10,6 +10,7 @@ import type { MemberBundle, QueueTask, TimelineEntry } from "../staff/types";
 import { useLawyers } from "../staff/useLawyers";
 import { TaskDrawer } from "../today/TaskDrawer";
 import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
+import { CallsPanel, type StaffCall } from "./CallsPanel";
 import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
 import { NextActions } from "./NextActions";
@@ -215,6 +216,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
             onOpenTask={(t) => setTask({ ...t, memberName: name, membershipStatus: m?.status ?? null })}
             onChanged={load}
           />
+          <CallsPanel calls={bundle.consultations as StaffCall[]} lawyerName={nameOf} onChanged={load} />
         </div>
       </div>
 
