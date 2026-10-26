@@ -44,6 +44,7 @@ export const TASK_TYPE_LABEL: Record<CsmTaskType, string> = {
   proposal: "Proposal",
   renewal: "Renewal",
   escalation: "Escalation",
+  privacy: "Privacy request",
 };
 
 export const TASK_TYPE_TONE: Record<CsmTaskType, StatusTone> = {
@@ -53,6 +54,7 @@ export const TASK_TYPE_TONE: Record<CsmTaskType, StatusTone> = {
   proposal: "success",
   renewal: "info",
   escalation: "danger",
+  privacy: "warning",
 };
 
 export const MEMBERSHIP_LABEL: Record<MembershipStatus, string> = {
