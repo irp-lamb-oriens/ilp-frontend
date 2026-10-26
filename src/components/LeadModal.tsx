@@ -6,6 +6,7 @@ import { submitLead } from "@/lib/clientDomain";
 import { OPEN_LEAD_EVENT, type OpenLeadDetail } from "@/lib/leadEvents";
 import { EASE_OUT_EXPO } from "@/components/motion/Motion";
 import StepForm from "@/components/StepForm";
+import NotificationPermissionSlide from "@/components/NotificationPermissionSlide";
 import s from "./LeadModal.module.scss";
 
 const COUNTRIES = [
@@ -26,6 +27,7 @@ export default function LeadModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [showNotificationSlide, setShowNotificationSlide] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [country, setCountry] = useState<string>("CR");
@@ -37,6 +39,7 @@ export default function LeadModal() {
       if (d.topic) setTopic(d.topic);
       if (d.country) setCountry(d.country);
       setDone(false);
+      setShowNotificationSlide(false);
       setError(null);
       setOpen(true);
     };
@@ -66,9 +69,8 @@ export default function LeadModal() {
     setError(null);
     try {
       await submitLead({ name, email, country, topic });
-      setDone(true);
+      setShowNotificationSlide(true);
       setName("");
-      setEmail("");
       setTopic("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Try again.");
@@ -150,6 +152,15 @@ export default function LeadModal() {
                 <p>Your first alerts will land in your inbox before each deadline.</p>
                 <button type="button" className={s.primary} onClick={close}>Done</button>
               </div>
+            ) : showNotificationSlide ? (
+              <NotificationPermissionSlide
+                email={email}
+                onDone={() => {
+                  setShowNotificationSlide(false);
+                  setDone(true);
+                  setEmail("");
+                }}
+              />
             ) : (
               <>
                 <h2 className={s.heading}>Start your membership</h2>
