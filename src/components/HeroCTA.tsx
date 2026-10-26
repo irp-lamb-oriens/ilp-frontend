@@ -8,7 +8,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { RevealTitle, Reveal, EASE_OUT_EXPO } from "@/components/motion/Motion";
-import { openLeadForm } from "@/lib/leadEvents";
+import Link from "next/link";
 import { CLAIM, CHECK_CTA } from "@/components/landing/content";
 import HeroChat from "@/components/HeroChat";
 import styles from "./HeroCTA.module.scss";
@@ -120,17 +120,13 @@ export default function HeroCTA() {
               </motion.li>
             ))}
           </ul>
-          <button
-            type="button"
-            className={styles.primary}
-            onClick={() => openLeadForm({ topic: "Free deadline check" })}
-          >
+          <Link href="/check" className={styles.primary}>
             {CHECK_CTA}
-          </button>
-          <a href="#pricing" className={styles.secondary}>
+          </Link>
+          <Link href="/pricing" className={styles.secondary}>
             See what is included
-          </a>
-          <div style={{ marginTop: "1.25rem", display: "flex", justifyContent: "flex-start" }}>
+          </Link>
+          <div className={styles.chatSlot}>
             <HeroChat />
           </div>
         </Reveal>

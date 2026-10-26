@@ -121,7 +121,9 @@
 .primary {
   @include button-primary;
   padding: $space-4 $space-8;
-  font-size: 1rem;
+  min-height: 52px;
+  font-size: 1.125rem;
+  text-decoration: none;
 }
 
 .secondary {
@@ -129,12 +131,20 @@
   display: inline-flex;
   align-items: center;
   padding: $space-3 $space-6;
+  min-height: 44px;
   border-radius: $radius-pill;
-  color: #ffffff;
+  color: $color-canvas;
   font-weight: 600;
+  text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.4);
 
   &:hover {
     background: rgba(255, 255, 255, 0.12);
   }
+}
+
+.chatSlot {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: $space-4;
 }
