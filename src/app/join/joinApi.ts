@@ -28,6 +28,7 @@ export type PaymentsMode = "stripe" | "manual";
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
+    credentials: "include", // accept the HttpOnly portal cookie set after joining
     headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
   });
   let data: unknown = null;
