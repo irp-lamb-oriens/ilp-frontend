@@ -10,6 +10,7 @@ import LilyTab from "./LilyTab";
 import NotesTab from "./NotesTab";
 import QuotesTab from "./QuotesTab";
 import ActivityTab from "./ActivityTab";
+import DeadlinesTab from "./DeadlinesTab";
 import styles from "./inspector.module.scss";
 
 interface ClientInspectorProps {
@@ -53,6 +54,11 @@ export default function ClientInspector({
       content: <InsightsTab client={current} onRefreshed={setCurrent} />,
     },
     { id: "lily", label: "Lily", content: <LilyTab clientId={current.id} /> },
+    {
+      id: "deadlines",
+      label: "Deadlines",
+      content: <DeadlinesTab client={current} />,
+    },
     {
       id: "notes",
       label: "Notes",
