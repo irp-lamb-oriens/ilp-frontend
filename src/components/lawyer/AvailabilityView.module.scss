@@ -103,17 +103,6 @@
 
 .time,
 .input {
-  min-height: $touch-target;
-  padding: 0 $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  background: $color-canvas;
-  color: $color-charcoal;
-  font: inherit;
-  @include focus-ring;
-}
-
-.input {
   width: 100%;
   margin-bottom: $space-3;
 }
@@ -150,24 +139,12 @@
   background: $color-canvas;
 }
 
-.label {
-  display: block;
-  margin-bottom: $space-1;
-  font-size: 0.9375rem;
-  color: $color-charcoal;
-}
-
 .inline {
   display: flex;
   flex-wrap: wrap;
   gap: $space-2;
   align-items: center;
   margin-bottom: $space-2;
-
-  .input {
-    width: auto;
-    margin: 0;
-  }
 }
 
 .dates {
@@ -187,20 +164,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $space-1;
-}
-
-.check {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  min-height: $touch-target;
-  cursor: pointer;
-
-  input {
-    width: 1.125rem;
-    height: 1.125rem;
-    accent-color: $color-navy;
-  }
 }
 
 .saveRow {

@@ -45,22 +45,6 @@
   gap: 2px;
 }
 
-.filterLabel {
-  font-size: 0.8125rem;
-  color: $color-steel;
-}
-
-.select {
-  font: inherit;
-  min-height: $touch-target;
-  padding: 0 $space-3;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-sm;
-  background: $color-canvas;
-  color: $color-charcoal;
-  @include focus-ring;
-}
-
 .count {
   color: $color-muted;
   font-size: 0.875rem;

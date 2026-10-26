@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AgingBadge, Button, EmptyState, StatusPill } from "@/components/ui";
+import { AgingBadge, Button, EmptyState, StatusPill, TextInput } from "@/components/ui";
 import BriefPanel from "./BriefPanel";
 import MoveToMenu from "./MoveToMenu";
 import NotesTab from "./NotesTab";
@@ -101,9 +101,8 @@ export function MatterTab({
         <div className={s.fields}>
           {LEGAL_FIELDS.map((f) => (
             <div key={f.key} className={s.field}>
-              <label htmlFor={`lf-${f.key}`} className={s.label}>{f.label}</label>
               <div className={s.fieldRow}>
-                <input id={`lf-${f.key}`} className={s.input} value={drafts[f.key] ?? ""} onChange={(e) => setDrafts((d) => ({ ...d, [f.key]: e.target.value }))} disabled={!client} />
+                <TextInput id={`lf-${f.key}`} label={f.label} value={drafts[f.key] ?? ""} onChange={(e) => setDrafts((d) => ({ ...d, [f.key]: e.target.value }))} disabled={!client} />
                 <Button size="sm" variant="secondary" onClick={() => save(f.key)} busy={saving === f.key} disabled={!client || saving !== null}>Save</Button>
               </div>
             </div>

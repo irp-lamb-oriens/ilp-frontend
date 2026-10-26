@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Button, StatusPill } from "@/components/ui";
+import { Button, StatusPill, TextArea, TextInput } from "@/components/ui";
 import type { ConsentState, LegalNextStep } from "./lawyerApi";
 import { errorText, fmtShortDate, lawyerApi, WHO_LABEL, type Brief } from "./lawyerApi";
 import { ConsentPill } from "./pills";
@@ -275,8 +275,7 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
         {meetNote && <p className={s.hint} role="status">{meetNote}</p>}
         {pasting ? (
           <>
-            <label htmlFor="transcript" className={s.srOnly}>Transcript</label>
-            <textarea id="transcript" className={s.textarea} rows={6} value={transcript} onChange={(e) => setTranscript(e.target.value)} />
+            <TextArea label="Transcript" hideLabel id="transcript" rows={6} value={transcript} onChange={(e) => setTranscript(e.target.value)} />
           </>
         ) : transcript ? (
           <pre className={s.transcript} tabIndex={0} aria-label="Call transcript">{transcript}</pre>
@@ -328,8 +327,16 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
       </fieldset>
 
       <div className={s.field}>
-        <label htmlFor="minutes" className={s.label}>Minutes used</label>
-        <input id="minutes" type="number" min={1} max={60} className={s.minutes} value={minutes} onChange={(e) => setMinutes(Math.max(0, Number(e.target.value) || 0))} />
+        <TextInput
+          label="Minutes used"
+          id="minutes"
+          className={s.minutes}
+          type="number"
+          min={1}
+          max={60}
+          value={minutes}
+          onChange={(e) => setMinutes(Math.max(0, Number(e.target.value) || 0))}
+        />
       </div>
 
       {error && <p className={s.error} role="alert">{error}</p>}

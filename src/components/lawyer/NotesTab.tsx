@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./notesTab.module.scss";
+import { TextArea } from "@/components/ui";
 
 interface Collaborator {
   email: string;
@@ -233,8 +234,9 @@ export default function NotesTab({
       )}
 
       <form className={styles.composer} onSubmit={addNote}>
-        <textarea
-          className={styles.textarea}
+        <TextArea
+          label="New note"
+          hideLabel
           placeholder="Write a note…"
           rows={3}
           value={text}
@@ -322,8 +324,9 @@ export default function NotesTab({
 
             {isEditing ? (
               <div className={styles.editBox}>
-                <textarea
-                  className={styles.textarea}
+                <TextArea
+                  label="Edit note"
+                  hideLabel
                   rows={3}
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}

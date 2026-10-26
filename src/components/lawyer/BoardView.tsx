@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type DragEvent } from "react";
-import { AgingBadge, Button, DataTable, EmptyState, StatusPill, type Column } from "@/components/ui";
+import { AgingBadge, Button, DataTable, EmptyState, Select, StatusPill, type Column } from "@/components/ui";
 import ClientInspector from "./ClientInspector";
 import MoveToMenu from "./MoveToMenu";
 import { areaLabel, errorText, fmtShortDate, lawyerApi, type BoardCard, type BoardData } from "./lawyerApi";
@@ -121,15 +121,12 @@ export default function BoardView() {
           <button type="button" className={s.seg} aria-pressed={view === "board"} onClick={() => pickView("board")}>Board</button>
           <button type="button" className={s.seg} aria-pressed={view === "list"} onClick={() => pickView("list")}>List</button>
         </div>
-        <label className={s.filter}>
-          <span className={s.filterLabel}>Legal area</span>
-          <select className={s.select} value={area} onChange={(e) => setArea(e.target.value)}>
+        <Select className={s.filter} label="Legal area" value={area} onChange={(e) => setArea(e.target.value)}>
             <option value="all">All areas</option>
             {areas.map((a) => (
               <option key={a} value={a}>{areaLabel(a)}</option>
             ))}
-          </select>
-        </label>
+        </Select>
         <span className={s.count}>{cards.length} {cards.length === 1 ? "matter" : "matters"}</span>
       </div>
 

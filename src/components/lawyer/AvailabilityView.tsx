@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Button, EmptyState } from "@/components/ui";
+import { Button, Checkbox, DateInput, EmptyState, Select, TextInput } from "@/components/ui";
 import { AREA_LABEL, errorText, fmtDate } from "./lawyerApi";
 import { callsApi, DAY_NAMES, type AvailabilitySettings, type WeeklyWindow } from "./callsApi";
 import s from "./AvailabilityView.module.scss";
@@ -190,8 +190,7 @@ export default function AvailabilityView({
           <section aria-labelledby="off-h" className={s.block}>
             <h3 id="off-h" className={s.sectionH}>Days off</h3>
             <div className={s.inline}>
-              <label className={s.srOnly} htmlFor="blackout">Add a day off</label>
-              <input id="blackout" type="date" min={todayCr()} className={s.input} value={newDate} onChange={(e) => setNewDate(e.target.value)} />
+              <DateInput label="Add a day off" hideLabel id="blackout" min={todayCr()} value={newDate} onChange={(e) => setNewDate(e.target.value)} />
               <Button size="sm" variant="secondary" onClick={addDate} disabled={!newDate}>Add day off</Button>
             </div>
             {upcomingBlackout.length === 0 ? (
@@ -212,12 +211,23 @@ export default function AvailabilityView({
 
           <section aria-labelledby="limits-h" className={s.block}>
             <h3 id="limits-h" className={s.sectionH}>Limits</h3>
-            <label htmlFor="lead" className={s.label}>Minimum notice before a call</label>
-            <select id="lead" className={s.input} value={lead} onChange={(e) => { setSaved(null); setLead(Number(e.target.value)); }}>
+            <Select
+              label="Minimum notice before a call"
+              id="lead"
+              value={lead}
+              onChange={(e) => { setSaved(null); setLead(Number(e.target.value)); }}
+            >
               {[2, 4, 12, 18, 24, 48, 72].map((h) => <option key={h} value={h}>{h} hours</option>)}
-            </select>
-            <label htmlFor="max" className={s.label}>Most calls in one day</label>
-            <input id="max" type="number" min={1} max={20} className={s.input} value={maxPerDay} onChange={(e) => { setSaved(null); setMaxPerDay(Math.max(1, Math.min(20, Number(e.target.value) || 1))); }} />
+            </Select>
+            <TextInput
+              label="Most calls in one day"
+              id="max"
+              type="number"
+              min={1}
+              max={20}
+              value={maxPerDay}
+              onChange={(e) => { setSaved(null); setMaxPerDay(Math.max(1, Math.min(20, Number(e.target.value) || 1))); }}
+            />
           </section>
 
           <fieldset className={s.block}>
@@ -225,18 +235,21 @@ export default function AvailabilityView({
             <p className={s.muted}>Members without an assigned lawyer are routed by these.</p>
             <div className={s.checks}>
               {SPECIALTIES.map((k) => (
-                <label key={k} className={s.check}>
-                  <input type="checkbox" checked={specialties.includes(k)} onChange={() => toggleSpecialty(k)} />
-                  {AREA_LABEL[k] ?? k}
-                </label>
+                <Checkbox key={k} label={AREA_LABEL[k] ?? k} checked={specialties.includes(k)} onChange={() => toggleSpecialty(k)} />
               ))}
             </div>
           </fieldset>
 
           <section aria-labelledby="cal-h" className={s.block}>
             <h3 id="cal-h" className={s.sectionH}>Google Calendar</h3>
-            <label htmlFor="cal" className={s.label}>Block times that are busy in this calendar (optional)</label>
-            <input id="cal" type="email" className={s.input} placeholder="you@yourfirm.cr" value={calendarId} onChange={(e) => { setSaved(null); setCalendarId(e.target.value); }} />
+            <TextInput
+              label="Block times that are busy in this calendar (optional)"
+              id="cal"
+              type="email"
+              placeholder="you@yourfirm.cr"
+              value={calendarId}
+              onChange={(e) => { setSaved(null); setCalendarId(e.target.value); }}
+            />
             <p className={s.muted}>Share your free/busy with ILP in Google Calendar so we can read it. Event details stay private.</p>
           </section>
         </div>

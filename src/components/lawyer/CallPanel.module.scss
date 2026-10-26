@@ -149,9 +149,9 @@
   }
 }
 
+// Wrapper of the "Minutes used" TextInput: keep the field narrow.
 .minutes {
-  @extend %control;
-  width: 7rem;
+  max-width: 9rem;
 }
 
 .field {

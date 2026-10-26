@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
-import { Button, EmptyState, StatusPill, type StatusTone } from "@/components/ui";
+import { Button, EmptyState, StatusPill, TextInput, type StatusTone } from "@/components/ui";
 import { errorText, fmtShortDate, money } from "./lawyerApi";
 import { QUOTE_STATUS_LABELS, type FeeLine, type QuoteStatus } from "./types";
 import s from "./FeeQuotesTab.module.scss";
@@ -115,8 +115,13 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
       <form className={s.editor} onSubmit={(e) => { e.preventDefault(); save(false); }}>
         <p className={s.muted}>Enter your fee for each piece of work. The ILP team adds the member price and sends it after approval.</p>
         <div className={s.field}>
-          <label htmlFor="q-title" className={s.label}>Title</label>
-          <input id="q-title" className={s.input} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="e.g. S.A. clean-up before sale" />
+          <TextInput
+            label="Title"
+            id="q-title"
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            placeholder="e.g. S.A. clean-up before sale"
+          />
         </div>
         <ol className={s.lines}>
           {draft.lines.map((l, i) => (

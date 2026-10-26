@@ -195,26 +195,6 @@
   color: $color-muted;
 }
 
-.textarea {
-  padding: $space-3;
-  border: 1px solid $color-hairline;
-  border-radius: $radius-md;
-  font-family: $font-sans;
-  font-size: 0.9rem;
-  resize: vertical;
-  background: $color-surface;
-  color: $color-ink;
-
-  &:hover {
-    border-color: rgba(18, 59, 93, 0.28);
-  }
-
-  &:focus-visible {
-    outline: 2px solid $color-accent;
-    outline-offset: 1px;
-  }
-}
-
 .addBtn,
 .saveBtn {
   align-self: flex-end;

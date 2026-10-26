@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AgingBadge, DataTable, EmptyState, StatusPill, type Column } from "@/components/ui";
+import { AgingBadge, DataTable, EmptyState, SearchInput, StatusPill, type Column } from "@/components/ui";
 import ClientInspector from "./ClientInspector";
 import { areaLabel, errorText, fmtShortDate, lawyerApi, type BoardCard, type BoardData } from "./lawyerApi";
 import s from "./ClientsView.module.scss";
@@ -58,10 +58,7 @@ export default function ClientsView() {
   return (
     <div className={s.page}>
       <div className={s.bar}>
-        <label className={s.search}>
-          <span className={s.label}>Find a member or matter</span>
-          <input className={s.input} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, matter or area" />
-        </label>
+        <SearchInput className={s.search} label="Find a member or matter" value={q} onValueChange={setQ} placeholder="Name, matter or area" />
         <span className={s.muted}>{rows.length} of {data?.cards.length ?? 0}</span>
       </div>
       {error && <p className={s.error} role="alert">{error}</p>}
