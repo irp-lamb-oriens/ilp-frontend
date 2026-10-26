@@ -166,3 +166,9 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.whenCol {
+  display: grid;
+  justify-items: end;
+  gap: $space-1;
+}

@@ -2,6 +2,7 @@
 
 import { AgingBadge, ProgressBar, StatusPill } from "@/components/ui";
 import { areaLabel, fmtDate, fmtShortDate, fmtTime, WHO_LABEL, type Brief } from "./lawyerApi";
+import { ConsentPill } from "./pills";
 import s from "./BriefPanel.module.scss";
 
 const cap = (v: string | null | undefined) => (v ? v.charAt(0).toUpperCase() + v.slice(1).replace(/_/g, " ") : null);
@@ -35,9 +36,12 @@ export default function BriefPanel({ brief, showWhen = true }: { brief: Brief; s
           <p className={s.facts}>{facts}</p>
         </div>
         {showWhen && c.scheduledAt && (
-          <p className={s.when}>
-            {fmtShortDate(c.scheduledAt)} · {fmtTime(c.scheduledAt)} · {c.durationMin} min
-          </p>
+          <div className={s.whenCol}>
+            <p className={s.when}>
+              {fmtShortDate(c.scheduledAt)} · {fmtTime(c.scheduledAt)} · {c.durationMin} min
+            </p>
+            <ConsentPill state={c.consent?.recording ?? "pending"} />
+          </div>
         )}
       </header>
 

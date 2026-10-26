@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, StatusPill } from "@/components/ui";
 import type { ConsentState, LegalNextStep } from "./lawyerApi";
 import { errorText, fmtShortDate, lawyerApi, WHO_LABEL, type Brief } from "./lawyerApi";
 import { ConsentPill } from "./pills";
+import { callsApi, fileToBase64, noShowAllowed, type TranscriptResult } from "./callsApi";
+import JoinCall, { useNow } from "./JoinCall";
 import s from "./CallPanel.module.scss";
 
 const MAX_STEPS = 5;
@@ -32,6 +34,13 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [handoffId, setHandoffId] = useState<string | null>(c.handoffId);
+  const [status, setStatus] = useState(c.status);
+  const [confirmNoShow, setConfirmNoShow] = useState(false);
+  const [meetNote, setMeetNote] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const autoTried = useRef(false);
+  const now = useNow();
+  const ended = now > Date.parse(c.scheduledAt) + (c.durationMin || 20) * 60_000;
 
   useEffect(() => {
     setHandoffId(c.handoffId);
@@ -67,6 +76,55 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
       setRecording(true);
     });
 
+  /** Apply a transcript + AI draft returned by the Meet fetch or the upload. */
+  function applyTranscript(r: TranscriptResult) {
+    if (r.status !== "fetched") {
+      setMeetNote(r.message ?? "No transcript yet.");
+      return;
+    }
+    setMeetNote(r.source === "upload" ? "Transcribed from your recording." : r.source === "notes" ? "From Gemini's meeting notes in Google Meet." : "From the Google Meet transcript.");
+    if (r.transcript) setTranscript(r.transcript);
+    if (r.summary) {
+      setSummary(r.summary.text);
+      setSummaryStatus("suggested");
+    }
+    if (r.suggestedNextSteps?.length) setSteps(r.suggestedNextSteps.slice(0, MAX_STEPS));
+    setPasting(false);
+  }
+
+  const fetchFromMeet = (quiet = false) =>
+    run("meet", async () => {
+      try {
+        applyTranscript(await callsApi.meetTranscript(c.id));
+      } catch (err) {
+        if (!quiet) throw err;
+      }
+    });
+
+  const uploadRecording = (file: File) =>
+    run("upload", async () => {
+      if (file.size > 7 * 1024 * 1024) throw new Error("The recording is over 7 MB. Upload a shorter file or paste the transcript.");
+      const dataBase64 = await fileToBase64(file);
+      applyTranscript(await callsApi.uploadRecording(c.id, { fileName: file.name, contentType: file.type || "audio/webm", dataBase64 }));
+    });
+
+  const markNoShow = () =>
+    run("noshow", async () => {
+      await callsApi.noShow(c.id);
+      setStatus("no_show");
+      setConfirmNoShow(false);
+      onChanged({ ...brief, consultation: { ...c, status: "no_show" } });
+    });
+
+  // After the call, pick up the Meet transcript by itself once (consent only).
+  useEffect(() => {
+    if (autoTried.current || !ended || consent !== "granted" || transcript || summary || handoffId) return;
+    if (status !== "booked" && status !== "in_progress") return;
+    autoTried.current = true;
+    fetchFromMeet(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ended, consent]);
+
   const draftSummary = () =>
     run("suggest", async () => {
       const pasted = pasting && transcript.trim() ? transcript.trim() : undefined;
@@ -95,6 +153,19 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
   const setStep = (i: number, patch: Partial<LegalNextStep>) =>
     setSteps((prev) => prev.map((x, j) => (j === i ? { ...x, ...patch } : x)));
 
+  if (status === "no_show" && !handoffId) {
+    return (
+      <section className={s.panel} aria-labelledby="call-noshow">
+        <StatusPill label="Member did not join" tone="warning" />
+        <h2 id="call-noshow" className={s.h}>Marked as a no-show</h2>
+        <p className={s.muted}>
+          The call counts as used on the membership. The ILP team contacts the member, offers a new time and can give the call back.
+        </p>
+        <Link href="/lawyer" className={s.ghostLink}>Back to Today</Link>
+      </section>
+    );
+  }
+
   if (handoffId) {
     return (
       <section className={s.panel} aria-labelledby="call-done">
@@ -119,6 +190,29 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
   return (
     <section className={s.panel} aria-labelledby="call-h">
       <h2 id="call-h" className={s.h}>Call</h2>
+
+      {(status === "booked" || status === "in_progress") && (
+        <div className={s.block}>
+          <div className={s.actions}>
+            <JoinCall meetUrl={c.meetUrl} scheduledAt={c.scheduledAt} durationMin={c.durationMin} size="md" />
+            {noShowAllowed(c.scheduledAt, now) && !confirmNoShow && (
+              <Button size="sm" variant="ghost" onClick={() => setConfirmNoShow(true)} disabled={busy !== null}>
+                Member didn&apos;t join
+              </Button>
+            )}
+          </div>
+          {confirmNoShow && (
+            <div className={s.confirmBox} role="group" aria-label="Confirm no-show">
+              <p className={s.muted}>This marks the call as a no-show and uses one of the member&apos;s calls. The ILP team can give it back.</p>
+              <div className={s.actions}>
+                <Button size="sm" variant="danger" onClick={markNoShow} busy={busy === "noshow"} disabled={busy !== null}>Yes, mark no-show</Button>
+                <Button size="sm" variant="ghost" onClick={() => setConfirmNoShow(false)}>Keep waiting</Button>
+              </div>
+            </div>
+          )}
+          {!c.meetUrl && <p className={s.hint}>The Meet link is being sent by email by the ILP team.</p>}
+        </div>
+      )}
 
       <div className={s.block}>
         <div className={s.rowBetween}>
@@ -154,6 +248,31 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
             <Button size="sm" variant="ghost" onClick={() => setPasting(true)}>{transcript ? "Replace" : "Paste transcript"}</Button>
           )}
         </div>
+        {consent === "granted" && !transcript && !pasting && summaryStatus !== "confirmed" && (
+          <div className={s.actions}>
+            <Button size="sm" variant="secondary" onClick={() => fetchFromMeet()} busy={busy === "meet"} disabled={busy !== null}>
+              Get transcript from Meet
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => fileRef.current?.click()} busy={busy === "upload"} disabled={busy !== null}>
+              Upload recording
+            </Button>
+            <label htmlFor="recording-file" className={s.srOnly}>Recording audio file</label>
+            <input
+              ref={fileRef}
+              id="recording-file"
+              type="file"
+              accept="audio/*,.webm,.m4a,.mp3,.wav,.ogg"
+              className={s.srOnly}
+              tabIndex={-1}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadRecording(f);
+                e.target.value = "";
+              }}
+            />
+          </div>
+        )}
+        {meetNote && <p className={s.hint} role="status">{meetNote}</p>}
         {pasting ? (
           <>
             <label htmlFor="transcript" className={s.srOnly}>Transcript</label>

@@ -39,19 +39,24 @@
   gap: $space-2;
 }
 
-.row {
-  display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr) auto auto;
-  gap: $space-4;
+.settingsLink {
+  display: inline-flex;
   align-items: center;
-  padding: $space-3 $space-4;
   min-height: $touch-target;
+  margin-top: $space-1;
+  color: $color-navy;
+  font-size: 0.9375rem;
+  @include focus-ring;
+}
+
+/* One call: the row (opens the brief) plus its Join button beside it. */
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   border: 1px solid $color-hairline;
   border-radius: $radius-md;
   background: $color-canvas;
-  color: $color-charcoal;
-  text-decoration: none;
-  @include focus-ring;
 
   &[data-next] {
     border-color: $color-accent;
@@ -63,6 +68,40 @@
       border-color: $color-hairline-strong;
     }
   }
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.join {
+  padding: $space-2 $space-4 $space-2 0;
+
+  @include below-md {
+    padding: 0 $space-4 $space-3;
+  }
+}
+
+.profile {
+  color: $color-steel;
+}
+
+.profileLow {
+  color: $color-charcoal;
+  font-weight: 600;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto auto;
+  gap: $space-4;
+  align-items: center;
+  padding: $space-3 $space-4;
+  min-height: $touch-target;
+  border-radius: $radius-md;
+  color: $color-charcoal;
+  text-decoration: none;
+  @include focus-ring;
 
   @include below-md {
     grid-template-columns: 4.5rem minmax(0, 1fr);

@@ -191,3 +191,11 @@
 .srOnly {
   @include visually-hidden;
 }
+
+.confirmBox {
+  margin-top: $space-2;
+  padding: $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  background: $color-mist;
+}

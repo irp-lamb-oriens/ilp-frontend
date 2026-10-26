@@ -37,6 +37,12 @@ export interface TodayItem {
   consent: { recording: ConsentState; at?: string };
   summaryStatus: "suggested" | "confirmed" | null;
   handoffId: string | null;
+  /** P3: Google Meet link; null while the CSM sends it by email. */
+  meetUrl?: string | null;
+  linkPending?: boolean;
+  /** P3: profile completeness, 0-100. */
+  completeness?: number;
+  hasTranscript?: boolean;
 }
 
 export interface BriefMatter {
@@ -65,6 +71,9 @@ export interface Brief {
     suggestedNextSteps: LegalNextStep[];
     minutesUsed: number | null;
     handoffId: string | null;
+    /** P3 */
+    meetUrl?: string | null;
+    transcriptSource?: string | null;
   };
   who: { name: string; email: string | null; phone: string | null; nationality: string | null; age: number | null; country: string };
   household: { maritalStatus: string | null; dependents: unknown };

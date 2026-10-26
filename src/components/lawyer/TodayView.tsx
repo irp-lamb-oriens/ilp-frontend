@@ -6,6 +6,7 @@ import { EmptyState, StatusPill, Button } from "@/components/ui";
 import { areaLabel, dayWindow, errorText, fmtShortDate, fmtTime, lawyerApi, type TodayItem } from "./lawyerApi";
 import { useLawyer } from "./LawyerContext";
 import { ConsentPill, SummaryPill } from "./pills";
+import JoinCall from "./JoinCall";
 import s from "./TodayView.module.scss";
 
 /** Lawyer Today: the day's consultations in time order, each opening its brief. */
@@ -52,6 +53,7 @@ export default function TodayView() {
             {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             {open > 0 ? ` · ${open} summary ${open === 1 ? "needs" : "need"} your confirmation` : ""}
           </p>
+          <Link className={s.settingsLink} href="/lawyer/availability">Your hours and availability</Link>
         </header>
 
         {error && (
@@ -69,8 +71,8 @@ export default function TodayView() {
         {today && today.length > 0 && (
           <ol className={s.list}>
             {today.map((c) => (
-              <li key={c.id}>
-                <Link href={`/lawyer/calls/${encodeURIComponent(c.id)}`} className={s.row} data-next={c.id === next?.id || undefined}>
+              <li key={c.id} className={s.item} data-next={c.id === next?.id || undefined}>
+                <Link href={`/lawyer/calls/${encodeURIComponent(c.id)}`} className={s.row}>
                   <span className={s.time}>
                     <span className={s.clock}>{fmtTime(c.scheduledAt)}</span>
                     <span className={s.len}>{c.durationMin} min</span>
@@ -80,7 +82,12 @@ export default function TodayView() {
                       {c.clientName}
                       {c.id === next?.id && <span className={s.nextTag}>Next</span>}
                     </span>
-                    <span className={s.matter}>{c.matterTitle ?? areaLabel(c.area)}</span>
+                    <span className={s.matter}>
+                      {c.matterTitle ?? areaLabel(c.area)}
+                      {typeof c.completeness === "number" && (
+                        <span className={c.completeness < 70 ? s.profileLow : s.profile}> · Profile {c.completeness}%{c.completeness < 70 ? ", incomplete" : ""}</span>
+                      )}
+                    </span>
                     {c.question && <span className={s.q}>&ldquo;{c.question}&rdquo;</span>}
                   </span>
                   <span className={s.state}>
@@ -95,6 +102,11 @@ export default function TodayView() {
                   </span>
                   <span className={s.open} aria-hidden="true">Brief →</span>
                 </Link>
+                {!c.handoffId && (c.status === "booked" || c.status === "in_progress") && (
+                  <div className={s.join}>
+                    <JoinCall meetUrl={c.meetUrl} scheduledAt={c.scheduledAt} durationMin={c.durationMin} />
+                  </div>
+                )}
               </li>
             ))}
           </ol>
