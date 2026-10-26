@@ -1,0 +1,66 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: $space-3;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $color-charcoal;
+}
+
+.value {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: $color-steel;
+  white-space: nowrap;
+}
+
+.track {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 8px;
+  border: none;
+  border-radius: $radius-pill;
+  background: $color-cool-gray;
+  overflow: hidden;
+  color: $color-accent;
+
+  &::-webkit-progress-bar {
+    background: $color-cool-gray;
+    border-radius: $radius-pill;
+  }
+
+  &::-webkit-progress-value {
+    background: currentColor;
+    border-radius: $radius-pill;
+  }
+
+  &::-moz-progress-bar {
+    background: currentColor;
+    border-radius: $radius-pill;
+  }
+}
+
+.accent {
+  color: $color-accent;
+}
+.success {
+  color: $color-success;
+}
+.warning {
+  color: $color-warning;
+}

@@ -1,0 +1,83 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.mist {
+  background: $color-mist;
+  box-shadow: none;
+}
+
+.accent {
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+  box-shadow: none;
+}
+
+.pad-none {
+  padding: 0;
+}
+.pad-sm {
+  padding: $space-3 $space-4;
+}
+.pad-md {
+  padding: $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+.pad-lg {
+  padding: $space-6;
+
+  @include md {
+    padding: $space-8;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.eyebrow {
+  @include eyebrow;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: $color-navy;
+}
+
+.actions {
+  display: flex;
+  gap: $space-2;
+  flex-shrink: 0;
+}
+
+.body {
+  min-width: 0;
+}
+
+.footer {
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+}

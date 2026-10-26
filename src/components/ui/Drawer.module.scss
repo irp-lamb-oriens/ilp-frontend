@@ -1,0 +1,131 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: $z-drawer;
+}
+
+// Flat tint, no blur (rules.md: no glass).
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: $color-scrim;
+  opacity: 0;
+  transition: opacity $duration-drawer $ease-out-strong;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: $color-surface;
+  border-left: 1px solid $color-hairline;
+  transform: translateX(100%);
+  transition: transform $duration-drawer $ease-out-strong;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.md {
+  @include md {
+    width: min(480px, 100%);
+  }
+}
+
+.lg {
+  @include md {
+    width: min(720px, 100%);
+  }
+}
+
+.shown {
+  .scrim {
+    opacity: 1;
+  }
+
+  .panel {
+    transform: translateX(0);
+  }
+}
+
+@include reduced-motion {
+  .panel {
+    transition: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-4;
+  padding: $space-4 $space-4 $space-4 $space-6;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.headText {
+  min-width: 0;
+  padding-top: $space-2;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.subtitle {
+  margin: $space-1 0 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+}
+
+.close {
+  @include touch-target;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-steel;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+      color: $color-navy;
+    }
+  }
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: $space-6;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: $space-2;
+  padding: $space-4 $space-6;
+  border-top: 1px solid $color-hairline;
+  background: $color-surface;
+}

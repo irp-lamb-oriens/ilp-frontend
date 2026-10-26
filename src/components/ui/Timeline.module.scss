@@ -1,0 +1,94 @@
+@use "../../styles/variables" as *;
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: $space-3;
+  padding-bottom: $space-6;
+
+  // Hairline rail between markers
+  &::before {
+    content: "";
+    position: absolute;
+    left: 9px;
+    top: 18px;
+    bottom: 0;
+    width: 1px;
+    background: $color-hairline;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+// The marker is a structural node on the rail, not a status dot: tone sits in
+// the entry text (title, meta pill), the ring only follows it.
+.marker {
+  margin-top: 5px;
+  width: 11px;
+  height: 11px;
+  margin-left: 4px;
+  border-radius: 50%;
+  border: 2px solid $color-cool-gray;
+  background: $color-surface;
+}
+
+.info .marker {
+  border-color: $color-accent;
+}
+.success .marker {
+  border-color: $color-success;
+}
+.warning .marker {
+  border-color: $color-warning;
+}
+.danger .marker {
+  border-color: $color-error;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.title {
+  font-weight: 600;
+  color: $color-charcoal;
+}
+
+.sub {
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
+
+.body {
+  margin-top: $space-1;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}
+
+.empty {
+  margin: 0;
+  color: $color-muted;
+}

@@ -1,0 +1,51 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: 2px $space-3;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.sm {
+  padding: 0 $space-2;
+  font-size: 0.75rem;
+}
+
+.neutral {
+  background: $color-neutral-soft;
+  border-color: $color-hairline;
+  color: $color-steel;
+}
+
+.info {
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+  color: $color-navy;
+}
+
+.success {
+  background: $color-success-soft;
+  color: $color-success;
+}
+
+.warning {
+  background: $color-warning-soft;
+  color: $color-warning;
+}
+
+.danger {
+  background: $color-error-soft;
+  color: $color-error;
+}
+
+.sr {
+  @include visually-hidden;
+}

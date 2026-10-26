@@ -1,0 +1,77 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+  padding: $space-4;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+  color: $color-navy;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.sm .value {
+  font-size: 1.5rem;
+}
+
+.lg {
+  padding: $space-6;
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+
+  .label {
+    color: $color-navy;
+  }
+
+  .value {
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    letter-spacing: -0.03em;
+  }
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1 $space-3;
+  font-size: 0.8125rem;
+  margin-top: $space-1;
+}
+
+.delta {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: $color-steel;
+}
+
+.good {
+  color: $color-success;
+}
+
+.bad {
+  color: $color-error;
+}
+
+.hint {
+  color: $color-muted;
+}
+
+.sr {
+  @include visually-hidden;
+}

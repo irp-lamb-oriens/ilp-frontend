@@ -1,0 +1,104 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  gap: $space-1;
+  border-bottom: 1px solid $color-hairline;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: 0 $space-4;
+  border: none;
+  background: transparent;
+  color: $color-steel;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  @include focus-ring;
+
+  // Active underline: a fixed bar revealed with transform, not width.
+  &::after {
+    content: "";
+    position: absolute;
+    left: $space-3;
+    right: $space-3;
+    bottom: -1px;
+    height: 2px;
+    background: $color-accent;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform $duration-fast $ease-out-strong;
+  }
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      color: $color-navy;
+    }
+  }
+
+  &:disabled {
+    color: $color-muted;
+    cursor: not-allowed;
+  }
+
+  @include reduced-motion {
+    &::after {
+      transition: none;
+    }
+  }
+}
+
+.active {
+  color: $color-navy;
+
+  &::after {
+    transform: scaleX(1);
+  }
+}
+
+.count {
+  min-width: 1.5em;
+  padding: 0 $space-1;
+  border-radius: $radius-pill;
+  background: $color-neutral-soft;
+  color: $color-steel;
+  font-size: 0.75rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.active .count {
+  background: $color-accent-soft;
+  color: $color-navy;
+}
+
+.panel {
+  min-width: 0;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 4px;
+    border-radius: $radius-sm;
+  }
+}

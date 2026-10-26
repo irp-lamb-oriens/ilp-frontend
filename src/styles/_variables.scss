@@ -53,3 +53,51 @@ $bp-xl: 1280px;
 // Type — Helvetica Neue / Arial-style system stack
 $font-sans: "Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif;
 $font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+// ─── App UI tokens (W2 shell + UI kit) ──────────────────────────────────────
+// Status tints: soft fills behind status text. Text uses the semantic color.
+$color-success-soft: #e8f4ef;
+$color-warning-soft: #fbf3e6;
+$color-error-soft: #fbecea;
+$color-neutral-soft: #f2f5f7;
+
+// Accent hover (one step darker, same hue)
+$color-accent-hover: #4fc0ec;
+
+// Hover border, one step above hairline
+$color-hairline-strong: rgba(18, 59, 93, 0.28);
+
+// Overlay behind drawers (flat tint, no blur)
+$color-scrim: rgba(18, 59, 93, 0.32);
+
+// Text on navy surfaces
+$color-on-navy: #ffffff;
+$color-on-navy-muted: rgba(255, 255, 255, 0.72);
+$color-on-navy-hairline: rgba(255, 255, 255, 0.14);
+$color-on-navy-hover: rgba(255, 255, 255, 0.08);
+
+// Interaction
+$touch-target: 44px;
+$ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+$duration-press: 160ms;
+$duration-fast: 200ms;
+$duration-drawer: 280ms;
+
+// Shell geometry
+$shell-nav-width: 240px;
+$shell-nav-collapsed: 72px;
+$shell-topbar-height: 64px;
+$shell-bottombar-height: 64px;
+
+// Layers
+$z-sticky: 20;
+$z-nav: 30;
+$z-popover: 40;
+$z-drawer: 50;
+
+// Chart palette — mirrors src/styles/tokens.ts (the one file charts import).
+$chart-1: #123b5d; // navy
+$chart-2: #5cccf7; // accent
+$chart-3: #4a5a66; // steel
+$chart-4: #9fd9ef; // accent, lighter
+$chart-5: #7a8a96; // muted
+$chart-grid: #d9e1e6;

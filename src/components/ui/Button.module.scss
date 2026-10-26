@@ -1,0 +1,132 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: $space-2 $space-6;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  font-family: $font-sans;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform $duration-press $ease-out-strong,
+    background-color $duration-press ease,
+    border-color $duration-press ease,
+    color $duration-press ease;
+
+  @include focus-ring;
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.primary {
+  background: $color-accent;
+  color: $color-accent-ink;
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      background: $color-accent-hover;
+    }
+  }
+}
+
+.secondary {
+  background: $color-surface;
+  border-color: $color-hairline;
+  color: $color-navy;
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      border-color: $color-hairline-strong;
+      background: $color-mist;
+    }
+  }
+}
+
+.ghost {
+  background: transparent;
+  color: $color-steel;
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      background: $color-mist;
+      color: $color-navy;
+    }
+  }
+}
+
+.danger {
+  background: $color-surface;
+  border-color: $color-error;
+  color: $color-error;
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      background: $color-error-soft;
+    }
+  }
+}
+
+// Small buttons keep a 44px hit area through padding on touch devices.
+.sm {
+  min-height: 36px;
+  padding: $space-1 $space-4;
+  font-size: 0.875rem;
+
+  @media (pointer: coarse) {
+    min-height: $touch-target;
+  }
+}
+
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.busy {
+  cursor: progress;
+}
+
+.icon {
+  display: inline-flex;
+  font-size: 1.05em;
+}
+
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: uiSpin 0.7s linear infinite;
+
+  @include reduced-motion {
+    animation-duration: 1.6s;
+  }
+}
+
+@keyframes uiSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
