@@ -1,0 +1,58 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-4;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.search {
+  display: grid;
+  gap: 2px;
+  width: min(100%, 26rem);
+}
+
+.label {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.input {
+  font: inherit;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  color: $color-charcoal;
+  @include focus-ring;
+}
+
+.muted {
+  color: $color-muted;
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+}
+
+.strong {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.inline {
+  display: inline-flex;
+  gap: $space-2;
+  align-items: center;
+  flex-wrap: wrap;
+}

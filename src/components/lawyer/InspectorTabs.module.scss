@@ -1,0 +1,98 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.stack {
+  display: grid;
+  gap: $space-6;
+  padding-top: $space-3;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-steel;
+}
+
+.strong {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.h3 {
+  margin: 0 0 $space-2;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.facts {
+  display: grid;
+  gap: $space-3;
+  margin: 0;
+
+  dd {
+    margin: 2px 0 0;
+  }
+}
+
+.inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+}
+
+.fields {
+  display: grid;
+  gap: $space-3;
+  margin-top: $space-3;
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $space-2;
+}
+
+.input {
+  font: inherit;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  color: $color-charcoal;
+  @include focus-ring;
+}
+
+.calls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-3;
+}
+
+.call {
+  display: grid;
+  gap: $space-1;
+  padding-bottom: $space-3;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.callHead {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-2;
+  flex-wrap: wrap;
+}

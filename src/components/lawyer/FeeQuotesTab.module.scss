@@ -1,0 +1,158 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap,
+.editor {
+  display: grid;
+  gap: $space-3;
+  padding-top: $space-3;
+}
+
+.bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-3;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-steel;
+}
+
+.sr {
+  @include visually-hidden;
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+}
+
+.input,
+.amount {
+  font: inherit;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  color: $color-charcoal;
+  width: 100%;
+  @include focus-ring;
+}
+
+.amount {
+  width: 7rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-2;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: $space-2;
+  align-items: center;
+}
+
+.remove {
+  font: inherit;
+  font-size: 0.8125rem;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  min-height: $touch-target;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+.total {
+  margin: 0;
+  text-align: right;
+  color: $color-navy;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-3;
+}
+
+.quote {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-3 $space-4;
+  display: grid;
+  gap: $space-2;
+}
+
+.qHead {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-2;
+  align-items: center;
+}
+
+.qTitle {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.qLines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 0.875rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: $space-3;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.qFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+  border-top: 1px solid $color-hairline;
+  padding-top: $space-2;
+  color: $color-navy;
+}
