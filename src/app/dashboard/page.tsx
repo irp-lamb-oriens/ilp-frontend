@@ -1,5 +1,5 @@
-import DashboardView from "./DashboardView";
+import { PageHeader } from "@/components/dashboard/staff/PageHeader";
 
-export default function DashboardPage() {
-  return <DashboardView />;
+export default function TodayPage() {
+  return <PageHeader title="Today" sub="Your queue and what needs attention." />;
 }

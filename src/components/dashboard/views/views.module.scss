@@ -1,0 +1,99 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+// Asymmetric KPI rows: the first (large) tile spans two columns.
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: $space-3;
+
+  > :first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  @include below-md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stack {
+  display: grid;
+  gap: $space-6;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+  margin-bottom: $space-4;
+}
+
+.note {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+  max-width: 65ch;
+}
+
+.subhead {
+  margin: 0 0 $space-3;
+  font-size: 1.125rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.stageList {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stageRow {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: grid;
+  gap: $space-1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.input {
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  font: inherit;
+  font-weight: 400;
+  color: $color-charcoal;
+  background: $color-canvas;
+}
+
+.stageId {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+.ok {
+  margin: 0;
+  color: $color-success;
+}

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
-import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
 import {
   RankedBarChart,
   DonutChart,
@@ -31,29 +30,11 @@ interface Vendor {
 }
 
 /**
- * R5.5 — admin views consuming the Phase 5 routers (providers, vendors,
- * finance metrics/ledger, sales report) plus the email queue tab (R5.2).
+ * R5.5 admin views (providers, vendors, finance metrics, sales report,
+ * assignment). Each is mounted on its own /dashboard route by W6; they fetch
+ * only when their route or tab is first opened.
  */
-export default function AdminViews() {
-  const tabs: TabItem[] = [
-    { id: "providers", label: "Providers", content: <ProvidersList /> },
-    { id: "vendors", label: "Vendors", content: <VendorsList /> },
-    { id: "finance", label: "Finance", content: <FinanceView /> },
-    { id: "sales", label: "Sales report", content: <SalesView /> },
-    { id: "emails", label: "Emails", content: <EmailsList /> },
-    { id: "assignment", label: "Assignment", content: <AssignmentView /> },
-  ];
-
-  return (
-    <section className={styles.wrap}>
-      <div className={styles.panel}>
-        <AnimatedTabs tabs={tabs} defaultTab="providers" />
-      </div>
-    </section>
-  );
-}
-
-function ProvidersList() {
+export function ProvidersList() {
   const [rows, setRows] = useState<Provider[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,7 +72,7 @@ function ProvidersList() {
   );
 }
 
-function VendorsList() {
+export function VendorsList() {
   const [rows, setRows] = useState<Vendor[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -175,7 +156,7 @@ const money = (v: number) =>
     maximumFractionDigits: 0,
   }).format(v);
 
-function FinanceView() {
+export function FinanceView() {
   const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -287,7 +268,7 @@ function FinanceView() {
   );
 }
 
-function SalesView() {
+export function SalesView() {
   const [rows, setRows] = useState<Array<Record<string, unknown>> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -341,13 +322,6 @@ function SalesView() {
   );
 }
 
-function EmailsList() {
-  return (
-    <p className={styles.muted}>
-      Email queue management lives in the Emails tab of the client detail panel.
-    </p>
-  );
-}
 
 interface AssignmentProvider {
   id: string;
@@ -374,7 +348,7 @@ interface AssignmentQueue {
   unassignedCount: number;
 }
 
-function AssignmentView() {
+export function AssignmentView() {
   const [queue, setQueue] = useState<AssignmentQueue | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

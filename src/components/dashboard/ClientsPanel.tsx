@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
-import AnimatedTabs, { type TabItem } from "@/components/AnimatedTabs";
+import { Tabs, type TabItem } from "@/components/ui";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -71,7 +71,7 @@ export default function ClientsPanel() {
     pageSize: 20,
   });
 
-  if (error) return <p className={styles.empty} style={{ color: "#c0392b" }}>{error}</p>;
+  if (error) return <p className={styles.error} role="alert">{error}</p>;
   if (clients === null) return <p className={styles.empty}>Loading clients…</p>;
 
   const c = selected;
@@ -177,7 +177,7 @@ export default function ClientsPanel() {
               <span className={styles.stageBadge}>{stageLabel(c.stage)}</span>
             </div>
 
-            <AnimatedTabs tabs={detailTabs} defaultTab="overview" />
+            <Tabs key={c.id} tabs={detailTabs} label="Client details" />
           </>
         )}
       </div>

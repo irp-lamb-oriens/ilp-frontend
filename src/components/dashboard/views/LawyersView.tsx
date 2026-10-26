@@ -1,0 +1,69 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { staffApi } from "@/lib/api";
+import { DataTable, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
+import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
+import { PageHeader, ErrorText } from "../staff/PageHeader";
+import type { LawyerCapacity } from "../staff/types";
+import s from "./views.module.scss";
+
+/** Lawyer capacity first, then the existing provider list and assignment queue. */
+export default function LawyersView() {
+  const tabs: TabItem[] = [
+    { id: "capacity", label: "Capacity", content: () => <Capacity /> },
+    { id: "assignment", label: "Assignment", content: () => <AssignmentView /> },
+    { id: "directory", label: "Directory", content: () => <ProvidersList /> },
+  ];
+  return (
+    <>
+      <PageHeader title="Lawyers" sub="Who has room for the next member, and who is carrying aging matters." />
+      <Tabs tabs={tabs} label="Lawyer views" />
+    </>
+  );
+}
+
+function Capacity() {
+  const [data, setData] = useState<{ items: LawyerCapacity[]; unassignedMatters: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    staffApi
+      .get<{ items: LawyerCapacity[]; unassignedMatters: number }>("/api/dashboard/staff/lawyers")
+      .then(setData)
+      .catch((e) => setError(e instanceof Error ? e.message : "Capacity could not be loaded."));
+  }, []);
+
+  const columns: Column<LawyerCapacity>[] = [
+    { key: "name", header: "Lawyer", render: (l) => l.name, sortValue: (l) => l.name, width: "wide" },
+    { key: "areas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "—", hideOnMobile: true },
+    { key: "open", header: "Open matters", render: (l) => l.openMatters, sortValue: (l) => l.openMatters, align: "end" },
+    {
+      key: "aging",
+      header: "14+ days in stage",
+      render: (l) => (l.agingMatters > 0 ? <StatusPill size="sm" tone="warning" label={`${l.agingMatters} aging`} /> : "None"),
+      sortValue: (l) => l.agingMatters,
+    },
+    { key: "calls", header: "Calls next 7 days", render: (l) => l.callsNext7d, sortValue: (l) => l.callsNext7d, align: "end" },
+  ];
+
+  if (error) return <ErrorText>{error}</ErrorText>;
+  return (
+    <div className={s.stack}>
+      {data && data.unassignedMatters > 0 && (
+        <p className={s.note}>
+          {data.unassignedMatters} open matter{data.unassignedMatters === 1 ? "" : "s"} without a lawyer. Assign from the Assignment tab or the member page.
+        </p>
+      )}
+      <DataTable
+        caption="Lawyer capacity"
+        columns={columns}
+        rows={data?.items ?? []}
+        rowKey={(l) => l.id}
+        loading={data === null}
+        defaultSort={{ key: "open", dir: "desc" }}
+        empty="No active lawyers."
+      />
+    </div>
+  );
+}
