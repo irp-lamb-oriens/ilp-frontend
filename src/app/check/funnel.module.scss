@@ -354,7 +354,11 @@
 .fine {
   margin-top: $space-8;
   font-size: 0.9375rem;
-  color: $color-muted;
+  color: $color-steel; // AA on white (muted is below 4.5:1)
+
+  & + & {
+    margin-top: $space-2;
+  }
 }
 
 // ── Join ──────────────────────────────────────────────────────────────────

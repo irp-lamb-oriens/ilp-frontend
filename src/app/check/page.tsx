@@ -5,6 +5,7 @@ import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import FunnelHeader from "./FunnelHeader";
+import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
 import {
   type CheckAnswers,
   type CheckFinding,
@@ -330,8 +331,10 @@ export default function CheckPage() {
               </button>
             </div>
             <p className={s.fine}>
-              ILP is a membership service that connects you with vetted, independent Costa Rica lawyers. This check
-              is general information and not legal advice.
+              {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
+            </p>
+            <p className={s.fine}>
+              ILP is a membership service that connects you with vetted, independent Costa Rica lawyers.
             </p>
           </motion.section>
         </main>
