@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, EmptyState, StatusPill } from "@/components/ui";
+import { Button, EmptyState, Select, StatusPill } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MemberDocument } from "./api";
 import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
@@ -81,31 +81,30 @@ export default function DocumentsPanel() {
       <div className={s.form}>
         {home.matters.length > 1 && (
           <div className={s.field}>
-            <label htmlFor="doc-matter" className={s.label}>
-              Which matter is it for?
-            </label>
-            <select id="doc-matter" className={s.input} value={matterId} onChange={(e) => setMatterId(e.target.value)}>
+            <Select label="Which matter is it for?" id="doc-matter" value={matterId} onChange={(e) => setMatterId(e.target.value)}>
               <option value="">General (not one matter)</option>
               {home.matters.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.title}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         )}
         <div className={s.field}>
-          <label htmlFor="doc-category" className={s.label}>
-            What kind of document is it?
-          </label>
-          <select id="doc-category" className={s.input} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <Select
+            label="What kind of document is it?"
+            id="doc-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
             <option value="">Choose…</option>
             {categories.map((c) => (
               <option key={c} value={c}>
                 {CATEGORY_LABEL[c] ?? c}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className={s.field}>
           <label htmlFor="doc-file" className={s.label}>

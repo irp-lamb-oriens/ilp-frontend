@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui";
+import { Button, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { feedbackApi } from "./feedbackApi";
 import ScoreScale from "./ScoreScale";
@@ -95,10 +95,14 @@ export default function MonthlyFeedback() {
           <p className={s.body}>Thank you for telling us more.</p>
         ) : (
           <div className={s.field}>
-            <label htmlFor="nps-comment" className={s.label}>
-              What is the main reason for your answer? (optional)
-            </label>
-            <textarea id="nps-comment" className={s.textarea} rows={4} maxLength={1000} value={comment} onChange={(e) => setComment(e.target.value)} />
+            <TextArea
+              label="What is the main reason for your answer? (optional)"
+              id="nps-comment"
+              rows={4}
+              maxLength={1000}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
             <div>
               <Button variant="secondary" onClick={() => save(true)} busy={busy} disabled={!comment.trim()}>
                 Send

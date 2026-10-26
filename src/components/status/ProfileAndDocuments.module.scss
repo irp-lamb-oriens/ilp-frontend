@@ -102,24 +102,6 @@
   padding: 0;
 }
 
-.input {
-  @include touch-target;
-  @include focus-ring;
-  width: 100%;
-  padding: 0 $space-3;
-  font: inherit;
-  font-size: 1.125rem;
-  color: $color-charcoal;
-  background: $color-canvas;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-md;
-
-  &[readonly] {
-    background: $color-neutral-soft;
-    color: $color-steel;
-  }
-}
-
 .hint {
   margin: 0;
   font-size: 0.9375rem;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { feedbackApi, type PendingCall } from "./feedbackApi";
 import { dateLong } from "./format";
@@ -75,10 +75,14 @@ export default function PostCallRating() {
       </h2>
       <ScoreScale min={1} max={5} value={score} onChange={setScore} label="Your rating" lowLabel="poor" highLabel="excellent" name="call-score" />
       <div className={s.field}>
-        <label htmlFor="rate-comment" className={s.label}>
-          Anything to add? (optional)
-        </label>
-        <textarea id="rate-comment" className={s.textarea} rows={3} maxLength={1000} value={comment} onChange={(e) => setComment(e.target.value)} />
+        <TextArea
+          label="Anything to add? (optional)"
+          id="rate-comment"
+          rows={3}
+          maxLength={1000}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+        />
       </div>
       {error && (
         <p className={s.err} role="alert">

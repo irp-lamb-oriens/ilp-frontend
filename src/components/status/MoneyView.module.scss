@@ -148,33 +148,6 @@
   font-weight: 600;
 }
 
-.input {
-  @include touch-target;
-  @include focus-ring;
-  width: 100%;
-  padding: 0 $space-3;
-  font: inherit;
-  font-size: 1.125rem;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-md;
-}
-
-.check {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  min-height: $touch-target;
-  font-size: 1rem;
-  cursor: pointer;
-
-  input {
-    width: 1.25rem;
-    height: 1.25rem;
-    accent-color: $color-navy;
-    flex: none;
-  }
-}
-
 .err {
   margin: 0;
   color: $color-error;

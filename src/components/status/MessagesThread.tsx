@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, EmptyState } from "@/components/ui";
+import { Button, EmptyState, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type ThreadItem } from "./api";
 import { isLegalTopic } from "./messageRules";
@@ -70,12 +70,9 @@ export default function MessagesThread() {
       </div>
 
       <div className={s.composer}>
-        <label htmlFor="msg-body" className={s.label}>
-          Your message
-        </label>
-        <textarea
+        <TextArea
+          label="Your message"
           id="msg-body"
-          className={s.textarea}
           rows={3}
           maxLength={4000}
           value={text}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, ButtonLink, EmptyState } from "@/components/ui";
+import { Button, ButtonLink, EmptyState, RadioGroup, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { membershipApi, type MembershipBillingView } from "./membershipApi";
 import { useMember } from "./MemberContext";
@@ -108,23 +108,20 @@ export default function CancelMembership() {
         </ul>
       </section>
 
-      <fieldset className={s.reasons}>
-        <legend className={s.sub}>Why are you leaving? (optional)</legend>
-        {reasons.map(([value, label]) => (
-          <label key={value} className={s.radio}>
-            <input type="radio" name="reason" value={value} checked={reason === value} onChange={() => setReason(value)} />
-            {label}
-          </label>
-        ))}
-      </fieldset>
+      <RadioGroup
+        className={s.reasons}
+        label="Why are you leaving?"
+        optional
+        name="reason"
+        value={reason}
+        onChange={setReason}
+        options={reasons.map(([value, label]) => ({ value, label }))}
+      />
 
       <div className={s.field}>
-        <label htmlFor="cancel-comment" className={s.label}>
-          Anything you would like us to know (optional)
-        </label>
-        <textarea
+        <TextArea
+          label="Anything you would like us to know (optional)"
           id="cancel-comment"
-          className={s.textarea}
           rows={4}
           maxLength={1000}
           value={comment}

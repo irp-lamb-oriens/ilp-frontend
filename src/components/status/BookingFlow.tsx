@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, ButtonLink, EmptyState } from "@/components/ui";
+import { Button, ButtonLink, EmptyState, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { memberApi, type SlotsPayload } from "./api";
@@ -115,12 +115,9 @@ export default function BookingFlow() {
         <h2 className={s.stepTitle} id="q-title">
           1. What would you like to ask?
         </h2>
-        <label htmlFor="booking-question" className={s.label}>
-          Your question{matter ? ` about ${matter.title}` : ""}
-        </label>
-        <textarea
+        <TextArea
+          label={<>Your question{matter ? ` about ${matter.title}` : ""}</>}
           id="booking-question"
-          className={s.textarea}
           rows={4}
           maxLength={1000}
           value={question}

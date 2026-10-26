@@ -57,41 +57,9 @@
   gap: $space-1;
 }
 
-.radio {
-  display: flex;
-  align-items: center;
-  gap: $space-3;
-  min-height: $touch-target;
-  font-size: 1rem;
-  cursor: pointer;
-
-  input {
-    width: 1.25rem;
-    height: 1.25rem;
-    accent-color: $color-navy;
-    flex: none;
-  }
-}
-
 .field {
   display: grid;
   gap: $space-2;
-}
-
-.label {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.textarea {
-  @include focus-ring;
-  width: 100%;
-  padding: $space-3;
-  font: inherit;
-  font-size: 1.0625rem;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-md;
-  resize: vertical;
 }
 
 .actions {

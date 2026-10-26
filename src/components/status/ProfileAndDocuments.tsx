@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, ProgressBar, StatusPill } from "@/components/ui";
+import { Button, DateInput, ProgressBar, Select, StatusPill, TextInput } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import type { ProfileSection } from "@/lib/contracts";
 import { memberApi } from "./api";
@@ -124,36 +124,42 @@ function SectionForm({ section }: { section: ProfileSection }) {
                   </div>
                 </fieldset>
               ) : (
-                <>
-                  <label htmlFor={id} className={s.label}>
-                    {meta.label}
-                  </label>
-                  {meta.kind === "select" ? (
-                    <select id={id} className={s.input} value={v} onChange={(e) => set(e.target.value)}>
-                      <option value="">Choose…</option>
-                      {meta.options?.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                      {v && !meta.options?.some((o) => o.value === v) && <option value={v}>{v}</option>}
-                    </select>
-                  ) : (
-                    <input
-                      id={id}
-                      className={s.input}
-                      type={meta.kind === "number" ? "number" : meta.kind}
-                      inputMode={meta.kind === "number" ? "numeric" : undefined}
-                      min={meta.kind === "number" ? 0 : undefined}
-                      value={v}
-                      readOnly={meta.readOnly}
-                      onChange={(e) => set(e.target.value)}
-                      autoComplete={k === "fullName" ? "name" : k === "phone" ? "tel" : k === "dateOfBirth" ? "bday" : undefined}
-                    />
-                  )}
-                </>
+                meta.kind === "select" ? (
+                  <Select id={id} label={meta.label} hint={meta.hint} value={v} onChange={(e) => set(e.target.value)}>
+                    <option value="">Choose…</option>
+                    {meta.options?.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                    {v && !meta.options?.some((o) => o.value === v) && <option value={v}>{v}</option>}
+                  </Select>
+                ) : meta.kind === "date" ? (
+                  <DateInput
+                    id={id}
+                    label={meta.label}
+                    hint={meta.hint}
+                    value={v}
+                    readOnly={meta.readOnly}
+                    onChange={(e) => set(e.target.value)}
+                    autoComplete={k === "dateOfBirth" ? "bday" : undefined}
+                  />
+                ) : (
+                  <TextInput
+                    id={id}
+                    label={meta.label}
+                    hint={meta.hint}
+                    type={meta.kind === "number" ? "number" : meta.kind}
+                    inputMode={meta.kind === "number" ? "numeric" : undefined}
+                    min={meta.kind === "number" ? 0 : undefined}
+                    value={v}
+                    readOnly={meta.readOnly}
+                    onChange={(e) => set(e.target.value)}
+                    autoComplete={k === "fullName" ? "name" : k === "phone" ? "tel" : undefined}
+                  />
+                )
               )}
-              {meta.hint && <p className={s.hint}>{meta.hint}</p>}
+              {meta.kind === "yesno" && meta.hint && <p className={s.hint}>{meta.hint}</p>}
             </div>
           );
         })}

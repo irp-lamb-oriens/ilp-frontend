@@ -37,25 +37,6 @@
   color: $color-steel;
 }
 
-.label {
-  display: block;
-  margin-bottom: $space-2;
-  font-size: 1rem;
-  color: $color-steel;
-}
-
-.textarea {
-  width: 100%;
-  padding: $space-3;
-  font: inherit;
-  font-size: 1.125rem;
-  color: $color-charcoal;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-md;
-  resize: vertical;
-  @include focus-ring;
-}
-
 .pending {
   margin-top: $space-3;
   padding: $space-3 $space-4;

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, EmptyState, StatusPill } from "@/components/ui";
+import { Button, Checkbox, EmptyState, StatusPill, TextInput } from "@/components/ui";
 import type { StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MoneyPayload, type QuoteView } from "./api";
@@ -166,20 +166,18 @@ function QuoteCard({ quote, onAccepted }: { quote: QuoteView; onAccepted: (d: Mo
         </div>
       ) : (
         <div className={s.acceptForm}>
-          <label htmlFor={`qname-${quote.id}`} className={s.label}>
-            Type your full name to accept
-          </label>
-          <input
+          <TextInput
             id={`qname-${quote.id}`}
-            className={s.input}
+            label="Type your full name to accept"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
           />
-          <label className={s.check}>
-            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />I agree to this proposal for{" "}
-            {money(quote.totalCents, quote.currency)}.
-          </label>
+          <Checkbox
+            label={<>I agree to this proposal for {money(quote.totalCents, quote.currency)}.</>}
+            checked={agree}
+            onChange={(e) => setAgree(e.target.checked)}
+          />
           {error && (
             <p className={s.err} role="alert">
               {error}
