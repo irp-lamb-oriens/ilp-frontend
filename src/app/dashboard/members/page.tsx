@@ -1,5 +1,10 @@
-import { PageHeader } from "@/components/dashboard/staff/PageHeader";
+import { Suspense } from "react";
+import MembersList from "@/components/dashboard/members/MembersList";
 
 export default function MembersPage() {
-  return <PageHeader title="Members" />;
+  return (
+    <Suspense fallback={null}>
+      <MembersList />
+    </Suspense>
+  );
 }
