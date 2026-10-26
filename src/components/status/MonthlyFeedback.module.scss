@@ -1,0 +1,56 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-6;
+  max-width: 44rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.body {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.field {
+  display: grid;
+  gap: $space-2;
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.textarea {
+  @include focus-ring;
+  width: 100%;
+  padding: $space-3;
+  font: inherit;
+  font-size: 1.0625rem;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  resize: vertical;
+}
+
+.back {
+  @include focus-ring;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+}
+
+.err {
+  margin: 0;
+  color: $color-error;
+}

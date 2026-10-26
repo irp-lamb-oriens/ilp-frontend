@@ -8,6 +8,7 @@ import Obligations from "./Obligations";
 import UpcomingCalls from "./UpcomingCalls";
 import WelcomeBanner from "./WelcomeBanner";
 import NotificationOptIn from "./NotificationOptIn";
+import PostCallRating from "./PostCallRating";
 import s from "./Overview.module.scss";
 
 /**
@@ -25,6 +26,7 @@ export default function Overview() {
           <p className={s.hello}>Hello{home.member.firstName ? `, ${home.member.firstName}` : ""}.</p>
         )}
         <NextStepCard />
+        <PostCallRating />
       </div>
       <div className={s.rail}>
         <MembershipCard />

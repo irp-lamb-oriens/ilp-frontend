@@ -1,0 +1,79 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.set {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.legend {
+  margin: 0 0 $space-2;
+  padding: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.row,
+.wide {
+  display: grid;
+  gap: $space-2;
+}
+
+.row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: 24rem;
+}
+
+.wide {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  @include md {
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+  }
+}
+
+.choice {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: $touch-target;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  background: $color-canvas;
+  color: $color-navy;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &:focus-within {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.on {
+  background: $color-accent;
+  border-color: $color-accent;
+  color: $color-accent-ink;
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.ends {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: $space-3;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}
