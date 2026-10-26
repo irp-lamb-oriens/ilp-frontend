@@ -19,6 +19,11 @@ export interface HandoffReviewProps {
   onChanged?: (what: "task" | "quote") => void;
 }
 
+/** Same id as the server's opportunityIdForHandoff (API/opportunities/logic.ts). */
+function opportunityIdForHandoff(handoffId: string): string {
+  return `opp_hof_${handoffId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 200);
+}
+
 /**
  * Handoff review for the CSM: the lawyer's next steps are read-only (they are
  * the lawyer's judgment and already visible to the member); commercial notes
@@ -53,13 +58,25 @@ export function HandoffReview({ handoff, consultation, lawyerName, proposalTask,
     setError(null);
     try {
       const first = handoff.legalNextSteps[0]?.what ?? "Legal work";
-      await staffApi.post(`/api/dashboard/clients/${encodeURIComponent(handoff.clientId)}/quotes`, {
+      const created = await staffApi.post<{ quote?: { id?: string } }>(`/api/dashboard/clients/${encodeURIComponent(handoff.clientId)}/quotes`, {
         title: `Proposal: ${first}`.slice(0, 120),
         notes: handoff.commercialNotes ?? null,
         status: "draft",
         clientDescription: handoff.legalNextSteps.map((x) => x.what).join("; "),
       });
-      setDone("Draft quote created. Price it in the client CRM (Pipeline), then send it for approval.");
+      // P5/P7: link the draft to the handoff's opportunity (opp_hof_<handoffId>), which
+      // moves it to quoted. No opportunity (no commercial notes yet) is fine.
+      let linked = false;
+      const quoteId = created?.quote?.id;
+      if (quoteId && handoff.commercialNotes) {
+        linked = await staffApi
+          .post(`/api/dashboard/opportunities/${opportunityIdForHandoff(handoff.id)}/quote`, { quoteId })
+          .then(() => true)
+          .catch(() => false);
+      }
+      setDone(
+        `Draft quote created${linked ? " and linked to the opportunity" : ""}. Price it in the client CRM (Pipeline), then send it for approval.`,
+      );
       onChanged?.("quote");
     } catch (e) {
       setError(e instanceof Error ? e.message : "The quote could not be created.");
