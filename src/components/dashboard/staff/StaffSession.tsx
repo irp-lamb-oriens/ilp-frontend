@@ -36,6 +36,7 @@ export function staffNav(role: StaffRole): NavItem[] {
     { href: "/dashboard", label: "Today", icon: "◷", match: "exact" },
     { href: "/dashboard/members", label: "Members", icon: "☰" },
     { href: "/dashboard/pipeline", label: "Pipeline", icon: "▦" },
+    { href: "/dashboard/opportunities", label: "Opportunities", icon: "◇" },
     { href: "/dashboard/lawyers", label: "Lawyers", icon: "§" },
     { href: "/dashboard/finance", label: "Finance", icon: "$", admin: true },
     { href: "/dashboard/reports", label: "Reports", icon: "▤" },
