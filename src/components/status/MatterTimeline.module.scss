@@ -1,0 +1,103 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  @include card;
+  padding: $space-6 $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.head {
+  margin-bottom: $space-4;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.meta {
+  margin: $space-1 0 0;
+  font-size: 1rem;
+  color: $color-steel;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: $space-3;
+  padding: $space-3 0;
+  position: relative;
+}
+
+.marker {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: $radius-pill;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid $color-hairline-strong;
+  color: $color-steel;
+  background: $color-canvas;
+}
+
+.done .marker {
+  background: $color-success-soft;
+  border-color: transparent;
+  color: $color-success;
+}
+
+.now .marker {
+  background: $color-accent;
+  border-color: transparent;
+  color: $color-accent-ink;
+}
+
+.label {
+  margin: 0;
+  line-height: 2rem;
+  color: $color-charcoal;
+}
+
+.later .label {
+  color: $color-steel;
+}
+
+.now .label {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.pill {
+  margin-left: $space-2;
+  vertical-align: middle;
+}
+
+.desc {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.since {
+  margin: $space-1 0 0;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}
+
+.srOnly {
+  @include visually-hidden;
+}

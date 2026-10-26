@@ -51,7 +51,7 @@ export default function NotificationOptIn() {
 
   return (
     <div className={s.banner} role="status">
-      <p className={s.text}>Get browser reminders before each legal deadline.</p>
+      <p className={s.text}>Get a reminder on this device before each date on your list.</p>
       <button
         type="button"
         className={s.enable}

@@ -1,0 +1,33 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  display: grid;
+  gap: $space-1;
+  min-width: 0;
+  width: 100%;
+
+  @include md {
+    width: auto;
+    min-width: 18rem;
+  }
+}
+
+.label {
+  font-size: 0.875rem;
+  color: $color-steel;
+}
+
+.select {
+  @include touch-target;
+  width: 100%;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 1rem;
+  color: $color-charcoal;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+
+  @include focus-ring;
+}

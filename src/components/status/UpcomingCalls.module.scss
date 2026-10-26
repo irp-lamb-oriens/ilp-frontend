@@ -1,0 +1,55 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  @include card;
+  padding: $space-6 $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.title {
+  margin: 0 0 $space-3;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-4;
+}
+
+.item + .item {
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+}
+
+.when {
+  margin: 0;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.rel {
+  font-weight: 400;
+  color: $color-steel;
+}
+
+.meta {
+  margin: $space-1 0 0;
+  font-size: 1rem;
+  color: $color-steel;
+}
+
+.question {
+  margin: $space-2 0 0;
+  padding-left: $space-3;
+  border-left: 2px solid $color-hairline-strong;
+  font-size: 1rem;
+}

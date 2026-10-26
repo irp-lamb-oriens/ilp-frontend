@@ -1,0 +1,105 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.card {
+  @include card;
+  padding: $space-6 $space-4;
+  border-color: $color-hairline-strong;
+  border-top: 4px solid $color-accent;
+
+  @include md {
+    padding: $space-8;
+  }
+}
+
+.kicker {
+  margin: 0 0 $space-2;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.what {
+  margin: 0 0 $space-4;
+  font-size: clamp(1.375rem, 4.6vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: $color-navy;
+  font-weight: 600;
+  max-width: 34ch;
+}
+
+.facts {
+  display: grid;
+  gap: $space-2;
+  margin: 0 0 $space-6;
+
+  @include md {
+    grid-template-columns: auto 1fr;
+    column-gap: $space-8;
+  }
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: $space-2;
+  align-items: baseline;
+
+  dt {
+    color: $color-steel;
+    font-size: 1rem;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-charcoal;
+    font-weight: 600;
+  }
+}
+
+.rel {
+  font-weight: 400;
+  color: $color-steel;
+}
+
+.pill {
+  margin-left: $space-2;
+  vertical-align: middle;
+}
+
+.cta {
+  @include md {
+    width: auto;
+  }
+}
+
+.more {
+  margin-top: $space-6;
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+}
+
+.moreTitle {
+  margin: 0 0 $space-2;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.moreList {
+  margin: 0;
+  padding-left: $space-6;
+  display: grid;
+  gap: $space-2;
+}
+
+.moreMeta {
+  color: $color-steel;
+}
+
+.origin {
+  margin: $space-4 0 0;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}

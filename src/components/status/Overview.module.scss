@@ -1,0 +1,45 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.grid {
+  display: grid;
+  gap: $space-4;
+  grid-template-areas:
+    "lead"
+    "rail"
+    "main";
+
+  @include lg {
+    gap: $space-6;
+    grid-template-columns: minmax(0, 1.7fr) minmax(18rem, 1fr);
+    grid-template-areas:
+      "lead rail"
+      "main rail";
+    align-items: start;
+  }
+}
+
+.lead {
+  grid-area: lead;
+  display: grid;
+  gap: $space-3;
+}
+
+.rail {
+  grid-area: rail;
+  display: grid;
+  gap: $space-4;
+  align-content: start;
+}
+
+.main {
+  grid-area: main;
+  display: grid;
+  gap: $space-4;
+}
+
+.hello {
+  margin: 0;
+  font-size: 1.125rem;
+  color: $color-steel;
+}

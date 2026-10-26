@@ -1,0 +1,23 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Client portal base type: 18px, calm line height (W4 brief, rules.md 3).
+.root {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: $color-charcoal;
+}
+
+.center {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: $space-4;
+  background: $color-mist;
+}
+
+.loading {
+  font-size: 1.125rem;
+  color: $color-steel;
+}
+
