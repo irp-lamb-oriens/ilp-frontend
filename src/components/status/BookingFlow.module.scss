@@ -1,0 +1,165 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-4;
+  max-width: 44rem;
+}
+
+.lead {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.step,
+.summary {
+  @include card;
+  min-width: 0;
+  padding: $space-6 $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.stepTitle {
+  margin: 0 0 $space-3;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.tz {
+  font-size: 1rem;
+  font-weight: 400;
+  color: $color-steel;
+}
+
+.label {
+  display: block;
+  margin-bottom: $space-2;
+  font-size: 1rem;
+  color: $color-steel;
+}
+
+.textarea {
+  width: 100%;
+  padding: $space-3;
+  font: inherit;
+  font-size: 1.125rem;
+  color: $color-charcoal;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  resize: vertical;
+  @include focus-ring;
+}
+
+.pending {
+  margin-top: $space-3;
+  padding: $space-3 $space-4;
+  background: $color-mist;
+  border-radius: $radius-md;
+}
+
+.pendingTitle {
+  margin: 0 0 $space-1;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.pendingList {
+  margin: 0;
+  padding-left: $space-6;
+  font-size: 1rem;
+}
+
+.lawyer {
+  margin: 0 0 $space-3;
+  color: $color-steel;
+}
+
+.days {
+  display: flex;
+  gap: $space-2;
+  overflow-x: auto;
+  padding-bottom: $space-2;
+  margin-bottom: $space-3;
+  scrollbar-width: thin;
+}
+
+.times {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-2;
+
+  @include md {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.day,
+.time {
+  @include touch-target;
+  @include focus-ring;
+  @include press;
+  flex: 0 0 auto;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 1rem;
+  color: $color-navy;
+  background: $color-canvas;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.selected {
+  background: $color-accent;
+  border-color: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+}
+
+.uses {
+  margin: 0 0 $space-3;
+}
+
+.chosen {
+  margin: 0 0 $space-4;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+}
+
+.error {
+  margin: 0 0 $space-3;
+  color: $color-error;
+  font-size: 1rem;
+}
+
+.done {
+  @include card;
+  padding: $space-8 $space-4;
+  max-width: 40rem;
+
+  @include md {
+    padding: $space-8;
+  }
+}
+
+.doneTitle {
+  @include heading-lg;
+  margin: 0 0 $space-3;
+}
+
+.doneBody {
+  margin: 0 0 $space-6;
+  max-width: 60ch;
+}
