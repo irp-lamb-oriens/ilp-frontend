@@ -93,7 +93,7 @@ export function joinStatus(token: string) {
 }
 
 export function portalSession(token: string) {
-  return call<{ token?: string; loginRequired?: boolean; projectId: string; email: string }>(
+  return call<{ token?: string; loginRequired?: boolean; projectId: string; email: string; expiresAt?: string }>(
     `/api/payments/join/${encodeURIComponent(token)}/portal-session`,
     { method: "POST" },
   );
