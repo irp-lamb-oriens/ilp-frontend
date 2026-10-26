@@ -1,0 +1,35 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-6;
+}
+
+// Asymmetric: the paid figure takes the wide column (no three equal cards).
+.tiles {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: $space-4;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.h {
+  margin: 0 0 $space-3;
+  font-size: 1.125rem;
+  color: $color-navy;
+}
+
+.strong {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+}
