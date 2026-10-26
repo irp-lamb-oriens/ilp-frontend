@@ -34,6 +34,10 @@ interface RoleConfig {
   format: (token: string) => string;
   /** Where a 401 sends the user. */
   loginPath: string;
+  /** HttpOnly session cookie set by verify-otp (W1). Read by the server only. */
+  cookieName?: string;
+  /** Server route that clears the session cookie. */
+  logoutPath?: string;
 }
 
 export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
@@ -42,18 +46,24 @@ export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
     header: "x-dashboard-token",
     format: (t) => t,
     loginPath: "/dashboard",
+    cookieName: "ilp_staff_session",
+    logoutPath: "/api/dashboard/auth/logout",
   },
   lawyer: {
     tokenKey: "ilp_provider_token",
     header: "x-provider-token",
     format: (t) => t,
     loginPath: "/lawyer",
+    cookieName: "ilp_lawyer_session",
+    logoutPath: "/api/provider/auth/logout",
   },
   client: {
     tokenKey: "ilp_client_token",
     header: "x-client-token",
     format: (t) => t,
     loginPath: "/status",
+    cookieName: "ilp_client_session",
+    logoutPath: "/api/client-status/auth/logout",
   },
   customer: {
     tokenKey: "ilp_token",
@@ -88,6 +98,8 @@ export interface ApiClient {
   put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   del<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
+  /** Ends the session: server logout (clears the cookie), then the legacy token. Never throws. */
+  logout(): Promise<void>;
 }
 
 function storage(): Storage | null {
@@ -193,6 +205,16 @@ export function createApiClient(role: ApiRole): ApiClient {
     put: (path, body, options) => client.request(path, { ...options, method: "PUT", body }),
     patch: (path, body, options) => client.request(path, { ...options, method: "PATCH", body }),
     del: (path, options) => client.request(path, { ...options, method: "DELETE" }),
+
+    async logout() {
+      try {
+        if (cfg.logoutPath) await client.request(cfg.logoutPath, { method: "POST", on401: "throw" });
+      } catch {
+        // already signed out or offline: clearing the local token is enough
+      } finally {
+        client.clearToken();
+      }
+    },
   };
 
   return client;

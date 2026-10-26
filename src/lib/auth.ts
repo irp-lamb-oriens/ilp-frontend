@@ -61,7 +61,8 @@ export function clearToken(): void {
 // Staff, lawyer and client portals each keep their own session. During the
 // cookie transition a session is "present" when its legacy header token is
 // in localStorage; once W1's HttpOnly cookies land, the server is the only
-// judge and these helpers just clear the legacy token.
+// judge. Cookie names (W1): ilp_staff_session, ilp_lawyer_session,
+// ilp_client_session; use createApiClient(role).logout() to end a session.
 
 export type PortalRole = Exclude<ApiRole, "customer">;
 

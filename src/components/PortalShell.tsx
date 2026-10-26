@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { RoleShell, type NavItem, type ShellRole } from "@/components/shell";
 import { clearToken, getUser } from "@/lib/auth";
-import { clearClientToken, getClientToken } from "@/lib/status";
+import { clientApi, getClientToken } from "@/lib/status";
 import s from "./PortalShell.module.scss";
 
 const NAV: NavItem[] = [
@@ -78,8 +78,8 @@ export default function PortalShell({
       user={{ email: session.email ?? "Member" }}
       showCountry={false}
       homeHref="/app/profile"
-      onLogout={() => {
-        clearClientToken();
+      onLogout={async () => {
+        await clientApi.logout();
         clearToken();
         router.push("/status");
       }}
