@@ -1,0 +1,162 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-4;
+  max-width: 760px;
+}
+
+.head {
+  display: grid;
+  gap: $space-2;
+}
+
+.h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: $color-navy;
+}
+
+.lead,
+.text {
+  margin: 0;
+  color: $color-charcoal;
+  line-height: 1.6;
+  max-width: 65ch;
+
+  a {
+    color: $color-navy;
+    font-weight: 600;
+  }
+
+  a:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.card {
+  @include card;
+  display: grid;
+  gap: $space-3;
+  padding: $space-6 $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.linkButton {
+  @include button-primary;
+  min-height: 44px;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.choice {
+  display: grid;
+  gap: $space-3;
+  padding-top: $space-3;
+  border-top: 1px solid $color-hairline;
+
+  @include md {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: $space-6;
+  }
+}
+
+.choiceName {
+  margin: 0 0 $space-1;
+  font-size: 1.05rem;
+  color: $color-navy;
+}
+
+.form {
+  display: grid;
+  gap: $space-2;
+}
+
+.label {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 6rem;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  font: inherit;
+  color: $color-charcoal;
+  background: $color-canvas;
+  resize: vertical;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.confirm {
+  display: grid;
+  gap: $space-3;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.requests {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.request {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2 $space-3;
+  padding-block: $space-3;
+  border-top: 1px solid $color-hairline;
+}
+
+.reqName {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.reqMeta {
+  color: $color-steel;
+  font-size: 0.95rem;
+  flex-basis: 100%;
+}
+
+.ok {
+  margin: 0;
+  color: $color-success;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+}
