@@ -11,7 +11,7 @@ import { useLawyers } from "../staff/useLawyers";
 import { TaskDrawer } from "../today/TaskDrawer";
 import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
 import { MemberOpportunities } from "../opportunities/MemberOpportunities";
-import { CallsPanel, type StaffCall } from "./CallsPanel";
+import { CallsPanel } from "./CallsPanel";
 import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
 import { NextActions } from "./NextActions";
@@ -217,7 +217,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
             onOpenTask={(t) => setTask({ ...t, memberName: name, membershipStatus: m?.status ?? null })}
             onChanged={load}
           />
-          <CallsPanel calls={bundle.consultations as StaffCall[]} lawyerName={nameOf} onChanged={load} />
+          <CallsPanel calls={bundle.consultations} lawyerName={nameOf} onChanged={load} />
           <MemberOpportunities bundle={bundle} />
         </div>
       </div>

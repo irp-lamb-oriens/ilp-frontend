@@ -13,12 +13,6 @@ import s from "./member.module.scss";
  *   POST /api/dashboard/consultations/:id/{cancel,reschedule,restore-call,retry-calendar}
  */
 
-/** P3 fields not (yet) in contracts.ts. */
-export type StaffCall = Consultation & {
-  calendarError?: string | null;
-  chargedAt?: string;
-  restoredAt?: string;
-};
 
 const STATUS: Record<Consultation["status"], { label: string; tone: StatusTone }> = {
   booked: { label: "Booked", tone: "info" },
@@ -46,7 +40,7 @@ export function CallsPanel({
   lawyerName,
   onChanged,
 }: {
-  calls: StaffCall[];
+  calls: Consultation[];
   lawyerName: (providerId: string) => string;
   onChanged: () => void;
 }) {
@@ -74,7 +68,7 @@ export function CallsPanel({
 
 type Mode = null | "cancel" | "reschedule";
 
-function CallItem({ call: c, lawyer, onChanged }: { call: StaffCall; lawyer: string; onChanged: () => void }) {
+function CallItem({ call: c, lawyer, onChanged }: { call: Consultation; lawyer: string; onChanged: () => void }) {
   const [mode, setMode] = useState<Mode>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

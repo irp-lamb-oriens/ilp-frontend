@@ -7,24 +7,17 @@
  */
 
 import { providerApi } from "@/lib/provider";
-import type { LegalNextStep, WeeklyWindow } from "@/lib/contracts";
+import type { LawyerAvailability, LegalNextStep, WeeklyWindow } from "@/lib/contracts";
 import { USING_MOCKS } from "./lawyerApi";
 
 export type { WeeklyWindow };
 
-export interface AvailabilitySettings {
-  providerId: string;
-  timezone: "America/Costa_Rica";
-  weekly: WeeklyWindow[];
-  blackoutDates: string[];
-  minLeadHours: number;
-  maxCallsPerDay: number;
-  specialties: string[];
-  calendarId?: string | null;
+/** The lawyer's settings as GET /api/provider/availability returns them (contracts LawyerAvailability). */
+export type AvailabilitySettings = Omit<LawyerAvailability, "id" | "updatedAt"> & {
   updatedAt?: string;
   /** True until the lawyer saves their own hours. */
   isDefault?: boolean;
-}
+};
 
 export interface TranscriptResult {
   status: "fetched" | "not_ready" | "no_event" | "no_consent" | "error";
