@@ -55,6 +55,11 @@
   margin: $space-3 0 0;
   font-size: 1rem;
   color: $color-steel;
+
+  a {
+    @include focus-ring;
+    color: $color-navy;
+  }
 }
 
 .book {

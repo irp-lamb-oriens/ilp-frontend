@@ -1,0 +1,81 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.card {
+  @include card;
+  padding: $space-6 $space-4;
+  display: grid;
+  gap: $space-3;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.price {
+  margin: 0;
+  color: $color-steel;
+  font-variant-numeric: tabular-nums;
+}
+
+.line {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.notice {
+  display: grid;
+  gap: $space-3;
+  justify-items: start;
+  padding: $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-left: 3px solid $color-warning;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.noticeText {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.ending {
+  display: grid;
+  gap: $space-3;
+  justify-items: start;
+}
+
+.link,
+.cancel {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+  font-size: 1rem;
+}
+
+.cancel {
+  justify-self: start;
+  color: $color-steel;
+}
+
+.err {
+  margin: 0;
+  color: $color-error;
+}

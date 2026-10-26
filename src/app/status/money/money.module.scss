@@ -1,0 +1,7 @@
+@use "../../../styles/variables" as *;
+
+.stack {
+  display: grid;
+  gap: $space-6;
+  max-width: 48rem;
+}

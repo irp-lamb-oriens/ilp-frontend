@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ButtonLink, ProgressBar, StatusPill } from "@/components/ui";
 import type { StatusTone } from "@/components/ui";
 import { PLAN_STANDARD } from "@/lib/contracts";
@@ -57,7 +58,17 @@ export default function MembershipCard() {
           counted once the call is done.
         </p>
       )}
-      {m?.periodEnd && <p className={s.note}>Renews on {dateLong(m.periodEnd)}, with a fresh {minutesIncluded} minutes.</p>}
+      {m?.periodEnd && m.status !== "cancelled" && (
+        <p className={s.note}>
+          {m.cancelAtPeriodEnd ? (
+            <>
+              Ends on {dateLong(m.periodEnd)}. <Link href="/status/money">Keep my membership</Link>
+            </>
+          ) : (
+            <>Renews on {dateLong(m.periodEnd)}, with a fresh {minutesIncluded} minutes.</>
+          )}
+        </p>
+      )}
 
       {cap.canBook ? (
         <ButtonLink href="/status/book" variant={bookVariant} block className={s.book}>
