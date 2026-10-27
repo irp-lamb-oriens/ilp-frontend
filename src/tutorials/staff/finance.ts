@@ -1,12 +1,30 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { FEE, LAWYERS as L, card, grid, hover, mark, meta, mockShell, scene, scroll, stack, stat, step, table, text, wait } from "../presets";
+import {
+  FEE,
+  LAWYERS as L,
+  card,
+  grid,
+  hover,
+  mark,
+  meta,
+  mockShell,
+  say,
+  scene,
+  scroll,
+  stack,
+  stat,
+  step,
+  table,
+  text,
+  type,
+} from "../presets";
 
 function page() {
   return mockShell(
     "staff",
     "Finance",
     stack([
-      meta("Membership revenue is ILP's. Legal fees (GMV) belong to the work lawyers do and are reported apart."),
+      meta("Membership revenue is ILP's. Legal fees (GMV) belong to the work lawyers do and are reported apart.", "fin_note"),
       grid("2-1-1-1", [
         stat("MRR", "US$3,679.54", { size: "lg", hint: `46 active members × ${FEE}`, id: "mrr" }),
         stat("ARR run rate", "US$44,154", { id: "arr" }),
@@ -16,7 +34,7 @@ function page() {
       card(
         "Quote finance",
         [
-          grid("1-1-1", [stat("Revenue", "US$6,870"), stat("Margin", "US$1,374"), stat("Win rate", "58.3%", { hint: "7 won" })]),
+          grid("1-1-1", [stat("Revenue", "US$6,870"), stat("Margin", "US$1,374", { id: "q_margin" }), stat("Win rate", "58.3%", { hint: "7 won", id: "q_win" })]),
           text("Revenue vs cost vs margin", "h3"),
           table(
             ["Provider", "Revenue", "Cost", "Margin"],
@@ -36,30 +54,42 @@ function page() {
 
 export const staffFinance: Tutorial = {
   id: "staff.finance",
-  version: 1,
+  version: 2,
   title: "Finance",
-  summary: "Membership revenue and legal fees, kept apart.",
+  summary: "ILP's membership income and lawyers' legal fees, always kept apart.",
   audience: ["staff"],
   route: "/dashboard/finance",
   steps: [
     step(
       "mrr",
-      "Membership revenue first",
-      "MRR is active members times the monthly fee. ARR run rate is MRR times 12. Admins only.",
-      scene(page(), [hover("mrr", [mark("mrr")], 1100), hover("arr", [mark("mrr", false)], 800)]),
+      "Membership money first",
+      "This page is for admins. The top row shows ILP's own income from memberships, which is what pays for the business.",
+      scene(page(), [
+        say(hover("mrr", [mark("mrr")]), "MRR", "Monthly recurring revenue: active members times the monthly fee. Here, 46 members paying US$79.99 each.", ["mrr"]),
+        say(hover("arr", [mark("mrr", false)]), "ARR run rate", "This month's MRR times 12: what a full year would bring if nothing changed."),
+        say(hover("rev30"), "Membership revenue, 30 days", "Money that actually came in from memberships in the last 30 days, including the one-time activation fees.", ["activationFee"]),
+      ]),
       { target: "staff-finance-kpis" },
     ),
     step(
       "gmv",
       "Keep legal fees apart",
-      "Legal fees (GMV) are what members pay for lawyers' work. They are not platform revenue, so they never add to MRR.",
-      scene(page(), [hover("rev30", [], 800), hover("gmv", [mark("gmv")], 1200)]),
+      "When members pay for extra legal work, most of that money belongs to the lawyer. We count it apart, so ILP's own income is never overstated.",
+      scene(page(), [
+        say(hover("fin_note"), "Two kinds of money", "Membership money is ILP's. Legal fees pay for lawyers' work. This page always shows them apart."),
+        say(hover("gmv", [mark("gmv")]), "Legal fees (GMV), 30 days", "What members agreed to pay for lawyers' work this month. It is not ILP's income, so it never adds to MRR."),
+      ]),
     ),
     step(
       "quotes",
       "Review quote finance",
-      "Quote finance breaks priced quotes into revenue, cost and margin, by month, route, service, lawyer and stage.",
-      scene(page(), [scroll("quotes"), hover("p1", [mark("p1")], 1000), wait(500)]),
+      "Quote finance looks at the prices sent for extra legal work: how much came in, what the lawyers were paid, and what ILP kept.",
+      scene(page(), [
+        scroll("quotes"),
+        say(hover("q_margin"), "Margin", "What ILP keeps after paying the lawyer: revenue minus cost."),
+        say(hover("p1", [mark("p1")]), L.andrea, "One row per lawyer: what members paid, the lawyer's share, and what ILP kept."),
+        say(hover("q_win", [mark("p1", false)]), "Win rate", "Out of the prices sent, how many members accepted."),
+      ]),
     ),
   ],
 };

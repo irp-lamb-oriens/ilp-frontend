@@ -17,8 +17,10 @@ import {
   p,
   pill,
   row,
+  say,
   scene,
   set,
+  show,
   shut,
   stack,
   stat,
@@ -26,7 +28,6 @@ import {
   tabs,
   text,
   type,
-  wait,
 } from "../presets";
 
 function page() {
@@ -79,43 +80,53 @@ function page() {
 
 export const staffOpportunities: Tutorial = {
   id: "staff.opportunities",
-  version: 1,
+  version: 2,
   title: "Opportunities",
-  summary: "Paid legal work beyond the membership, from first mention to won or lost.",
+  summary: "Paid legal work beyond the membership, from first idea to won or lost.",
   audience: ["staff"],
   route: "/dashboard/opportunities",
   steps: [
     step(
       "summary",
-      "Read the pipeline summary",
-      "Values are legal fees (GMV), reported apart from membership revenue. Win rate and days to win show how quickly paid work closes.",
-      scene(page(), [hover("s_open", [], 800), hover("s_gmv", [mark("s_gmv")], 1000)]),
+      "Read the summary",
+      "An opportunity is a chance to do paid legal work for a member, beyond the membership. The numbers on top show how much work is on offer and how often members say yes.",
+      scene(page(), [
+        say(hover("s_open"), "Open pipeline", "The total price of all offers still waiting for a yes or a no. Nine are open right now."),
+        say(hover("s_win"), "Win rate", "Out of the offers that were decided, how many members said yes. Here it is 5 of 12."),
+        say(hover("s_gmv", [mark("s_gmv")]), "Won legal fees", "Money members agreed to pay for lawyers' work. Most of it goes to the lawyer, so it is not counted as ILP's own income.", ["legalFees"]),
+      ]),
       { target: "staff-opps-summary" },
     ),
     step(
       "board",
       "Move an opportunity on the board",
-      "Drag a card to its new stage, or use Move to… on the card. A card with an overdue next action says so.",
-      scene(page(), [hover("o3", [], 700), drag("o1", "c_quoted"), wait(800)]),
+      "Each column is a stage, from first idea on the left to won or lost on the right. Move a card when the situation changes.",
+      scene(page(), [
+        say(hover("o3"), "Action overdue", "This card's next job is late. The label on the card says so in words, so it is easy to spot.", ["card"]),
+        say(drag("o1", "c_quoted"), "S.A. clean-up before sale", "Drag a card to the next column when it moves on. Here the price was sent, so it goes to Quoted."),
+      ]),
       { target: "staff-opps-board" },
     ),
     step(
       "close",
       "Close it with an outcome",
-      "Open a card, pick the new stage and say what happened. Won or lost always needs an outcome, so no opportunity closes without a reason.",
+      "Click a card to open its details. Pick the new stage and write what happened. Won or lost always needs a reason, so the team can learn from it.",
       scene(page(), [
-        click("o4", [open("drawer")], "Property purchase review"),
-        click("newstage", [set("newstage", { value: "Won" })], "New stage"),
-        type("outcome", "Member accepted the quote by email."),
-        click("won", [shut("drawer"), { id: "o4", moveTo: "c_won" }], "Mark won"),
-        wait(800),
+        say(click("o4", [open("drawer")]), "Property purchase review", "Opens the details in a side panel: who owns it, the estimated fee and where it came from."),
+        say(click("newstage", [set("newstage", { value: "Won" })]), "New stage", "Pick where it goes now. Won means the member said yes; Lost means they said no."),
+        say(type("outcome", "Member accepted the quote by email."), "Outcome", "One line on why it was won or lost, so the team learns what works."),
+        say(click("won", [shut("drawer"), { id: "o4", moveTo: "c_won" }]), "Mark won", "Closes the opportunity as won. The card moves to the Won column."),
       ]),
     ),
     step(
       "new",
       "Add one by hand",
-      "New opportunity links paid work to its source, area and next action. Create from past handoffs picks up commercial notes lawyers already left.",
-      scene(page(), [hover("import", [], 900), click("new", [], "New opportunity"), wait(600)]),
+      "Most opportunities come from a lawyer's notes after a call. You can also add one yourself, for example when a member mentions new work on the phone.",
+      scene(page(), [
+        say(hover("import"), "Create from past handoffs", "Reads the notes lawyers left after past calls and makes a card for each piece of paid work they mentioned."),
+        say(hover("views"), "Board and List", "Board shows cards in columns. List shows the same opportunities as a table you can sort."),
+        say(click("new"), "New opportunity", "Opens a short form: the member, the kind of law, the estimated fee and the next job to do."),
+      ]),
     ),
   ],
 };

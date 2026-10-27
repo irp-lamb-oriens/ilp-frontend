@@ -1,9 +1,32 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { card, click, grid, h3, hide, hover, list, mark, meta, mockShell, p, progress, scene, set, show, stack, stat, step, table, tabs, wait } from "../presets";
+import {
+  card,
+  click,
+  grid,
+  h3,
+  hide,
+  hover,
+  list,
+  mark,
+  meta,
+  mockShell,
+  p,
+  progress,
+  say,
+  scene,
+  set,
+  show,
+  stack,
+  stat,
+  step,
+  table,
+  tabs,
+  type,
+} from "../presets";
 
 const funnel = stack(
   [
-    grid("1-1-1", [stat("Free check → paid member", "6.4%", { hint: "41 of 640", id: "conv" }), stat("Average call rating", "4.7", { hint: "38 ratings" }), stat("NPS (monthly question)", "52", { hint: "29 answers", id: "nps" })]),
+    grid("1-1-1", [stat("Free check → paid member", "6.4%", { hint: "41 of 640", id: "conv" }), stat("Average call rating", "4.7", { hint: "38 ratings", id: "rating" }), stat("NPS (monthly question)", "52", { hint: "29 answers", id: "nps" })]),
     card("Member funnel", [
       progress("Started the free check", 1, "640"),
       progress("Saw their findings", 0.78, "499"),
@@ -60,29 +83,40 @@ function page() {
 
 export const staffReports: Tutorial = {
   id: "staff.reports",
-  version: 1,
+  version: 2,
   title: "Reports",
-  summary: "How free checks turn into members, and how members feel.",
+  summary: "How people become members, and how members feel.",
   audience: ["staff"],
   route: "/dashboard/reports",
   steps: [
     step(
       "funnel",
       "Follow the member funnel",
-      "Member funnel follows people from the free check to a paid membership and a first call. The biggest drop is where to act.",
-      scene(page(), [hover("conv", [], 800), hover("paid", [mark("paid")], 1200)]),
+      "Most members start with the free check on our website. The member funnel counts how many people reach each next step, so you can see where most people stop.",
+      scene(page(), [
+        say(hover("conv"), "Free check to paid member", "Out of everyone who started the free check, how many became paying members. Here it is 41 of 640.", ["freeCheck"]),
+        say(hover("paid", [mark("paid")]), "Paid and active", "The step where people start paying. The biggest drop between two steps shows where to improve first.", ["funnel"]),
+      ]),
     ),
     step(
       "nps",
-      "Read satisfaction and cancel reasons",
-      "NPS comes from the monthly question members answer in their portal. Why members cancel groups the reasons they give.",
-      scene(page(), [hover("nps", [mark("nps")], 1000), hover("cancels", [mark("nps", false), mark("cancels")], 1000)]),
+      "Read how members feel",
+      "Once a month members answer one question: would they recommend ILP to a friend? Their answers make the NPS score.",
+      scene(page(), [
+        say(hover("nps", [mark("nps")]), "NPS", "A score from -100 to 100 based on that monthly question. Above 50 is very good; here it is 52."),
+        say(hover("rating", [mark("nps", false)]), "Average call rating", "Members rate each call out of 5. A 4.7 means most calls go well."),
+        say(hover("cancels", [mark("cancels")]), "Why members cancel", "The reasons members gave when they left, grouped and counted. Use them to decide what to fix.", ["churn"]),
+      ]),
     ),
     step(
       "tabs",
       "Switch report",
-      "The other tabs cover the acquisition funnel, pipeline by stage, stage ratings, activity, sources and jurisdictions. Admins also see the sales report.",
-      scene(page(), [click("t_sat", [set("views", { active: "Satisfaction" }), hide("funnel"), hide("cancels"), show("satisfaction")], "Satisfaction"), hover("r3", [mark("r3")], 1000), wait(400)]),
+      "The tabs along the top show other reports: how people find us, how members rate each step of their case, activity and more.",
+      scene(page(), [
+        say(click("t_sat", [set("views", { active: "Satisfaction" }), hide("funnel"), hide("cancels"), show("satisfaction")]), "Satisfaction", "Shows how members rate each step of their case."),
+        say(hover("r3", [mark("r3")]), "Filing, 3.9", "The lowest score. Members are least happy while papers are being filed, so look there first."),
+        say(hover("t_src", [mark("r3", false)]), "Sources", "Where new members came from, for example a web search or a friend's advice."),
+      ]),
     ),
   ],
 };
