@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, Drawer, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
+import { Button, DataTable, Drawer, Notice, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
 import { ApiError, downloadFile, staffApi } from "@/lib/api";
 import { DownloadButton } from "@/components/documents/DownloadButton";
 import type { PrivacyRequest } from "@/lib/contracts";
@@ -213,9 +213,29 @@ function RequestDrawer({ row, onClose, onChanged }: { row: Row; onClose: () => v
           )}
         </dl>
 
+        {openState && (
+          <Notice
+            tone="warning"
+            title="Confirm it is really the member before you act"
+            terms={["privacyRequest", "personalData"]}
+            fix={{
+              summary: "Someone else could ask for a member's data. Check first, every time.",
+              steps: [
+                "Reply to the request from your ILP email, sent to the email address on the member's account (not one typed in the request).",
+                "Wait for the member to answer from that address, or call them on the phone number in their profile.",
+                "Write how you checked in the answer box, for example: Confirmed by reply from the account email on 27 Oct.",
+                "Only then mark the request in review and complete it.",
+              ],
+              tutorialId: "staff.privacy",
+              tutorialStep: "answer",
+            }}
+          >
+            Reply from the account email or call the member first.
+          </Notice>
+        )}
+
         <p className={s.text}>
-          Confirm the member&apos;s identity before acting (reply from the account email, or a call). The member can
-          download their own data from their portal; for an access request you can also send this file:{" "}
+          The member can download their own data from their portal; for an access request you can also send this file:{" "}
           <DownloadButton
             className={s.inlineLink}
             download={() =>

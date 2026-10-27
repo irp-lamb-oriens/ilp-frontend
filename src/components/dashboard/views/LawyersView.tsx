@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { DataTable, EmptyState, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
+import { DataTable, EmptyState, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
 import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
@@ -56,9 +56,24 @@ function Capacity() {
   return (
     <div className={s.stack}>
       {data && data.unassignedMatters > 0 && (
-        <p className={s.note}>
-          {data.unassignedMatters} open matter{data.unassignedMatters === 1 ? "" : "s"} without a lawyer. Assign from the Assignment tab or the member page.
-        </p>
+        <Notice
+          tone="warning"
+          title={`${data.unassignedMatters} open matter${data.unassignedMatters === 1 ? "" : "s"} without a lawyer`}
+          terms={["matter", "partnerLawyer"]}
+          fix={{
+            summary: "Members without a lawyer cannot book a call, so assign them first.",
+            steps: [
+              "Open the Assignment tab on this page. Members without a lawyer are listed oldest first.",
+              "For each member, pick a lawyer in the box and press Assign. Choose someone with room in the Capacity table above.",
+              "Or press Auto-assign by score to let the system match each member to a lawyer with room.",
+              "You can also assign from the member's own page, under Next actions.",
+            ],
+            tutorialId: "staff.lawyers",
+            tutorialStep: "assign",
+          }}
+        >
+          These members are waiting for a lawyer and cannot book a call yet.
+        </Notice>
       )}
       <DataTable
         caption="Lawyer capacity"

@@ -13,7 +13,7 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
-import { Select, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { ErrorNotice, Notice, Select, SkeletonRegion, useSkeleton } from "@/components/ui";
 import { AdminListSkeleton, AssignmentSkeleton, FinanceChartsSkeleton, SalesSkeleton } from "./AdminSkeletons";
 
 interface Provider {
@@ -54,7 +54,7 @@ export function ProvidersList() {
     });
 
   const sk = useSkeleton(rows === null && !error);
-  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
   if (sk.showSkeleton || rows === null) {
     return (
       <SkeletonRegion label="Loading providers" visible={sk.skeletonVisible}>
@@ -99,7 +99,7 @@ export function VendorsList() {
     });
 
   const sk = useSkeleton(rows === null && !error);
-  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
   if (sk.showSkeleton || rows === null) {
     return (
       <SkeletonRegion label="Loading vendors" visible={sk.skeletonVisible}>
@@ -189,7 +189,7 @@ export function FinanceView() {
 
   const sk = useSkeleton(metrics === null && !error && !denied);
   if (denied) return <AdminsOnlyNotice what="Quote finance" />;
-  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
   if (sk.showSkeleton || metrics === null) {
     return (
       <SkeletonRegion label="Loading quote finance" visible={sk.skeletonVisible}>
@@ -321,7 +321,7 @@ export function SalesView() {
 
   const sk = useSkeleton(rows === null && !error && !denied);
   if (denied) return <AdminsOnlyNotice what="The sales report" />;
-  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
   if (sk.showSkeleton || rows === null) {
     return (
       <SkeletonRegion label="Loading the sales report" visible={sk.skeletonVisible}>
@@ -440,7 +440,7 @@ export function AssignmentView() {
   }
 
   const sk = useSkeleton(queue === null && !error);
-  if (error) return <p className={styles.errorText}>{error}</p>;
+  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
   if (sk.showSkeleton || queue === null) {
     return (
       <SkeletonRegion label="Loading the assignment queue" visible={sk.skeletonVisible}>
@@ -463,7 +463,7 @@ export function AssignmentView() {
         </button>
       </div>
 
-      {notice && <p className={styles.notice}>{notice}</p>}
+      {notice && <Notice tone="success" variant="inline" title={notice} />}
 
       <h3 className={styles.financeTitle}>Lawyers (by score)</h3>
       {queue.providers.map((p) => (

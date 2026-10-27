@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
-import { Skeleton, SkeletonRegion, Tabs, useSkeleton, type TabItem } from "@/components/ui";
+import { Skeleton, SkeletonRegion, Tabs, useSkeleton, type TabItem, ErrorNotice } from "@/components/ui";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -72,7 +72,7 @@ export default function ClientsPanel() {
   });
 
   const sk = useSkeleton(clients === null && !error);
-  if (error) return <p className={styles.error} role="alert">{error}</p>;
+  if (error) return <ErrorNotice audience="staff">{error}</ErrorNotice>;
   if (sk.showSkeleton || clients === null) {
     return (
       <SkeletonRegion label="Loading clients" visible={sk.skeletonVisible}>

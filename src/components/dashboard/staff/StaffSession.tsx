@@ -6,7 +6,7 @@ import PortalLogin from "@/components/auth/PortalLogin";
 import { RoleShell } from "@/components/shell";
 import type { NavItem } from "@/components/shell";
 import { ApiError, getRoleToken, staffApi } from "@/lib/api";
-import { SkeletonRegion, useSkeleton } from "@/components/ui";
+import { Button, Notice, SkeletonRegion, useSkeleton } from "@/components/ui";
 import StaffRouteSkeleton from "./StaffRouteSkeleton";
 import type { StaffRole } from "./types";
 import s from "./staff.module.scss";
@@ -131,11 +131,27 @@ export function StaffFrame({ children }: { children: ReactNode }) {
 
   if (state === "error") {
     return (
-      <div className={s.boot} role="alert">
-        <p>The ILP server did not answer. Check your connection and try again.</p>
-        <button type="button" className={s.retry} onClick={() => { setState("loading"); check(); }}>
-          Try again
-        </button>
+      <div className={s.boot}>
+        <Notice
+          tone="danger"
+          urgent
+          headingLevel={1}
+          title="The ILP server did not answer"
+          actions={
+            <Button variant="secondary" onClick={() => { setState("loading"); check(); }}>
+              Try again
+            </Button>
+          }
+          fix={{
+            steps: [
+              "Press Try again. The server sometimes needs up to a minute to wake up.",
+              "Check that you are connected to the internet: open any other website.",
+              "If other websites work but this keeps failing, tell an ILP admin. They can check whether the server is running.",
+            ],
+          }}
+        >
+          Your workspace could not be opened. Nothing you saved is lost.
+        </Notice>
       </div>
     );
   }
@@ -171,12 +187,21 @@ export function isRoleDenied(e: unknown): boolean {
  */
 export function AdminsOnlyNotice({ what }: { what?: string }) {
   return (
-    <div className={s.denied} role="status">
-      <p className={s.deniedTitle}>Admins only — ask an ILP admin</p>
-      <p className={s.deniedBody}>
-        {what ? `${what} is` : "This section is"} limited to ILP administrators.
-      </p>
-    </div>
+    <Notice
+      tone="info"
+      title="Admins only — ask an ILP admin"
+      terms={["admin"]}
+      fix={{
+        summary: "Access is set on the server by email address, not in this screen.",
+        steps: [
+          "If you only need a figure or a file from here, ask an ILP admin to send it to you.",
+          "If your work needs this section every day, ask an admin to add your ILP email to the admin list (ADMIN_EMAILS on the server).",
+          "Once you are added, reload this page. You do not need to sign in again.",
+        ],
+      }}
+    >
+      {what ? `${what} is` : "This section is"} limited to ILP administrators. Your account is signed in as staff.
+    </Notice>
   );
 }
 

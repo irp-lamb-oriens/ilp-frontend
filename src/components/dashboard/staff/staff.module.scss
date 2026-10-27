@@ -11,30 +11,7 @@
   background: $color-canvas;
 }
 
-.retry {
-  @include button-ghost;
-  @include focus-ring;
-  min-height: $touch-target;
-}
 
-.denied {
-  max-width: 65ch;
-  padding: $space-6;
-  border: 1px solid $color-hairline;
-  border-radius: $radius-lg;
-  background: $color-mist;
-}
-
-.deniedTitle {
-  margin: 0 0 $space-2;
-  font-weight: 700;
-  color: $color-navy;
-}
-
-.deniedBody {
-  margin: 0;
-  color: $color-steel;
-}
 
 .head {
   display: flex;
@@ -69,10 +46,6 @@
   gap: $space-2;
 }
 
-.error {
-  margin: 0;
-  color: $color-error;
-}
 
 .muted {
   margin: 0;

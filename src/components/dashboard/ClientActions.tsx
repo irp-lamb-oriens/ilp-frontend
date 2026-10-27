@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, Loadable, Skeleton } from "@/components/ui";
+import { Button, Loadable, Skeleton, ErrorNotice } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 
@@ -84,9 +84,7 @@ export default function ClientActions({
         </p>
       )}
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="staff">{error}</ErrorNotice>
       )}
 
       <Loadable loading={!loaded} label="Loading actions" className={s.stack} skeleton={<ActionsSkeleton />}>

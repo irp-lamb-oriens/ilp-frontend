@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, Drawer, Loadable, Skeleton } from "@/components/ui";
+import { Button, Drawer, Loadable, Skeleton, ErrorNotice } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
@@ -99,9 +99,7 @@ export default function EmailsTab() {
   return (
     <div className={s.stack}>
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="staff">{error}</ErrorNotice>
       )}
       <Loadable loading={pending === null && !error} label="Loading the email queue" skeleton={<EmailQueueSkeleton />}>
         {null}

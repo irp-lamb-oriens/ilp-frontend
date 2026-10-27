@@ -10,6 +10,7 @@ import {
   Drawer,
   Loadable,
   MoneyInput,
+  Notice,
   Select,
   Skeleton,
   StatusPill,
@@ -104,7 +105,23 @@ function OpportunityDetail({ o, initialStage, onChanged }: { o: OpportunityRow; 
           <dd>{shortDate(o.createdAt)}</dd>
         </div>
       </dl>
-      <p className={s.note}>Legal fees are GMV paid to the lawyer through ILP, not ILP revenue. Lawyers and members never see this value.</p>
+      <Notice
+        tone="neutral"
+        variant="inline"
+        title="Legal fees are not ILP revenue"
+        terms={["legalFees", "revenue"]}
+        fix={{
+          steps: [
+            "The fee here is what the member pays the lawyer for the extra legal work. ILP passes it on; it is not ILP's income.",
+            "Finance shows it apart from membership revenue, so monthly figures are not inflated.",
+            "Lawyers and members never see this value. Nothing to do here.",
+          ],
+          tutorialId: "staff.finance",
+          tutorialStep: "gmv",
+        }}
+      >
+        Paid to the lawyer through ILP (GMV). Lawyers and members never see this value.
+      </Notice>
 
       <StagePanel key={o.stage} o={o} initialStage={initialStage} onChanged={onChanged} />
       <QuotePanel key={o.quote?.id ?? "none"} o={o} onChanged={onChanged} />

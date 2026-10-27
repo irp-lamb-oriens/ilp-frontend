@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
-import { AgingBadge, Checkbox, EmptyState, Loadable, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
+import { AgingBadge, Checkbox, EmptyState, Loadable, Notice, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
@@ -111,13 +111,27 @@ export default function TodayView() {
         </StaggerItem>
       )}
       {summary?.placeholder && summary.placeholder.members > 0 && (
-        <section className={s.placeholderBar} aria-label="Placeholder data">
-          <p className={s.placeholderText}>
-            <StatusPill size="sm" label="Placeholder" tone="warning" /> Placeholder data is loaded ({summary.placeholder.members} members). Run{" "}
-            <code>scripts/removePlaceholders.ts</code> to clear it.
-          </p>
-          <Checkbox label="Exclude placeholder data" checked={exclude} onChange={(e) => toggleExclude(e.target.checked)} />
-        </section>
+        <Notice
+          tone="warning"
+          variant="banner"
+          headingLevel={2}
+          className={s.placeholderNotice}
+          title="Placeholder data is loaded"
+          terms={["placeholderData"]}
+          actions={<Checkbox label="Exclude placeholder data" checked={exclude} onChange={(e) => toggleExclude(e.target.checked)} />}
+          fix={{
+            summary: "Only ILP staff see this. Members never see example data.",
+            steps: [
+              "To hide the examples from your figures and queue for now, tick Exclude placeholder data. Your choice is kept in this browser.",
+              "Before real members join, ask an admin to remove the examples for good.",
+              "The admin first runs scripts/removePlaceholders.ts with --dry-run in the server folder to see what will go, then runs it again with --confirm-project set to the project id.",
+              "Reload this page. This notice disappears once no examples are left.",
+            ],
+            scene: () => import("@/tutorials/noticeScenes").then((m) => m.placeholderData),
+          }}
+        >
+          {summary.placeholder.members} example members are in the database. Rows marked Placeholder are not real people.
+        </Notice>
       )}
 
       <Loadable loading={!summary && !error} label="Loading key figures" skeleton={<TodayKpisSkeleton />}>
@@ -196,9 +210,7 @@ export default function TodayView() {
             )}
           </div>
           {notice && (
-            <p className={s.notice} role="status">
-              {notice}
-            </p>
+            <Notice tone="success" variant="inline" title={notice} />
           )}
           <Loadable loading={!queue && !error} label="Loading your tasks" skeleton={<QueueSkeleton />}>
             {queue && tasks.length === 0 && (

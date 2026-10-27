@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ErrorNotice } from "@/components/ui";
 import s from "./staff.module.scss";
 
 /** Page title row used by every /dashboard route (the shell holds no title). */
@@ -14,11 +15,12 @@ export function PageHeader({ title, sub, actions }: { title: ReactNode; sub?: Re
   );
 }
 
-export function ErrorText({ children }: { children: ReactNode }) {
+/** A staff page's failure line, as a danger notice with the standard staff fix steps. */
+export function ErrorText({ children, onRetry }: { children: ReactNode; onRetry?: () => void }) {
   return (
-    <p className={s.error} role="alert">
+    <ErrorNotice audience="staff" onRetry={onRetry}>
       {children}
-    </p>
+    </ErrorNotice>
   );
 }
 

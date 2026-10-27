@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, TextInput, Loadable, Skeleton, SkeletonRegion, SkeletonText } from "@/components/ui";
+import { Button, TextInput, Loadable, Skeleton, SkeletonRegion, SkeletonText, ErrorNotice } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 
@@ -88,9 +88,7 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
         </Loadable>
       </div>
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="staff">{error}</ErrorNotice>
       )}
       <form onSubmit={send} className={s.composer}>
         <TextInput

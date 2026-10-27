@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Drawer, Select, TextArea, useUnsavedChanges } from "@/components/ui";
+import { Button, Drawer, Select, TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch, ApiError } from "@/lib/api";
 
@@ -111,9 +111,7 @@ export default function ImportExportModal({ onClose }: { onClose: () => void }) 
         />
 
         {error && (
-          <p className={s.error} role="alert">
-            {error}
-          </p>
+          <ErrorNotice audience="staff">{error}</ErrorNotice>
         )}
 
         <div className={s.row}>

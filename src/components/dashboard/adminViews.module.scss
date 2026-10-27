@@ -18,9 +18,6 @@
   color: $color-muted;
 }
 
-.errorText {
-  color: $color-error;
-}
 
 .listStack {
   display: grid;
@@ -152,10 +149,6 @@
   }
 }
 
-.notice {
-  color: $color-success;
-  font-size: 0.9rem;
-}
 
 .scoreBadge {
   display: inline-block;
