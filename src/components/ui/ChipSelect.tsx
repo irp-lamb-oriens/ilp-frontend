@@ -75,6 +75,7 @@ export function ChipSelect({ label, hideLabel, hint, error, required, options, v
                 <IconCheck width={14} height={14} />
               </span>
               <span>{o.label}</span>
+              <span className={s.chipRing} aria-hidden="true" />
             </label>
           );
         })}
