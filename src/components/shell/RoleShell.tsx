@@ -6,6 +6,9 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Drawer } from "../ui/Drawer";
 import { cx } from "../ui/cx";
 import { useLeaveGuard } from "../ui/UnsavedChanges";
+import { HelpButton } from "../tutorial/HelpButton";
+import { useTutorialAutoStart } from "../tutorial/autostart";
+import { useTutorialOptional } from "../tutorial/context";
 import { CountrySwitcher } from "./CountrySwitcher";
 import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
@@ -89,6 +92,10 @@ export function RoleShell({
   // UnsavedChangesGuard asks before they leave a dirty form. Search and
   // logout navigate from code, so they go through the same guard here.
   const leave = useLeaveGuard();
+  // Tutorials: the "?" button, the user-menu list and the first-visit
+  // auto-start (only once the viewer is signed in, never in the /ui gallery).
+  const tutorials = useTutorialOptional();
+  useTutorialAutoStart(role, !!user && !embedded);
 
   useEffect(() => {
     try {
@@ -205,6 +212,7 @@ export function RoleShell({
                 <CountrySwitcher value={country} onChange={onCountryChange} />
               </div>
             )}
+            <HelpButton role={role} />
             {bell === undefined ? <NotificationBell /> : bell}
             <UserMenu
               user={user}
@@ -212,6 +220,7 @@ export function RoleShell({
               onLogout={onLogout && (() => void leave.guard(onLogout, { title: "Log out without saving?", confirmLabel: "Log out without saving" }))}
               onLogoutAll={onLogoutAll && (() => void leave.guard(onLogoutAll, { title: "Log out without saving?", confirmLabel: "Log out without saving" }))}
               links={menuLinks}
+              onOpenTutorials={tutorials ? () => tutorials.openList(role) : undefined}
             />
           </div>
         </header>

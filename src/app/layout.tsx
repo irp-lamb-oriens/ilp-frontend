@@ -4,6 +4,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import LeadModal from "@/components/LeadModal";
 import SiteLegal from "@/components/legal/SiteLegal";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChanges";
+import TutorialRoot from "@/tutorials/TutorialRoot";
 import "@/styles/global.scss";
 
 export const metadata: Metadata = {
@@ -27,10 +28,12 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SmoothScroll>{children}</SmoothScroll>
-        <LeadModal />
-        <SiteLegal />
-        <UnsavedChangesGuard />
+        <TutorialRoot>
+          <SmoothScroll>{children}</SmoothScroll>
+          <LeadModal />
+          <SiteLegal />
+          <UnsavedChangesGuard />
+        </TutorialRoot>
       </body>
     </html>
   );

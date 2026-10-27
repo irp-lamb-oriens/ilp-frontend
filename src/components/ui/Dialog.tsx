@@ -20,6 +20,8 @@ export interface DialogProps {
    * data-autofocus, else the first focusable element.
    */
   initialFocusRef?: React.RefObject<HTMLElement | null>;
+  /** "lg" widens the panel for richer content (tutorials). Default "md". */
+  size?: "md" | "lg";
 }
 
 const FOCUSABLE =
@@ -31,7 +33,7 @@ const EXIT_MS = 200;
  * Focus is trapped while open and returns to the element that opened it;
  * Esc and the scrim call onClose. Fades and scales with opacity/transform only.
  */
-export function Dialog({ open, onClose, title, children, footer, role = "dialog", initialFocusRef }: DialogProps) {
+export function Dialog({ open, onClose, title, children, footer, role = "dialog", initialFocusRef, size = "md" }: DialogProps) {
   const titleId = useId();
   const bodyId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -105,7 +107,7 @@ export function Dialog({ open, onClose, title, children, footer, role = "dialog"
       <div className={s.scrim} onClick={onClose} aria-hidden="true" />
       <div
         ref={panelRef}
-        className={s.panel}
+        className={cx(s.panel, size === "lg" && s.lg)}
         role={role}
         aria-modal="true"
         aria-labelledby={titleId}

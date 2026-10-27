@@ -15,6 +15,8 @@ export interface UserMenuProps {
   onLogoutAll?: () => void;
   /** Links listed above "Log out" (e.g. data and privacy, legal pages). */
   links?: MenuLink[];
+  /** Opens the "Tutorials" list (replay and reset). */
+  onOpenTutorials?: () => void;
 }
 
 function initials(user?: ShellUser | null): string {
@@ -24,7 +26,7 @@ function initials(user?: ShellUser | null): string {
 }
 
 /** Avatar button with name, role and logout. */
-export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links }: UserMenuProps) {
+export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links, onOpenTutorials }: UserMenuProps) {
   const menuId = useId();
   const { open, toggle, close, rootRef, triggerRef } = usePopover();
 
@@ -57,6 +59,21 @@ export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links }: User
                 {l.label}
               </Link>
             ))}
+          </div>
+        )}
+        {onOpenTutorials && (
+          <div className={s.menuGroup}>
+            <button
+              type="button"
+              role="menuitem"
+              className={s.menuItem}
+              onClick={() => {
+                close(false);
+                onOpenTutorials();
+              }}
+            >
+              Tutorials
+            </button>
           </div>
         )}
         <button

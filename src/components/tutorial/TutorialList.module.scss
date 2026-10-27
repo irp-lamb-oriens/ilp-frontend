@@ -1,0 +1,77 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.lede {
+  margin: 0 0 $space-3;
+  color: $color-steel;
+}
+
+.empty {
+  margin: $space-3 0 0;
+  color: $color-steel;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: $space-3 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: $space-2 $space-3;
+  padding: $space-3 $space-4;
+
+  & + & {
+    border-top: 1px solid $color-hairline;
+  }
+
+  @include md {
+    grid-template-columns: 1fr auto auto;
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.summary {
+  font-size: 0.875rem;
+  color: $color-steel;
+}
+
+.actions {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: $space-2;
+
+  @include md {
+    grid-column: auto;
+  }
+}
+
+.footer {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: $space-2;
+  width: 100%;
+
+  @include md {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

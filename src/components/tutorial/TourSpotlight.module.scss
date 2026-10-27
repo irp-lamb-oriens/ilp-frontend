@@ -1,0 +1,54 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: $z-dialog;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity $duration-fast $ease-out-strong;
+}
+
+.shown {
+  opacity: 1;
+}
+
+.panel {
+  position: fixed;
+  background: $color-scrim;
+  pointer-events: auto;
+}
+
+.ring {
+  position: fixed;
+  border: 2px solid $color-accent;
+  border-radius: $radius-md;
+}
+
+.callout {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  box-shadow: $shadow-card;
+  pointer-events: auto;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.body {
+  margin: 0;
+  line-height: 1.6;
+  color: $color-charcoal;
+}

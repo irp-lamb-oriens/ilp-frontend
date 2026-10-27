@@ -1,0 +1,39 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.help {
+  @include focus-ring;
+  @include touch-target;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: $color-navy;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong;
+
+  > span {
+    display: inline-grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid $color-hairline;
+    border-radius: 50%;
+  }
+
+  @include hover-only {
+    &:hover > span {
+      background: $color-mist;
+      border-color: $color-hairline-strong;
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
