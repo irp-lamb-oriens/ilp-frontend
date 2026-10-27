@@ -74,7 +74,7 @@ export default function DocumentsPanel() {
   const matterTitle = (id?: string) => home.matters.find((m) => m.id === id)?.title;
 
   return (
-    <section className={s.wrap} id="documents" aria-labelledby="documents-title">
+    <section className={s.wrap} id="documents" aria-labelledby="documents-title" data-tour="client-documents">
       <h2 className={s.title} id="documents-title">
         Documents
       </h2>

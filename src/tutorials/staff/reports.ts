@@ -71,7 +71,6 @@ export const staffReports: Tutorial = {
       "Follow the member funnel",
       "Member funnel follows people from the free check to a paid membership and a first call. The biggest drop is where to act.",
       scene(page(), [hover("conv", [], 800), hover("paid", [mark("paid")], 1200)]),
-      { target: "staff-reports-tabs" },
     ),
     step(
       "nps",

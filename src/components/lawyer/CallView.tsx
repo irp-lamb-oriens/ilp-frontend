@@ -51,7 +51,7 @@ export default function CallView({ consultationId }: { consultationId: string })
         <Link href="/lawyer" className={s.back}>← Today</Link>
       </nav>
       <div className={s.cols}>
-        <div className={s.briefCol}>
+        <div className={s.briefCol} data-tour="lawyer-call-brief">
           <StaggerItem index={0}>
             <BriefPanel brief={brief} />
           </StaggerItem>

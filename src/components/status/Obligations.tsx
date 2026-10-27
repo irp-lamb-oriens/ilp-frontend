@@ -37,7 +37,7 @@ export default function Obligations() {
   }
 
   return (
-    <section className={s.wrap} aria-labelledby="obligations-title">
+    <section className={s.wrap} aria-labelledby="obligations-title" data-tour="client-obligations">
       <h2 className={s.title} id="obligations-title">
         Dates that may need attention
       </h2>

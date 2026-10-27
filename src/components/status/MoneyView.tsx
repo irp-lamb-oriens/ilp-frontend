@@ -48,7 +48,7 @@ export default function MoneyView() {
   return (
     <Stagger>
     <div className={s.page}>
-      <StaggerItem as="section" index={0} className={s.balance} aria-labelledby="balance-title">
+      <StaggerItem as="section" index={0} className={s.balance} aria-labelledby="balance-title" data-tour="client-balance">
         <h2 className={s.balanceLabel} id="balance-title">
           Balance due
         </h2>
@@ -63,7 +63,7 @@ export default function MoneyView() {
       </StaggerItem>
 
       {awaiting.length > 0 && (
-        <StaggerItem as="section" index={1} className={s.block} aria-labelledby="awaiting-title">
+        <StaggerItem as="section" index={1} className={s.block} aria-labelledby="awaiting-title" data-tour="client-proposals">
           <h2 className={s.blockTitle} id="awaiting-title">
             {awaiting.length === 1 ? "A proposal is waiting for your answer" : "Proposals waiting for your answer"}
           </h2>

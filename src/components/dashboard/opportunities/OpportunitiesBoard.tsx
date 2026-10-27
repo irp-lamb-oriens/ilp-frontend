@@ -21,7 +21,7 @@ const MENU = STAGES.map((x) => ({ id: x.id, label: x.label }));
 export function OpportunitiesBoard({ items, onOpen, onMove, busyId }: Props) {
   return (
     <Stagger>
-      <div className={s.board}>
+      <div className={s.board} data-tour="staff-opps-board">
         {STAGES.map((st, i) => {
           const col = items.filter((o) => o.stage === st.id);
           const value = col.reduce((n, o) => n + (o.valueCents ?? 0), 0);

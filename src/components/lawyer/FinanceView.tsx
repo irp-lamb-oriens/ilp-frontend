@@ -76,7 +76,7 @@ export default function FinanceView() {
   return (
     <Stagger>
     <div className={s.page}>
-      <div className={s.tiles}>
+      <div className={s.tiles} data-tour="lawyer-finance-totals">
         <StaggerItem index={0} className={s.tileCell}>
           <StatTile size="lg" label="Paid to you" value={<CountUp value={data.totals.paid} formatter={moneyFmt(cur)} />} hint={`${data.payments.filter((p) => p.paid).length} payouts`} />
         </StaggerItem>

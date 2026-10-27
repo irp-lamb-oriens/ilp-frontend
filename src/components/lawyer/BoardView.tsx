@@ -147,7 +147,7 @@ export default function BoardView() {
 
       {data && cards.length > 0 && view === "board" && (
         <Stagger>
-        <div className={s.board}>
+        <div className={s.board} data-tour="lawyer-board">
           {data.stages.map((stage, i) => {
             const col = cards.filter((c) => c.stage === stage);
             return (

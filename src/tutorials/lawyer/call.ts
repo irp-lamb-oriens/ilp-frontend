@@ -124,7 +124,6 @@ export const lawyerCall: Tutorial = {
         click("rec", [set("rec", { label: "Recording" })], "Start recording"),
         wait(700),
       ]),
-      { target: "lawyer-call-consent" },
     ),
     step(
       "summary",

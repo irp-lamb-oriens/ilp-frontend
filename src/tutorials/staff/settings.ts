@@ -47,7 +47,6 @@ export const staffSettings: Tutorial = {
       "Rename a stage",
       "Each stage has a staff label. Keep it short; members and lawyers see stage names in their portals.",
       scene(page(), [type("s_review_label", "Lawyer review", [set("s_review", { highlight: true })]), wait(600)]),
-      { target: "staff-settings-tabs" },
     ),
     step(
       "sla",

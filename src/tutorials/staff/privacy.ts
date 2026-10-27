@@ -64,7 +64,6 @@ export const staffPrivacy: Tutorial = {
       "Work the oldest deadline first",
       "Every request has a legal answer date. Overdue requests are marked; Show open only hides closed ones.",
       scene(page(), [hover("q3", [mark("q3")], 1100), hover("openonly", [mark("q3", false)], 700)]),
-      { target: "staff-privacy-list" },
     ),
     step(
       "answer",

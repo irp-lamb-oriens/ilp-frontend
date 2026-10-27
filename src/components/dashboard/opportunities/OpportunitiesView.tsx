@@ -240,7 +240,7 @@ export default function OpportunitiesView() {
 
 function SummaryStrip({ summary }: { summary: OpportunitySummary }) {
   return (
-    <div className={s.summary}>
+    <div className={s.summary} data-tour="staff-opps-summary">
       <StatTile size="lg" label="Open pipeline" value={usd(summary.open.valueCents, true)} hint={`${summary.open.count} open · legal fees (GMV)`} />
       <div className={s.summarySmall}>
         <StatTile label="Win rate" value={summary.winRate == null ? "—" : pct(summary.winRate)} hint={`${summary.byStage.won.count} won · ${summary.byStage.lost.count} lost`} />

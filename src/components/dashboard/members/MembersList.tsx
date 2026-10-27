@@ -123,7 +123,7 @@ export default function MembersList() {
   return (
     <>
       <PageHeader title="Members" sub={data ? `${data.total} member${data.total === 1 ? "" : "s"} match.` : <Skeleton shape="line" size="sm" width="25" />} />
-      <form className={s.filters} role="search" onSubmit={(e) => e.preventDefault()}>
+      <form className={s.filters} role="search" onSubmit={(e) => e.preventDefault()} data-tour="staff-members-filters">
         <SearchInput
           label="Search"
           value={q}

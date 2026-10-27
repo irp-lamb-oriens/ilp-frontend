@@ -58,7 +58,7 @@ export default function ClientsView() {
   return (
     <div className={s.page}>
       <div className={s.bar}>
-        <SearchInput className={s.search} label="Find a member or matter" value={q} onValueChange={setQ} placeholder="Name, matter or area" />
+        <SearchInput className={s.search} label="Find a member or matter" data-tour="lawyer-clients-search" value={q} onValueChange={setQ} placeholder="Name, matter or area" />
         {data ? <span className={s.muted}>{rows.length} of {data.cards.length}</span> : <Skeleton shape="line" size="sm" width="pill-sm" />}
       </div>
       {error && <StaggerItem as="p" className={s.error} role="alert">{error}</StaggerItem>}

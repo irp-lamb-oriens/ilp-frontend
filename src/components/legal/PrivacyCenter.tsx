@@ -73,7 +73,7 @@ export default function PrivacyCenter() {
         </p>
       </header>
 
-      <section className={s.card} aria-labelledby="dl-title">
+      <section className={s.card} aria-labelledby="dl-title" data-tour="client-privacy-rights">
         <h2 id="dl-title" className={s.title}>Download my data</h2>
         <p className={s.text}>
           A file (JSON) with your profile, membership, calls and transcripts, the next steps your lawyer confirmed,

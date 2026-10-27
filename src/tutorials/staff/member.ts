@@ -183,7 +183,6 @@ export const staffMember: Tutorial = {
         click("book", [toastOn("toast")], "Book 20 minutes"),
         wait(1000),
       ]),
-      { target: "staff-member-actions" },
     ),
     step(
       "payment",

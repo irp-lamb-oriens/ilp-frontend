@@ -164,7 +164,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
 
       <div className={s.layout}>
         <div className={s.col}>
-          <StaggerItem as="section" index={0} className={s.block} aria-label="Profile">
+          <StaggerItem as="section" index={0} className={s.block} aria-label="Profile" data-tour="staff-member-head">
             <h2 className={s.blockTitle}>Living profile</h2>
             <ProgressBar
               label={bundle.completeness.consultationReady ? "Complete · consultation-ready" : "Complete · not ready yet (70% needed)"}
@@ -212,7 +212,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
               </p>
             </StaggerItem>
           )}
-          <StaggerItem as="section" index={2} className={s.block} aria-label="Timeline">
+          <StaggerItem as="section" index={2} className={s.block} aria-label="Timeline" data-tour="staff-member-timeline">
             <h2 className={s.blockTitle}>Timeline</h2>
             <div className={s.timelineFilter} role="group" aria-label="Filter timeline">
               {KINDS.map((k) => (

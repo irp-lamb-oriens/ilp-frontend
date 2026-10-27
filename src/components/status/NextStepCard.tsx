@@ -21,7 +21,7 @@ export default function NextStepCard() {
   const overdue = (daysUntil(m.dueAt) ?? 1) < 0;
 
   return (
-    <section className={s.card} aria-labelledby="next-step-title">
+    <section className={s.card} aria-labelledby="next-step-title" data-tour="client-next-step">
       <p className={s.kicker} id="next-step-title">
         Your next step
       </p>

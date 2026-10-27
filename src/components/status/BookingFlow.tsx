@@ -142,7 +142,7 @@ export default function BookingFlow() {
         )}
       </section>
 
-      <section className={s.step} aria-labelledby="t-title">
+      <section className={s.step} aria-labelledby="t-title" data-tour="client-book-time">
         <h2 className={s.stepTitle} id="t-title">
           2. Pick a time <span className={s.tz}>(Costa Rica time)</span>
         </h2>

@@ -45,7 +45,7 @@ export default function TodayView() {
 
   return (
     <div className={s.page}>
-      <section className={s.main} aria-labelledby="today-h">
+      <section className={s.main} aria-labelledby="today-h" data-tour="lawyer-today-calls">
         <header className={s.head}>
           <h2 id="today-h" className={s.h}>
             {today === null ? "Today" : today.length === 0 ? `No calls today${first ? `, ${first}` : ""}` : `${today.length} ${today.length === 1 ? "call" : "calls"} today`}

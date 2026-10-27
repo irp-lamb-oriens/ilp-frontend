@@ -27,7 +27,7 @@ export default function FinanceHome() {
       <div className={s.stack}>
         <Loadable loading={!k && !failed} label="Loading revenue figures" skeleton={<SkeletonStatStrip className={s.tiles} small={3} />}>
         {() => k && (
-          <div className={s.tiles}>
+          <div className={s.tiles} data-tour="staff-finance-kpis">
             <StatTile size="lg" label="MRR" value={usd(k.mrr.cents)} hint={`${k.mrr.activeMembers} active members × US$79.99`} />
             <StatTile label="ARR run rate" value={usd(k.mrr.cents * 12, true)} />
             <StatTile label="Membership revenue, 30 days" value={usd(k.platformRevenue30d.cents, true)} hint="Activation and monthly fees paid" />

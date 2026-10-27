@@ -67,7 +67,6 @@ export const staffLawyers: Tutorial = {
       "Check who has room",
       "Capacity lists each lawyer's open matters, how many are aging and their calls in the next 7 days. Give new members to the lawyer with room in the right area.",
       scene(page(), [hover("l2", [mark("l2")], 1100), hover("l3", [mark("l2", false), mark("l3")], 1000)]),
-      { target: "staff-lawyers-tabs" },
     ),
     step(
       "hours",

@@ -104,7 +104,7 @@ export default function CancelMembership() {
     <div className={s.page}>
       <h1 className={s.title}>Cancel your membership</h1>
 
-      <section className={s.what} aria-labelledby="what-title">
+      <section className={s.what} aria-labelledby="what-title" data-tour="client-cancel-what">
         <h2 className={s.sub} id="what-title">
           What happens
         </h2>

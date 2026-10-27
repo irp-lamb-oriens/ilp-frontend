@@ -46,7 +46,6 @@ export const staffPipeline: Tutorial = {
       "Spot matters that wait too long",
       "In stage counts days since the matter entered its stage. It turns to a warning at half the stage's SLA and to Overdue when the SLA has passed.",
       scene(page(), [hover("m1", [mark("m1")], 1200), hover("m2", [mark("m1", false), mark("m2")], 1000)]),
-      { target: "staff-pipeline-table" },
     ),
     step(
       "filter",

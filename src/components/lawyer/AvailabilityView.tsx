@@ -195,7 +195,7 @@ export default function AvailabilityView({
       </header>
 
       <div className={s.cols}>
-        <section className={s.week} aria-labelledby="week-h">
+        <section className={s.week} aria-labelledby="week-h" data-tour="lawyer-availability-weekly">
           <h3 id="week-h" className={s.sectionH}>Weekly hours</h3>
           <WeeklyHoursEditor
             value={draft.weekly}

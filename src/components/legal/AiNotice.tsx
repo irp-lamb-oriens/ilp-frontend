@@ -35,7 +35,7 @@ export default function AiNotice() {
   }
 
   return (
-    <section className={s.notice} aria-labelledby="ai-notice-title">
+    <section className={s.notice} aria-labelledby="ai-notice-title" data-tour="client-ai-notice">
       <h2 id="ai-notice-title" className={s.title}>Before you use the AI assistant</h2>
       <ul className={s.list}>
         <li>It gives general information, not legal advice, and it can be wrong. It is not your lawyer.</li>

@@ -31,7 +31,7 @@ export default function ProfileAndDocuments() {
   return (
     <Stagger>
     <div className={s.page}>
-      <StaggerItem as="section" index={0} className={s.summary} aria-labelledby="completion-title">
+      <StaggerItem as="section" index={0} className={s.summary} aria-labelledby="completion-title" data-tour="client-profile-completion">
         <div className={s.summaryHead}>
           <h2 className={s.summaryTitle} id="completion-title">
             Your profile is {pct}% complete

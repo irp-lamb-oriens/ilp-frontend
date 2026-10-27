@@ -28,7 +28,7 @@ export default function MembershipCard() {
   const st = STATUS[m?.status ?? "pending"] ?? STATUS.pending;
 
   return (
-    <section className={s.card} aria-labelledby="membership-title">
+    <section className={s.card} aria-labelledby="membership-title" data-tour="client-membership">
       <div className={s.head}>
         <h2 className={s.title} id="membership-title">
           Your membership

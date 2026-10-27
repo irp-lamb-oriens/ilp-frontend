@@ -123,7 +123,7 @@ export default function TodayView() {
       <Loadable loading={!summary && !error} label="Loading key figures" skeleton={<TodayKpisSkeleton />}>
         {() => (
           <Stagger>
-            <section className={s.kpis} aria-label="Key figures">
+            <section className={s.kpis} aria-label="Key figures" data-tour="staff-kpis">
               <StaggerItem index={0}>
                 <StatTile
                   size="lg"
@@ -175,7 +175,7 @@ export default function TodayView() {
       </Loadable>
 
       <div className={s.grid}>
-        <section className={s.queue} aria-labelledby="queue-title">
+        <section className={s.queue} aria-labelledby="queue-title" data-tour="staff-queue">
           <div className={s.queueHead}>
             <h2 id="queue-title" className={s.h2}>
               {scope === "me" ? "My queue" : "Team queue"}
@@ -248,7 +248,7 @@ export default function TodayView() {
           </Loadable>
         </section>
 
-        <aside className={s.rail} aria-label="Needs attention">
+        <aside className={s.rail} aria-label="Needs attention" data-tour="staff-attention">
           <h2 className={s.h2}>Needs attention</h2>
           <Loadable loading={!summary && !error} label="Loading items that need attention" skeleton={<RailSkeleton />}>
             {() =>

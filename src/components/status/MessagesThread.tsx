@@ -90,7 +90,7 @@ export default function MessagesThread() {
         <div ref={endRef} />
       </div>
 
-      <div className={s.composer}>
+      <div className={s.composer} data-tour="client-message-box">
         <TextArea
           label="Your message"
           id="msg-body"

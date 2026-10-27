@@ -65,7 +65,6 @@ export const staffMembers: Tutorial = {
       "Open the member page",
       "Select a member to open their page: profile, timeline and next actions in one place.",
       scene(page(), [hover("r1"), click("r3", [mark("r3")], M.genevieve), wait(800)]),
-      { target: "staff-members-table" },
     ),
   ],
 };
