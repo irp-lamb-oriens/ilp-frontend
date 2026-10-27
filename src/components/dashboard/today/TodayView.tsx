@@ -4,13 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
-import { AgingBadge, EmptyState, StatTile, StatusPill } from "@/components/ui";
-import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
+import { AgingBadge, EmptyState, Loadable, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
+import CountUp from "@/components/motion/CountUp";
+import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { dueLabel, pct, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import type { AttentionItem, QueueResponse, QueueTask, StaffSummary } from "../staff/types";
 import { TaskDrawer } from "./TaskDrawer";
+import { QueueSkeleton, RailSkeleton, TodayKpisSkeleton } from "./TodaySkeleton";
 import s from "./today.module.scss";
+
+const usdFmt = (v: number) => usd(Math.round(v));
+const pctFmt = (v: number) => pct(Math.round(v * 10) / 10);
 
 type Scope = "me" | "all";
 
@@ -65,52 +70,76 @@ export default function TodayView() {
       <PageHeader
         title="Today"
         sub={
-          queue
-            ? tasks.length === 0
-              ? "Your queue is clear."
-              : `${tasks.length} open task${tasks.length === 1 ? "" : "s"}${overdue ? `, ${overdue} overdue` : ""}.`
-            : "Loading your queue…"
+          queue ? (
+            tasks.length === 0 ? (
+              "Your queue is clear."
+            ) : (
+              `${tasks.length} open task${tasks.length === 1 ? "" : "s"}${overdue ? `, ${overdue} overdue` : ""}.`
+            )
+          ) : (
+            <Skeleton shape="line" size="sm" width="25" />
+          )
         }
       />
-      {error && <ErrorText>{error}</ErrorText>}
-
-      <section className={s.kpis} aria-label="Key figures">
-        <StatTile
-          size="lg"
-          label="Monthly recurring revenue"
-          value={k ? usd(k.mrr.cents) : "—"}
-          delta={k && k.mrr.deltaCents24h !== 0 ? `${k.mrr.deltaCents24h > 0 ? "+" : "−"}${usd(Math.abs(k.mrr.deltaCents24h))} since yesterday` : undefined}
-          trend={k ? (k.mrr.deltaCents24h > 0 ? "up" : k.mrr.deltaCents24h < 0 ? "down" : "flat") : "flat"}
-          hint={k ? `${k.mrr.activeMembers} active member${k.mrr.activeMembers === 1 ? "" : "s"} × US$79.99` : undefined}
-        />
-        <StatTile
-          label="Month-3 retention"
-          value={k ? pct(k.retentionM3.pct) : "—"}
-          hint={k ? (k.retentionM3.cohort ? `${k.retentionM3.retained} of ${k.retentionM3.cohort} · target 80%` : "No 90-day cohort yet") : undefined}
-        />
-        <StatTile
-          label="Consultation-ready"
-          value={k ? pct(k.consultationReady.pct) : "—"}
-          hint={k ? `${k.consultationReady.ready} of ${k.consultationReady.active} active members` : undefined}
-        />
-        <StatTile
-          label="Handoffs confirmed in 24 h"
-          value={k ? pct(k.handoffSla.pct) : "—"}
-          hint={k ? `${k.handoffSla.within24h} of ${k.handoffSla.total} · target 100%` : undefined}
-        />
-        <StatTile
-          label="Overdue open tasks"
-          value={k ? k.overdueTasks.total : "—"}
-          upIsGood={false}
-          hint={k ? `${k.overdueTasks.mine} yours` : undefined}
-        />
-      </section>
-      {k && (
-        <p className={s.gmv}>
-          Legal fees (GMV) accepted in the last 30 days: <strong>{usd(k.legalGmv30d.cents, true)}</strong> across {k.legalGmv30d.quotes} quote
-          {k.legalGmv30d.quotes === 1 ? "" : "s"}. Reported apart from membership revenue.
-        </p>
+      {error && (
+        <StaggerItem>
+          <ErrorText>{error}</ErrorText>
+        </StaggerItem>
       )}
+
+      <Loadable loading={!summary && !error} label="Loading key figures" skeleton={<TodayKpisSkeleton />}>
+        {() => (
+          <Stagger>
+            <section className={s.kpis} aria-label="Key figures">
+              <StaggerItem index={0}>
+                <StatTile
+                  size="lg"
+                  label="Monthly recurring revenue"
+                  value={k ? <CountUp value={k.mrr.cents} formatter={usdFmt} /> : "—"}
+                  delta={k && k.mrr.deltaCents24h !== 0 ? `${k.mrr.deltaCents24h > 0 ? "+" : "−"}${usd(Math.abs(k.mrr.deltaCents24h))} since yesterday` : undefined}
+                  trend={k ? (k.mrr.deltaCents24h > 0 ? "up" : k.mrr.deltaCents24h < 0 ? "down" : "flat") : "flat"}
+                  hint={k ? `${k.mrr.activeMembers} active member${k.mrr.activeMembers === 1 ? "" : "s"} × US$79.99` : undefined}
+                />
+              </StaggerItem>
+              <StaggerItem index={1}>
+                <StatTile
+                  label="Month-3 retention"
+                  value={k && k.retentionM3.pct != null ? <CountUp value={k.retentionM3.pct} formatter={pctFmt} /> : "—"}
+                  hint={k ? (k.retentionM3.cohort ? `${k.retentionM3.retained} of ${k.retentionM3.cohort} · target 80%` : "No 90-day cohort yet") : undefined}
+                />
+              </StaggerItem>
+              <StaggerItem index={2}>
+                <StatTile
+                  label="Consultation-ready"
+                  value={k && k.consultationReady.pct != null ? <CountUp value={k.consultationReady.pct} formatter={pctFmt} /> : "—"}
+                  hint={k ? `${k.consultationReady.ready} of ${k.consultationReady.active} active members` : undefined}
+                />
+              </StaggerItem>
+              <StaggerItem index={3}>
+                <StatTile
+                  label="Handoffs confirmed in 24 h"
+                  value={k && k.handoffSla.pct != null ? <CountUp value={k.handoffSla.pct} formatter={pctFmt} /> : "—"}
+                  hint={k ? `${k.handoffSla.within24h} of ${k.handoffSla.total} · target 100%` : undefined}
+                />
+              </StaggerItem>
+              <StaggerItem index={4}>
+                <StatTile
+                  label="Overdue open tasks"
+                  value={k ? <CountUp value={k.overdueTasks.total} /> : "—"}
+                  upIsGood={false}
+                  hint={k ? `${k.overdueTasks.mine} yours` : undefined}
+                />
+              </StaggerItem>
+            </section>
+            {k && (
+              <StaggerItem as="p" index={5} className={s.gmv}>
+                Legal fees (GMV) accepted in the last 30 days: <strong>{usd(k.legalGmv30d.cents, true)}</strong> across {k.legalGmv30d.quotes} quote
+                {k.legalGmv30d.quotes === 1 ? "" : "s"}. Reported apart from membership revenue.
+              </StaggerItem>
+            )}
+          </Stagger>
+        )}
+      </Loadable>
 
       <div className={s.grid}>
         <section className={s.queue} aria-labelledby="queue-title">
@@ -138,76 +167,98 @@ export default function TodayView() {
               {notice}
             </p>
           )}
-          {!queue && !error && <Muted>Loading tasks…</Muted>}
-          {queue && tasks.length === 0 && (
-            <EmptyState
-              title="Nothing in your queue"
-              body="New tasks appear here when a member joins, books a call, gets a handoff, or a document or quote goes quiet."
-            />
-          )}
-          <ul className={s.taskList}>
-            {tasks.map((t) => {
-              const due = dueLabel(t.dueAt);
-              return (
-                <li key={t.id}>
-                  <button type="button" className={s.task} onClick={() => setOpen(t)} aria-haspopup="dialog">
-                    <span className={s.taskType}>
-                      <StatusPill size="sm" label={TASK_TYPE_LABEL[t.type]} tone={TASK_TYPE_TONE[t.type]} />
-                    </span>
-                    <span className={s.taskMain}>
-                      <span className={s.taskTitle}>{t.title}</span>
-                      <span className={s.taskMember}>
-                        {t.memberName ?? t.clientId}
-                        {scope === "all" && t.ownerEmail ? ` · ${t.ownerEmail}` : ""}
-                      </span>
-                    </span>
-                    <span className={s.taskDue}>
-                      <StatusPill size="sm" label={due.text} tone={due.tone} srPrefix="Due" />
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <Loadable loading={!queue && !error} label="Loading your tasks" skeleton={<QueueSkeleton />}>
+            {queue && tasks.length === 0 && (
+              <StaggerItem>
+                <EmptyState
+                  title="Nothing in your queue"
+                  body="New tasks appear here when a member joins, books a call, gets a handoff, or a document or quote goes quiet."
+                />
+              </StaggerItem>
+            )}
+            {tasks.length > 0 && (
+              <Stagger>
+                <ul className={s.taskList}>
+                  {tasks.map((t, i) => {
+                    const due = dueLabel(t.dueAt);
+                    return (
+                      <StaggerItem as="li" index={i} key={t.id}>
+                        <button type="button" className={s.task} onClick={() => setOpen(t)} aria-haspopup="dialog">
+                          <span className={s.taskType}>
+                            <StatusPill size="sm" label={TASK_TYPE_LABEL[t.type]} tone={TASK_TYPE_TONE[t.type]} />
+                          </span>
+                          <span className={s.taskMain}>
+                            <span className={s.taskTitle}>{t.title}</span>
+                            <span className={s.taskMember}>
+                              {t.memberName ?? t.clientId}
+                              {scope === "all" && t.ownerEmail ? ` · ${t.ownerEmail}` : ""}
+                            </span>
+                          </span>
+                          <span className={s.taskDue}>
+                            <StatusPill size="sm" label={due.text} tone={due.tone} srPrefix="Due" />
+                          </span>
+                        </button>
+                      </StaggerItem>
+                    );
+                  })}
+                </ul>
+              </Stagger>
+            )}
+          </Loadable>
         </section>
 
         <aside className={s.rail} aria-label="Needs attention">
           <h2 className={s.h2}>Needs attention</h2>
-          {!summary && !error && <Muted>Loading…</Muted>}
-          {summary && (
-            <>
-              <RailGroup
-                title="Overdue matters"
-                items={summary.attention.overdueMatters}
-                badge={(i) => <AgingBadge days={i.days} />}
-                empty="No matter is past its next step or 14 days in stage."
-              />
-              <RailGroup
-                title="Obligations due in 14 days"
-                items={summary.attention.obligationsDue}
-                badge={(i) => <StatusPill size="sm" tone={i.days < 0 ? "danger" : "warning"} label={i.days < 0 ? `${-i.days} days late` : `Due ${shortDate(i.at)}`} />}
-                empty="Nothing due in the next 14 days."
-              />
-              <RailGroup
-                title="Quotes unanswered 5+ days"
-                items={summary.attention.quotesUnanswered}
-                badge={(i) => <StatusPill size="sm" tone="warning" label={`${i.days} days`} />}
-                empty="Every sent quote has an answer or is under 5 days old."
-              />
-              <RailGroup
-                title="Not consultation-ready after 7 days"
-                items={summary.attention.notReady}
-                badge={(i) => <StatusPill size="sm" tone="warning" label={`Day ${i.days}`} />}
-                empty="Every member past day 7 is consultation-ready."
-              />
-              <RailGroup
-                title="No lawyer assigned"
-                items={summary.attention.unassigned}
-                badge={(i) => <StatusPill size="sm" label={`${i.days} days`} />}
-                empty="Every member has a lawyer."
-              />
-            </>
-          )}
+          <Loadable loading={!summary && !error} label="Loading items that need attention" skeleton={<RailSkeleton />}>
+            {() =>
+              summary && (
+                <Stagger>
+                  <div className={s.railGroups}>
+                    <StaggerItem index={0}>
+                      <RailGroup
+                        title="Overdue matters"
+                        items={summary.attention.overdueMatters}
+                        badge={(i) => <AgingBadge days={i.days} />}
+                        empty="No matter is past its next step or 14 days in stage."
+                      />
+                    </StaggerItem>
+                    <StaggerItem index={1}>
+                      <RailGroup
+                        title="Obligations due in 14 days"
+                        items={summary.attention.obligationsDue}
+                        badge={(i) => <StatusPill size="sm" tone={i.days < 0 ? "danger" : "warning"} label={i.days < 0 ? `${-i.days} days late` : `Due ${shortDate(i.at)}`} />}
+                        empty="Nothing due in the next 14 days."
+                      />
+                    </StaggerItem>
+                    <StaggerItem index={2}>
+                      <RailGroup
+                        title="Quotes unanswered 5+ days"
+                        items={summary.attention.quotesUnanswered}
+                        badge={(i) => <StatusPill size="sm" tone="warning" label={`${i.days} days`} />}
+                        empty="Every sent quote has an answer or is under 5 days old."
+                      />
+                    </StaggerItem>
+                    <StaggerItem index={3}>
+                      <RailGroup
+                        title="Not consultation-ready after 7 days"
+                        items={summary.attention.notReady}
+                        badge={(i) => <StatusPill size="sm" tone="warning" label={`Day ${i.days}`} />}
+                        empty="Every member past day 7 is consultation-ready."
+                      />
+                    </StaggerItem>
+                    <StaggerItem index={4}>
+                      <RailGroup
+                        title="No lawyer assigned"
+                        items={summary.attention.unassigned}
+                        badge={(i) => <StatusPill size="sm" label={`${i.days} days`} />}
+                        empty="Every member has a lawyer."
+                      />
+                    </StaggerItem>
+                  </div>
+                </Stagger>
+              )
+            }
+          </Loadable>
         </aside>
       </div>
 

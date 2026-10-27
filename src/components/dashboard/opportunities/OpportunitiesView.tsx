@@ -7,9 +7,11 @@ import {
   Checkbox,
   DataTable,
   EmptyState,
+  Loadable,
   SearchInput,
   Select,
   StatTile,
+  StaggerItem,
   StatusPill,
   Tabs,
   type Column,
@@ -29,6 +31,7 @@ import {
   type OpportunityRow,
   type OpportunitySummary,
 } from "./oppApi";
+import { OpportunityBoardSkeleton, OpportunitySummarySkeleton } from "./OpportunitiesSkeleton";
 import s from "./opportunities.module.scss";
 
 /** Staff Opportunities: summary strip, filters, board by stage and a list view, one drawer. */
@@ -159,7 +162,9 @@ export default function OpportunitiesView() {
     <>
       <PageHeader title="Opportunities" sub="Paid legal work beyond the membership, from first mention to won or lost. Values are legal fees (GMV), shown to staff only." />
 
-      {summary && <SummaryStrip summary={summary} />}
+      <Loadable loading={!summary && !error} label="Loading the pipeline summary" skeleton={<OpportunitySummarySkeleton />}>
+        {() => summary && <SummaryStrip summary={summary} />}
+      </Loadable>
 
       <div className={s.filters} role="search" aria-label="Filter opportunities">
         <SearchInput className={s.search} label="Search" value={q} onValueChange={setQ} placeholder="Title, member or owner" />
@@ -167,7 +172,11 @@ export default function OpportunitiesView() {
         <Select label="Area" value={area} onChange={(e) => setArea(e.target.value)} options={areaChoices} />
       </div>
 
-      {error && <ErrorText>{error}</ErrorText>}
+      {error && (
+        <StaggerItem>
+          <ErrorText>{error}</ErrorText>
+        </StaggerItem>
+      )}
       {moveError && <ErrorText>{moveError}</ErrorText>}
       {backfill && (
         <p className={s.meta} role="status">
@@ -181,8 +190,16 @@ export default function OpportunitiesView() {
           {
             id: "board",
             label: "Board",
-            content: items === null ? <p className={s.meta}>Loading opportunities…</p> : items.length === 0 ? empty : (
-              <OpportunitiesBoard items={visible} busyId={busyId} onOpen={(o) => setOpen({ row: o })} onMove={move} />
+            content: (
+              <Loadable loading={items === null && !error} label="Loading opportunities" skeleton={<OpportunityBoardSkeleton />}>
+                {() =>
+                  items === null ? null : items.length === 0 ? (
+                    <StaggerItem>{empty}</StaggerItem>
+                  ) : (
+                    <OpportunitiesBoard items={visible} busyId={busyId} onOpen={(o) => setOpen({ row: o })} onMove={move} />
+                  )
+                }
+              </Loadable>
             ),
           },
           {
@@ -204,7 +221,7 @@ export default function OpportunitiesView() {
                   columns={columns}
                   rows={listRows}
                   rowKey={(o) => o.id}
-                  loading={items === null}
+                  loading={items === null && !error}
                   defaultSort={{ key: "next", dir: "asc" }}
                   selectedKey={open?.row.id ?? null}
                   onRowActivate={(o) => setOpen({ row: o })}

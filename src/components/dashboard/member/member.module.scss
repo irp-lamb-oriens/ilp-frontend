@@ -261,3 +261,14 @@
   cursor: pointer;
   text-align: left;
 }
+
+// Skeleton: page head with the title and sub line, cards on the block surface.
+.skHead {
+  display: grid;
+  gap: $space-1;
+  margin-bottom: $space-6;
+}
+
+.skCard {
+  padding: $space-4;
+}

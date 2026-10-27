@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { FunnelStep } from "@/lib/contracts";
-import { EmptyState, ProgressBar, StatTile } from "@/components/ui";
+import { EmptyState, ProgressBar, Skeleton, SkeletonRegion, SkeletonStatTile, SkeletonText, StaggerItem, StatTile, useSkeleton } from "@/components/ui";
 import s from "./PmfPanel.module.scss";
 
 /** Server: GET /api/analytics/pmf (server/API/analytics/funnel.ts). */
@@ -43,8 +43,21 @@ export function usePmf(days = 30) {
 /** Reports → Member funnel: last 30 days of the loop, call ratings, NPS and why people cancel. */
 export default function PmfPanel() {
   const { data, failed } = usePmf(30);
-  if (failed) return <EmptyState compact title="Funnel data could not be loaded" body="Try again in a minute." />;
-  if (!data) return <p className={s.muted}>Loading…</p>;
+  const { showSkeleton, skeletonVisible } = useSkeleton(!data && !failed);
+  if (failed) {
+    return (
+      <StaggerItem>
+        <EmptyState compact title="Funnel data could not be loaded" body="Try again in a minute." />
+      </StaggerItem>
+    );
+  }
+  if (showSkeleton || !data) {
+    return (
+      <SkeletonRegion label="Loading the member funnel" visible={skeletonVisible} className={s.wrap}>
+        <PmfSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const top = Math.max(1, data.funnel[0]?.count ?? 0);
   const paid = data.funnel.find((f) => f.step === "join_paid")?.count ?? 0;
@@ -52,7 +65,7 @@ export default function PmfPanel() {
 
   return (
     <div className={s.wrap}>
-      <div className={s.tiles}>
+      <StaggerItem index={0} className={s.tiles}>
         <StatTile
           size="lg"
           label="Free check → paid member"
@@ -70,9 +83,9 @@ export default function PmfPanel() {
           hint={`${data.nps.count} answers · ${data.nps.promoters} promoters, ${data.nps.detractors} detractors`}
         />
         <StatTile label="Cancel requests" value={data.cancels.count} hint={`last ${data.days} days`} />
-      </div>
+      </StaggerItem>
 
-      <section className={s.block} aria-labelledby="pmf-funnel">
+      <StaggerItem as="section" index={1} className={s.block} aria-labelledby="pmf-funnel">
         <h2 className={s.title} id="pmf-funnel">
           Funnel, last {data.days} days
         </h2>
@@ -89,9 +102,9 @@ export default function PmfPanel() {
             </li>
           ))}
         </ol>
-      </section>
+      </StaggerItem>
 
-      <div className={s.split}>
+      <StaggerItem index={2} className={s.split}>
         <section className={s.block} aria-labelledby="pmf-sources">
           <h2 className={s.title} id="pmf-sources">
             Where checks come from
@@ -137,7 +150,43 @@ export default function PmfPanel() {
             </ul>
           )}
         </section>
-      </div>
+      </StaggerItem>
     </div>
+  );
+}
+
+/** Tiles, the six funnel bars and the two lower blocks. */
+function PmfSkeleton() {
+  return (
+    <>
+      <div className={s.tiles} aria-hidden="true">
+        <SkeletonStatTile size="lg" />
+        <SkeletonStatTile />
+        <SkeletonStatTile />
+        <SkeletonStatTile />
+      </div>
+      <div className={s.block} aria-hidden="true">
+        <Skeleton shape="line" size="lg" width="40" />
+        <Skeleton shape="line" size="sm" width="75" />
+        <div className={s.steps}>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className={s.step}>
+              <Skeleton shape="line" size="sm" width={i % 2 ? "40" : "60"} />
+              <Skeleton shape="pill" size="xs" width="100" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className={s.split} aria-hidden="true">
+        <div className={s.block}>
+          <Skeleton shape="line" size="lg" width="60" />
+          <SkeletonText lines={4} size="sm" />
+        </div>
+        <div className={s.block}>
+          <Skeleton shape="line" size="lg" width="60" />
+          <SkeletonText lines={4} size="sm" />
+        </div>
+      </div>
+    </>
   );
 }

@@ -5,7 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { RoleShell } from "@/components/shell";
 import type { NavItem } from "@/components/shell";
-import { ApiError, staffApi } from "@/lib/api";
+import { ApiError, getRoleToken, staffApi } from "@/lib/api";
+import { SkeletonRegion, useSkeleton } from "@/components/ui";
+import StaffRouteSkeleton from "./StaffRouteSkeleton";
 import type { StaffRole } from "./types";
 import s from "./staff.module.scss";
 
@@ -66,6 +68,11 @@ export function StaffFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [session, setSession] = useState<StaffSession | null>(null);
   const [state, setState] = useState<"loading" | "login" | "ready" | "error">("loading");
+  // A stored token means the session check will most likely pass: show the
+  // shell at once with the page skeleton instead of a blank screen. Read after
+  // mount so the server render and hydration agree.
+  const [hasToken, setHasToken] = useState(false);
+  const boot = useSkeleton(state === "loading" && hasToken);
 
   const check = useCallback(async () => {
     try {
@@ -79,14 +86,46 @@ export function StaffFrame({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    setHasToken(!!getRoleToken("staff"));
     check();
   }, [check]);
 
+  const shell = (current: StaffSession | null, body: ReactNode) => (
+    <Ctx.Provider value={current}>
+      <RoleShell
+        role="staff"
+        nav={staffNav(current?.role ?? "staff")}
+        user={current ? { email: current.email, title: ROLE_TITLE[current.role] } : null}
+        onLogout={() => {
+          staffApi.logout().then(() => {
+            setSession(null);
+            setState("login");
+            router.push("/dashboard");
+          });
+        }}
+        onSearch={(q) => router.push(`/dashboard/members?q=${encodeURIComponent(q)}`)}
+        searchPlaceholder="Search members by name or email"
+      >
+        {body}
+      </RoleShell>
+    </Ctx.Provider>
+  );
+
   if (state === "loading") {
+    if (hasToken) {
+      return shell(
+        null,
+        <SkeletonRegion label="Loading your workspace" visible={boot.skeletonVisible}>
+          <StaffRouteSkeleton pathname={pathname ?? "/dashboard"} />
+        </SkeletonRegion>,
+      );
+    }
     return (
-      <p className={s.boot} role="status">
-        Checking your session…
-      </p>
+      <div className={s.boot}>
+        <p className={s.sr} role="status">
+          Checking your session…
+        </p>
+      </div>
     );
   }
 
@@ -118,26 +157,7 @@ export function StaffFrame({ children }: { children: ReactNode }) {
     );
   }
 
-  return (
-    <Ctx.Provider value={session}>
-      <RoleShell
-        role="staff"
-        nav={staffNav(session.role)}
-        user={{ email: session.email, title: ROLE_TITLE[session.role] }}
-        onLogout={() => {
-          staffApi.logout().then(() => {
-            setSession(null);
-            setState("login");
-            router.push("/dashboard");
-          });
-        }}
-        onSearch={(q) => router.push(`/dashboard/members?q=${encodeURIComponent(q)}`)}
-        searchPlaceholder="Search members by name or email"
-      >
-        {children}
-      </RoleShell>
-    </Ctx.Provider>
-  );
+  return shell(session, children);
 }
 
 /** Wrap admin-only pages. Non-admins get a plain explanation, not a blank page. */

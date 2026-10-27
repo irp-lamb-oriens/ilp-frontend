@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PROFILE_FIELDS, PROFILE_SECTIONS, type Handoff, type ProfileSection } from "@/lib/contracts";
-import { ButtonLink, Drawer, ProgressBar, StatusPill, Timeline, type TimelineItem } from "@/components/ui";
-import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
+import { ButtonLink, Drawer, ProgressBar, SkeletonRegion, Stagger, StaggerItem, StatusPill, Timeline, useSkeleton, type TimelineItem } from "@/components/ui";
+import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { dueLabel, MEMBERSHIP_LABEL, MEMBERSHIP_TONE, memberName } from "../staff/format";
 import type { MemberBundle, QueueTask, TimelineEntry } from "../staff/types";
 import { useLawyers } from "../staff/useLawyers";
@@ -15,6 +15,7 @@ import { CallsPanel } from "./CallsPanel";
 import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
 import { NextActions } from "./NextActions";
+import MemberSkeleton from "./MemberSkeleton";
 import s from "./member.module.scss";
 
 const SECTION_LABEL: Record<ProfileSection, string> = {
@@ -72,6 +73,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
   const [handoff, setHandoff] = useState<Handoff | null>(null);
   const [task, setTask] = useState<QueueTask | null>(null);
   const { nameOf } = useLawyers();
+  const { showSkeleton, skeletonVisible } = useSkeleton(!bundle && !error);
 
   const load = useCallback(() => {
     Promise.all([
@@ -127,17 +129,25 @@ export default function MemberPage({ clientId }: { clientId: string }) {
     return (
       <>
         <PageHeader title="Member" actions={<ButtonLink href="/dashboard/members" variant="secondary">All members</ButtonLink>} />
-        <ErrorText>{error}</ErrorText>
+        <StaggerItem>
+          <ErrorText>{error}</ErrorText>
+        </StaggerItem>
       </>
     );
   }
-  if (!bundle) return <Muted>Loading member…</Muted>;
+  if (showSkeleton || !bundle) {
+    return (
+      <SkeletonRegion label="Loading member" visible={skeletonVisible}>
+        <MemberSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const m = bundle.membership;
   const openTasks = bundle.tasks.filter((t) => t.status === "open");
 
   return (
-    <>
+    <Stagger>
       <PageHeader
         title={name}
         sub={[String(bundle.client?.email ?? ""), String(bundle.client?.persona ?? "")].filter(Boolean).join(" · ")}
@@ -153,7 +163,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
 
       <div className={s.layout}>
         <div className={s.col}>
-          <section className={s.block} aria-label="Profile">
+          <StaggerItem as="section" index={0} className={s.block} aria-label="Profile">
             <h2 className={s.blockTitle}>Living profile</h2>
             <ProgressBar
               label={bundle.completeness.consultationReady ? "Complete · consultation-ready" : "Complete · not ready yet (70% needed)"}
@@ -178,26 +188,30 @@ export default function MemberPage({ clientId }: { clientId: string }) {
                 </div>
               ))}
             </dl>
-          </section>
-          <MembershipPanel membership={m} onChanged={load} />
-          <MemberDocumentsList
-            clientId={clientId}
-            role="staff"
-            matterTitle={(id) => bundle.matters.find((x) => x.id === id)?.title}
-          />
+          </StaggerItem>
+          <StaggerItem index={2}>
+            <MembershipPanel membership={m} onChanged={load} />
+          </StaggerItem>
+          <StaggerItem index={4}>
+            <MemberDocumentsList
+              clientId={clientId}
+              role="staff"
+              matterTitle={(id) => bundle.matters.find((x) => x.id === id)?.title}
+            />
+          </StaggerItem>
         </div>
 
         <div className={s.col}>
           {bundle.nextStep && (
-            <div className={s.nextStep}>
+            <StaggerItem index={1} className={s.nextStep}>
               <p className={s.label}>Member&apos;s next step</p>
               <p className={s.nextWhat}>{bundle.nextStep.what}</p>
               <p className={s.meta}>
                 {bundle.nextStep.who === "client" ? "Member" : bundle.nextStep.who === "lawyer" ? "Lawyer" : "ILP"} · {dueLabel(bundle.nextStep.dueAt).text}
               </p>
-            </div>
+            </StaggerItem>
           )}
-          <section className={s.block} aria-label="Timeline">
+          <StaggerItem as="section" index={2} className={s.block} aria-label="Timeline">
             <h2 className={s.blockTitle}>Timeline</h2>
             <div className={s.timelineFilter} role="group" aria-label="Filter timeline">
               {KINDS.map((k) => (
@@ -207,18 +221,24 @@ export default function MemberPage({ clientId }: { clientId: string }) {
               ))}
             </div>
             <Timeline items={items} emptyLabel="Nothing recorded for this filter yet." />
-          </section>
+          </StaggerItem>
         </div>
 
         <div className={s.col}>
-          <NextActions
-            bundle={bundle}
-            openTasks={openTasks}
-            onOpenTask={(t) => setTask({ ...t, memberName: name, membershipStatus: m?.status ?? null })}
-            onChanged={load}
-          />
-          <CallsPanel calls={bundle.consultations} lawyerName={nameOf} onChanged={load} />
-          <MemberOpportunities bundle={bundle} />
+          <StaggerItem index={1}>
+            <NextActions
+              bundle={bundle}
+              openTasks={openTasks}
+              onOpenTask={(t) => setTask({ ...t, memberName: name, membershipStatus: m?.status ?? null })}
+              onChanged={load}
+            />
+          </StaggerItem>
+          <StaggerItem index={3}>
+            <CallsPanel calls={bundle.consultations} lawyerName={nameOf} onChanged={load} />
+          </StaggerItem>
+          <StaggerItem index={4}>
+            <MemberOpportunities bundle={bundle} />
+          </StaggerItem>
         </div>
       </div>
 
@@ -249,6 +269,6 @@ export default function MemberPage({ clientId }: { clientId: string }) {
         }}
         onChanged={load}
       />
-    </>
+    </Stagger>
   );
 }

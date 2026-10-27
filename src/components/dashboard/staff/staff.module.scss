@@ -78,3 +78,7 @@
   margin: 0;
   color: $color-muted;
 }
+
+.sr {
+  @include visually-hidden;
+}

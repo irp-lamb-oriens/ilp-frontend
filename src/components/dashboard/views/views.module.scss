@@ -17,6 +17,16 @@
   }
 }
 
+// Reveal wrapper around a tile: the tile fills its cell.
+.tileCell {
+  display: grid;
+}
+
+// Chart placeholder: the height SimpleBarChart renders at.
+.chartSk {
+  height: 260px;
+}
+
 .stack {
   display: grid;
   gap: $space-6;

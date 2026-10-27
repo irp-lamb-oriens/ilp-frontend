@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { staffApi } from "@/lib/api";
 import { COUNTRIES } from "@/components/shell";
-import { Button, DataTable, ProgressBar, SearchInput, Select, StatusPill, type Column } from "@/components/ui";
+import { Button, DataTable, ProgressBar, SearchInput, Select, Skeleton, StatusPill, StaggerItem, type Column } from "@/components/ui";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { MEMBERSHIP_LABEL, MEMBERSHIP_TONE, shortDate } from "../staff/format";
@@ -114,7 +114,7 @@ export default function MembersList() {
 
   return (
     <>
-      <PageHeader title="Members" sub={data ? `${data.total} member${data.total === 1 ? "" : "s"} match.` : "Loading members…"} />
+      <PageHeader title="Members" sub={data ? `${data.total} member${data.total === 1 ? "" : "s"} match.` : <Skeleton shape="line" size="sm" width="25" />} />
       <form className={s.filters} role="search" onSubmit={(e) => e.preventDefault()}>
         <SearchInput
           label="Search"
@@ -165,13 +165,18 @@ export default function MembersList() {
         {sortBtn("renewal", "Renewal")}
       </div>
 
-      {error && <ErrorText>{error}</ErrorText>}
+      {error && (
+        <StaggerItem>
+          <ErrorText>{error}</ErrorText>
+        </StaggerItem>
+      )}
       <DataTable
         caption="Members"
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(r) => r.clientId}
-        loading={loading && !data}
+        loading={loading && !data && !error}
+        skeletonRows={8}
         onRowActivate={(r) => router.push(`/dashboard/members/${encodeURIComponent(r.clientId)}`)}
         empty="No member matches these filters."
       />
