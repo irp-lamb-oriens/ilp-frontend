@@ -1,0 +1,194 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.player {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+}
+
+// The box keeps the scene's aspect ratio; the stage inside is drawn at the
+// design size and scaled down (--scene-k is set from the box width).
+.box {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+  pointer-events: none;
+  user-select: none;
+}
+
+.desktop {
+  aspect-ratio: 960 / 600;
+}
+
+.wide {
+  aspect-ratio: 960 / 540;
+}
+
+.phone {
+  aspect-ratio: 390 / 720;
+  width: min(100%, 17rem);
+  margin-inline: auto;
+}
+
+.stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(var(--scene-k, 1));
+  transform-origin: 0 0;
+}
+
+.stage_desktop {
+  width: 960px;
+  height: 600px;
+}
+
+.stage_wide {
+  width: 960px;
+  height: 540px;
+}
+
+.stage_phone {
+  width: 390px;
+  height: 720px;
+}
+
+.cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.cursorBody {
+  position: absolute;
+  top: -2px;
+  left: -3px;
+  display: block;
+  width: 24px;
+  height: 24px;
+  transform-origin: 4px 3px;
+}
+
+.arrow,
+.hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: opacity 120ms ease;
+
+  path {
+    fill: $color-charcoal;
+    stroke: $color-canvas;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+  }
+}
+
+.hand {
+  left: -5px;
+  opacity: 0;
+}
+
+.cursor[data-pointer="1"] {
+  .arrow {
+    opacity: 0;
+  }
+
+  .hand {
+    opacity: 1;
+  }
+}
+
+.ripple {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid $color-accent;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid $color-canvas;
+  border-radius: 50%;
+  background: $color-navy;
+  color: $color-on-navy;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: $color-charcoal;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+  }
+}
+
+.legendNum {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: $color-navy;
+  color: $color-on-navy;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-1;
+}
+
+.control {
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border: none;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-steel;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+      color: $color-navy;
+    }
+  }
+}
