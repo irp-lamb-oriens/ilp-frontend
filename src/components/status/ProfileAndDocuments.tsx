@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, DateInput, ProgressBar, Select, Stagger, StaggerItem, StatusPill, TextInput } from "@/components/ui";
+import { Button, DateInput, ProgressBar, Select, Stagger, StaggerItem, StatusPill, TextInput, useUnsavedChanges } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import type { ProfileSection } from "@/lib/contracts";
 import { memberApi } from "./api";
@@ -77,6 +77,7 @@ function SectionForm({ section }: { section: ProfileSection }) {
   const dirty = keys.some((k) => values[k] !== toInput(home.profile[k], FIELD_META[k]?.kind ?? "text"));
   const filled = keys.filter((k) => isFilled(home.profile[k])).length;
   const copy = SECTION_COPY[section];
+  useUnsavedChanges(dirty, `Your ${copy.title.toLowerCase()} changes are not saved yet. If you leave now, they will be lost.`);
 
   async function save() {
     setBusy(true);

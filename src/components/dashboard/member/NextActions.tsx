@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PLAN_STANDARD, type CsmTask } from "@/lib/contracts";
-import { Button, DateInput, Select, StatusPill, TextInput } from "@/components/ui";
+import { Button, DateInput, Select, StatusPill, TextInput, useUnsavedChanges } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { dueLabel, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import type { MemberBundle } from "../staff/types";
@@ -82,6 +82,7 @@ function BookCall({
   const [when, setWhen] = useState("");
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
+  useUnsavedChanges(when !== "" || question.trim() !== "", "The call you started booking is not saved yet. If you leave now, it will be lost.");
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const m = bundle.membership;
@@ -159,6 +160,7 @@ function BookCall({
 function Quotes({ clientId, quotes, onChanged }: { clientId: string; quotes: Quote[]; onChanged: () => void }) {
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  useUnsavedChanges(title.trim() !== "", "The new quote title is not saved yet. If you leave now, it will be lost.");
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 

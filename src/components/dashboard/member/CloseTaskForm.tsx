@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
-import { Button, TextArea } from "@/components/ui";
+import { Button, TextArea, useUnsavedChanges } from "@/components/ui";
 import s from "./member.module.scss";
 
 /** Close a CSM task. The outcome is required (server enforces it too). */
@@ -11,6 +11,7 @@ export function CloseTaskForm({ task, onClosed }: { task: CsmTask; onClosed: (t:
   const [outcome, setOutcome] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  useUnsavedChanges(outcome.trim() !== "", "The task outcome you wrote is not saved yet. If you leave now, it will be lost.");
 
   async function close(e: React.FormEvent) {
     e.preventDefault();

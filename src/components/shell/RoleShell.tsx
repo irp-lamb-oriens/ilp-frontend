@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Drawer } from "../ui/Drawer";
 import { cx } from "../ui/cx";
+import { useLeaveGuard } from "../ui/UnsavedChanges";
 import { CountrySwitcher } from "./CountrySwitcher";
 import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
@@ -84,6 +85,10 @@ export function RoleShell({
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // Nav, bottom-bar, "More" and brand links are next/link: the root
+  // UnsavedChangesGuard asks before they leave a dirty form. Search and
+  // logout navigate from code, so they go through the same guard here.
+  const leave = useLeaveGuard();
 
   useEffect(() => {
     try {
@@ -108,7 +113,7 @@ export function RoleShell({
   function submitSearch(e: FormEvent) {
     e.preventDefault();
     const q = query.trim();
-    if (q) onSearch?.(q);
+    if (q && onSearch) void leave.guard(() => onSearch(q));
   }
 
   const overflow = items.length > BOTTOM_MAX;
@@ -201,7 +206,13 @@ export function RoleShell({
               </div>
             )}
             {bell === undefined ? <NotificationBell /> : bell}
-            <UserMenu user={user} roleLabel={roleLabel} onLogout={onLogout} onLogoutAll={onLogoutAll} links={menuLinks} />
+            <UserMenu
+              user={user}
+              roleLabel={roleLabel}
+              onLogout={onLogout && (() => void leave.guard(onLogout, { title: "Log out without saving?", confirmLabel: "Log out without saving" }))}
+              onLogoutAll={onLogoutAll && (() => void leave.guard(onLogoutAll, { title: "Log out without saving?", confirmLabel: "Log out without saving" }))}
+              links={menuLinks}
+            />
           </div>
         </header>
 

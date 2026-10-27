@@ -13,6 +13,7 @@ import {
   StaggerItem,
   TextInput,
   WeeklyHoursEditor,
+  useUnsavedChanges,
   timeToMinutes,
   useSkeleton,
   validateWindows,
@@ -76,14 +77,23 @@ const fingerprint = (d: Draft) =>
  *
  * Staff reuse it on /dashboard/lawyers with an adapter over
  * GET|PUT /api/dashboard/availability/:providerId (remount with `key` per
- * lawyer); `onDirtyChange` lets the staff page warn before switching lawyer.
+ * lawyer). Unsaved edits register with useUnsavedChanges, so the staff page
+ * asks through confirmLeave before switching lawyer.
  */
 export default function AvailabilityView({
   adapter = ownAdapter,
   title = "Your hours",
   showBack = true,
   onDirtyChange,
-}: { adapter?: AvailabilityAdapter; title?: string; showBack?: boolean; onDirtyChange?: (dirty: boolean) => void } = {}) {
+  unsavedMessage = "Your hours have changes that are not saved yet. If you leave now, they will be lost.",
+}: {
+  adapter?: AvailabilityAdapter;
+  title?: string;
+  showBack?: boolean;
+  onDirtyChange?: (dirty: boolean) => void;
+  /** Text of the leave-without-saving dialog. */
+  unsavedMessage?: string;
+} = {}) {
   const [data, setData] = useState<AvailabilitySettings | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -118,16 +128,8 @@ export default function AvailabilityView({
     onDirtyChange?.(dirty);
   }, [dirty, onDirtyChange]);
 
-  // Warn before a reload or tab close loses edits.
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  // Ask before a reload, tab close, link, Back or logout loses edits.
+  useUnsavedChanges(dirty, unsavedMessage);
 
   const { showSkeleton, skeletonVisible } = useSkeleton(!data && !loadError);
   if (loadError) {

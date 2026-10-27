@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { DataTable, EmptyState, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, useSkeleton, type Column, type TabItem } from "@/components/ui";
+import { DataTable, EmptyState, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
 import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
@@ -77,7 +77,6 @@ function Capacity() {
 function Hours() {
   const { lawyers, loaded } = useLawyers();
   const [pick, setPick] = useState("");
-  const [dirty, setDirty] = useState(false);
   const id = pick || lawyers[0]?.id || "";
   const name = lawyers.find((l) => l.id === id)?.name ?? "Lawyer";
   const adapter = useMemo<AvailabilityAdapter>(() => {
@@ -102,10 +101,14 @@ function Hours() {
       <Select
         label="Lawyer"
         value={id}
-        onChange={(e) => {
-          if (dirty && !window.confirm("This lawyer's hours have unsaved changes. Switch lawyer and discard them?")) return;
-          setDirty(false);
-          setPick(e.target.value);
+        onChange={async (e) => {
+          const next = e.target.value;
+          const ok = await confirmLeave({
+            title: "Switch lawyer without saving?",
+            message: `${name}'s hours have changes that are not saved yet. Switching lawyer discards them.`,
+            confirmLabel: "Switch without saving",
+          });
+          if (ok) setPick(next);
         }}
       >
         {lawyers.map((l) => (
@@ -114,7 +117,9 @@ function Hours() {
           </option>
         ))}
       </Select>
-      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} onDirtyChange={setDirty} />
+      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false}
+        unsavedMessage={`${name}'s hours have changes that are not saved yet. If you leave now, they will be lost.`}
+      />
     </div>
   );
 }

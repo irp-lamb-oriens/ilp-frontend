@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import SmoothScroll from "@/components/SmoothScroll";
 import LeadModal from "@/components/LeadModal";
 import SiteLegal from "@/components/legal/SiteLegal";
+import { UnsavedChangesGuard } from "@/components/ui/UnsavedChanges";
 import "@/styles/global.scss";
 
 export const metadata: Metadata = {
@@ -29,6 +30,7 @@ export default async function RootLayout({
         <SmoothScroll>{children}</SmoothScroll>
         <LeadModal />
         <SiteLegal />
+        <UnsavedChangesGuard />
       </body>
     </html>
   );

@@ -1,0 +1,113 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Centred card on tablet and up, bottom sheet on phones. Flat scrim, no blur.
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: $z-dialog;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding: $space-4;
+
+  @include md {
+    align-items: center;
+    padding: $space-6;
+  }
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: $color-scrim;
+  opacity: 0;
+  transition: opacity $duration-fast $ease-out-strong;
+}
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  width: 100%;
+  max-width: 28rem;
+  max-height: calc(100dvh - #{$space-8});
+  overflow-y: auto;
+  padding: $space-6;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  transform-origin: bottom center;
+  transition: opacity $duration-fast $ease-out-strong, transform $duration-fast $ease-out-strong;
+
+  @include md {
+    transform-origin: center;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.shown {
+  .scrim {
+    opacity: 1;
+  }
+
+  .panel {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@include reduced-motion {
+  .panel {
+    transform: none;
+    transition: opacity $duration-fast ease;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.body {
+  color: $color-charcoal;
+  line-height: 1.6;
+
+  > p {
+    margin: 0;
+  }
+
+  > p + p {
+    margin-top: $space-2;
+  }
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin-top: $space-2;
+
+  > * {
+    width: 100%;
+  }
+
+  @include md {
+    flex-direction: row;
+    justify-content: flex-end;
+
+    > * {
+      width: auto;
+    }
+  }
+}
