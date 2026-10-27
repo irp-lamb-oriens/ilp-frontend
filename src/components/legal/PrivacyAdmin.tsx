@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button, DataTable, Drawer, StatusPill, type Column, type StatusTone } from "@/components/ui";
-import { ApiError, staffApi } from "@/lib/api";
+import { ApiError, downloadFile, staffApi } from "@/lib/api";
+import { DownloadButton } from "@/components/documents/DownloadButton";
 import type { PrivacyRequest } from "@/lib/contracts";
 import { ErrorText, Muted, PageHeader } from "@/components/dashboard/staff/PageHeader";
 import { AdminOnly } from "@/components/dashboard/staff/StaffSession";
@@ -212,7 +213,15 @@ function RequestDrawer({ row, onClose, onChanged }: { row: Row; onClose: () => v
         <p className={s.text}>
           Confirm the member&apos;s identity before acting (reply from the account email, or a call). The member can
           download their own data from their portal; for an access request you can also send this file:{" "}
-          <a href={staffApi.url(`/api/dashboard/privacy/members/${encodeURIComponent(row.clientId)}/export`)}>member data (JSON)</a>.
+          <DownloadButton
+            className={s.inlineLink}
+            download={() =>
+              downloadFile("staff", `/api/dashboard/privacy/members/${encodeURIComponent(row.clientId)}/export`, `ilp-member-data-${row.clientId}.json`)
+            }
+          >
+            member data (JSON)
+          </DownloadButton>
+          .
         </p>
 
         {openState && row.kind !== "delete" && (

@@ -52,6 +52,19 @@
   }
 }
 
+// The member-data download (a button: it needs the staff Bearer token).
+.inlineLink {
+  color: $color-navy;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
 .form {
   display: grid;
   gap: $space-3;

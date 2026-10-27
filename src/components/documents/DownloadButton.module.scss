@@ -1,0 +1,37 @@
+@use "../../styles/variables" as *;
+
+.wrap {
+  display: inline-grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+// Looks like the caller's link class; behaves like a button. Zero
+// specificity, so the caller's class always wins.
+:where(.reset) {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+:where(.reset[aria-busy="true"]) {
+  cursor: progress;
+}
+
+.busy {
+  font-weight: 400;
+  color: $color-steel;
+}
+
+.error {
+  font-size: 0.8125rem;
+  color: $color-error;
+}

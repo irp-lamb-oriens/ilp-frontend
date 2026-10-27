@@ -1,8 +1,8 @@
 /**
  * Member document upload (P1). The file goes up as the raw request body
  * (no base64), so files up to 15 MB fit; the server checks the real type from
- * the bytes and stores it in a private bucket. Downloads stay on
- * `memberApi.documentUrl(id)` (cookie-authenticated, audited).
+ * the bytes and stores it in a private bucket. Downloads go through
+ * `memberApi.downloadDocument(id)` (Bearer-authenticated blob fetch, audited).
  */
 
 import { clientApi } from "@/lib/status";

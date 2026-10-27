@@ -3,6 +3,7 @@
  * Each consent is stored as a ConsentRecord with the version of the document
  * the person saw (versions.ts).
  */
+import { downloadFile } from "@/lib/api";
 import { clientApi } from "@/lib/status";
 import type { ConsentKind, PrivacyRequest, PrivacyRequestKind } from "@/lib/contracts";
 import { LEGAL_VERSIONS } from "./versions";
@@ -61,5 +62,6 @@ export const privacyApi = {
   me: () => clientApi.get<PrivacyMe>("/api/privacy/me"),
   request: (kind: Exclude<PrivacyRequestKind, "export">, note?: string) =>
     clientApi.post<{ request: PrivacyRequest; existing?: boolean }>("/api/privacy/me/requests", { kind, note }),
-  exportUrl: () => clientApi.url("/api/privacy/me/export"),
+  /** Fetch the member's JSON export with the Bearer token and save it (AUTH). */
+  downloadExport: () => downloadFile("client", "/api/privacy/me/export", "ilp-my-data.json"),
 };

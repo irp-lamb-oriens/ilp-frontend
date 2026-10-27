@@ -33,6 +33,21 @@ export default function PrivacyCenter() {
   const { home } = useMember();
   const [me, setMe] = useState<PrivacyMe | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // The export needs the member's Bearer token, so it is fetched, not linked (AUTH).
+  async function downloadExport() {
+    setExporting(true);
+    setExportError(null);
+    try {
+      await privacyApi.downloadExport();
+    } catch (err) {
+      setExportError(err instanceof ApiError && err.status !== 401 ? err.message : "The download did not start. Try again.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -61,14 +76,19 @@ export default function PrivacyCenter() {
         <h2 id="dl-title" className={s.title}>Download my data</h2>
         <p className={s.text}>
           A file (JSON) with your profile, membership, calls and transcripts, the next steps your lawyer confirmed,
-          messages, consents and requests. Your documents are listed with download links. Internal staff notes and
-          pricing details are not included.
+          messages, consents and requests. Your documents are listed by name; download the files themselves from
+          Documents. Internal staff notes and pricing details are not included.
         </p>
         <div>
-          <a className={s.linkButton} href={privacyApi.exportUrl()} download>
+          <Button busy={exporting} onClick={() => void downloadExport()}>
             Download my data
-          </a>
+          </Button>
         </div>
+        {exportError && (
+          <p className={s.error} role="alert">
+            {exportError}
+          </p>
+        )}
       </section>
 
       <Choices me={me} onChange={load} />

@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { staffApi } from "@/lib/api";
+import { downloadFile, staffApi } from "@/lib/api";
 import { providerApi } from "@/lib/provider";
 import { StatusPill } from "@/components/ui";
+import { DownloadButton } from "./DownloadButton";
 import s from "./MemberDocumentsList.module.scss";
 
 /**
  * A member's documents for staff or the assigned lawyer (P1 routes):
  *   staff  GET /api/dashboard/members/:clientId/documents
  *   lawyer GET /api/provider/members/:clientId/documents
- * Each file link is a plain GET on `.../documents/:docId/file`: the session
- * cookie rides along, the server re-checks access and audits the download.
+ * Each file is fetched from `.../documents/:docId/file` with the role's Bearer
+ * token and saved as a blob (downloadFile); the server re-checks access and
+ * audits the download.
  */
 
 export interface StaffDocument {
@@ -92,9 +94,12 @@ export function MemberDocumentsList({
           {items.map((d) => (
             <li key={d.id} className={s.item}>
               <div className={s.main}>
-                <a className={s.link} href={api.url(`${base}/${encodeURIComponent(d.id)}/file`)} download>
+                <DownloadButton
+                  className={s.link}
+                  download={() => downloadFile(role, `${base}/${encodeURIComponent(d.id)}/file`, d.fileName || "document")}
+                >
                   {d.fileName || "Document"}
-                </a>
+                </DownloadButton>
                 <span className={s.meta}>
                   {[d.matterId ? matterTitle?.(d.matterId) ?? "Matter" : "General", day(d.uploadedAt), size(d.size)].filter(Boolean).join(" · ")}
                 </span>

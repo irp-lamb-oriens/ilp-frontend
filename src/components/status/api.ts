@@ -2,12 +2,13 @@
  * components/status/api.ts — member home data (W4).
  *
  * Talks to /api/client-status/me/* (server/API/clientStatus/memberHome.ts)
- * through W2's clientApi (cookie + legacy header). With
+ * through W2's clientApi (Bearer token). With
  * NEXT_PUBLIC_W4_MOCK=1 every call is answered by lib/mocks/w4.ts instead,
  * behind the same signatures, so the pages render with seed-like data and no
  * server.
  */
 
+import { downloadFile } from "@/lib/api";
 import { clientApi } from "@/lib/status";
 import type { Membership, Obligation, ProfileSection } from "@/lib/contracts";
 import { mockMemberApi } from "@/lib/mocks/w4";
@@ -147,7 +148,8 @@ export interface MemberApi {
   saveProfile(values: Record<string, unknown>): Promise<{ completeness: MemberHome["completeness"] }>;
   documents(): Promise<{ items: MemberDocument[]; categories: string[] }>;
   upload(input: { matterId?: string; category: string; fileName: string; contentType: string; dataBase64: string }): Promise<MemberDocument>;
-  documentUrl(id: string): string;
+  /** Fetch a document with the member's Bearer token and save it (AUTH). */
+  downloadDocument(id: string, fileName?: string): Promise<void>;
   money(): Promise<MoneyPayload>;
   acceptQuote(id: string, fullName: string): Promise<MoneyPayload>;
   messages(): Promise<{ items: ThreadItem[] }>;
@@ -167,7 +169,7 @@ const liveApi: MemberApi = {
   saveProfile: (values) => clientApi.patch(`${BASE}/profile`, { values }),
   documents: () => clientApi.get(`${BASE}/documents`),
   upload: (input) => clientApi.post(`${BASE}/documents`, input),
-  documentUrl: (id) => `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}${BASE}/documents/${encodeURIComponent(id)}/file`,
+  downloadDocument: (id, fileName) => downloadFile("client", `${BASE}/documents/${encodeURIComponent(id)}/file`, fileName),
   money: () => clientApi.get(`${BASE}/money`),
   acceptQuote: (id, fullName) => clientApi.post(`${BASE}/quotes/${encodeURIComponent(id)}/accept`, { fullName, consent: true }),
   messages: () => clientApi.get(`${BASE}/messages`),

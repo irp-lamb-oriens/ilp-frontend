@@ -56,17 +56,6 @@
   color: $color-navy;
 }
 
-.linkButton {
-  @include button-primary;
-  min-height: 44px;
-  text-decoration: none;
-
-  &:focus-visible {
-    outline: 2px solid $color-accent;
-    outline-offset: 2px;
-  }
-}
-
 .choice {
   display: grid;
   gap: $space-3;

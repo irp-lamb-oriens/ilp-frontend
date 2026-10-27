@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api";
 import { memberApi, type MemberDocument } from "./api";
 import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
 import { useMember } from "./MemberContext";
+import { DownloadButton } from "@/components/documents/DownloadButton";
 import { dateShort } from "./format";
 import s from "./DocumentsPanel.module.scss";
 
@@ -140,9 +141,9 @@ export default function DocumentsPanel() {
           {items.map((d) => (
             <li key={d.id} className={s.item}>
               <div className={s.itemMain}>
-                <a className={s.link} href={memberApi.documentUrl(d.id)} rel="noopener">
+                <DownloadButton className={s.link} download={() => memberApi.downloadDocument(d.id, d.fileName)}>
                   {d.fileName}
-                </a>
+                </DownloadButton>
                 <p className={s.meta}>
                   {[matterTitle(d.matterId) ?? "General", dateShort(d.uploadedAt), size(d.size)].join(" · ")}
                 </p>

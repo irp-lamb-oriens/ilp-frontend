@@ -209,7 +209,7 @@ export const mockMemberApi: MemberApi = {
     state.documents.unshift(doc);
     return wait(doc);
   },
-  documentUrl: () => "#",
+  downloadDocument: () => Promise.resolve(),
   money: () => wait(state.money),
   acceptQuote: async (id) => {
     const q = state.money.quotes.find((x) => x.id === id);
