@@ -2,36 +2,28 @@
 @use "../../styles/mixins" as *;
 
 // Placeholder shapes. Low-contrast navy tint that reads on white and mist.
-// The sheen is a translated pseudo-element (transform only, rules.md 6).
+// The pulse animates opacity only (rules.md 6): the block breathes from the
+// light gray tint to near-white and back. All shapes share one clock, so a
+// whole layout pulses together. Reduced motion: static gray, no pulse.
 .sk {
-  position: relative;
   display: block;
   flex-shrink: 0;
   max-width: 100%;
-  overflow: hidden;
   background: $color-skeleton;
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent 0%, $color-skeleton-sheen 50%, transparent 100%);
-    animation: sheen $duration-shimmer linear infinite;
-    will-change: transform;
-  }
+  animation: pulse $duration-pulse ease-in-out infinite;
 
   @include reduced-motion {
-    &::after {
-      display: none;
-      animation: none;
-    }
+    animation: none;
   }
 }
 
-@keyframes sheen {
-  to {
-    transform: translateX(100%);
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: $skeleton-pulse-low;
   }
 }
 

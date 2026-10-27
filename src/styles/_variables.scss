@@ -92,9 +92,12 @@ $duration-fade: 150ms;
 $stagger-step: 45ms;
 $stagger-max: 6;
 $reveal-distance: 10px;
-$duration-shimmer: 1400ms;
-$color-skeleton: rgba(18, 59, 93, 0.07);
-$color-skeleton-sheen: rgba(255, 255, 255, 0.55);
+// Pulse: placeholder blocks breathe from light gray toward near-white and
+// back (opacity 1 → $skeleton-pulse-low → 1, one $duration-pulse cycle,
+// ease-in-out). Opacity only; reduced motion keeps the static gray.
+$duration-pulse: 1400ms;
+$skeleton-pulse-low: 0.45;
+$color-skeleton: rgba(18, 59, 93, 0.09);
 
 // Shell geometry
 $shell-nav-width: 240px;

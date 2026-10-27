@@ -94,7 +94,7 @@ export default function LoadingGallery() {
       <div>
         <h3 className={s.h3}>Skeleton shapes</h3>
         <p className={s.note}>
-          Low-contrast tint with a sheen that only translates. Shapes are aria-hidden; the region around them carries
+          Low-contrast gray that pulses toward white and back, on opacity only (static under reduced motion). Shapes are aria-hidden; the region around them carries
           aria-busy and a &ldquo;Loading …&rdquo; status for screen readers.
         </p>
         <SkeletonRegion label="Skeleton shapes example" className={s.shapes}>
