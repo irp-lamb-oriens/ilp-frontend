@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, type DragEvent } from "react";
-import { AgingBadge, Button, DataTable, EmptyState, Select, StatusPill, type Column } from "@/components/ui";
+import { AgingBadge, Button, DataTable, EmptyState, Loadable, Select, SkeletonTable, Stagger, StaggerItem, StatusPill, type Column } from "@/components/ui";
 import ClientInspector from "./ClientInspector";
 import MoveToMenu from "./MoveToMenu";
 import { areaLabel, errorText, fmtShortDate, lawyerApi, type BoardCard, type BoardData } from "./lawyerApi";
+import { BoardColumnsSkeleton } from "./LawyerSkeletons";
 import s from "./BoardView.module.scss";
 
 type View = "board" | "list";
@@ -133,10 +134,11 @@ export default function BoardView() {
       <p className={s.sr} aria-live="polite">{announce}</p>
       {error && <p className={s.error} role="alert">{error} <Button size="sm" variant="ghost" onClick={load}>Reload</Button></p>}
 
-      {!data && !error && <p className={s.muted} aria-busy="true">Loading your board…</p>}
-
+      <Loadable loading={!data && !error} label="Loading your board" skeleton={view === "list" ? <SkeletonTable columns={7} rows={6} /> : <BoardColumnsSkeleton />}>
       {data && cards.length === 0 && (
-        <EmptyState title={area === "all" ? "No open matters" : `No ${areaLabel(area).toLowerCase()} matters`} body="Matters assigned to you by the ILP team appear here." />
+        <StaggerItem>
+          <EmptyState title={area === "all" ? "No open matters" : `No ${areaLabel(area).toLowerCase()} matters`} body="Matters assigned to you by the ILP team appear here." />
+        </StaggerItem>
       )}
 
       {data && cards.length > 0 && view === "list" && (
@@ -144,11 +146,14 @@ export default function BoardView() {
       )}
 
       {data && cards.length > 0 && view === "board" && (
+        <Stagger>
         <div className={s.board}>
-          {data.stages.map((stage) => {
+          {data.stages.map((stage, i) => {
             const col = cards.filter((c) => c.stage === stage);
             return (
-              <section
+              <StaggerItem
+                as="section"
+                index={i}
                 key={stage}
                 className={s.col}
                 data-over={overStage === stage || undefined}
@@ -192,11 +197,13 @@ export default function BoardView() {
                     </li>
                   ))}
                 </ul>
-              </section>
+              </StaggerItem>
             );
           })}
         </div>
+        </Stagger>
       )}
+      </Loadable>
 
       {open && (
         <ClientInspector

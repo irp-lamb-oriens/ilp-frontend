@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Checkbox, DateInput, EmptyState, Select, TextInput } from "@/components/ui";
+import { Button, Checkbox, DateInput, EmptyState, Select, SkeletonRegion, StaggerItem, TextInput, useSkeleton } from "@/components/ui";
 import { AREA_LABEL, errorText, fmtDate } from "./lawyerApi";
 import { callsApi, DAY_NAMES, type AvailabilitySettings, type WeeklyWindow } from "./callsApi";
+import { LawyerAvailabilitySkeleton } from "./LawyerSkeletons";
 import s from "./AvailabilityView.module.scss";
 
 /** Monday first, Sunday last. */
@@ -83,8 +84,21 @@ export default function AvailabilityView({
     [weekly],
   );
 
-  if (loadError) return <EmptyState title="The hours did not load" body={loadError} action={<Button onClick={load}>Try again</Button>} />;
-  if (!data) return <p className={s.muted} aria-busy="true">Loading hours…</p>;
+  const { showSkeleton, skeletonVisible } = useSkeleton(!data && !loadError);
+  if (loadError) {
+    return (
+      <StaggerItem>
+        <EmptyState title="The hours did not load" body={loadError} action={<Button onClick={load}>Try again</Button>} />
+      </StaggerItem>
+    );
+  }
+  if (showSkeleton || !data) {
+    return (
+      <SkeletonRegion label="Loading your hours" visible={skeletonVisible}>
+        <LawyerAvailabilitySkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const setWindow = (i: number, patch: Partial<WeeklyWindow>) => {
     setSaved(null);
@@ -138,7 +152,7 @@ export default function AvailabilityView({
   const upcomingBlackout = blackout.filter((d) => d >= todayCr());
 
   return (
-    <div className={s.page}>
+    <StaggerItem className={s.page}>
       {showBack && (
         <nav aria-label="Breadcrumb">
           <Link href="/lawyer" className={s.back}>← Today</Link>
@@ -260,6 +274,6 @@ export default function AvailabilityView({
         {saved && <p className={s.saved} role="status">{saved}</p>}
         <Button onClick={save} busy={busy} disabled={busy}>Save hours</Button>
       </div>
-    </div>
+    </StaggerItem>
   );
 }

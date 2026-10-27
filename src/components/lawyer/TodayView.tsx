@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EmptyState, StatusPill, Button } from "@/components/ui";
+import { EmptyState, Loadable, StatusPill, Button, Stagger, StaggerItem } from "@/components/ui";
 import { areaLabel, dayWindow, errorText, fmtShortDate, fmtTime, lawyerApi, type TodayItem } from "./lawyerApi";
 import { useLawyer } from "./LawyerContext";
 import { ConsentPill, SummaryPill } from "./pills";
 import JoinCall from "./JoinCall";
+import { CallsSkeleton, UpcomingSkeleton } from "./LawyerSkeletons";
 import s from "./TodayView.module.scss";
 
 /** Lawyer Today: the day's consultations in time order, each opening its brief. */
@@ -57,21 +58,27 @@ export default function TodayView() {
         </header>
 
         {error && (
-          <EmptyState title="Today did not load" body={error} action={<Button onClick={load}>Try again</Button>} />
+          <StaggerItem>
+            <EmptyState title="Today did not load" body={error} action={<Button onClick={load}>Try again</Button>} />
+          </StaggerItem>
         )}
 
+        <Loadable loading={today === null && !error} label="Loading today's calls" skeleton={<CallsSkeleton />}>
         {today && today.length === 0 && !error && (
+          <StaggerItem>
           <EmptyState
             title="Nothing booked for today"
             body="Members book 20-minute calls from their portal. Your board has the matters waiting on you."
             action={<Link className={s.link} href="/lawyer/board">Open the board</Link>}
           />
+          </StaggerItem>
         )}
 
         {today && today.length > 0 && (
+          <Stagger>
           <ol className={s.list}>
-            {today.map((c) => (
-              <li key={c.id} className={s.item} data-next={c.id === next?.id || undefined}>
+            {today.map((c, i) => (
+              <StaggerItem as="li" index={i} key={c.id} className={s.item} data-next={c.id === next?.id || undefined}>
                 <Link href={`/lawyer/calls/${encodeURIComponent(c.id)}`} className={s.row}>
                   <span className={s.time}>
                     <span className={s.clock}>{fmtTime(c.scheduledAt)}</span>
@@ -107,29 +114,35 @@ export default function TodayView() {
                     <JoinCall meetUrl={c.meetUrl} scheduledAt={c.scheduledAt} durationMin={c.durationMin} />
                   </div>
                 )}
-              </li>
+              </StaggerItem>
             ))}
           </ol>
+          </Stagger>
         )}
+        </Loadable>
       </section>
 
       <aside className={s.rail} aria-labelledby="upcoming-h">
         <h3 id="upcoming-h" className={s.railH}>Next 3 days</h3>
+        <Loadable loading={today === null && !error} label="Loading the next 3 days" skeleton={<UpcomingSkeleton />}>
         {upcoming.length === 0 ? (
-          <p className={s.railEmpty}>No calls booked yet.</p>
+          <StaggerItem as="p" className={s.railEmpty}>No calls booked yet.</StaggerItem>
         ) : (
+          <Stagger>
           <ul className={s.railList}>
-            {upcoming.map((c) => (
-              <li key={c.id}>
+            {upcoming.map((c, i) => (
+              <StaggerItem as="li" index={i + 1} key={c.id}>
                 <Link href={`/lawyer/calls/${encodeURIComponent(c.id)}`} className={s.railRow}>
                   <span className={s.railWhen}>{fmtShortDate(c.scheduledAt)} · {fmtTime(c.scheduledAt)}</span>
                   <span className={s.railName}>{c.clientName}</span>
                   <span className={s.railMatter}>{c.matterTitle ?? areaLabel(c.area)}</span>
                 </Link>
-              </li>
+              </StaggerItem>
             ))}
           </ul>
+          </Stagger>
         )}
+        </Loadable>
       </aside>
     </div>
   );

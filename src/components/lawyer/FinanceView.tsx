@@ -1,11 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, DataTable, EmptyState, StatTile, StatusPill, type Column } from "@/components/ui";
+import { Button, DataTable, EmptyState, SkeletonRegion, Stagger, StaggerItem, StatTile, StatusPill, useSkeleton, type Column } from "@/components/ui";
+import CountUp from "@/components/motion/CountUp";
 import { errorText, fmtDate, lawyerApi, money, type FinanceData, type FinancePayment } from "./lawyerApi";
+import { LawyerFinanceSkeleton } from "./LawyerSkeletons";
 import s from "./FinanceView.module.scss";
 
 type MatterRow = FinanceData["byMatter"][number];
+
+/** Stable CountUp formatters per currency (the effect depends on the function). */
+const FORMATTERS = new Map<string, (v: number) => string>();
+function moneyFmt(cur: string): (v: number) => string {
+  let f = FORMATTERS.get(cur);
+  if (!f) {
+    f = (v: number) => money(v, cur);
+    FORMATTERS.set(cur, f);
+  }
+  return f;
+}
 
 /** The lawyer's own fees only: paid, pending, per matter, payout dates. No margins, no platform costs. */
 export default function FinanceView() {
@@ -25,8 +38,21 @@ export default function FinanceView() {
     load();
   }, []);
 
-  if (error) return <EmptyState title="Fees did not load" body={error} action={<Button onClick={load}>Try again</Button>} />;
-  if (!data) return <p className={s.muted} aria-busy="true">Loading your fees…</p>;
+  const { showSkeleton, skeletonVisible } = useSkeleton(!data && !error);
+  if (error) {
+    return (
+      <StaggerItem>
+        <EmptyState title="Fees did not load" body={error} action={<Button onClick={load}>Try again</Button>} />
+      </StaggerItem>
+    );
+  }
+  if (showSkeleton || !data) {
+    return (
+      <SkeletonRegion label="Loading your fees" visible={skeletonVisible}>
+        <LawyerFinanceSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const cur = data.currency || "USD";
   const nextPayout = data.payments.filter((p) => !p.paid && p.date).sort((a, b) => String(a.date).localeCompare(String(b.date)))[0];
@@ -48,28 +74,38 @@ export default function FinanceView() {
   ];
 
   return (
+    <Stagger>
     <div className={s.page}>
       <div className={s.tiles}>
-        <StatTile size="lg" label="Paid to you" value={money(data.totals.paid, cur)} hint={`${data.payments.filter((p) => p.paid).length} payouts`} />
-        <StatTile label="Pending" value={money(data.totals.pending, cur)} hint={`${data.payments.filter((p) => !p.paid).length} not yet paid`} />
-        <StatTile label="Next payout" value={nextPayout ? fmtDate(nextPayout.date) : "None scheduled"} hint={nextPayout ? money(nextPayout.amount, cur) : undefined} />
+        <StaggerItem index={0} className={s.tileCell}>
+          <StatTile size="lg" label="Paid to you" value={<CountUp value={data.totals.paid} formatter={moneyFmt(cur)} />} hint={`${data.payments.filter((p) => p.paid).length} payouts`} />
+        </StaggerItem>
+        <StaggerItem index={1} className={s.tileCell}>
+          <StatTile label="Pending" value={<CountUp value={data.totals.pending} formatter={moneyFmt(cur)} />} hint={`${data.payments.filter((p) => !p.paid).length} not yet paid`} />
+        </StaggerItem>
+        <StaggerItem index={2} className={s.tileCell}>
+          <StatTile label="Next payout" value={nextPayout ? fmtDate(nextPayout.date) : "None scheduled"} hint={nextPayout ? money(nextPayout.amount, cur) : undefined} />
+        </StaggerItem>
       </div>
 
       {data.payments.length === 0 ? (
-        <EmptyState title="No fees recorded yet" body="Fees appear here once a member accepts a quote you scoped." />
+        <StaggerItem index={3}>
+          <EmptyState title="No fees recorded yet" body="Fees appear here once a member accepts a quote you scoped." />
+        </StaggerItem>
       ) : (
         <>
-          <section aria-labelledby="fin-matters">
+          <StaggerItem as="section" index={3} aria-labelledby="fin-matters">
             <h2 id="fin-matters" className={s.h}>By matter</h2>
             <DataTable columns={matterCols} rows={data.byMatter} rowKey={(r) => r.key} caption="Your fees by matter" defaultSort={{ key: "pending", dir: "desc" }} />
-          </section>
-          <section aria-labelledby="fin-payouts">
+          </StaggerItem>
+          <StaggerItem as="section" index={4} aria-labelledby="fin-payouts">
             <h2 id="fin-payouts" className={s.h}>Payouts</h2>
             <DataTable columns={payCols} rows={data.payments} rowKey={(p) => p.id} caption="Your payouts" defaultSort={{ key: "date", dir: "desc" }} />
-          </section>
+          </StaggerItem>
         </>
       )}
       <p className={s.muted}>Amounts are your fees as agreed with ILP. Member pricing is not shown here.</p>
     </div>
+    </Stagger>
   );
 }

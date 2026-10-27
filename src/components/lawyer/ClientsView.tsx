@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AgingBadge, DataTable, EmptyState, SearchInput, StatusPill, type Column } from "@/components/ui";
+import { AgingBadge, DataTable, EmptyState, SearchInput, Skeleton, StaggerItem, StatusPill, type Column } from "@/components/ui";
 import ClientInspector from "./ClientInspector";
 import { areaLabel, errorText, fmtShortDate, lawyerApi, type BoardCard, type BoardData } from "./lawyerApi";
 import s from "./ClientsView.module.scss";
@@ -59,11 +59,13 @@ export default function ClientsView() {
     <div className={s.page}>
       <div className={s.bar}>
         <SearchInput className={s.search} label="Find a member or matter" value={q} onValueChange={setQ} placeholder="Name, matter or area" />
-        <span className={s.muted}>{rows.length} of {data?.cards.length ?? 0}</span>
+        {data ? <span className={s.muted}>{rows.length} of {data.cards.length}</span> : <Skeleton shape="line" size="sm" width="pill-sm" />}
       </div>
-      {error && <p className={s.error} role="alert">{error}</p>}
+      {error && <StaggerItem as="p" className={s.error} role="alert">{error}</StaggerItem>}
       {data && data.cards.length === 0 ? (
-        <EmptyState title="No members assigned yet" body="The ILP team assigns members to you after their first booking." />
+        <StaggerItem>
+          <EmptyState title="No members assigned yet" body="The ILP team assigns members to you after their first booking." />
+        </StaggerItem>
       ) : (
         <DataTable columns={columns} rows={rows} rowKey={(c) => c.id} caption="Your members and matters" onRowActivate={setOpen} loading={!data && !error} selectedKey={open?.id ?? null} empty={<EmptyState compact title="No match" body="Try another name or matter." />} />
       )}

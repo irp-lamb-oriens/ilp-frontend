@@ -17,6 +17,11 @@
   }
 }
 
+// Reveal wrapper around a tile: the tile fills its cell.
+.tileCell {
+  display: grid;
+}
+
 .h {
   margin: 0 0 $space-3;
   font-size: 1.125rem;
