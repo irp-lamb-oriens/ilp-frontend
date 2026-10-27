@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
-import { AgingBadge, EmptyState, Loadable, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
+import { AgingBadge, Checkbox, EmptyState, Loadable, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
@@ -19,6 +19,23 @@ const pctFmt = (v: number) => pct(Math.round(v * 10) / 10);
 
 type Scope = "me" | "all";
 
+/** Per-viewer convenience: remember the "Exclude placeholder data" choice. */
+const EXCLUDE_KEY = "ilp_staff_exclude_placeholder";
+function readExclude(): boolean {
+  try {
+    return window.localStorage.getItem(EXCLUDE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function writeExclude(v: boolean): void {
+  try {
+    window.localStorage.setItem(EXCLUDE_KEY, v ? "1" : "0");
+  } catch {
+    // storage blocked: the choice lasts for this page only
+  }
+}
+
 /**
  * Staff Today: "what needs me today?". KPI strip on top (MRR large), a wide
  * queue of my CSM tasks by due date, and a narrow Needs-attention rail.
@@ -31,20 +48,22 @@ export default function TodayView() {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<QueueTask | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Read once on mount (the toggle only renders after the summary loads, so no hydration mismatch).
+  const [exclude, setExclude] = useState(readExclude);
 
   const loadSummary = useCallback(() => {
     staffApi
-      .get<StaffSummary>("/api/dashboard/staff/summary")
+      .get<StaffSummary>("/api/dashboard/staff/summary", { query: exclude ? { excludePlaceholder: "1" } : {} })
       .then(setSummary)
       .catch((e) => setError(e instanceof Error ? e.message : "Today could not be loaded."));
-  }, []);
+  }, [exclude]);
 
   const loadQueue = useCallback((sc: Scope) => {
     staffApi
-      .get<QueueResponse>("/api/dashboard/staff/queue", { query: { owner: sc } })
+      .get<QueueResponse>("/api/dashboard/staff/queue", { query: exclude ? { owner: sc, excludePlaceholder: "1" } : { owner: sc } })
       .then(setQueue)
       .catch((e) => setError(e instanceof Error ? e.message : "Your queue could not be loaded."));
-  }, []);
+  }, [exclude]);
 
   useEffect(() => {
     loadSummary();
@@ -53,6 +72,11 @@ export default function TodayView() {
   useEffect(() => {
     loadQueue(scope);
   }, [scope, loadQueue]);
+
+  function toggleExclude(v: boolean) {
+    setExclude(v);
+    writeExclude(v);
+  }
 
   function onClosed(t: CsmTask) {
     setQueue((q) => (q ? { ...q, tasks: q.tasks.filter((x) => x.id !== t.id), counts: { ...q.counts, open: q.counts.open - 1 } } : q));
@@ -85,6 +109,15 @@ export default function TodayView() {
         <StaggerItem>
           <ErrorText>{error}</ErrorText>
         </StaggerItem>
+      )}
+      {summary?.placeholder && summary.placeholder.members > 0 && (
+        <section className={s.placeholderBar} aria-label="Placeholder data">
+          <p className={s.placeholderText}>
+            <StatusPill size="sm" label="Placeholder" tone="warning" /> Placeholder data is loaded ({summary.placeholder.members} members). Run{" "}
+            <code>scripts/removePlaceholders.ts</code> to clear it.
+          </p>
+          <Checkbox label="Exclude placeholder data" checked={exclude} onChange={(e) => toggleExclude(e.target.checked)} />
+        </section>
       )}
 
       <Loadable loading={!summary && !error} label="Loading key figures" skeleton={<TodayKpisSkeleton />}>
@@ -188,7 +221,15 @@ export default function TodayView() {
                             <StatusPill size="sm" label={TASK_TYPE_LABEL[t.type]} tone={TASK_TYPE_TONE[t.type]} />
                           </span>
                           <span className={s.taskMain}>
-                            <span className={s.taskTitle}>{t.title}</span>
+                            <span className={s.taskTitle}>
+                              {t.title}
+                              {t.placeholder && (
+                                <>
+                                  {" "}
+                                  <StatusPill size="sm" label="Placeholder" tone="neutral" />
+                                </>
+                              )}
+                            </span>
                             <span className={s.taskMember}>
                               {t.memberName ?? t.clientId}
                               {scope === "all" && t.ownerEmail ? ` · ${t.ownerEmail}` : ""}
