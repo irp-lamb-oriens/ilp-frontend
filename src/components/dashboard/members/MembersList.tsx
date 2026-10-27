@@ -89,7 +89,15 @@ export default function MembersList() {
       width: "wide",
       render: (r) => (
         <span className={s.who}>
-          <span className={s.name}>{r.name}</span>
+          <span className={s.name}>
+            {r.name}
+            {r.placeholder && (
+              <>
+                {" "}
+                <StatusPill size="sm" label="Placeholder" tone="neutral" />
+              </>
+            )}
+          </span>
           <span className={s.email}>{r.email}</span>
         </span>
       ),

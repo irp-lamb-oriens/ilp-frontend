@@ -153,6 +153,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
         sub={[String(bundle.client?.email ?? ""), String(bundle.client?.persona ?? "")].filter(Boolean).join(" · ")}
         actions={
           <>
+            {bundle.client?.placeholder === true && <StatusPill label="Placeholder" tone="warning" />}
             {m && <StatusPill label={MEMBERSHIP_LABEL[m.status]} tone={MEMBERSHIP_TONE[m.status]} srPrefix="Membership" />}
             <ButtonLink href="/dashboard/members" variant="secondary">
               All members

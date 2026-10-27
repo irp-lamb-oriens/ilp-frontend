@@ -49,9 +49,13 @@ export interface StaffSummary {
   role: StaffRole;
   kpis: StaffKpis;
   attention: Attention;
+  /** Placeholder (seed) data: members loaded, and whether the figures above leave it out. */
+  placeholder?: { members: number; excluded: boolean };
 }
 
 export type QueueTask = CsmTask & {
+  /** Placeholder (seed) record. */
+  placeholder?: boolean;
   overdue?: boolean;
   memberName?: string;
   membershipStatus?: Membership["status"] | null;
@@ -80,6 +84,8 @@ export interface MemberRow {
   completeness: number;
   consultationReady: boolean;
   openTasks: number;
+  /** Placeholder (seed) member. */
+  placeholder?: boolean;
 }
 
 export interface MembersPage {
