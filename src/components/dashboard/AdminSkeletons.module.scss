@@ -1,0 +1,27 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Chart placeholders at the heights the recharts components render.
+.chart {
+  height: 260px;
+}
+
+.chartTall {
+  height: 280px;
+}
+
+.chartRanked {
+  height: 180px;
+}
+
+.donut {
+  display: grid;
+  place-items: center;
+  height: 180px;
+}
+
+.itemLines {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}

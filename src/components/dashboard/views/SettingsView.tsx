@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { Button, Tabs, TextInput, type TabItem } from "@/components/ui";
+import { Button, Skeleton, SkeletonRegion, Tabs, TextInput, useSkeleton, type TabItem } from "@/components/ui";
 import { VendorsList } from "@/components/dashboard/AdminViews";
 import EmailsTab from "@/components/dashboard/EmailsTab";
-import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
+import { PageHeader, ErrorText } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
 /** Admin settings: pipeline stages, email queue, vendors. */
@@ -67,7 +67,14 @@ function StageConfig() {
     }
   }
 
-  if (stages === null && !error) return <Muted>Loading stages…</Muted>;
+  const sk = useSkeleton(stages === null && !error);
+  if (sk.showSkeleton) {
+    return (
+      <SkeletonRegion label="Loading stages" visible={sk.skeletonVisible}>
+        <StageConfigSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   return (
     <div className={s.stack}>
@@ -103,6 +110,30 @@ function StageConfig() {
             <Button variant="secondary" size="sm" busy={busy === st.id} onClick={() => save(st)}>
               Save
             </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** The stage editor: intro note, then one row per stage (label, SLA days, Save). */
+export function StageConfigSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div className={s.stack} aria-hidden="true">
+      <Skeleton shape="line" size="sm" width="90" />
+      <ul className={s.stageList}>
+        {Array.from({ length: rows }, (_, i) => (
+          <li key={i} className={s.stageRow}>
+            <div className={s.fieldSk}>
+              <Skeleton shape="line" size="sm" width="40" />
+              <Skeleton shape="block" size="sm" />
+            </div>
+            <div className={s.fieldSk}>
+              <Skeleton shape="line" size="sm" width="40" />
+              <Skeleton shape="block" size="sm" />
+            </div>
+            <Skeleton shape="block" size="sm" width="pill" />
           </li>
         ))}
       </ul>

@@ -89,3 +89,9 @@
 }
 
 // Lawyer picker above the staff hours editor (P4).
+// Skeleton of a labeled form control (label line over a 44px field).
+.fieldSk {
+  display: grid;
+  gap: $space-1;
+  max-width: 20rem;
+}

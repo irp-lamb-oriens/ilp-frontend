@@ -156,7 +156,7 @@ export default function PmfPanel() {
 }
 
 /** Tiles, the six funnel bars and the two lower blocks. */
-function PmfSkeleton() {
+export function PmfSkeleton() {
   return (
     <>
       <div className={s.tiles} aria-hidden="true">
