@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cx } from "./cx";
+import { confirmDiscard, UnsavedScope } from "./UnsavedChanges";
 import s from "./Drawer.module.scss";
 
 export interface DrawerProps {
@@ -17,6 +18,13 @@ export interface DrawerProps {
   size?: "md" | "lg";
   /** Element to focus first; defaults to the close button. */
   initialFocusRef?: React.RefObject<HTMLElement | null>;
+  /**
+   * Ask ("Keep editing" / "Leave without saving") before Esc, × or the scrim
+   * close the drawer. Default: ask when a form inside called
+   * useUnsavedChanges(true). `true` or a function returning true also asks;
+   * `false` never asks.
+   */
+  confirmClose?: boolean | (() => boolean);
 }
 
 const FOCUSABLE =
@@ -26,9 +34,25 @@ const EXIT_MS = 280;
 /**
  * Right-side drawer. Focus is trapped while open, Esc and the scrim close it,
  * and focus returns to the element that opened it. Slides with transform only.
+ * A form inside opts in to "close without saving?" with useUnsavedChanges(dirty).
  */
-export function Drawer({ open, onClose, title, subtitle, children, footer, size = "md", initialFocusRef }: DrawerProps) {
+export function Drawer({ open, onClose: close, title, subtitle, children, footer, size = "md", initialFocusRef, confirmClose }: DrawerProps) {
   const titleId = useId();
+  const scope = useId();
+  const asking = useRef(false);
+  // Esc, × and the scrim: ask first when a form inside has unsaved changes.
+  const onClose = useCallback(async () => {
+    if (confirmClose === false) return close();
+    if (asking.current) return;
+    const force = typeof confirmClose === "function" ? confirmClose() : !!confirmClose;
+    asking.current = true;
+    try {
+      const ok = await confirmDiscard({ title: "Close without saving?" }, scope, force);
+      if (ok) close();
+    } finally {
+      asking.current = false;
+    }
+  }, [confirmClose, close, scope]);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -111,8 +135,10 @@ export function Drawer({ open, onClose, title, subtitle, children, footer, size 
             <span aria-hidden="true">×</span>
           </button>
         </header>
-        <div className={s.body}>{children}</div>
-        {footer && <footer className={s.footer}>{footer}</footer>}
+        <UnsavedScope value={scope}>
+          <div className={s.body}>{children}</div>
+          {footer && <footer className={s.footer}>{footer}</footer>}
+        </UnsavedScope>
       </div>
     </div>,
     document.body,

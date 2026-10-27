@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./notesTab.module.scss";
-import { TextArea } from "@/components/ui";
+import { TextArea, useUnsavedChanges } from "@/components/ui";
 
 interface Collaborator {
   email: string;
@@ -56,6 +56,7 @@ export default function NotesTab({
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+  useUnsavedChanges(text.trim() !== "" || editingId !== null, "Your note is not saved yet. If you leave now, it will be lost.");
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [recipients, setRecipients] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);

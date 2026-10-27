@@ -15,7 +15,7 @@ export type { DrawerProps } from "./Drawer";
 export { Dialog } from "./Dialog";
 export type { DialogProps } from "./Dialog";
 // Unsaved-changes guard: forms call useUnsavedChanges(dirty); the root layout mounts UnsavedChangesGuard.
-export { UnsavedChangesGuard, useUnsavedChanges, useLeaveGuard, confirmLeave } from "./UnsavedChanges";
+export { UnsavedChangesGuard, useUnsavedChanges, useLeaveGuard, confirmLeave, confirmDiscard } from "./UnsavedChanges";
 export type { LeaveGuard, LeaveOptions } from "./UnsavedChanges";
 export { guardedHref } from "./linkIntercept";
 export { Timeline } from "./Timeline";

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Consultation, Handoff, Obligation, Opportunity } from "@/lib/contracts";
-import { Button, DateInput, MoneyInput, Select, TextInput, isoFromDateInput, useForm, validators } from "@/components/ui";
+import { Button, DateInput, MoneyInput, Select, TextInput, isoFromDateInput, useForm, useUnsavedChanges, validators } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { shortDate } from "../staff/format";
 import { AREAS, areaOptions, oppApi, type OpportunityRow } from "./oppApi";
@@ -61,6 +61,7 @@ export function NewOpportunity({ clientId, handoffs = [], consultations = [], ob
       onCreated(row);
     },
   });
+  useUnsavedChanges(f.dirty, "This new opportunity is not saved yet. If you close it now, it will be lost.");
 
   return (
     <form className={s.form} onSubmit={f.handleSubmit} noValidate>

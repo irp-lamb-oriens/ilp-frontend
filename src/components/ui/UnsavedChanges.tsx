@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useId, useMemo, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
@@ -23,6 +23,9 @@ import { guardedHref } from "./linkIntercept";
  * - renders the confirm Dialog ("Keep editing" / "Leave without saving").
  * Reloads and tab closes keep the browser's own beforeunload prompt.
  * A link can opt out with data-unsaved-guard="off" on it or an ancestor.
+ *
+ * Drawers: a form registered inside a <Drawer> also belongs to that drawer's
+ * scope, so Esc, × and the scrim ask before closing it (confirmDiscard).
  */
 
 export interface LeaveOptions {
@@ -38,10 +41,11 @@ const DEFAULT_MESSAGE = "You have changes that are not saved yet. If you leave n
 const SENTINEL = "__ilpUnsaved";
 const RELEASE_MS = 1500;
 
-type Pending = { opts: LeaveOptions; waiters: Array<(ok: boolean) => void> };
+type Pending = { opts: LeaveOptions; release: boolean; waiters: Array<(ok: boolean) => void> };
 
 // ── Registry (module state; one per tab) ───────────────────────────────────
-const forms = new Map<string, string | undefined>();
+type FormEntry = { message?: string; scope: string | null };
+const forms = new Map<string, FormEntry>();
 let pending: Pending | null = null;
 let hosts = 0;
 let releasedUntil = 0;
@@ -65,12 +69,13 @@ const isDirty = () => forms.size > 0;
 /** True for a moment after the person chose to leave, so what follows is not asked again. */
 const isReleased = () => Date.now() < releasedUntil;
 
-function setForm(id: string, dirty: boolean, message?: string) {
+function setForm(id: string, dirty: boolean, message?: string, scope: string | null = null) {
   const had = forms.has(id);
   if (dirty) {
-    if (had && forms.get(id) === message) return;
+    const prev = forms.get(id);
+    if (prev && prev.message === message && prev.scope === scope) return;
     forms.delete(id); // re-insert so the latest form's message wins
-    forms.set(id, message);
+    forms.set(id, { message, scope });
     emit();
   } else if (had) {
     forms.delete(id);
@@ -78,42 +83,75 @@ function setForm(id: string, dirty: boolean, message?: string) {
   }
 }
 
-function currentMessage(): string {
+/** Some form registered inside this drawer scope is dirty. */
+export const isScopeDirty = (scope: string) => {
+  for (const f of forms.values()) if (f.scope === scope) return true;
+  return false;
+};
+
+function currentMessage(scope?: string): string {
   let msg: string | undefined;
-  forms.forEach((m) => {
-    if (m) msg = m;
+  forms.forEach((f) => {
+    if (f.message && (scope === undefined || f.scope === scope)) msg = f.message;
   });
   return msg ?? DEFAULT_MESSAGE;
 }
 
-/**
- * Ask before discarding. Resolves true at once when nothing is dirty;
- * otherwise opens the dialog and resolves with the choice.
- */
-export function confirmLeave(opts: LeaveOptions = {}): Promise<boolean> {
-  if (!isDirty() || isReleased()) return Promise.resolve(true);
+let warnedNoHost = false;
+
+/** Open the dialog (or, with no host mounted, window.confirm) and resolve with the choice. */
+function ask(opts: LeaveOptions, release: boolean, scope?: string): Promise<boolean> {
+  const full: LeaveOptions = { ...opts, message: opts.message ?? currentMessage(scope) };
   if (hosts === 0) {
-    // No <UnsavedChangesGuard /> mounted (should not happen under the root layout).
-    const ok = typeof window !== "undefined" && window.confirm(opts.message ?? currentMessage());
-    if (ok) releasedUntil = Date.now() + RELEASE_MS;
+    // <UnsavedChangesGuard /> lives in the root layout; without it, ask natively.
+    if (process.env.NODE_ENV !== "production" && !warnedNoHost) {
+      warnedNoHost = true;
+      console.warn("[UnsavedChanges] <UnsavedChangesGuard /> is not mounted, so the unsaved-changes prompt falls back to window.confirm. Mount it once in the root layout.");
+    }
+    const ok = typeof window !== "undefined" && window.confirm(full.message);
+    if (ok && release) releasedUntil = Date.now() + RELEASE_MS;
     return Promise.resolve(ok);
   }
   return new Promise((resolve) => {
     if (pending) pending.waiters.push(resolve);
     else {
-      pending = { opts, waiters: [resolve] };
+      pending = { opts: full, release, waiters: [resolve] };
       emit();
     }
   });
 }
 
+/**
+ * Ask before leaving. Resolves true at once when nothing is dirty;
+ * otherwise opens the dialog and resolves with the choice.
+ */
+export function confirmLeave(opts: LeaveOptions = {}): Promise<boolean> {
+  if (!isDirty() || isReleased()) return Promise.resolve(true);
+  return ask(opts, true);
+}
+
+/**
+ * Ask before discarding edits in place (closing a drawer). With `scope`,
+ * only forms registered inside that drawer count; `force` asks even when
+ * none is registered (Drawer confirmClose). Does not release navigation.
+ */
+export function confirmDiscard(opts: LeaveOptions = {}, scope?: string, force = false): Promise<boolean> {
+  const dirty = force || (scope ? isScopeDirty(scope) : isDirty());
+  if (!dirty) return Promise.resolve(true);
+  return ask(opts, false, scope);
+}
+
 function settle(ok: boolean) {
   const p = pending;
   pending = null;
-  if (ok) releasedUntil = Date.now() + RELEASE_MS;
+  if (ok && p?.release) releasedUntil = Date.now() + RELEASE_MS;
   emit();
   p?.waiters.forEach((w) => w(ok));
 }
+
+/** Drawer scope for forms rendered inside it (set by Drawer). */
+const ScopeContext = createContext<string | null>(null);
+export const UnsavedScope = ScopeContext.Provider;
 
 // ── History sentinel (browser Back) ────────────────────────────────────────
 let ignorePops = 0;
@@ -168,9 +206,10 @@ async function runGuarded(go: () => void, opts?: LeaveOptions): Promise<boolean>
  */
 export function useUnsavedChanges(dirty: boolean, message?: string): void {
   const id = useId();
+  const scope = useContext(ScopeContext);
   useEffect(() => {
-    setForm(id, dirty, message);
-  }, [id, dirty, message]);
+    setForm(id, dirty, message, scope);
+  }, [id, dirty, message, scope]);
   useEffect(() => () => setForm(id, false), [id]);
   // Reload / tab close: the browser's own prompt (custom text is ignored by browsers).
   useEffect(() => {
@@ -292,25 +331,28 @@ export function UnsavedChangesGuard() {
     return () => window.removeEventListener("popstate", onPop, true);
   }, []);
 
-  const p = pending;
+  // Keep the last texts while the dialog fades out.
+  const lastOpts = useRef<LeaveOptions>({});
+  if (pending) lastOpts.current = pending.opts;
+  const o = lastOpts.current;
   return (
     <Dialog
-      open={!!p}
+      open={!!pending}
       onClose={() => settle(false)}
       role="alertdialog"
-      title={p?.opts.title ?? "Leave without saving?"}
+      title={o.title ?? "Leave without saving?"}
       footer={
         <>
           <Button variant="secondary" onClick={() => settle(false)} data-autofocus>
             Keep editing
           </Button>
           <Button variant="danger" onClick={() => settle(true)}>
-            {p?.opts.confirmLabel ?? "Leave without saving"}
+            {o.confirmLabel ?? "Leave without saving"}
           </Button>
         </>
       }
     >
-      <p>{p?.opts.message ?? currentMessage()}</p>
+      <p>{o.message}</p>
     </Dialog>
   );
 }

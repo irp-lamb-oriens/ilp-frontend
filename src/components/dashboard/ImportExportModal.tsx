@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Drawer, Select, TextArea } from "@/components/ui";
+import { Button, Drawer, Select, TextArea, useUnsavedChanges } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch, ApiError } from "@/lib/api";
 
@@ -35,6 +35,7 @@ export default function ImportExportModal({ onClose }: { onClose: () => void }) 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ created: number; updated: number; skipped: number } | null>(null);
+  useUnsavedChanges(text.trim() !== "" && !result, "The pasted clients are not imported yet. If you close now, the text will be lost.");
 
   function parse(): unknown[] {
     try {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, Drawer, StatusPill, type Column, type StatusTone } from "@/components/ui";
+import { Button, DataTable, Drawer, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
 import { ApiError, downloadFile, staffApi } from "@/lib/api";
 import { DownloadButton } from "@/components/documents/DownloadButton";
 import type { PrivacyRequest } from "@/lib/contracts";
@@ -141,6 +141,8 @@ function RequestDrawer({ row, onClose, onChanged }: { row: Row; onClose: () => v
   const [plan, setPlan] = useState<Plan | null>(null);
   const [confirm, setConfirm] = useState("");
   const [result, setResult] = useState<{ lines: PlanLine[]; manualSteps: string[]; fileErrors: number } | null>(null);
+  const [sentNote, setSentNote] = useState("");
+  useUnsavedChanges(note.trim() !== "" && note.trim() !== sentNote, "The note on this request is not saved yet. If you close now, it will be lost.");
   const openState = row.status === "received" || row.status === "in_review";
 
   async function setStatus(status: "in_review" | "completed" | "refused") {
@@ -148,6 +150,7 @@ function RequestDrawer({ row, onClose, onChanged }: { row: Row; onClose: () => v
     setError(null);
     try {
       await staffApi.post(`/api/dashboard/privacy/requests/${encodeURIComponent(row.id)}/status`, { status, note: note.trim() });
+      setSentNote(note.trim());
       await onChanged();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save.");

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button, Dialog, TextArea, useLeaveGuard, useUnsavedChanges } from "@/components/ui";
+import { Button, Dialog, Drawer, TextArea, useLeaveGuard, useUnsavedChanges } from "@/components/ui";
 import s from "./ScheduleGallery.module.scss";
 
 /** Dialog and the unsaved-changes guard, live. */
 export default function GuardGallery() {
   const [open, setOpen] = useState(false);
+  const [drawer, setDrawer] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [draft, setDraft] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
@@ -32,6 +33,14 @@ export default function GuardGallery() {
             </Button>
           </div>
           {deleted && <p className={s.note}>Deleted (sample only).</p>}
+          <div>
+            <Button variant="secondary" onClick={() => setDrawer(true)}>
+              Open a drawer with a form
+            </Button>
+          </div>
+          <Drawer open={drawer} onClose={() => setDrawer(false)} title="Close task" subtitle="Type an outcome, then press Esc, × or the backdrop.">
+            <DrawerForm onDone={() => setDrawer(false)} />
+          </Drawer>
           <Dialog
             open={open}
             onClose={() => setOpen(false)}
@@ -90,6 +99,22 @@ export default function GuardGallery() {
             </li>
           </ul>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** A form inside a Drawer: one useUnsavedChanges line makes Esc, × and the backdrop ask. */
+function DrawerForm({ onDone }: { onDone: () => void }) {
+  const [outcome, setOutcome] = useState("");
+  useUnsavedChanges(outcome.trim() !== "", "The outcome you wrote is not saved yet. If you close now, it will be lost.");
+  return (
+    <div className={s.col}>
+      <TextArea label="Outcome" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="Called Marco Villalobos; he uploads his DIMEX by Friday." />
+      <div>
+        <Button onClick={onDone} disabled={!outcome.trim()}>
+          Close task
+        </Button>
       </div>
     </div>
   );

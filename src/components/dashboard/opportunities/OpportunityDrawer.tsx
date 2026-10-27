@@ -17,6 +17,7 @@ import {
   dateInputValue,
   isoFromDateInput,
   useForm,
+  useUnsavedChanges,
   validators,
 } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
@@ -125,6 +126,7 @@ function StagePanel({ o, initialStage, onChanged }: { o: OpportunityRow; initial
       onChanged(await oppApi.move(o.id, v.stage as OpportunityStage, v.outcome.trim() || undefined));
     },
   });
+  useUnsavedChanges(f.dirty, "The stage change is not saved yet. If you leave now, it will be lost.");
   const target = f.values.stage as OpportunityStage | "";
   const needsOutcome = target === "won" || target === "lost";
 
@@ -313,6 +315,7 @@ function EditPanel({ o, onChanged }: { o: OpportunityRow; onChanged: (row: Oppor
       onChanged(row);
     },
   });
+  useUnsavedChanges(f.dirty, "The opportunity details are not saved yet. If you leave now, they will be lost.");
   const due = o.nextAction?.dueAt ? dueLabel(o.nextAction.dueAt) : null;
 
   return (

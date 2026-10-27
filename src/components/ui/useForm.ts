@@ -54,6 +54,9 @@ export function useForm<V extends Record<string, unknown>>({ initial, rules, onS
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const initialRef = useRef(initial);
+  // What "unchanged" means for `dirty`: the initial values, then the last
+  // successfully submitted (or reset-to) values.
+  const baselineRef = useRef(initial);
 
   const validate = useCallback(
     (vals: V): Errors<V> => {
@@ -126,6 +129,7 @@ export function useForm<V extends Record<string, unknown>>({ initial, rules, onS
     setSubmitting(true);
     try {
       await onSubmit(values);
+      baselineRef.current = values;
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Could not save. Try again.");
     } finally {
@@ -136,14 +140,20 @@ export function useForm<V extends Record<string, unknown>>({ initial, rules, onS
   const reset = (next?: V) => {
     const v = next ?? initialRef.current;
     if (next) initialRef.current = next;
+    baselineRef.current = v;
     setValues(v);
     setTouched({});
     setSubmitted(false);
     setSubmitError(null);
   };
 
+  const base = baselineRef.current;
+  const dirty = (Object.keys(values) as Array<keyof V>).some((k) => !Object.is(values[k], base[k]));
+
   return {
     values,
+    /** Values differ from the initial ones (or the last successful submit / reset). Pass to useUnsavedChanges. */
+    dirty,
     errors,
     isValid: Object.keys(allErrors).length === 0,
     setValue,
