@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Checkbox, EmptyState, SkeletonRegion, Stagger, StaggerItem, StatusPill, TextInput, useSkeleton } from "@/components/ui";
+import { Button, Checkbox, SkeletonRegion, Stagger, StaggerItem, StatusPill, TextInput, useSkeleton, ErrorNotice, EmptyState } from "@/components/ui";
 import type { StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MoneyPayload, type QuoteView } from "./api";
@@ -30,7 +30,7 @@ export default function MoneyView() {
   if (error) {
     return (
       <StaggerItem>
-        <EmptyState title="We could not load your payments" body="Try again in a minute. Nothing has changed on your account." />
+        <ErrorNotice audience="member" variant="block" title="We could not load your payments">Try again in a minute. Nothing has changed on your account.</ErrorNotice>
       </StaggerItem>
     );
   }

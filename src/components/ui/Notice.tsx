@@ -65,7 +65,7 @@ interface NoticeBase {
   /** Danger only: announce immediately (role="alert"). Use for failures the person just caused. */
   urgent?: boolean;
   /** Override the computed ARIA role. */
-  role?: "status" | "alert" | "note" | "region" | "none";
+  role?: "status" | "alert" | "note" | "region" | "group" | "none";
   className?: string;
   "data-tour"?: string;
 }

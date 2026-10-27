@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, ButtonLink, EmptyState, Loadable, Skeleton, TextArea } from "@/components/ui";
+import { Button, ButtonLink, Loadable, Notice, Skeleton, TextArea, ErrorNotice } from "@/components/ui";
+import { bookingBlocked } from "./noticeFixes";
 import { ApiError } from "@/lib/api";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { memberApi, type SlotsPayload } from "./api";
@@ -58,27 +59,48 @@ export default function BookingFlow() {
           {dateLong(booked)} at {timeOfDay(booked)}, Costa Rica time{data?.lawyerName ? `, with ${data.lawyerName}` : ""}. Your
           lawyer reads your question and your profile before the call.
         </p>
-        <p className={s.doneBody}>
-          {linkPending
-            ? "Your Google Meet link is coming by email. Your ILP team is setting it up."
-            : "The Google Meet link is in your email and on your home page. The Join button there works from 10 minutes before the call."}
-        </p>
+        {linkPending ? (
+          <Notice
+            tone="info"
+            variant="inline"
+            title="Your Google Meet link is coming by email"
+            terms={["videoLink"]}
+            fix={{
+              label: "What happens next",
+              steps: [
+                "Your ILP team is setting up the call and emails you the link.",
+                "Look in your inbox, and your spam folder, for an email from ILP.",
+                "The link also appears on your home page. The Join button works from 10 minutes before the call.",
+                "No link by the day before the call? Write to your ILP team from Messages.",
+              ],
+            }}
+          />
+        ) : (
+          <p className={s.doneBody}>
+            The Google Meet link is in your email and on your home page. The Join button there works from 10 minutes before the call.
+          </p>
+        )}
         <ButtonLink href="/status">Back to your overview</ButtonLink>
       </div>
     );
   }
 
   if (!cap.canBook) {
+    const blocked = bookingBlocked(cap.reason);
     return (
-      <EmptyState
-        title="You cannot book a call right now"
-        body={cap.reason}
-        action={
-          <ButtonLink href="/status/messages" variant="secondary">
-            Message your team
+      <Notice
+        tone={blocked.tone}
+        headingLevel={2}
+        title={blocked.title}
+        fix={blocked.fix}
+        actions={
+          <ButtonLink href={blocked.tone === "danger" ? "/status/money" : "/status/messages"} variant="secondary">
+            {blocked.tone === "danger" ? "Update payment method" : "Message your team"}
           </ButtonLink>
         }
-      />
+      >
+        {cap.reason}
+      </Notice>
     );
   }
 
@@ -146,7 +168,7 @@ export default function BookingFlow() {
         <h2 className={s.stepTitle} id="t-title">
           2. Pick a time <span className={s.tz}>(Costa Rica time)</span>
         </h2>
-        {loadError && <p className={s.error}>{loadError}</p>}
+        {loadError && <ErrorNotice audience="member">{loadError}</ErrorNotice>}
         <Loadable
           loading={!data && !loadError}
           label="Loading open times"
@@ -161,7 +183,31 @@ export default function BookingFlow() {
             <>
             {data?.lawyerName && <p className={s.lawyer}>With {data.lawyerName}</p>}
             {data && data.slots.length === 0 && (
-              <p className={s.muted}>{data.reason ?? "No times are open in the next two weeks. Message your team and we will find one."}</p>
+              <Notice
+                tone="info"
+                title={data.lawyerName ? "No open times in the next two weeks" : "No lawyer is assigned to you yet"}
+                terms={["partnerLawyer", "slot"]}
+                fix={{
+                  steps: data.lawyerName
+                    ? [
+                        "Your lawyer's calendar is full for the next two weeks.",
+                        "Write to your ILP team from Messages with the days and times that suit you. They will find a time with your lawyer.",
+                        "Or come back in a few days: new times open as the calendar moves forward.",
+                      ]
+                    : [
+                        "Your ILP team picks a lawyer for you based on your kind of question. You do not need to do anything.",
+                        "They contact you when the lawyer is set. Then open times appear here.",
+                        "If it has been more than two working days, write to your ILP team from Messages.",
+                      ],
+                }}
+                actions={
+                  <ButtonLink href="/status/messages" variant="secondary">
+                    Message your team
+                  </ButtonLink>
+                }
+              >
+                {data.reason ?? "Message your team and we will find a time."}
+              </Notice>
             )}
             {days.length > 0 && (
               <>
@@ -251,9 +297,7 @@ export default function BookingFlow() {
           </p>
         )}
         {error && (
-          <p className={s.error} role="alert">
-            {error}
-          </p>
+          <ErrorNotice audience="member">{error}</ErrorNotice>
         )}
         <Button block busy={busy} onClick={submit} disabled={!slot || !recording}>
           Book this call

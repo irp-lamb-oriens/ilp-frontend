@@ -79,6 +79,11 @@
   background: $color-mist;
 }
 
+// Recording-consent Notice before joining: only spacing; the Notice draws itself.
+.consentNotice {
+  margin-top: $space-3;
+}
+
 .panelTitle {
   margin: 0;
   font-weight: 600;

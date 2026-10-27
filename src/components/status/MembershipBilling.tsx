@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, StatusPill, SkeletonRegion, StaggerItem, useSkeleton } from "@/components/ui";
+import { Button, ErrorNotice, Notice, StatusPill, SkeletonRegion, StaggerItem, useSkeleton } from "@/components/ui";
+import { pastDueFix } from "./noticeFixes";
 import type { StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { PLAN_STANDARD } from "@/lib/contracts";
@@ -93,22 +94,27 @@ export default function MembershipBilling() {
       </p>
 
       {m.status === "past_due" && (
-        <div className={s.notice} role="status">
-          <p className={s.noticeText}>
-            {data.access.inGrace
-              ? `Your last payment did not go through. Your access continues until ${dateLong(data.access.graceEndsAt)} while you update it.`
-              : data.access.message}
-          </p>
-          {m.paidBy === "card" && data.mode === "stripe" ? (
-            <Button onClick={updateCard} busy={busy}>
-              Update your card
-            </Button>
-          ) : (
-            <Link className={s.link} href="/status/messages">
-              Message your team about payment
-            </Link>
-          )}
-        </div>
+        <Notice
+          tone={data.access.inGrace ? "warning" : "danger"}
+          title={data.access.inGrace ? "Your last payment did not go through" : "Your membership is paused"}
+          terms={data.access.inGrace ? ["pastDue", "gracePeriod"] : ["pastDue", "sinpe"]}
+          actions={
+            m.paidBy === "card" && data.mode === "stripe" ? (
+              <Button onClick={updateCard} busy={busy}>
+                Update your card
+              </Button>
+            ) : (
+              <Link className={s.link} href="/status/messages">
+                Message your team about payment
+              </Link>
+            )
+          }
+          fix={pastDueFix(m.paidBy === "card" && data.mode === "stripe")}
+        >
+          {data.access.inGrace
+            ? `Your access continues until ${dateLong(data.access.graceEndsAt)} while you update it.`
+            : data.access.message}
+        </Notice>
       )}
 
       {m.status === "cancelled" ? (
@@ -128,9 +134,7 @@ export default function MembershipBilling() {
       )}
 
       {error && (
-        <p className={s.err} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
 
       {(m.status === "active" || m.status === "past_due") && !m.cancelAtPeriodEnd && (

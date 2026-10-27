@@ -68,15 +68,4 @@
 
 .blocked {
   margin-top: $space-6;
-  display: grid;
-  gap: $space-3;
-}
-
-.blockedText {
-  margin: 0;
-  padding: $space-3 $space-4;
-  background: $color-warning-soft;
-  border-radius: $radius-md;
-  color: $color-charcoal;
-  font-size: 1rem;
 }

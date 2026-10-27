@@ -38,21 +38,6 @@
   max-width: 60ch;
 }
 
-.notice {
-  display: grid;
-  gap: $space-3;
-  justify-items: start;
-  padding: $space-4;
-  border: 1px solid $color-hairline-strong;
-  border-left: 3px solid $color-warning;
-  border-radius: $radius-md;
-  background: $color-canvas;
-}
-
-.noticeText {
-  margin: 0;
-  max-width: 60ch;
-}
 
 .ending {
   display: grid;

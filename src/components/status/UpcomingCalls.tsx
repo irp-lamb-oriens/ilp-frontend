@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, Loadable } from "@/components/ui";
+import { Button, ErrorNotice, Loadable, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { useMember } from "./MemberContext";
 import { recordConsent } from "@/components/legal/consentApi";
@@ -79,24 +79,56 @@ function CallItem({ call: c }: { call: UpcomingCall }) {
       {c.question && <p className={s.question}>{c.question.split("\n")[0]}</p>}
 
       {mode === "join" && c.meetUrl ? (
-        <div className={s.panel} role="group" aria-labelledby={`join-${c.id}`}>
-          <p className={s.panelTitle} id={`join-${c.id}`}>Before you join: may your lawyer record this call?</p>
-          <p className={s.small}>
-            The recording becomes a transcript so your summary and next steps arrive sooner. Only your lawyer and your ILP team can read it.
-          </p>
-          <div className={s.actions}>
-            <a className={s.joinLink} href={c.meetUrl} target="_blank" rel="noopener noreferrer" onClick={() => chooseAndJoin("granted")}>
-              Yes, record and join
-            </a>
-            <a className={s.ghostLink} href={c.meetUrl} target="_blank" rel="noopener noreferrer" onClick={() => chooseAndJoin("declined")}>
-              No recording, join
-            </a>
-          </div>
-        </div>
+        <Notice
+          tone="info"
+          role="group"
+          className={s.consentNotice}
+          headingLevel={3}
+          title="Before you join: may your lawyer record this call?"
+          terms={["recordingConsent", "transcript"]}
+          fix={{
+            label: "What does this mean?",
+            steps: [
+              "Yes, record and join: the call is recorded and turned into a transcript, so your summary and next steps arrive sooner.",
+              "No recording, join: nothing is recorded. Your lawyer writes the summary from their notes.",
+              "Either way the call is the same. If you change your mind, tell your lawyer at the start of the call. Only your lawyer and your ILP team can read a transcript.",
+            ],
+            tutorialId: "client.book",
+            tutorialStep: "record",
+            learnMoreHref: "/legal/recording",
+            learnMoreLabel: "How ILP uses recordings",
+          }}
+          actions={
+            <>
+              <a className={s.joinLink} href={c.meetUrl} target="_blank" rel="noopener noreferrer" onClick={() => chooseAndJoin("granted")}>
+                Yes, record and join
+              </a>
+              <a className={s.ghostLink} href={c.meetUrl} target="_blank" rel="noopener noreferrer" onClick={() => chooseAndJoin("declined")}>
+                No recording, join
+              </a>
+            </>
+          }
+        >
+          The recording becomes a transcript so your summary and next steps arrive sooner. Only your lawyer and your ILP team can read it.
+        </Notice>
       ) : (
         <div className={s.actions}>
           {c.linkPending || !c.meetUrl ? (
-            <p className={s.small}>Your Google Meet link is coming by email.</p>
+            <Notice
+              tone="info"
+              variant="inline"
+              title="Your Google Meet link is coming by email"
+              terms={["videoLink"]}
+              fix={{
+                label: "What happens next",
+                steps: [
+                  "Your ILP team is setting up the call and emails you the link.",
+                  "Look in your inbox, and your spam folder, for an email from ILP.",
+                  "The Join button appears here once the link is ready. It works from 10 minutes before the call.",
+                  "No link by the day before the call? Write to your ILP team from Messages.",
+                ],
+              }}
+            />
           ) : state === "open" ? (
             <Button onClick={() => setMode("join")}>Join call</Button>
           ) : state === "early" ? (
@@ -132,7 +164,7 @@ function CallItem({ call: c }: { call: UpcomingCall }) {
       )}
 
       {mode === "change" && <ChangeTime call={c} onDone={() => setMode("idle")} />}
-      {error && <p className={s.error} role="alert">{error}</p>}
+      {error && <ErrorNotice audience="member">{error}</ErrorNotice>}
     </li>
   );
 }
@@ -221,7 +253,7 @@ function ChangeTime({ call: c, onDone }: { call: UpcomingCall; onDone: () => voi
           </div>
         </>
       )}
-      {error && <p className={s.error} role="alert">{error}</p>}
+      {error && <ErrorNotice audience="member">{error}</ErrorNotice>}
       <div className={s.actions}>
         <Button size="sm" busy={busy} disabled={!slot} onClick={save}>Move the call</Button>
         <Button size="sm" variant="ghost" onClick={onDone} disabled={busy}>Keep the current time</Button>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, ButtonLink, EmptyState, RadioGroup, SkeletonRegion, TextArea, useSkeleton } from "@/components/ui";
+import { Button, ButtonLink, EmptyState, RadioGroup, SkeletonRegion, TextArea, useSkeleton, ErrorNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { membershipApi, type MembershipBillingView } from "./membershipApi";
 import { useMember } from "./MemberContext";
@@ -28,7 +28,7 @@ export default function CancelMembership() {
   }, []);
   const { showSkeleton, skeletonVisible } = useSkeleton(!data && !failed);
 
-  if (failed) return <EmptyState title="We could not load your membership" body="Try again in a minute. Nothing has changed." />;
+  if (failed) return <ErrorNotice audience="member" variant="block" title="We could not load your membership">Try again in a minute. Nothing has changed.</ErrorNotice>;
   if (showSkeleton || !data) {
     return (
       <SkeletonRegion label="Loading your membership" visible={skeletonVisible}>

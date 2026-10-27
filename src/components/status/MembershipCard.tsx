@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ButtonLink, ProgressBar, StatusPill } from "@/components/ui";
+import { ButtonLink, Notice, ProgressBar, StatusPill } from "@/components/ui";
+import { bookingBlocked } from "./noticeFixes";
 import type { StatusTone } from "@/components/ui";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { useMember } from "./MemberContext";
@@ -75,13 +76,29 @@ export default function MembershipCard() {
           Book a call
         </ButtonLink>
       ) : (
-        <div className={s.blocked}>
-          <p className={s.blockedText}>{cap.reason}</p>
-          <ButtonLink href="/status/messages" variant="secondary" block>
-            Message your team
-          </ButtonLink>
-        </div>
+        <BlockedNotice reason={cap.reason} />
       )}
     </section>
+  );
+}
+
+/** Why booking is closed, with the steps to open it again. */
+function BlockedNotice({ reason }: { reason?: string }) {
+  const b = bookingBlocked(reason);
+  const paused = b.tone === "danger";
+  return (
+    <Notice
+      tone={b.tone}
+      className={s.blocked}
+      title={b.title}
+      fix={b.fix}
+      actions={
+        <ButtonLink href={paused ? "/status/money" : "/status/messages"} variant="secondary">
+          {paused ? "Update payment method" : "Message your team"}
+        </ButtonLink>
+      }
+    >
+      {reason}
+    </Notice>
   );
 }
