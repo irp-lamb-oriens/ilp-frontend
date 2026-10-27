@@ -119,3 +119,15 @@ $chart-3: #4a5a66; // steel
 $chart-4: #9fd9ef; // accent, lighter
 $chart-5: #7a8a96; // muted
 $chart-grid: #d9e1e6;
+
+// Notices (components/ui/Notice). No fill: tone shows only in the dashed
+// border and the outline icon. Warning is pulled toward steel so it reads
+// as a muted ochre line, never a yellow block.
+$notice-border-width: 1px;
+$notice-info: $color-accent;
+$notice-info-icon: $color-navy;
+$notice-success: $color-success;
+$notice-warning: #8e6d3a; // $color-warning mixed 62% with $color-steel (4.8:1 on white)
+$notice-danger: $color-error;
+$notice-neutral: $color-hairline-strong;
+$notice-neutral-icon: $color-steel;

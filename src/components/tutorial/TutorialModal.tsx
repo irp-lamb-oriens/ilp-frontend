@@ -104,15 +104,17 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
         </div>
       }
     >
-      <p className={s.kicker}>
-        {tutorial.title}
-        <span className={s.count}>
-          {" "}
-          · Step {step + 1} of {steps.length}
-        </span>
-      </p>
+      {!active.adhoc && (
+        <p className={s.kicker}>
+          {tutorial.title}
+          <span className={s.count}>
+            {" "}
+            · Step {step + 1} of {steps.length}
+          </span>
+        </p>
+      )}
       <ScenePlayer key={`${tutorial.id}:${st.id}`} scene={st.scene} className={s.scene} keys newTerms={newTerms[step]} />
-      <p className={s.body}>{st.body}</p>
+      {st.body && <p className={s.body}>{st.body}</p>}
       {description && <p className={s.sr}>{description}</p>}
       <div className={s.meta}>
         <ol className={s.dots} aria-hidden="true">
@@ -120,7 +122,7 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
             <li key={x.id} className={cx(s.dot, i === step && s.dotOn, i < step && s.dotDone)} />
           ))}
         </ol>
-        <Checkbox label="Don't show again" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
+        {!active.adhoc && <Checkbox label="Don't show again" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />}
       </div>
       <p className={s.sr} aria-live="polite" aria-atomic="true">
         Step {step + 1} of {steps.length}: {st.title}

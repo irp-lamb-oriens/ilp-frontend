@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 import type { TutorialRegistry } from "./registry";
-import type { Tutorial, TutorialRole } from "./types";
+import type { Scene, Tutorial, TutorialRole } from "./types";
 
 export type CloseReason = "done" | "skip";
 
@@ -11,6 +11,8 @@ export interface ActiveTutorial {
   step: number;
   /** Started by the first-visit rule (not by the viewer). */
   auto: boolean;
+  /** One-off scene (startScene): not in the registry, never stored as seen. */
+  adhoc?: boolean;
 }
 
 export interface TutorialApi {
@@ -18,7 +20,12 @@ export interface TutorialApi {
   registry: TutorialRegistry | null;
   active: ActiveTutorial | null;
   /** Loads the configs if needed, then opens the tutorial. */
-  start(id: string, opts?: { step?: number; auto?: boolean }): Promise<boolean>;
+  start(id: string, opts?: { step?: number; stepId?: string; auto?: boolean }): Promise<boolean>;
+  /**
+   * Play one mock scene in the tutorial modal, outside any tutorial (a
+   * Notice's "Show me"). Nothing is stored as seen.
+   */
+  startScene(scene: Scene, title: string, body?: string): void;
   next(): void;
   back(): void;
   goTo(step: number): void;

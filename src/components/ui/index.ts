@@ -103,3 +103,9 @@ export {
 } from "./timeUtils";
 export type { DayWindow } from "./timeUtils";
 export { IconCalendar, IconCheck, IconClock, IconClose, IconCopy, IconMinus, IconPlus } from "./icons";
+
+// Notices (NOTICES.md): every prerequisite, warning, disclaimer and banner.
+export { Notice, resetNoticeDismissals } from "./Notice";
+export type { NoticeProps, NoticeFix, NoticeTone, NoticeVariant, NoticeHeading } from "./Notice";
+export { ErrorNotice, errorFix } from "./ErrorNotice";
+export type { ErrorNoticeProps, NoticeAudience } from "./ErrorNotice";

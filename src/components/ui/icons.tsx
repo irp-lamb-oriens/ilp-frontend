@@ -36,3 +36,36 @@ export const IconCalendar = (p: IconProps) => (
   </Svg>
 );
 export const IconCheck = (p: IconProps) => <Svg {...p}><path d="M3.5 8.5l3 3 6-7" /></Svg>;
+
+// Notice tone icons (outline, same 16px / 1.5px stroke as the rest).
+export const IconInfo = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8" r="6.25" />
+    <path d="M8 7.25v4M8 4.75v.01" />
+  </Svg>
+);
+export const IconSuccess = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="8" cy="8" r="6.25" />
+    <path d="M5.25 8.25l1.9 1.9 3.6-4" />
+  </Svg>
+);
+export const IconWarning = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 2.25l6.25 11H1.75z" />
+    <path d="M8 6.5v3M8 11.25v.01" />
+  </Svg>
+);
+export const IconDanger = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M5.4 1.75h5.2l3.65 3.65v5.2l-3.65 3.65H5.4L1.75 10.6V5.4z" />
+    <path d="M8 4.75v3.75M8 10.75v.01" />
+  </Svg>
+);
+export const IconNote = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.5 1.75h6l3 3v9.5h-9z" />
+    <path d="M9.5 1.75v3h3M5.75 8h4.5M5.75 10.5h4.5" />
+  </Svg>
+);
+export const IconChevronDown = (p: IconProps) => <Svg {...p}><path d="M4 6l4 4 4-4" /></Svg>;

@@ -116,13 +116,28 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
       const r = await ensureLoaded();
       const t = r.get(id);
       if (!t || t.steps.length === 0) return false;
+      const byId = opts.stepId ? t.steps.findIndex((x) => x.id === opts.stepId) : -1;
+      const want = byId >= 0 ? byId : opts.step ?? 0;
       setSpot(null);
       setListRole(null);
-      setActive({ tutorial: t, step: Math.max(0, Math.min(t.steps.length - 1, opts.step ?? 0)), auto: !!opts.auto });
+      setActive({ tutorial: t, step: Math.max(0, Math.min(t.steps.length - 1, want)), auto: !!opts.auto });
       return true;
     },
     [ensureLoaded],
   );
+
+  const startScene = useCallback<TutorialApi["startScene"]>((scene, title, body = "") => {
+    const tutorial: Tutorial = {
+      id: `adhoc:${title}`,
+      version: 1,
+      title,
+      autoStart: "never",
+      steps: [{ id: "scene", title, body, scene }],
+    };
+    setSpot(null);
+    setListRole(null);
+    setActive({ tutorial, step: 0, auto: false, adhoc: true });
+  }, []);
 
   const goTo = useCallback((step: number) => {
     setActive((a) => (a ? { ...a, step: Math.max(0, Math.min(a.tutorial.steps.length - 1, step)) } : a));
@@ -132,6 +147,7 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
     (reason: CloseReason = "skip", dontShow = false) => {
       setActive((a) => {
         if (!a) return a;
+        if (a.adhoc) return null;
         const { id, version } = a.tutorial;
         if (dontShow) store().markDismissed(id, version);
         else if (reason === "done") store().markDone(id, version);
@@ -153,6 +169,7 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
       registry,
       active,
       start,
+      startScene,
       next: () => setActive((a) => (a && a.step < a.tutorial.steps.length - 1 ? { ...a, step: a.step + 1 } : a)),
       back: () => setActive((a) => (a && a.step > 0 ? { ...a, step: a.step - 1 } : a)),
       goTo,
@@ -181,7 +198,7 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
     }),
     // rev: re-read the store after every change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [registry, active, start, goTo, close, ensureLoaded, store, rev],
+    [registry, active, start, startScene, goTo, close, ensureLoaded, store, rev],
   );
 
   return (

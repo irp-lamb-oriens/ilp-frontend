@@ -1,0 +1,339 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// One look for every notice: transparent, 1px dashed border, outline icon.
+// Tone lives only in the border and icon color; text keeps the body color.
+
+.notice {
+  --notice-line: #{$notice-neutral};
+  --notice-icon: #{$notice-neutral-icon};
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: $space-3;
+  padding: $space-4;
+  border: $notice-border-width dashed var(--notice-line);
+  border-radius: $radius-md;
+  background: transparent;
+  color: $color-charcoal;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.info {
+  --notice-line: #{$notice-info};
+  --notice-icon: #{$notice-info-icon};
+}
+
+.success {
+  --notice-line: #{$notice-success};
+  --notice-icon: #{$notice-success};
+}
+
+.warning {
+  --notice-line: #{$notice-warning};
+  --notice-icon: #{$notice-warning};
+}
+
+.danger {
+  --notice-line: #{$notice-danger};
+  --notice-icon: #{$notice-danger};
+}
+
+.neutral {
+  --notice-line: #{$notice-neutral};
+  --notice-icon: #{$notice-neutral-icon};
+}
+
+// Variants -------------------------------------------------------------------
+
+.block {
+  max-width: 72ch;
+}
+
+.inline {
+  padding: $space-2 $space-3;
+  column-gap: $space-2;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+
+  .title {
+    font-size: 0.875rem;
+  }
+
+  .icon {
+    padding-top: 3px;
+  }
+
+  .actions {
+    margin-top: $space-1;
+  }
+}
+
+.banner {
+  width: 100%;
+  padding: $space-3 $space-4;
+  border-radius: $radius-sm;
+
+  @include md {
+    .main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: $space-6;
+      align-items: center;
+    }
+
+    .title,
+    .body,
+    .fix {
+      grid-column: 1;
+    }
+
+    .actions {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      margin-top: 0;
+      justify-content: flex-end;
+    }
+
+    .fix {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+// Parts ----------------------------------------------------------------------
+
+.icon {
+  display: inline-flex;
+  padding-top: 4px;
+  color: var(--notice-icon);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.main {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: $color-navy;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+.body {
+  margin-top: $space-1;
+  max-width: 65ch;
+
+  p {
+    margin: 0;
+  }
+
+  p + p {
+    margin-top: $space-2;
+  }
+
+  ul,
+  ol {
+    margin: $space-1 0 0;
+    padding-left: $space-6;
+  }
+
+  a {
+    @include focus-ring;
+    color: $color-navy;
+    font-weight: 600;
+  }
+
+  code {
+    font-family: $font-mono;
+    font-size: 0.85em;
+    color: $color-navy;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2 $space-3;
+  margin-top: $space-3;
+}
+
+.toggle,
+.showMe {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  min-height: $touch-target;
+  padding: 0 $space-1;
+  border: 0;
+  background: transparent;
+  color: $color-navy;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: $color-hairline-strong;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  @include hover-only {
+    &:hover {
+      text-decoration-color: $color-navy;
+    }
+  }
+}
+
+.showMe {
+  padding: 0 $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  text-decoration: none;
+  transition: transform $duration-press $ease-out-strong;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @include hover-only {
+    &:hover {
+      border-color: $color-navy;
+    }
+  }
+}
+
+.chev {
+  transition: transform $duration-fast $ease-out-strong;
+}
+
+.chevOpen {
+  transform: rotate(180deg);
+}
+
+// Expands inside the notice only; fades and lifts in (opacity + transform).
+.fix {
+  margin-top: $space-3;
+  padding-top: $space-3;
+  border-top: 1px dashed $color-hairline;
+  max-width: 65ch;
+  animation: notice-fix-in $duration-fast $ease-out-strong;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+@keyframes notice-fix-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.summary {
+  margin: 0 0 $space-2;
+  color: $color-steel;
+}
+
+.steps {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding-left: $space-6;
+
+  li::marker {
+    color: $color-navy;
+    font-weight: 600;
+  }
+}
+
+.terms {
+  display: grid;
+  gap: $space-2;
+  margin: $space-3 0 0;
+
+  dt {
+    color: $color-navy;
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-steel;
+  }
+}
+
+.term {
+  display: grid;
+}
+
+.fixActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2 $space-4;
+  margin-top: $space-3;
+}
+
+.more {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+  font-weight: 600;
+}
+
+.dismiss {
+  @include focus-ring;
+  @include touch-target;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: -$space-3 (-$space-3) 0 0;
+  border: 0;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-steel;
+  cursor: pointer;
+
+  @include hover-only {
+    &:hover {
+      color: $color-navy;
+    }
+  }
+}
+
+.sr {
+  @include visually-hidden;
+}
+
+@include reduced-motion {
+  .fix {
+    animation: none;
+  }
+
+  .chev,
+  .showMe {
+    transition: none;
+  }
+
+  .showMe:active {
+    transform: none;
+  }
+}
