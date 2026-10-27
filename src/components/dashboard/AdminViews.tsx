@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
+import { AdminsOnlyNotice, isRoleDenied } from "./staff/StaffSession";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
 import {
@@ -175,14 +176,19 @@ const money = (v: number) =>
 export function FinanceView() {
   const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     dashboardFetch<FinanceMetrics>("/api/dashboard/finance/metrics")
       .then(setMetrics)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load finance metrics."));
+      .catch((e) => {
+        if (isRoleDenied(e)) setDenied(true);
+        else setError(e instanceof Error ? e.message : "Failed to load finance metrics.");
+      });
   }, []);
 
-  const sk = useSkeleton(metrics === null && !error);
+  const sk = useSkeleton(metrics === null && !error && !denied);
+  if (denied) return <AdminsOnlyNotice what="Quote finance" />;
   if (error) return <p className={styles.errorText}>{error}</p>;
   if (sk.showSkeleton || metrics === null) {
     return (
@@ -294,11 +300,15 @@ export function FinanceView() {
 export function SalesView() {
   const [rows, setRows] = useState<Array<Record<string, unknown>> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     dashboardFetch<{ rows?: Array<Record<string, unknown>>; sales?: Array<Record<string, unknown>> }>("/api/dashboard/sales-report")
       .then((r) => setRows(r.rows ?? r.sales ?? []))
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load sales report."));
+      .catch((e) => {
+        if (isRoleDenied(e)) setDenied(true);
+        else setError(e instanceof Error ? e.message : "Failed to load sales report.");
+      });
   }, []);
 
   const keys = Array.from(new Set((rows ?? []).flatMap((r) => Object.keys(r)))).slice(0, 8);
@@ -309,7 +319,8 @@ export function SalesView() {
       pageSize: 20,
     });
 
-  const sk = useSkeleton(rows === null && !error);
+  const sk = useSkeleton(rows === null && !error && !denied);
+  if (denied) return <AdminsOnlyNotice what="The sales report" />;
   if (error) return <p className={styles.errorText}>{error}</p>;
   if (sk.showSkeleton || rows === null) {
     return (

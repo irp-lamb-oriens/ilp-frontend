@@ -6,6 +6,7 @@ import { Loadable, Skeleton, SkeletonStatStrip, Stagger, StaggerItem, StatTile, 
 import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import { SalesView } from "@/components/dashboard/AdminViews";
 import PmfPanel from "@/components/dashboard/pmf/PmfPanel";
+import { AdminsOnlyNotice, isRoleDenied, useStaff } from "../staff/StaffSession";
 import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
@@ -29,9 +30,15 @@ interface DashboardMetrics {
   activity: { calls: { total: number }; quotes: { total: number; accepted: number } };
 }
 
-/** The pre-W6 analytics tabs (funnel, satisfaction, activity, sources, jurisdictions) plus the sales report. */
+/**
+ * The pre-W6 analytics tabs (funnel, satisfaction, activity, sources,
+ * jurisdictions) for every staff role, plus the sales report for admins only
+ * (ROLES: money is admin-only on the server; other roles do not see the tab).
+ */
 export default function ReportsView() {
+  const { isAdmin } = useStaff();
   const [funnel, setFunnel] = useState<FunnelMetrics | null>(null);
+  const [denied, setDenied] = useState(false);
   const [dash, setDash] = useState<DashboardMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -43,7 +50,10 @@ export default function ReportsView() {
     ]).then(([f, d]) => {
       if (f.status === "fulfilled") setFunnel(f.value);
       if (d.status === "fulfilled") setDash(d.value);
-      if (f.status === "rejected" && d.status === "rejected") setError("Reports could not be loaded.");
+      if (f.status === "rejected" && d.status === "rejected") {
+        if (isRoleDenied(f.reason) || isRoleDenied(d.reason)) setDenied(true);
+        else setError("Reports could not be loaded.");
+      }
       setLoaded(true);
     });
   }, []);
@@ -163,14 +173,17 @@ export default function ReportsView() {
       label: "Jurisdictions",
       content: () => chart("jurisdictions", () => <SimpleBarChart data={breakdown(dash?.jurisdictionBreakdown)} color={PALETTE.navy} emptyMessage="No jurisdictions yet." />),
     },
-    { id: "sales", label: "Sales report", content: () => <SalesView /> },
   ];
+  if (isAdmin) tabs.push({ id: "sales", label: "Sales report", content: () => <SalesView /> });
 
   return (
     <>
-      <PageHeader title="Reports" sub="Acquisition funnel, pipeline and the sales report. Membership KPIs are on Today." />
+      <PageHeader
+        title="Reports"
+        sub={isAdmin ? "Acquisition funnel, pipeline and the sales report. Membership KPIs are on Today." : "Acquisition funnel and pipeline. Membership KPIs are on Today."}
+      />
       {error && <ErrorText>{error}</ErrorText>}
-      <Tabs tabs={tabs} label="Reports" />
+      {denied ? <AdminsOnlyNotice what="Reports" /> : <Tabs tabs={tabs} label="Reports" />}
     </>
   );
 }

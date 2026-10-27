@@ -160,14 +160,29 @@ export function StaffFrame({ children }: { children: ReactNode }) {
   return shell(session, children);
 }
 
-/** Wrap admin-only pages. Non-admins get a plain explanation, not a blank page. */
-export function AdminOnly({ children }: { children: ReactNode }) {
-  const { isAdmin } = useStaff();
-  if (isAdmin) return <>{children}</>;
+/** True for the server's role gate (403 "Your role does not allow this action."). */
+export function isRoleDenied(e: unknown): boolean {
+  return e instanceof ApiError && e.status === 403;
+}
+
+/**
+ * The "Admins only" state, shown in place of a section the signed-in role
+ * cannot open (finance, sales report), never the raw 403 text.
+ */
+export function AdminsOnlyNotice({ what }: { what?: string }) {
   return (
     <div className={s.denied} role="status">
-      <p className={s.deniedTitle}>This page is for administrators.</p>
-      <p className={s.deniedBody}>Ask an ILP admin if you need finance figures or settings changed.</p>
+      <p className={s.deniedTitle}>Admins only — ask an ILP admin</p>
+      <p className={s.deniedBody}>
+        {what ? `${what} is` : "This section is"} limited to ILP administrators.
+      </p>
     </div>
   );
+}
+
+/** Wrap admin-only pages. Non-admins get a plain explanation, not a blank page. */
+export function AdminOnly({ children, what }: { children: ReactNode; what?: string }) {
+  const { isAdmin } = useStaff();
+  if (isAdmin) return <>{children}</>;
+  return <AdminsOnlyNotice what={what} />;
 }

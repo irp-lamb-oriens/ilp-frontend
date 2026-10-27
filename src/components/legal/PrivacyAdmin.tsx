@@ -53,7 +53,7 @@ const day = (iso?: string) =>
 /** /dashboard/privacy: process members' privacy requests (admin only, P6). */
 export default function PrivacyAdmin() {
   return (
-    <AdminOnly>
+    <AdminOnly what="Privacy administration">
       <PrivacyRequests />
     </AdminOnly>
   );
