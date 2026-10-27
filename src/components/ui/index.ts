@@ -26,6 +26,20 @@ export { Tabs } from "./Tabs";
 export type { TabItem, TabsProps } from "./Tabs";
 export { cx } from "./cx";
 
+// Loading states (UX_LOADING.md): skeletons, the delayed/minimum-visible
+// loading flag, and the first-load staggered reveal.
+export { Skeleton, SkeletonRegion, Loadable, useSkeleton, useDelayedFlag } from "./Skeleton";
+export type { SkeletonProps, SkeletonShape, SkeletonSize, SkeletonWidth, SkeletonPhase, SkeletonRegionProps, LoadableProps } from "./Skeleton";
+export { SkeletonText, SkeletonStatStrip, SkeletonList, SkeletonCard, SkeletonBoard } from "./SkeletonLayouts";
+export type { SkeletonListProps, SkeletonCardProps, SkeletonBoardProps } from "./SkeletonLayouts";
+export { SkeletonStatTile } from "./StatTile";
+export { SkeletonTable } from "./DataTable";
+export type { SkeletonTableProps } from "./DataTable";
+export { SkeletonTimeline } from "./Timeline";
+export { Stagger, StaggerItem, useReveal } from "./Stagger";
+export type { StaggerItemProps, RevealProps } from "./Stagger";
+export { REVEAL_WINDOW_MS, SKELETON_DELAY_MS, SKELETON_MIN_MS, STAGGER_MAX, COUNT_UP_S, EASE_OUT_STRONG } from "./loadingTiming";
+
 // Form fields (P5). Labels always render; hint and error are wired with aria-describedby.
 export { Field, FieldError, FieldHint, FieldMarker, useFieldIds } from "./Field";
 export type { FieldBaseProps, FieldControlProps, FieldProps } from "./Field";

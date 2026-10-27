@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { cx } from "./cx";
+import { Skeleton } from "./Skeleton";
+import { StaggerItem } from "./Stagger";
 import type { StatusTone } from "./StatusPill";
 import s from "./Timeline.module.scss";
 
@@ -54,8 +56,8 @@ export function Timeline({
   });
   return (
     <ol className={cx(s.list, className)}>
-      {sorted.map((item) => (
-        <li key={item.id} className={cx(s.item, s[item.tone ?? "neutral"])}>
+      {sorted.map((item, i) => (
+        <StaggerItem as="li" index={i} key={item.id} className={cx(s.item, s[item.tone ?? "neutral"])}>
           <span className={s.marker} aria-hidden="true" />
           <div className={s.content}>
             <div className={s.head}>
@@ -70,6 +72,24 @@ export function Timeline({
               </span>
             )}
             {item.body && <div className={s.body}>{item.body}</div>}
+          </div>
+        </StaggerItem>
+      ))}
+    </ol>
+  );
+}
+
+/** Timeline placeholder: the same rail, ring markers and entry rhythm. */
+export function SkeletonTimeline({ items = 4, className }: { items?: number; className?: string }) {
+  return (
+    <ol className={cx(s.list, className)} aria-hidden="true">
+      {Array.from({ length: items }, (_, i) => (
+        <li key={i} className={cx(s.item, s.neutral)}>
+          <span className={s.marker} />
+          <div className={s.content}>
+            <Skeleton shape="line" size="md" width={i % 2 ? "60" : "75"} />
+            <Skeleton shape="line" size="xs" width="25" />
+            {i % 2 === 0 && <Skeleton shape="line" size="sm" width="90" />}
           </div>
         </li>
       ))}

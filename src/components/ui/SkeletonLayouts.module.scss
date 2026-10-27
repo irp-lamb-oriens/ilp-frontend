@@ -1,0 +1,201 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Default strip: one large tile spanning two rows, small tiles beside it in
+// pairs; on phones the large tile takes the full row above a 2-up grid.
+.strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: $space-3;
+
+  > :first-child {
+    grid-row: span 2;
+  }
+
+  @include below-md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > :first-child {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+  }
+}
+
+// List: framed rows like a queue (hairline between rows).
+.list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.framed {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  background: $color-surface;
+
+  > li + li {
+    border-top: 1px solid $color-hairline;
+  }
+}
+
+.spaced {
+  gap: $space-2;
+
+  > li {
+    border: 1px solid $color-hairline;
+    border-radius: $radius-md;
+    background: $color-surface;
+  }
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $space-3;
+  min-height: 64px;
+  padding: $space-3 $space-4;
+
+  @include below-md {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    > .lead {
+      grid-column: 1 / -1;
+    }
+
+    > .lead.avatar {
+      grid-column: auto;
+    }
+  }
+}
+
+// Time-led rows (call lists): time stays left on phones, pills wrap under the text.
+.rowTime {
+  @include below-md {
+    grid-template-columns: auto minmax(0, 1fr);
+
+    > .lead.leadTime {
+      grid-column: auto;
+    }
+
+    > .trail {
+      grid-column: 2;
+    }
+  }
+}
+
+.compact {
+  min-height: $touch-target;
+  padding: $space-2 $space-3;
+}
+
+.lead {
+  display: flex;
+}
+
+.leadTime {
+  display: grid;
+  width: 4.5rem;
+
+  @include md {
+    width: 5.5rem;
+  }
+}
+
+.lines {
+  display: grid;
+  min-width: 0;
+}
+
+.trail {
+  display: flex;
+  gap: $space-1;
+}
+
+// Card: same surface as Card (pad-md).
+.card {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+  padding: $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.mist {
+  background: $color-mist;
+  box-shadow: none;
+}
+
+.accent {
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+  box-shadow: none;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.text {
+  display: grid;
+}
+
+// Board: columns side by side (scrolls inside on tablets), stacked on phones.
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(15rem, 1fr);
+  gap: $space-3;
+  overflow-x: auto;
+  align-items: start;
+
+  @include below-md {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow-x: visible;
+  }
+}
+
+.col {
+  display: grid;
+  gap: $space-2;
+  align-content: start;
+  min-height: 8rem;
+  padding: $space-2;
+  border-radius: $radius-md;
+  background: $color-mist;
+}
+
+.colHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-1 $space-2;
+}
+
+.boardCard {
+  display: grid;
+  gap: 2px;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.boardFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: $space-2;
+}

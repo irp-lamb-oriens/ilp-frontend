@@ -2,53 +2,50 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useInView, useReducedMotion, animate } from "framer-motion";
+import { COUNT_UP_S, EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 
 interface CountUpProps {
   value: number;
   /**
-   * Format the animated number for display. Defaults to locale string with no
-   * grouping (plain integer). Receives the interpolated value each frame.
+   * Format the animated number for display. Defaults to a plain integer.
+   * Receives the interpolated value each frame. Pass a stable function
+   * (module level or memoised), not an inline arrow.
    */
   formatter?: (v: number) => string;
+  /** Seconds. Defaults to COUNT_UP_S (0.6). */
   duration?: number;
   className?: string;
 }
 
+const plain = (v: number) => String(Math.round(v));
+
 /**
- * Animates a number from zero to `value` when it first enters the viewport.
- * Uses framer-motion's `animate` for a transform-free, main-thread-friendly
- * tween. Respects prefers-reduced-motion by snapping straight to the value.
+ * Counts from zero to `value` the first time it enters the viewport, with the
+ * rules.md strong ease-out. Plays once: later changes of `value` (a refetch)
+ * snap to the new figure. Reduced motion: no count, the value just shows.
+ * The final value is in the markup from the first render (no-JS, SSR).
  */
-export default function CountUp({
-  value,
-  formatter,
-  duration = 1.2,
-  className,
-}: CountUpProps) {
+export default function CountUp({ value, formatter = plain, duration = COUNT_UP_S, className }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
   const reduce = useReducedMotion();
-  const [display, setDisplay] = useState(() =>
-    formatter ? formatter(value) : String(Math.round(value)),
-  );
+  const played = useRef(false);
+  const [display, setDisplay] = useState(() => formatter(value));
 
   useEffect(() => {
     if (!inView) return;
-    if (reduce) {
-      setDisplay(formatter ? formatter(value) : String(Math.round(value)));
+    if (reduce || played.current) {
+      setDisplay(formatter(value));
       return;
     }
-
     const controls = animate(0, value, {
       duration,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: (v) => {
-        setDisplay(
-          formatter ? formatter(v) : String(Math.round(v)),
-        );
+      ease: [...EASE_OUT_STRONG],
+      onUpdate: (v) => setDisplay(formatter(v)),
+      onComplete: () => {
+        played.current = true;
       },
     });
-
     return () => controls.stop();
   }, [inView, value, reduce, duration, formatter]);
 

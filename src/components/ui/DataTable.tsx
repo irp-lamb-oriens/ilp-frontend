@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useMemo, useRef, useState, type HTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
 import { cx } from "./cx";
 import { EmptyState } from "./EmptyState";
+import { Skeleton, useSkeleton } from "./Skeleton";
+import { Stagger, useReveal } from "./Stagger";
 import s from "./DataTable.module.scss";
 
 export type SortDir = "asc" | "desc";
@@ -33,7 +35,10 @@ export interface DataTableProps<T> {
   /** Highlights the row whose key matches, e.g. the one open in a drawer. */
   selectedKey?: string | null;
   empty?: ReactNode;
+  /** Shows skeleton rows under the real header (after a short grace delay). */
   loading?: boolean;
+  /** Skeleton rows while loading. Default 5. */
+  skeletonRows?: number;
   className?: string;
 }
 
@@ -60,8 +65,10 @@ export function DataTable<T>({
   selectedKey,
   empty,
   loading = false,
+  skeletonRows = 5,
   className,
 }: DataTableProps<T>) {
+  const { showSkeleton, skeletonVisible } = useSkeleton(loading);
   const [sort, setSort] = useState<{ key: string; dir: SortDir } | null>(defaultSort ?? null);
   const [focusIdx, setFocusIdx] = useState(0);
   const bodyRef = useRef<HTMLTableSectionElement>(null);
@@ -113,7 +120,7 @@ export function DataTable<T>({
 
   return (
     <div className={cx(s.wrap, className)}>
-      <table className={s.table} aria-busy={loading || undefined}>
+      <table className={s.table} aria-busy={showSkeleton || undefined}>
         <caption className={showCaption ? s.caption : s.srCaption}>{caption}</caption>
         <thead>
           <tr>
@@ -147,38 +154,115 @@ export function DataTable<T>({
             })}
           </tr>
         </thead>
-        <tbody ref={bodyRef}>
-          {sorted.map((row, i) => {
-            const key = rowKey(row);
-            return (
-              <tr
-                key={key}
-                className={cx(s.tr, interactive && s.clickable, selectedKey === key && s.selected)}
-                tabIndex={interactive ? (i === safeFocus ? 0 : -1) : undefined}
-                aria-selected={selectedKey != null ? selectedKey === key : undefined}
-                onClick={interactive ? () => { setFocusIdx(i); onRowActivate!(row); } : undefined}
-                onKeyDown={interactive ? (e) => onRowKeyDown(e, i, row) : undefined}
-                onFocus={interactive ? () => setFocusIdx(i) : undefined}
-              >
-                {columns.map((c) => (
-                  <td
-                    key={c.key}
-                    className={cx(s.td, c.align === "end" && s.end, c.hideOnMobile && s.hideMobile)}
+        {showSkeleton ? (
+          <SkeletonRows columns={columns} rows={skeletonRows} visible={skeletonVisible} />
+        ) : (
+          <tbody ref={bodyRef}>
+            <Stagger>
+              {sorted.map((row, i) => {
+                const key = rowKey(row);
+                return (
+                  <RevealRow
+                    key={key}
+                    index={i}
+                    className={cx(s.tr, interactive && s.clickable, selectedKey === key && s.selected)}
+                    tabIndex={interactive ? (i === safeFocus ? 0 : -1) : undefined}
+                    aria-selected={selectedKey != null ? selectedKey === key : undefined}
+                    onClick={interactive ? () => { setFocusIdx(i); onRowActivate!(row); } : undefined}
+                    onKeyDown={interactive ? (e) => onRowKeyDown(e, i, row) : undefined}
+                    onFocus={interactive ? () => setFocusIdx(i) : undefined}
                   >
-                    {c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? "")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
+                    {columns.map((c) => (
+                      <td
+                        key={c.key}
+                        className={cx(s.td, c.align === "end" && s.end, c.hideOnMobile && s.hideMobile)}
+                      >
+                        {c.render ? c.render(row) : String((row as Record<string, unknown>)[c.key] ?? "")}
+                      </td>
+                    ))}
+                  </RevealRow>
+                );
+              })}
+            </Stagger>
+          </tbody>
+        )}
       </table>
-      {!loading && sorted.length === 0 && (
+      {!showSkeleton && sorted.length === 0 && (
         <div className={s.emptyWrap}>
           {empty ?? <EmptyState compact title="Nothing to show" body="Rows appear here as soon as there is data." />}
         </div>
       )}
-      {loading && <p className={s.loading}>Loading…</p>}
+      {showSkeleton && (
+        <span className={s.srCaption} role="status">
+          Loading {caption.toLowerCase()}…
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** A body row that fades in with the first-load stagger. */
+function RevealRow({ index, className, children, ...rest }: HTMLAttributes<HTMLTableRowElement> & { index: number }) {
+  const reveal = useReveal(index, className);
+  return (
+    <tr {...rest} className={reveal.className} data-reveal-i={reveal["data-reveal-i"]} onAnimationEnd={reveal.onAnimationEnd}>
+      {children}
+    </tr>
+  );
+}
+
+type SkeletonColumn = Pick<Column<unknown>, "align" | "hideOnMobile" | "width"> & { header?: string; key?: string };
+
+const CELL_WIDTHS = ["75", "60", "40", "60", "25", "40"] as const;
+
+function SkeletonRows({ columns, rows, visible }: { columns: SkeletonColumn[]; rows: number; visible: boolean }) {
+  return (
+    <tbody className={cx(s.skBody, !visible && s.skPending)} aria-hidden="true">
+      {Array.from({ length: rows }, (_, r) => (
+        <tr key={r} className={s.tr}>
+          {columns.map((c, i) => (
+            <td key={c.key ?? i} className={cx(s.td, s.skCell, c.align === "end" && s.end, c.hideOnMobile && s.hideMobile)}>
+              <Skeleton
+                shape="line"
+                size="sm"
+                width={i === 0 ? "75" : CELL_WIDTHS[(i + r) % CELL_WIDTHS.length]}
+                className={c.align === "end" ? s.skEnd : undefined}
+              />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  );
+}
+
+export interface SkeletonTableProps {
+  /** Column count, or column shapes (header text, hideOnMobile, align) to mirror a real table. */
+  columns: number | SkeletonColumn[];
+  rows?: number;
+  className?: string;
+}
+
+/**
+ * Stand-alone table skeleton with DataTable's exact frame, header row and
+ * mobile column hiding. Use it before the page that owns the table mounts.
+ */
+export function SkeletonTable({ columns, rows = 5, className }: SkeletonTableProps) {
+  const cols: SkeletonColumn[] = typeof columns === "number" ? Array.from({ length: columns }, () => ({})) : columns;
+  return (
+    <div className={cx(s.wrap, className)} aria-hidden="true">
+      <table className={s.table}>
+        <thead>
+          <tr>
+            {cols.map((c, i) => (
+              <th key={c.key ?? i} className={cx(s.th, c.align === "end" && s.end, c.hideOnMobile && s.hideMobile, c.width && s[c.width])}>
+                {c.header ?? <Skeleton shape="line" size="xs" width={i === 0 ? "40" : "60"} />}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <SkeletonRows columns={cols} rows={rows} visible />
+      </table>
     </div>
   );
 }

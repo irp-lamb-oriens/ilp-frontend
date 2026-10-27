@@ -1,0 +1,51 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// A wrapper that renders nothing must not leave an empty grid cell or gap.
+.item {
+  min-width: 0;
+
+  &:empty {
+    display: none;
+  }
+}
+
+// First-load reveal: fade and lift, transform + opacity only (rules.md 6).
+// The class is removed on animationend, so will-change only lives while it runs.
+.reveal {
+  animation: rise $duration-reveal $ease-out-strong both;
+  will-change: transform, opacity;
+
+  @for $i from 1 through $stagger-max {
+    &[data-reveal-i="#{$i}"] {
+      animation-delay: $i * $stagger-step;
+    }
+  }
+
+  // Reduced motion: no lift, no stagger; a short plain fade.
+  @include reduced-motion {
+    animation: fade $duration-fade linear both;
+    animation-delay: 0s !important;
+    will-change: opacity;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, $reveal-distance, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

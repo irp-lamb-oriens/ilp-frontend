@@ -75,3 +75,8 @@
 .sr {
   @include visually-hidden;
 }
+
+// Skeleton hint sits where .meta does (margin-top $space-1).
+.skHint {
+  margin-top: calc(#{$space-1} + 0.25rem);
+}

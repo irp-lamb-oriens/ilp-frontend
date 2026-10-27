@@ -125,8 +125,21 @@
   padding: $space-4;
 }
 
-.loading {
-  margin: 0;
-  padding: $space-4;
-  color: $color-muted;
+// Loading: skeleton rows under the real header. Transparent during the grace
+// delay so fast loads never flash, but the rows already hold their height.
+.skBody {
+  transition: opacity $duration-fast $ease-out-strong;
+}
+
+.skPending {
+  opacity: 0;
+}
+
+// One text line per cell, so a skeleton row is as tall as a one-line row.
+.skCell {
+  padding-block: $space-3;
+}
+
+.skEnd {
+  margin-left: auto;
 }

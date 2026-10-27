@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cx } from "./cx";
+import { Skeleton } from "./Skeleton";
 import s from "./StatTile.module.scss";
 
 export interface StatTileProps {
@@ -49,6 +50,17 @@ export function StatTile({
           {hint && <span className={s.hint}>{hint}</span>}
         </span>
       )}
+    </div>
+  );
+}
+
+/** StatTile placeholder with the same padding, border and line rhythm. */
+export function SkeletonStatTile({ size = "sm", hint = true, className }: { size?: "lg" | "sm"; hint?: boolean; className?: string }) {
+  return (
+    <div className={cx(s.tile, s[size], className)} aria-hidden="true">
+      <Skeleton shape="line" size="sm" width={size === "lg" ? "40" : "60"} />
+      <Skeleton shape="line" size={size === "lg" ? "xl" : "lg"} width={size === "lg" ? "60" : "40"} />
+      {hint && <Skeleton shape="line" size="xs" width={size === "lg" ? "40" : "75"} className={s.skHint} />}
     </div>
   );
 }

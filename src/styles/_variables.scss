@@ -82,6 +82,20 @@ $duration-press: 160ms;
 $duration-fast: 200ms;
 $duration-drawer: 280ms;
 
+// Loading states (UX_LOADING.md). Skeletons wait $skeleton-delay before they
+// show and stay at least $skeleton-min once shown (timing lives in
+// components/ui/loadingTiming.ts; keep both in sync). Reveal: each item fades
+// and lifts $reveal-distance, $stagger-step apart, capped at $stagger-max
+// steps, so a full page lands in about 570ms.
+$duration-reveal: 300ms;
+$duration-fade: 150ms;
+$stagger-step: 45ms;
+$stagger-max: 6;
+$reveal-distance: 10px;
+$duration-shimmer: 1400ms;
+$color-skeleton: rgba(18, 59, 93, 0.07);
+$color-skeleton-sheen: rgba(255, 255, 255, 0.55);
+
 // Shell geometry
 $shell-nav-width: 240px;
 $shell-nav-collapsed: 72px;
