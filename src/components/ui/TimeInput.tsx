@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { forwardRef, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Field, type FieldBaseProps } from "./Field";
 import { cx } from "./cx";
 import { IconClock } from "./icons";
@@ -52,6 +52,11 @@ export type TimeFieldProps = TimeFieldOwnProps & {
  * opens the list, Enter confirms, Esc closes and undoes typing. Type-ahead:
  * "830", "8:30p", "14:00", "noon" are understood on Enter or blur; text that
  * is not a time is reverted on blur.
+ *
+ * Touch (pointer: coarse): a tap opens the list without the on-screen
+ * keyboard (the field is read-only with inputMode="none" and focus moves to
+ * the listbox, which takes arrow keys, Enter and Esc). "Type a time" at the
+ * top of the list switches the field to typing until it loses focus.
  */
 export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function TimeField(
   {
@@ -80,8 +85,24 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function T
   const [editing, setEditing] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // Touch: the field is a picker until "Type a time" turns typing on.
+  const coarse = useCoarsePointer();
+  const [typing, setTyping] = useState(false);
+  const touchMode = coarse && !typing;
+  const [listFocused, setListFocused] = useState(false);
+  const focusListOnOpen = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLUListElement>(null);
+
+  const setInputRef = useCallback(
+    (el: HTMLInputElement | null) => {
+      inputRef.current = el;
+      if (typeof ref === "function") ref(el);
+      else if (ref) ref.current = el;
+    },
+    [ref],
+  );
 
   const options = useMemo(() => timeOptions(stepMinutes, min, hi), [stepMinutes, min, hi]);
 
@@ -100,25 +121,34 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function T
     return best;
   };
 
-  // Keep the highlighted option in view.
+  // On open: centre the selected time (or 9:00 AM when empty) in the list,
+  // and on touch move focus to the list so no keyboard opens.
   useEffect(() => {
-    if (!open || active < 0) return;
-    const el = listRef.current?.children[active] as HTMLElement | undefined;
-    el?.scrollIntoView({ block: "nearest" });
+    if (!open || !listRef.current) return;
+    const list = listRef.current;
+    const at = active >= 0 ? active : nearest(isTimeValue(value, true) ? value : "09:00");
+    scrollOptionIntoView(list, at, "center");
+    if (focusListOnOpen.current) {
+      focusListOnOpen.current = false;
+      list.focus({ preventScroll: true });
+    }
+    // Only when the list opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Keep the highlighted option in view (inside the list only, never the page).
+  useEffect(() => {
+    if (open && active >= 0 && listRef.current) scrollOptionIntoView(listRef.current, active, "nearest");
   }, [open, active]);
 
-  // Close on a pointer press outside.
+  // Close on a press outside (mouse, pen or touch).
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent | TouchEvent) => {
+    const onDown = (e: Event) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("touchstart", onDown);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("touchstart", onDown);
-    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
   }, [open]);
 
   const clamp = (v: string) => {
@@ -150,11 +180,36 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function T
     setActive(nearest(next));
   };
 
+  const openList = () => {
+    setOpen(true);
+    setActive(nearest(value));
+    if (touchMode) focusListOnOpen.current = true;
+  };
+
+  /** Pick an option; if the list had focus (touch), hand focus back to the field. */
+  const choose = (o: string) => {
+    commit(o);
+    setOpen(false);
+    if (listRef.current && listRef.current === document.activeElement) inputRef.current?.focus({ preventScroll: true });
+  };
+
+  /** Touch: switch the field to a text input and bring up the keyboard. */
+  const startTyping = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    // Set the DOM props now: iOS only opens the keyboard for a focus() made
+    // inside the tap, before React re-renders.
+    el.readOnly = false;
+    el.inputMode = "text";
+    setTyping(true);
+    el.focus();
+    el.select();
+  };
+
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown" && e.altKey) {
       e.preventDefault();
-      setOpen(true);
-      setActive(nearest(value));
+      openList();
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
       step(e.key === "ArrowDown" ? 1 : -1);
@@ -179,27 +234,62 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function T
     }
   };
 
+  // Keys while the list itself has focus (touch, or a hardware keyboard on a tablet).
+  const onListKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
+    const last = options.length - 1;
+    const from = active >= 0 ? active : nearest(value);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive(Math.max(0, Math.min(last, from + (e.key === "ArrowDown" ? 1 : -1))));
+    } else if (e.key === "Home" || e.key === "End") {
+      e.preventDefault();
+      setActive(e.key === "Home" ? 0 : last);
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (active >= 0) choose(options[active]);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(false);
+      inputRef.current?.focus({ preventScroll: true });
+    } else if (e.key === "Tab") {
+      setOpen(false);
+    }
+  };
+
   const ariaInvalid = aria["aria-invalid"] === true || aria["aria-invalid"] === "true";
+  const activeId = open && active >= 0 ? `${listId}-${active}` : undefined;
 
   return (
-    <div ref={rootRef} className={cx(s.root, appearance === "bare" ? s.bare : s.boxed, ariaInvalid && s.invalid, disabled && s.disabled)}>
+    <div
+      ref={rootRef}
+      className={cx(s.root, appearance === "bare" ? s.bare : s.boxed, ariaInvalid && s.invalid, disabled && s.disabled)}
+      onBlur={(e) => {
+        // Focus left the field and its list: close, and go back to picker mode on touch.
+        if (rootRef.current && !rootRef.current.contains(e.relatedTarget as Node | null)) {
+          setOpen(false);
+          setTyping(false);
+        }
+      }}
+    >
       {!noIcon && <IconClock className={s.icon} />}
       <input
-        ref={ref}
+        ref={setInputRef}
         id={id}
         type="text"
         role="combobox"
         aria-autocomplete="list"
         aria-expanded={open}
         aria-controls={listId}
-        aria-activedescendant={open && active >= 0 ? `${listId}-${active}` : undefined}
+        aria-activedescendant={listFocused ? undefined : activeId}
         autoComplete="off"
         spellCheck={false}
-        inputMode="text"
+        inputMode={touchMode ? "none" : "text"}
+        readOnly={touchMode}
         enterKeyHint="done"
         disabled={disabled}
         placeholder={placeholder}
-        className={cx(s.input, noIcon && s.noIcon, inputClassName)}
+        className={cx(s.input, noIcon && s.noIcon, touchMode && s.picker, inputClassName)}
         value={text}
         onChange={(e) => {
           setEditing(true);
@@ -210,8 +300,8 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function T
         }}
         onClick={() => {
           if (disabled) return;
-          setOpen((o) => !o);
-          setActive(nearest(value));
+          if (open) setOpen(false);
+          else openList();
         }}
         onKeyDown={onKeyDown}
         onBlur={() => {
@@ -221,33 +311,73 @@ export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function T
         {...aria}
       />
       {name && <input type="hidden" name={name} value={value} />}
-      <ul ref={listRef} id={listId} role="listbox" className={cx(s.list, open && s.open)} hidden={!open} tabIndex={-1} aria-label="Times">
-        {open &&
-          options.map((o, i) => {
-            const extra = optionHint?.(o);
-            return (
-              <li
-                key={o}
-                id={`${listId}-${i}`}
-                role="option"
-                aria-selected={o === value}
-                className={cx(s.option, i === active && s.active, o === value && s.selected)}
-                onMouseDown={(e) => e.preventDefault()}
-                onMouseMove={() => setActive(i)}
-                onClick={() => {
-                  commit(o);
-                  setOpen(false);
-                }}
-              >
-                <span>{formatTime12(o)}</span>
-                {extra && <span className={s.optionHint}>{extra}</span>}
-              </li>
-            );
-          })}
-      </ul>
+      <div className={cx(s.pop, open && s.open)} hidden={!open}>
+        {coarse && !typing && (
+          <button type="button" className={s.typeBtn} onClick={startTyping} disabled={disabled}>
+            Type a time
+          </button>
+        )}
+        <ul
+          ref={listRef}
+          id={listId}
+          role="listbox"
+          className={s.list}
+          tabIndex={-1}
+          aria-label="Times"
+          aria-activedescendant={listFocused ? activeId : undefined}
+          onKeyDown={onListKeyDown}
+          onFocus={() => setListFocused(true)}
+          onBlur={() => setListFocused(false)}
+        >
+          {open &&
+            options.map((o, i) => {
+              const extra = optionHint?.(o);
+              return (
+                <li
+                  key={o}
+                  id={`${listId}-${i}`}
+                  role="option"
+                  aria-selected={o === value}
+                  className={cx(s.option, i === active && s.active, o === value && s.selected)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onMouseMove={() => setActive(i)}
+                  onClick={() => choose(o)}
+                >
+                  <span>{formatTime12(o)}</span>
+                  {extra && <span className={s.optionHint}>{extra}</span>}
+                </li>
+              );
+            })}
+        </ul>
+      </div>
     </div>
   );
 });
+
+/** True when the primary pointer is coarse (phones, tablets). False on the server. */
+function useCoarsePointer(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mq = window.matchMedia("(pointer: coarse)");
+    const sync = () => setCoarse(mq.matches);
+    sync();
+    mq.addEventListener?.("change", sync);
+    return () => mq.removeEventListener?.("change", sync);
+  }, []);
+  return coarse;
+}
+
+/** Scroll the list (not the page) so option `i` is centred or just visible. */
+function scrollOptionIntoView(list: HTMLElement, i: number, mode: "center" | "nearest") {
+  const el = list.children[i] as HTMLElement | undefined;
+  if (!el) return;
+  const top = el.offsetTop;
+  const bottom = top + el.offsetHeight;
+  if (mode === "center") list.scrollTop = Math.max(0, top - (list.clientHeight - el.offsetHeight) / 2);
+  else if (top < list.scrollTop) list.scrollTop = top;
+  else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+}
 
 export type TimeInputProps = FieldBaseProps &
   TimeFieldOwnProps & {
