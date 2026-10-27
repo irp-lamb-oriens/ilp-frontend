@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./notesTab.module.scss";
-import { TextArea, useUnsavedChanges } from "@/components/ui";
+import { TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
 
 interface Collaborator {
   email: string;
@@ -305,7 +305,7 @@ export default function NotesTab({
         </button>
       </form>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
 
       {notes.length === 0 && <p className={styles.empty}>No notes yet.</p>}
 

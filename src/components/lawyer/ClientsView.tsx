@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AgingBadge, DataTable, EmptyState, SearchInput, Skeleton, StaggerItem, StatusPill, type Column } from "@/components/ui";
+import { AgingBadge, DataTable, EmptyState, SearchInput, Skeleton, StaggerItem, StatusPill, type Column, ErrorNotice } from "@/components/ui";
 import ClientInspector from "./ClientInspector";
 import { areaLabel, errorText, fmtShortDate, lawyerApi, type BoardCard, type BoardData } from "./lawyerApi";
 import s from "./ClientsView.module.scss";
@@ -61,7 +61,13 @@ export default function ClientsView() {
         <SearchInput className={s.search} label="Find a member or matter" data-tour="lawyer-clients-search" value={q} onValueChange={setQ} placeholder="Name, matter or area" />
         {data ? <span className={s.muted}>{rows.length} of {data.cards.length}</span> : <Skeleton shape="line" size="sm" width="pill-sm" />}
       </div>
-      {error && <StaggerItem as="p" className={s.error} role="alert">{error}</StaggerItem>}
+      {error && (
+        <StaggerItem>
+          <ErrorNotice audience="lawyer" title="Your clients did not load">
+            {error}
+          </ErrorNotice>
+        </StaggerItem>
+      )}
       {data && data.cards.length === 0 ? (
         <StaggerItem>
           <EmptyState title="No members assigned yet" body="The ILP team assigns members to you after their first booking." />

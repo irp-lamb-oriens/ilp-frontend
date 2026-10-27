@@ -3,7 +3,7 @@
 import { QUOTE_PHASE_LABEL, quotePhase } from "@/lib/quoteStatus";
 import { useCallback, useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
-import { Button, EmptyState, Loadable, StatusPill, TextInput, type StatusTone } from "@/components/ui";
+import { Button, EmptyState, Loadable, StatusPill, TextInput, type StatusTone, ErrorNotice } from "@/components/ui";
 import { errorText, fmtShortDate, money } from "./lawyerApi";
 import { QUOTE_STATUS_LABELS, type FeeLine, type QuoteStatus } from "./types";
 import { QuotesListSkeleton } from "./LawyerSkeletons";
@@ -145,7 +145,7 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
         </ol>
         <Button type="button" size="sm" variant="ghost" onClick={() => setDraft({ ...draft, lines: [...draft.lines, { label: "", amount: "", notes: "" }] })}>Add a line</Button>
         <p className={s.total}>Your fee <strong>{money(total)}</strong></p>
-        {error && <p className={s.error} role="alert">{error}</p>}
+        {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
         <div className={s.actions}>
           <Button type="button" onClick={() => save(true)} busy={busy} disabled={busy}>Submit for approval</Button>
           <Button type="submit" variant="secondary" disabled={busy}>Save draft</Button>
@@ -161,7 +161,7 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
         <p className={s.muted}>Fees shown are yours. Member pricing is handled by the ILP team.</p>
         <Button size="sm" onClick={() => edit()}>New quote</Button>
       </div>
-      {error && <p className={s.error} role="alert">{error}</p>}
+      {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
       <Loadable loading={quotes === null && !error} label="Loading quotes" skeleton={<QuotesListSkeleton />}>
         {null}
       </Loadable>

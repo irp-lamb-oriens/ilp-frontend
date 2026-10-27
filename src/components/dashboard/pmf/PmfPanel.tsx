@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { FunnelStep } from "@/lib/contracts";
-import { EmptyState, ProgressBar, Skeleton, SkeletonRegion, SkeletonStatTile, SkeletonText, StaggerItem, StatTile, useSkeleton } from "@/components/ui";
+import { ProgressBar, Skeleton, SkeletonRegion, SkeletonStatTile, SkeletonText, StaggerItem, StatTile, useSkeleton, ErrorNotice } from "@/components/ui";
 import s from "./PmfPanel.module.scss";
 
 /** Server: GET /api/analytics/pmf (server/API/analytics/funnel.ts). */
@@ -47,7 +47,7 @@ export default function PmfPanel() {
   if (failed) {
     return (
       <StaggerItem>
-        <EmptyState compact title="Funnel data could not be loaded" body="Try again in a minute." />
+        <ErrorNotice audience="staff" variant="block" title="Funnel data could not be loaded">Try again in a minute.</ErrorNotice>
       </StaggerItem>
     );
   }

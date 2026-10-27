@@ -132,7 +132,7 @@ function Hours() {
           </option>
         ))}
       </Select>
-      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false}
+      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} audience="staff"
         unsavedMessage={`${name}'s hours have changes that are not saved yet. If you leave now, they will be lost.`}
       />
     </div>

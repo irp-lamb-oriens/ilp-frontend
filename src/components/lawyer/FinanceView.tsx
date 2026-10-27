@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, DataTable, EmptyState, SkeletonRegion, Stagger, StaggerItem, StatTile, StatusPill, useSkeleton, type Column } from "@/components/ui";
+import { DataTable, SkeletonRegion, Stagger, StaggerItem, StatTile, StatusPill, useSkeleton, type Column, ErrorNotice, EmptyState } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { errorText, fmtDate, lawyerApi, money, type FinanceData, type FinancePayment } from "./lawyerApi";
 import { LawyerFinanceSkeleton } from "./LawyerSkeletons";
@@ -42,7 +42,7 @@ export default function FinanceView() {
   if (error) {
     return (
       <StaggerItem>
-        <EmptyState title="Fees did not load" body={error} action={<Button onClick={load}>Try again</Button>} />
+        <ErrorNotice audience="lawyer" variant="block" title="Fees did not load" onRetry={load}>{error}</ErrorNotice>
       </StaggerItem>
     );
   }

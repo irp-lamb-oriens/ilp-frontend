@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
-import { SkeletonRegion, useSkeleton } from "@/components/ui";
+import { SkeletonRegion, useSkeleton, ErrorNotice } from "@/components/ui";
 import { DeadlinesSkeleton } from "./LawyerSkeletons";
 import styles from "./DeadlineEditor.module.scss";
 
@@ -113,7 +113,7 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
       </SkeletonRegion>
     );
   }
-  if (!payload) return <p className={styles.error}>{error ?? "Could not load deadlines."}</p>;
+  if (!payload) return <ErrorNotice audience="lawyer" title="Deadlines did not load">{error ?? "Could not load deadlines."}</ErrorNotice>;
 
   if (!payload.countryCode || payload.priorities.length === 0) {
     return (
@@ -132,7 +132,7 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
 
   return (
     <div className={styles.wrap}>
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
       {Array.from(byCategory.entries()).map(([category, priorities]) => (
         <section key={category} className={styles.group}>
           <h3 className={styles.groupTitle}>{category}</h3>

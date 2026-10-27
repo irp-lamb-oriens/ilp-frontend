@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EmptyState, Loadable, StatusPill, Button, Stagger, StaggerItem } from "@/components/ui";
+import { EmptyState, Loadable, StatusPill, Stagger, StaggerItem, ErrorNotice } from "@/components/ui";
 import { areaLabel, dayWindow, errorText, fmtShortDate, fmtTime, lawyerApi, type TodayItem } from "./lawyerApi";
 import { useLawyer } from "./LawyerContext";
 import { ConsentPill, SummaryPill } from "./pills";
@@ -59,7 +59,7 @@ export default function TodayView() {
 
         {error && (
           <StaggerItem>
-            <EmptyState title="Today did not load" body={error} action={<Button onClick={load}>Try again</Button>} />
+            <ErrorNotice audience="lawyer" variant="block" title="Today did not load" onRetry={load}>{error}</ErrorNotice>
           </StaggerItem>
         )}
 

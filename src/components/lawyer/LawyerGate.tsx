@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
 import { ApiError } from "@/lib/provider";
-import { EmptyState, Button, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { SkeletonRegion, useSkeleton, ErrorNotice } from "@/components/ui";
 import { getRoleToken } from "@/lib/api";
 import { lawyerApi, type LawyerMe, USING_MOCKS } from "./lawyerApi";
 import { LawyerContext } from "./LawyerContext";
@@ -93,7 +93,7 @@ export default function LawyerGate({ children }: { children: ReactNode }) {
   if (state.kind === "error") {
     return (
       <main className={s.center}>
-        <EmptyState title="We could not load your workspace" body={state.message} action={<Button onClick={check}>Try again</Button>} />
+        <ErrorNotice audience="lawyer" variant="block" title="We could not load your workspace" onRetry={check}>{state.message}</ErrorNotice>
       </main>
     );
   }

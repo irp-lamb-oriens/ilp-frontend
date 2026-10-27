@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AgingBadge, Button, EmptyState, Loadable, StatusPill, TextInput } from "@/components/ui";
+import { AgingBadge, Button, Loadable, StatusPill, TextInput, ErrorNotice } from "@/components/ui";
 import BriefPanel from "./BriefPanel";
 import MoveToMenu from "./MoveToMenu";
 import NotesTab from "./NotesTab";
@@ -26,7 +26,7 @@ function useLoad<T>(load: () => Promise<T>) {
 
 export function BriefTab({ load }: { load: () => Promise<ClientBrief> }) {
   const { data, error } = useLoad(load);
-  if (error) return <EmptyState compact title="Brief did not load" body={error} />;
+  if (error) return <ErrorNotice audience="lawyer" variant="block" title="Brief did not load">{error}</ErrorNotice>;
   return (
     <Loadable loading={!data} label="Loading the brief" skeleton={<BriefPanelSkeleton />}>
       {() => data && <BriefPanel brief={data} showWhen={false} />}

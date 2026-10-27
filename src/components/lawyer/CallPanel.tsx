@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Button, StatusPill, TextArea, TextInput } from "@/components/ui";
+import { Button, ErrorNotice, Notice, StatusPill, TextArea, TextInput } from "@/components/ui";
 import type { ConsentState, LegalNextStep } from "./lawyerApi";
 import { errorText, fmtShortDate, lawyerApi, WHO_LABEL, type Brief } from "./lawyerApi";
 import { ConsentPill } from "./pills";
@@ -210,7 +210,23 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
               </div>
             </div>
           )}
-          {!c.meetUrl && <p className={s.hint}>The Meet link is being sent by email by the ILP team.</p>}
+          {!c.meetUrl && (
+            <Notice
+              tone="info"
+              variant="inline"
+              title="The Meet link is on its way"
+              terms={["videoLink"]}
+              fix={{
+                steps: [
+                  "The ILP team creates the Google Meet link and emails it to you and the member.",
+                  "Check your inbox, and your spam folder, a few minutes before the call.",
+                  "If there is still no link 10 minutes before the start, email your ILP contact. They can send it again.",
+                ],
+              }}
+            >
+              The ILP team is sending it by email.
+            </Notice>
+          )}
         </div>
       )}
 
@@ -219,8 +235,44 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
           <span className={s.label}>Recording consent</span>
           <ConsentPill state={consent} size="md" />
         </div>
-        {consent === "pending" && <p className={s.muted}>Ask the member before recording. Nothing is recorded until they agree.</p>}
-        {consent === "declined" && <p className={s.muted}>The member declined. Write the summary yourself; no transcript is stored.</p>}
+        {consent === "pending" && (
+          <Notice
+            tone="info"
+            variant="inline"
+            title="Ask the member before recording"
+            terms={["recordingConsent", "transcript"]}
+            fix={{
+              steps: [
+                "At the start of the call, ask: May I record this call so ILP can write your summary?",
+                "If they say yes, press Member agreed. Start recording then works.",
+                "If they say no, press Member declined and write the summary yourself after the call.",
+              ],
+              tutorialId: "lawyer.call",
+              tutorialStep: "consent",
+            }}
+          >
+            Nothing is recorded until they agree.
+          </Notice>
+        )}
+        {consent === "declined" && (
+          <Notice
+            tone="neutral"
+            variant="inline"
+            title="The member declined recording"
+            fix={{
+              label: "What to do instead",
+              steps: [
+                "Take your own notes during the call.",
+                "After the call, type the summary and next steps yourself in the boxes below.",
+                "No transcript is stored. If the member changes their mind, press Member agreed.",
+              ],
+              tutorialId: "lawyer.call",
+              tutorialStep: "summary",
+            }}
+          >
+            Write the summary yourself; no transcript is stored.
+          </Notice>
+        )}
         <div className={s.actions}>
           <Button size="sm" variant={consent === "granted" ? "secondary" : "primary"} onClick={() => changeConsent("granted")} disabled={busy !== null || consent === "granted"}>
             Member agreed
@@ -296,7 +348,26 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
           <label htmlFor="summary" className={s.label}>Summary</label>
           {summaryStatus === "suggested" && <StatusPill label="Suggested — confirm" tone="info" size="sm" srPrefix="AI draft:" />}
         </div>
-        {summaryStatus === "suggested" && <p className={s.hint}>Drafted by AI from the transcript. Edit anything that is not right before you confirm.</p>}
+        {summaryStatus === "suggested" && (
+          <Notice
+            tone="info"
+            variant="inline"
+            title="Drafted by AI — check it before you confirm"
+            terms={["aiSummary"]}
+            fix={{
+              steps: [
+                "Read the summary line by line against what was said on the call.",
+                "Fix anything wrong or missing, in plain words for the member.",
+                "Check each next step: who does it and by when.",
+                "Press Confirm and hand off only when you agree with every line. The member sees it after that.",
+              ],
+              tutorialId: "lawyer.call",
+              tutorialStep: "summary",
+            }}
+          >
+            Edit anything that is not right. The member sees it only after you confirm.
+          </Notice>
+        )}
         <textarea id="summary" className={s.textarea} rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="What was discussed and what you concluded, in plain words for the member." />
       </div>
 
@@ -339,13 +410,29 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
         />
       </div>
 
-      {error && <p className={s.error} role="alert">{error}</p>}
+      {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
 
       <div className={s.confirmRow}>
         <Button onClick={confirm} busy={busy === "confirm"} disabled={!canConfirm || busy !== null}>
           Confirm and hand off
         </Button>
-        {!canConfirm && <span className={s.hint}>Needs a summary and at least one next step.</span>}
+        {!canConfirm && (
+          <Notice
+            tone="info"
+            variant="inline"
+            title="Add a summary and at least one next step"
+            terms={["handoff", "nextStep"]}
+            fix={{
+              steps: [
+                "Write the summary in the Summary box above, or press Draft summary and check it.",
+                "Add at least one next step, with who does it.",
+                "Confirm and hand off then becomes available. It sends the summary to the member and the next steps to the ILP team.",
+              ],
+              tutorialId: "lawyer.call",
+              tutorialStep: "handoff",
+            }}
+          />
+        )}
       </div>
     </section>
   );

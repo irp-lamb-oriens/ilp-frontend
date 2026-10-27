@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Button, EmptyState, SkeletonRegion, Stagger, StaggerItem, useSkeleton } from "@/components/ui";
+import { SkeletonRegion, Stagger, StaggerItem, useSkeleton, ErrorNotice } from "@/components/ui";
 import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
 import BriefPanel from "./BriefPanel";
 import CallPanel from "./CallPanel";
@@ -32,7 +32,7 @@ export default function CallView({ consultationId }: { consultationId: string })
   if (error) {
     return (
       <StaggerItem>
-        <EmptyState title="This call did not load" body={error} action={<Button onClick={load}>Try again</Button>} />
+        <ErrorNotice audience="lawyer" variant="block" title="This call did not load" onRetry={load}>{error}</ErrorNotice>
       </StaggerItem>
     );
   }

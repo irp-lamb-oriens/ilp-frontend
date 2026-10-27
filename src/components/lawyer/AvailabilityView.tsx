@@ -6,8 +6,9 @@ import {
   Button,
   ChipSelect,
   DateListInput,
-  EmptyState,
+  ErrorNotice,
   IconCheck,
+  Notice,
   NumberStepper,
   SkeletonRegion,
   StaggerItem,
@@ -86,6 +87,7 @@ export default function AvailabilityView({
   showBack = true,
   onDirtyChange,
   unsavedMessage = "Your hours have changes that are not saved yet. If you leave now, they will be lost.",
+  audience = "lawyer",
 }: {
   adapter?: AvailabilityAdapter;
   title?: string;
@@ -93,6 +95,8 @@ export default function AvailabilityView({
   onDirtyChange?: (dirty: boolean) => void;
   /** Text of the leave-without-saving dialog. */
   unsavedMessage?: string;
+  /** Who is editing: the lawyer (own hours) or staff (a lawyer's hours). Sets the notice wording. */
+  audience?: "lawyer" | "staff";
 } = {}) {
   const [data, setData] = useState<AvailabilitySettings | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -135,7 +139,9 @@ export default function AvailabilityView({
   if (loadError) {
     return (
       <StaggerItem>
-        <EmptyState title="The hours did not load" body={loadError} action={<Button onClick={load}>Try again</Button>} />
+        <ErrorNotice audience={audience} variant="block" title="The hours did not load" onRetry={load}>
+          {loadError}
+        </ErrorNotice>
       </StaggerItem>
     );
   }
@@ -188,11 +194,34 @@ export default function AvailabilityView({
       )}
       <header className={s.head}>
         <h2 className={s.h}>{title}</h2>
-        <p className={s.sub}>
-          Members book 20-minute calls inside these hours, in Costa Rica time.
-          {data.isDefault ? " Standard hours apply until hours are saved here." : ""}
-        </p>
+        <p className={s.sub}>Members book 20-minute calls inside these hours, in Costa Rica time.</p>
       </header>
+
+      {data.isDefault && (
+        <Notice
+          tone="info"
+          title="Standard hours apply until hours are saved here"
+          terms={["availability", "slot", "costaRicaTime"]}
+          fix={{
+            summary:
+              audience === "staff"
+                ? "This lawyer has never saved hours, so members are offered Monday to Friday, 8:00 am to 12:00 pm and 1:00 pm to 5:00 pm."
+                : "You have never saved hours, so members are offered Monday to Friday, 8:00 am to 12:00 pm and 1:00 pm to 5:00 pm.",
+            steps: [
+              audience === "staff" ? "Ask the lawyer which days and hours they take calls, then turn on those days with the switch next to each day." : "Turn on the switch next to each day you take calls, and turn it off for the days you do not.",
+              "For each day, set the start and end time, for example 9:00 am to 12:00 pm. Press Add hours for a second window, like an afternoon. Times are Costa Rica time.",
+              "Add any days off below, like holidays.",
+              "Press Save hours at the bottom. This notice goes away and members see only the new times.",
+            ],
+            tutorialId: "lawyer.availability",
+            tutorialStep: "weekly",
+          }}
+        >
+          {audience === "staff"
+            ? "Members see the standard weekday hours for this lawyer until you save their own."
+            : "Members see standard weekday hours for you until you save your own."}
+        </Notice>
+      )}
 
       <div className={s.cols}>
         <section className={s.week} aria-labelledby="week-h" data-tour="lawyer-availability-weekly">
@@ -278,7 +307,7 @@ export default function AvailabilityView({
       <div className={s.saveBar}>
         <div className={s.saveMsg}>
           {error ? (
-            <p className={s.error} role="alert">{error}</p>
+            <ErrorNotice audience={audience}>{error}</ErrorNotice>
           ) : saved && !dirty ? (
             <p className={s.saved} role="status">
               <IconCheck /> Saved. Members now see times from these hours.

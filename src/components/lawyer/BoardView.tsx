@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type DragEvent } from "react";
-import { AgingBadge, Button, DataTable, EmptyState, Loadable, Select, SkeletonTable, Stagger, StaggerItem, StatusPill, type Column } from "@/components/ui";
+import { AgingBadge, Button, DataTable, EmptyState, Loadable, Select, SkeletonTable, Stagger, StaggerItem, StatusPill, type Column, ErrorNotice } from "@/components/ui";
 import ClientInspector from "./ClientInspector";
 import MoveToMenu from "./MoveToMenu";
 import { areaLabel, errorText, fmtShortDate, lawyerApi, type BoardCard, type BoardData } from "./lawyerApi";
@@ -132,7 +132,11 @@ export default function BoardView() {
       </div>
 
       <p className={s.sr} aria-live="polite">{announce}</p>
-      {error && <p className={s.error} role="alert">{error} <Button size="sm" variant="ghost" onClick={load}>Reload</Button></p>}
+      {error && (
+        <ErrorNotice audience="lawyer" title="Your board did not load" onRetry={load} retryLabel="Reload">
+          {error}
+        </ErrorNotice>
+      )}
 
       <Loadable loading={!data && !error} label="Loading your board" skeleton={view === "list" ? <SkeletonTable columns={7} rows={6} /> : <BoardColumnsSkeleton />}>
       {data && cards.length === 0 && (
