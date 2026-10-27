@@ -14,6 +14,12 @@ import { staffReports } from "./staff/reports";
 import { staffSettings } from "./staff/settings";
 import { staffPrivacy } from "./staff/privacy";
 
+import { lawyerToday } from "./lawyer/today";
+import { lawyerBoard } from "./lawyer/board";
+import { lawyerClients } from "./lawyer/clients";
+import { lawyerCall } from "./lawyer/call";
+import { lawyerFinance } from "./lawyer/finance";
+import { lawyerAvailability } from "./lawyer/availability";
 export const STAFF_TUTORIALS: Tutorial[] = [
   staffToday,
   staffMembers,
@@ -26,7 +32,14 @@ export const STAFF_TUTORIALS: Tutorial[] = [
   staffSettings,
   staffPrivacy,
 ];
-export const LAWYER_TUTORIALS: Tutorial[] = [];
+export const LAWYER_TUTORIALS: Tutorial[] = [
+  lawyerToday,
+  lawyerBoard,
+  lawyerClients,
+  lawyerCall,
+  lawyerFinance,
+  lawyerAvailability,
+];
 export const CLIENT_TUTORIALS: Tutorial[] = [];
 
 export const ALL_TUTORIALS: Tutorial[] = [...STAFF_TUTORIALS, ...LAWYER_TUTORIALS, ...CLIENT_TUTORIALS];
