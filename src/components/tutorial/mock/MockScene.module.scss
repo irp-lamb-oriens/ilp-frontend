@@ -1,0 +1,1280 @@
+@use "sass:math";
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+// Mock UI for tutorial scenes. Same tokens as the UI kit (components/ui),
+// drawn at a fixed design size and scaled down by the player. Nothing here
+// is interactive: the stage is inert and aria-hidden.
+
+$mock-nav: 168px;
+$mock-top: 48px;
+
+.frame {
+  position: relative;
+  display: grid;
+  grid-template-columns: $mock-nav 1fr;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: $color-canvas;
+  font-family: $font-sans;
+  font-size: 13px;
+  line-height: 1.45;
+  color: $color-charcoal;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-3 $space-2;
+  background: $color-navy;
+  color: $color-on-navy-muted;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
+  padding: $space-2 $space-2 $space-3;
+}
+
+.brandMark {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: $color-on-navy;
+}
+
+.brandRole {
+  font-size: 0.7rem;
+  color: $color-on-navy-muted;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 $space-3;
+  border-radius: $radius-md;
+  font-size: 0.85rem;
+}
+
+.navActive {
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-weight: 600;
+}
+
+.main {
+  display: grid;
+  grid-template-rows: $mock-top 1fr;
+  min-width: 0;
+  min-height: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: 0 $space-4;
+  border-bottom: 1px solid $color-hairline;
+  background: $color-canvas;
+}
+
+.search {
+  flex: 0 1 320px;
+  padding: 6px $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  color: $color-muted;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.country {
+  padding: 4px $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  color: $color-steel;
+}
+
+.help,
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.help {
+  border: 1px solid $color-hairline;
+  color: $color-navy;
+}
+
+.avatar {
+  background: $color-accent-soft;
+  color: $color-navy;
+}
+
+.viewport {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scroll {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-4 $space-6 $space-8;
+}
+
+.pageHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: $color-navy;
+}
+
+.pageActions {
+  display: flex;
+  gap: $space-2;
+}
+
+// ─── Layout ─────────────────────────────────────────────────────────────────
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  min-width: 0;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.align_start {
+  align-items: flex-start;
+}
+
+.align_center {
+  align-items: center;
+}
+
+.align_between {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.align_end {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.gap1 {
+  gap: $space-1;
+}
+
+.gap2 {
+  gap: $space-2;
+}
+
+.gap3 {
+  gap: $space-3;
+}
+
+.gap4 {
+  gap: $space-4;
+}
+
+.gap6 {
+  gap: $space-6;
+}
+
+.grid {
+  display: grid;
+  align-items: start;
+  min-width: 0;
+
+  > * {
+    min-width: 0;
+  }
+}
+
+$cols: (
+  "1_1": 1fr 1fr,
+  "2_1": 2fr 1fr,
+  "1_2": 1fr 2fr,
+  "3_1": 3fr 1fr,
+  "3_2": 3fr 2fr,
+  "1_1_1": 1fr 1fr 1fr,
+  "2_1_1": 2fr 1fr 1fr,
+  "1_1_1_1": 1fr 1fr 1fr 1fr,
+  "2_1_1_1": 2fr 1fr 1fr 1fr,
+  "2_1_1_1_1": 2fr 1fr 1fr 1fr 1fr,
+);
+
+@each $name, $tpl in $cols {
+  .cols_#{$name} {
+    grid-template-columns: $tpl;
+  }
+}
+
+// ─── Surfaces ───────────────────────────────────────────────────────────────
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+  padding: $space-4;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.cardAccent {
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+}
+
+.cardMist {
+  background: $color-mist;
+  box-shadow: none;
+}
+
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.meta {
+  font-size: 0.78rem;
+  color: $color-steel;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: $space-3 $space-4;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.tileLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.tileValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: $color-navy;
+}
+
+.tileMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px $space-2;
+  font-size: 0.72rem;
+}
+
+.tileLg {
+  padding: $space-4 $space-6;
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+
+  .tileLabel {
+    color: $color-navy;
+  }
+
+  .tileValue {
+    font-size: 2.2rem;
+    letter-spacing: -0.03em;
+  }
+}
+
+.delta {
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.good {
+  color: $color-success;
+}
+
+.bad {
+  color: $color-error;
+}
+
+.hint {
+  color: $color-muted;
+}
+
+// ─── Table and lists ────────────────────────────────────────────────────────
+
+.tableWrap {
+  overflow: hidden;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+}
+
+.table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tr {
+  display: table-row;
+  transition: background-color $duration-fast ease;
+}
+
+.td {
+  display: table-cell;
+  padding: 8px $space-3;
+  border-top: 1px solid $color-hairline;
+  vertical-align: middle;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.th .td {
+  border-top: none;
+  background: $color-mist;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.tdFirst {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.rowHl {
+  background: $color-accent-soft;
+  outline: 2px solid $color-accent;
+  outline-offset: -2px;
+}
+
+.rowHover {
+  background: $color-mist;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listRows {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+
+  .item + .item {
+    border-top: 1px solid $color-hairline;
+  }
+
+  .item {
+    padding: 10px $space-3;
+  }
+}
+
+.listPlain {
+  gap: 2px;
+
+  .item {
+    padding: 6px $space-2;
+    border-radius: $radius-md;
+  }
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  min-width: 0;
+  transition: background-color $duration-fast ease;
+}
+
+.itemAvatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: $color-mist;
+  border: 1px solid $color-hairline;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.itemLead {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 56px;
+}
+
+.itemLeadMain {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: $color-navy;
+}
+
+.itemMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemTitle {
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: $color-charcoal;
+}
+
+.itemQuote {
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-style: italic;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: $color-steel;
+}
+
+.itemPills {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: $space-1;
+}
+
+.itemTrailing {
+  flex: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: $color-navy;
+}
+
+.deflist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-2 $space-4;
+  margin: 0;
+
+  dt {
+    font-size: 0.72rem;
+    color: $color-steel;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: $color-navy;
+  }
+}
+
+.defRow {
+  display: flex;
+  flex-direction: column;
+  border-radius: $radius-sm;
+}
+
+// ─── Pills, buttons, fields ─────────────────────────────────────────────────
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px $space-3;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  transition: background-color $duration-fast ease, color $duration-fast ease;
+}
+
+.pillSm {
+  padding: 0 $space-2;
+  font-size: 0.68rem;
+}
+
+.tone_neutral {
+  background: $color-neutral-soft;
+  border-color: $color-hairline;
+  color: $color-steel;
+}
+
+.tone_info {
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+  color: $color-navy;
+}
+
+.tone_success {
+  background: $color-success-soft;
+  color: $color-success;
+}
+
+.tone_warning {
+  background: $color-warning-soft;
+  color: $color-warning;
+}
+
+.tone_danger {
+  background: $color-error-soft;
+  color: $color-error;
+}
+
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 $space-4;
+  border: 1px solid transparent;
+  border-radius: $radius-pill;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: transform $duration-press $ease-out-strong, background-color $duration-press ease;
+}
+
+.btnSm {
+  min-height: 28px;
+  padding: 0 $space-3;
+  font-size: 0.75rem;
+}
+
+.btn_primary {
+  background: $color-accent;
+  color: $color-accent-ink;
+}
+
+.btn_secondary {
+  background: $color-surface;
+  border-color: $color-hairline;
+  color: $color-navy;
+}
+
+.btn_ghost {
+  background: transparent;
+  color: $color-steel;
+}
+
+.btn_danger {
+  background: $color-surface;
+  border-color: $color-error;
+  color: $color-error;
+}
+
+.btn_link {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  color: $color-navy;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.btnHover {
+  &.btn_primary {
+    background: $color-accent-hover;
+  }
+
+  &.btn_secondary,
+  &.btn_ghost {
+    background: $color-mist;
+  }
+}
+
+.pressed {
+  transform: scale(0.97);
+
+  &.btn_primary {
+    background: $color-accent-hover;
+  }
+}
+
+.disabled {
+  opacity: 0.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $color-charcoal;
+}
+
+.input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 34px;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  background: $color-surface;
+  font-size: 0.82rem;
+  transition: border-color $duration-fast ease;
+}
+
+.textarea {
+  align-items: flex-start;
+  min-height: 64px;
+  padding-block: $space-2;
+}
+
+.focused {
+  border-color: $color-accent;
+  outline: 2px solid $color-accent;
+  outline-offset: 1px;
+}
+
+.value {
+  color: $color-charcoal;
+}
+
+.placeholder {
+  color: $color-muted;
+}
+
+.caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.1em;
+  background: $color-navy;
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.chevron {
+  margin-left: auto;
+  color: $color-steel;
+}
+
+.timeRange {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  min-height: 28px;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-surface;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-steel;
+  transition: background-color $duration-fast ease, color $duration-fast ease;
+}
+
+.chipOn {
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.6);
+  color: $color-navy;
+}
+
+.check {
+  font-size: 0.7rem;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  font-size: 0.8rem;
+}
+
+.box {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid $color-hairline-strong;
+  border-radius: 4px;
+  background: $color-surface;
+  font-size: 0.65rem;
+  color: $color-accent-ink;
+}
+
+.boxOn {
+  background: $color-accent;
+  border-color: $color-accent;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 18px;
+  border-radius: $radius-pill;
+  background: $color-cool-gray;
+  transition: background-color $duration-fast ease;
+}
+
+.knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: $color-surface;
+  transition: transform $duration-fast $ease-out-strong;
+}
+
+.switchOn {
+  background: $color-accent;
+
+  .knob {
+    transform: translateX(12px);
+  }
+}
+
+.text {
+  min-width: 0;
+}
+
+.t_h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: $color-navy;
+}
+
+.t_h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.t_h3 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.t_body {
+  font-size: 0.85rem;
+  color: $color-charcoal;
+}
+
+.t_meta {
+  font-size: 0.78rem;
+  color: $color-steel;
+}
+
+.t_label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.t_eyebrow {
+  font-family: $font-mono;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $color-navy;
+}
+
+.t_strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.t_big {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: $color-navy;
+}
+
+.divider {
+  display: block;
+  height: 1px;
+  background: $color-hairline;
+}
+
+// ─── Board, timeline, progress ──────────────────────────────────────────────
+
+.board {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: $space-3;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+  min-height: 220px;
+  padding: $space-2;
+  border-radius: $radius-lg;
+  background: $color-mist;
+  transition: background-color $duration-fast ease;
+}
+
+.columnHl {
+  background: $color-accent-soft;
+  outline: 2px dashed $color-accent;
+  outline-offset: -2px;
+}
+
+.columnHead {
+  padding: 2px $space-1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.count {
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.columnCards {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.boardCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  box-shadow: $shadow-card;
+}
+
+.dragging {
+  z-index: 2;
+  border-color: $color-accent;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tlItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  border-radius: $radius-sm;
+}
+
+.tlMark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1px solid $color-hairline-strong;
+  border-radius: 50%;
+  background: $color-surface;
+  font-size: 0.6rem;
+  color: $color-accent-ink;
+}
+
+.tl_done .tlMark {
+  background: $color-accent;
+  border-color: $color-accent;
+}
+
+.tl_current .tlMark {
+  border: 2px solid $color-navy;
+}
+
+.tl_current .itemTitle {
+  color: $color-navy;
+}
+
+.tl_upcoming .itemTitle {
+  color: $color-steel;
+  font-weight: 500;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progressRow {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.track {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: $color-cool-gray;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  transition: transform $duration-reveal $ease-out-strong;
+}
+
+@for $i from 0 through 20 {
+  .w#{$i * 5} {
+    transform: scaleX(math.div($i, 20));
+  }
+}
+
+.fill_accent {
+  background: $color-accent;
+}
+
+.fill_success {
+  background: $color-success;
+}
+
+.fill_warning {
+  background: $color-warning;
+}
+
+// ─── Overlays ───────────────────────────────────────────────────────────────
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: $color-scrim;
+  opacity: 0;
+  transition: opacity $duration-drawer $ease-out-strong;
+}
+
+.drawerLayer,
+.dialogLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  visibility: hidden;
+  transition: visibility 0s linear $duration-drawer;
+
+  &.open {
+    visibility: visible;
+    transition: none;
+
+    .scrim {
+      opacity: 1;
+    }
+  }
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: 44%;
+  background: $color-surface;
+  border-left: 1px solid $color-hairline;
+  transform: translateX(100%);
+  transition: transform $duration-drawer $ease-out-strong;
+
+  .open & {
+    transform: none;
+  }
+}
+
+.drawerHead {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $space-4 $space-8 $space-3 $space-4;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.close {
+  position: absolute;
+  top: $space-3;
+  right: $space-3;
+  font-size: 1.1rem;
+  color: $color-steel;
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  overflow: hidden;
+}
+
+.dialogLayer {
+  display: grid;
+  place-items: center;
+}
+
+.dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  width: 46%;
+  padding: $space-6;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  box-shadow: $shadow-card;
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  transition: opacity $duration-fast $ease-out-strong, transform $duration-fast $ease-out-strong;
+
+  .open & {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.toast {
+  position: absolute;
+  bottom: $space-4;
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-navy;
+  color: $color-on-navy;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: opacity $duration-fast $ease-out-strong, transform $duration-fast $ease-out-strong;
+}
+
+.toastOn {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toastMark {
+  color: $color-accent;
+}
+
+.tabs {
+  display: flex;
+  gap: $space-4;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.tab {
+  padding: 6px 2px;
+  border-bottom: 2px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.tabOn {
+  border-bottom-color: $color-accent;
+  color: $color-navy;
+}
+
+.menuAnchor {
+  position: relative;
+  display: block;
+  height: 0;
+}
+
+.menu {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: $space-1;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  box-shadow: $shadow-card;
+  opacity: 0;
+  transform: scale(0.95);
+  transform-origin: top right;
+  visibility: hidden;
+  transition: opacity $duration-fast $ease-out-strong, transform $duration-fast $ease-out-strong, visibility 0s linear $duration-fast;
+
+  &.open {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition: opacity $duration-fast $ease-out-strong, transform $duration-fast $ease-out-strong;
+  }
+}
+
+.menuItem {
+  padding: 6px $space-3;
+  border-radius: $radius-sm;
+  font-size: 0.8rem;
+}
+
+.menuItemOn {
+  background: $color-accent-soft;
+  color: $color-navy;
+  font-weight: 600;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 78%;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-surface;
+}
+
+.msg_me {
+  align-self: flex-end;
+  background: $color-accent-soft;
+  border-color: rgba(92, 204, 247, 0.45);
+}
+
+.msg_ai {
+  background: $color-mist;
+}
+
+.msgHead {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.msgText {
+  font-size: 0.82rem;
+}
+
+.hl {
+  outline: 2px solid $color-accent;
+  outline-offset: 2px;
+}
+
+@include reduced-motion {
+  .caret {
+    animation: none;
+  }
+
+  .drawer,
+  .dialog,
+  .toast,
+  .menu,
+  .fill,
+  .knob,
+  .button {
+    transition: opacity $duration-fast ease;
+  }
+}
