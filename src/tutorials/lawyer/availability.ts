@@ -1,5 +1,5 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { btn, card, chip, click, dateIn, grid, hover, input, mark, meta, mockShell, pill, row, scene, scroll, set, show, stack, step, text, timeRange, toggle, type, wait, hidden, list } from "../presets";
+import { btn, card, chip, click, dateIn, grid, hover, input, meta, mockShell, pill, row, scene, set, show, stack, step, text, timeRange, toggle, type, wait, hidden, list }  from "../presets";
 
 const weekly = card(
   "Weekly hours",

@@ -20,6 +20,14 @@ import { lawyerClients } from "./lawyer/clients";
 import { lawyerCall } from "./lawyer/call";
 import { lawyerFinance } from "./lawyer/finance";
 import { lawyerAvailability } from "./lawyer/availability";
+import { clientOverview } from "./client/overview";
+import { clientProfile } from "./client/profile";
+import { clientBook } from "./client/book";
+import { clientMoney } from "./client/money";
+import { clientCancel } from "./client/cancel";
+import { clientMessages } from "./client/messages";
+import { clientFeedback } from "./client/feedback";
+import { clientPrivacy } from "./client/privacy";
 export const STAFF_TUTORIALS: Tutorial[] = [
   staffToday,
   staffMembers,
@@ -40,7 +48,16 @@ export const LAWYER_TUTORIALS: Tutorial[] = [
   lawyerFinance,
   lawyerAvailability,
 ];
-export const CLIENT_TUTORIALS: Tutorial[] = [];
+export const CLIENT_TUTORIALS: Tutorial[] = [
+  clientOverview,
+  clientProfile,
+  clientBook,
+  clientMoney,
+  clientCancel,
+  clientMessages,
+  clientFeedback,
+  clientPrivacy,
+];
 
 export const ALL_TUTORIALS: Tutorial[] = [...STAFF_TUTORIALS, ...LAWYER_TUTORIALS, ...CLIENT_TUTORIALS];
 

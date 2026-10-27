@@ -242,3 +242,21 @@ export function scene(root: MockNode, script: CursorScript = [], aspect: SceneAs
 export function step(id: string, title: string, body: string, sc: Scene, extra: Partial<TutorialStep> = {}): TutorialStep {
   return { id, title, body, scene: sc, ...extra };
 }
+
+/**
+ * A member's phone screen (aspect "phone"): top bar, the page, and the
+ * bottom navigation the shell shows below 768px.
+ */
+export function mockPhone(active: string, title: string, body: MockNode[]): MockNode {
+  return stack(
+    [
+      row([text("ILP", "strong"), text("LH", "label")], "between"),
+      divider(),
+      text(title, "h1"),
+      ...body,
+      divider(),
+      row(NAV.client.map((label) => text(label, label === active ? "strong" : "meta")), "between"),
+    ],
+    4,
+  );
+}
