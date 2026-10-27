@@ -97,6 +97,8 @@ export function LawyerFinanceSkeleton() {
 
 /** Weekly hours (seven day rows) beside days off, limits and specialties. */
 export function LawyerAvailabilitySkeleton() {
+  // Mirrors AvailabilityView: week editor (switch | ranges | count per day)
+  // beside days off, limits, specialty chips and calendar blocks.
   return (
     <div className={avail.page}>
       <header className={avail.head} aria-hidden="true">
@@ -107,23 +109,47 @@ export function LawyerAvailabilitySkeleton() {
         <section className={avail.week}>
           <Skeleton shape="line" size="md" width="25" />
           <Skeleton shape="line" size="sm" width="40" />
-          <div className={avail.days}>
+          <div className={avail.skDays}>
             {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-              <div key={d} className={avail.day}>
-                <Skeleton shape="line" size="md" width="75" />
-                <Skeleton shape="block" size="sm" width={d > 4 ? "40" : "90"} />
+              <div key={d} className={avail.skDay}>
+                <div className={avail.skSwitch}>
+                  <Skeleton shape="pill" width="pill-sm" />
+                  <Skeleton shape="line" size="md" width="60" />
+                </div>
+                <Skeleton shape="block" size="sm" width={d > 4 ? "40" : "75"} />
+                {d > 4 ? <span /> : <Skeleton shape="line" size="sm" width="75" />}
               </div>
             ))}
           </div>
         </section>
         <div className={avail.side}>
-          {[0, 1, 2].map((b) => (
-            <section key={b} className={avail.block}>
-              <Skeleton shape="line" size="md" width="40" />
-              <SkeletonText lines={2} size="sm" />
-              <Skeleton shape="block" size="sm" />
-            </section>
-          ))}
+          <section className={avail.block}>
+            <Skeleton shape="line" size="md" width="40" />
+            <Skeleton shape="block" size="sm" width="75" />
+            <div className={avail.skChips}>
+              <Skeleton shape="pill" width="pill" />
+              <Skeleton shape="pill" width="pill" />
+            </div>
+          </section>
+          <section className={avail.block}>
+            <Skeleton shape="line" size="md" width="25" />
+            <SkeletonText lines={1} size="sm" />
+            <Skeleton shape="block" size="sm" width="40" />
+            <SkeletonText lines={1} size="sm" />
+            <Skeleton shape="block" size="sm" width="40" />
+          </section>
+          <section className={avail.block}>
+            <Skeleton shape="line" size="md" width="25" />
+            <div className={avail.skChips}>
+              {[0, 1, 2, 3, 4, 5].map((c) => (
+                <Skeleton key={c} shape="pill" width="pill" />
+              ))}
+            </div>
+          </section>
+          <section className={avail.block}>
+            <Skeleton shape="line" size="md" width="40" />
+            <Skeleton shape="block" size="sm" />
+          </section>
         </div>
       </div>
     </div>

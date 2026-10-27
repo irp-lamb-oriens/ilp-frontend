@@ -77,6 +77,7 @@ function Capacity() {
 function Hours() {
   const { lawyers, loaded } = useLawyers();
   const [pick, setPick] = useState("");
+  const [dirty, setDirty] = useState(false);
   const id = pick || lawyers[0]?.id || "";
   const name = lawyers.find((l) => l.id === id)?.name ?? "Lawyer";
   const adapter = useMemo<AvailabilityAdapter>(() => {
@@ -98,14 +99,22 @@ function Hours() {
   if (!lawyers.length) return <EmptyState compact title="No active lawyers" body="Add a lawyer in the Directory tab, then set their hours here." />;
   return (
     <div className={s.stack}>
-      <Select label="Lawyer" value={id} onChange={(e) => setPick(e.target.value)}>
+      <Select
+        label="Lawyer"
+        value={id}
+        onChange={(e) => {
+          if (dirty && !window.confirm("This lawyer's hours have unsaved changes. Switch lawyer and discard them?")) return;
+          setDirty(false);
+          setPick(e.target.value);
+        }}
+      >
         {lawyers.map((l) => (
           <option key={l.id} value={l.id}>
             {l.name}
           </option>
         ))}
       </Select>
-      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} />
+      <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} onDirtyChange={setDirty} />
     </div>
   );
 }

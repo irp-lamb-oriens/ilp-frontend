@@ -34,13 +34,24 @@
 
 .cols {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   gap: $space-6;
   align-items: start;
 
   @include below-md {
     grid-template-columns: 1fr;
   }
+}
+
+// Below lg the side panel drops under the week so time rows keep their width.
+@media (min-width: $bp-md) and (max-width: #{$bp-lg - 1px}) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.week {
+  min-width: 0;
 }
 
 .sectionH {
@@ -50,85 +61,10 @@
   padding: 0;
 }
 
-.muted {
-  margin: 0 0 $space-2;
-  color: $color-steel;
-  font-size: 0.9375rem;
-}
-
-.days {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-top: 1px solid $color-hairline;
-}
-
-.day {
-  display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
-  gap: $space-3;
-  padding: $space-3 0;
-  border-bottom: 1px solid $color-hairline;
-
-  @include below-md {
-    grid-template-columns: 1fr;
-    gap: $space-1;
-  }
-}
-
-.dayName {
-  font-weight: 600;
-  color: $color-navy;
-  padding-top: $space-2;
-}
-
-.windows {
-  display: grid;
-  gap: $space-2;
-  justify-items: start;
-}
-
-.off {
-  color: $color-muted;
-  padding-top: $space-2;
-}
-
-.window {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $space-2;
-  color: $color-steel;
-}
-
-.time,
-.input {
-  width: 100%;
-  margin-bottom: $space-3;
-}
-
-.add,
-.remove {
-  min-height: $touch-target;
-  padding: 0 $space-2;
-  border: 0;
-  background: none;
-  color: $color-navy;
-  font: inherit;
-  font-size: 0.9375rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-  @include focus-ring;
-}
-
-.remove {
-  color: $color-steel;
-}
-
 .side {
   display: grid;
   gap: $space-4;
+  min-width: 0;
 }
 
 .block {
@@ -137,36 +73,17 @@
   border: 1px solid $color-hairline;
   border-radius: $radius-md;
   background: $color-canvas;
+  min-width: 0;
 }
 
-.inline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-2;
-  align-items: center;
-  margin-bottom: $space-2;
-}
-
-.dates {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.date {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid $color-hairline;
-}
-
-.checks {
+.limits {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $space-1;
+  gap: $space-4;
 }
 
-.saveRow {
+// Save row: a plain row on desktop; on phones it sticks above the bottom
+// navigation so Save is always in reach.
+.saveBar {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -174,18 +91,82 @@
   gap: $space-3;
   padding-top: $space-4;
   border-top: 1px solid $color-hairline;
+  background: $color-canvas;
+
+  @include below-md {
+    position: sticky;
+    bottom: calc(#{$shell-bottombar-height} + env(safe-area-inset-bottom));
+    z-index: $z-sticky;
+    flex-wrap: nowrap;
+    margin: 0 (-$space-4);
+    padding: $space-3 $space-4;
+  }
+}
+
+.saveMsg {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+
+  @include below-md {
+    justify-content: flex-start;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9375rem;
+  }
 }
 
 .error {
-  margin: 0;
   color: $color-error;
+  font-weight: 600;
 }
 
 .saved {
-  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
   color: $color-success;
+  font-weight: 600;
 }
 
-.srOnly {
-  @include visually-hidden;
+.pending {
+  color: $color-steel;
+}
+
+// ── Skeleton (LawyerSkeletons → LawyerAvailabilitySkeleton) ──────────────
+.skDays {
+  display: grid;
+  border-top: 1px solid $color-hairline;
+  margin-top: $space-3;
+}
+
+.skDay {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr) 4rem;
+  gap: $space-4;
+  align-items: center;
+  min-height: calc(#{$touch-target} + #{$space-6});
+  border-bottom: 1px solid $color-hairline;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+    gap: $space-2;
+    padding: $space-3 0;
+  }
+}
+
+.skSwitch {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.skChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-top: $space-3;
 }
