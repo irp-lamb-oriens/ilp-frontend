@@ -102,11 +102,11 @@ export const lawyerClients: Tutorial = {
     step(
       "open",
       "Open the side panel",
-      "Click a row to open the member in a panel on the side. It opens on Brief: their question and the profile facts that matter.",
+      "Click a row to open the member in a panel on the side. It opens on Brief: their question and the key facts from their profile.",
       scene(page(), [
         say(hover("r2"), M.omar, "This row shows 1 overdue: a legal date for this matter has already passed."),
         say(click("r1", [open("drawer")]), M.hiroshi, "Opens his details in a side panel, so you keep your place in the list."),
-        say(hover("i_brief_body"), "Brief", "His question in his own words, and the profile facts that matter: residency, property and company."),
+        say(hover("i_brief_body"), "Brief", "His question in his own words, and the key facts from his profile: residency, property and company."),
       ]),
     ),
     step(

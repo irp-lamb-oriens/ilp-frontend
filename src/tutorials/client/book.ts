@@ -1,5 +1,31 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { LAWYERS as L, btn, card, chip, click, dayIn, hidden, hover, input, mark, meta, mockShell, row, scene, set, show, stack, step, text, toggle, type, wait, hide }  from "../presets";
+import {
+  LAWYERS as L,
+  btn,
+  card,
+  chip,
+  click,
+  dayIn,
+  hidden,
+  hide,
+  hover,
+  input,
+  mark,
+  meta,
+  mockShell,
+  open,
+  row,
+  say,
+  scene,
+  set,
+  show,
+  stack,
+  step,
+  text,
+  toggle,
+  type,
+  wait,
+} from "../presets";
 
 const times = row(
   [chip("9:00 am", false, "t1"), chip("9:20 am", false, "t2"), chip("10:30 am", false, "t3"), chip("2:00 pm", false, "t4"), chip("2:20 pm", false, "t5")],
@@ -12,16 +38,16 @@ const form = stack(
   [
     card("When", [
       row([chip(dayIn(1), false, "d1"), chip(dayIn(2), false, "d2"), chip(dayIn(3), true, "d3"), chip(dayIn(6), false, "d4")], "start", 1),
-      text("Time (Costa Rica time)", "label"),
+      text("Time (Costa Rica time)", "label", "tz"),
       times,
     ]),
     card("Your question", [
       input(undefined, { multiline: true, placeholder: "For example: Do I need to file anything for my S.A. before January?", id: "question" }),
-      meta("Also added to this call from your list: Corporate tax return (D-101)"),
+      meta("Also added to this call from your list: Corporate tax return (D-101)", "also_added"),
     ]),
     card("May your lawyer record this call?", [
       row([toggle("Yes, record it", false, "rec_yes", "checkbox"), toggle("No recording", false, "rec_no", "checkbox")], "start", 4),
-      text("How recording and AI work", "meta"),
+      text("How recording and AI work", "meta", "how_ai"),
     ]),
     row([meta("This call uses 20 minutes and 1 call. Afterwards you will have 20 minutes and 1 call left this month."), btn("Book this call", "primary", "book")], "between", 3, "confirm"),
   ],
@@ -41,40 +67,50 @@ function page() {
 
 export const clientBook: Tutorial = {
   id: "client.book",
-  version: 1,
+  version: 2,
   title: "Book a call",
-  summary: "Pick a time, write your question, book.",
+  summary: "Pick a time, write your question and book your call.",
   audience: ["client"],
   route: "/status/book",
   steps: [
     step(
       "time",
       "Pick a day and a time",
-      "Times are shown in Costa Rica time. Pick a day, then one of the open times.",
-      scene(page(), [click("d3", [], dayIn(3)), click("t3", [set("t3", { selected: true })], "10:30 am"), wait(700)]),
+      "Pick a day first, then one of the open times. Only times when your lawyer is free are shown.",
+      scene(page(), [
+        say(click("d3"), dayIn(3), "The days with open times. Pick the one that suits you."),
+        say(hover("tz"), "Costa Rica time", "Times are shown in Costa Rica time. Costa Rica never changes its clocks, so check the difference with your own time."),
+        say(click("t3", [set("t3", { selected: true })]), "10:30 am", "Each button is a free 20-minute time. Pick one and it stays highlighted to show it is chosen."),
+      ]),
       { target: "client-book-time" },
     ),
     step(
       "question",
       "Tell your lawyer what you want to ask",
-      "One or two sentences is enough. Your lawyer reads it, with your profile, before the call.",
-      scene(page(), [type("question", "Do I need to file anything for my S.A. before January?"), wait(600)]),
+      "One or two sentences is enough. Your lawyer reads your question, together with your profile, before the call.",
+      scene(page(), [
+        say(type("question", "Do I need to file anything for my S.A. before January?"), "Your question", "Write it in your own words. It helps your lawyer prepare, so your 20 minutes go further."),
+        say(hover("also_added"), "Also added to this call", "A date you asked about earlier is added for you, so you do not forget to mention it."),
+      ]),
     ),
     step(
       "record",
       "Choose about recording",
-      "Say whether the call may be recorded. If you say yes, a summary is drafted for your lawyer to check. You can change this before you join.",
-      scene(page(), [hover("rec_no", [], 700), click("rec_yes", [set("rec_yes", { on: true })], "Yes, record it"), wait(700)]),
+      "You decide whether the call may be recorded. If you say yes, a written summary is drafted for your lawyer to check. You can change your mind before you join.",
+      scene(page(), [
+        say(hover("rec_no"), "No recording", "The call is not recorded and your lawyer takes notes instead. This choice is completely fine."),
+        say(click("rec_yes", [set("rec_yes", { on: true })]), "Yes, record it", "Lets your lawyer record the call. A summary is drafted from it, and your lawyer checks it before you see it.", ["recordingConsent"]),
+        say(hover("how_ai"), "How recording and AI work", "A short, plain explanation of what is recorded, who can see it and how the summary is made."),
+      ]),
     ),
     step(
       "book",
       "Book the call",
-      "Check how many minutes it uses, then select Book this call. You get an email with the video link.",
+      "Check how many minutes it uses, then book. You get an email with the link to the video call.",
       scene(page(), [
         wait(100, [set("t3", { selected: true }), set("rec_yes", { on: true }), set("question", { value: "Do I need to file anything for my S.A. before January?" })]),
-        hover("confirm", [mark("confirm")], 900),
-        click("book", [hide("form"), show("done")], "Book this call"),
-        wait(1200),
+        say(hover("confirm", [mark("confirm")]), "This call uses 20 minutes", "Each call uses 20 of your 60 monthly minutes and one of your three calls. Afterwards you have 20 minutes and 1 call left."),
+        say(click("book", [hide("form"), show("done")]), "Book this call", "Books your call. A confirmation appears here, and an email with the video link follows.", ["videoLink"]),
       ]),
     ),
   ],

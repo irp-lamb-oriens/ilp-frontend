@@ -112,7 +112,7 @@ export const GLOSSARY = {
   },
   brief: {
     word: "Pre-call brief",
-    meaning: "One screen the lawyer reads before a call: the member's question and the facts from their profile that matter for it.",
+    meaning: "One screen the lawyer reads before a call: the member's question and the key facts from their profile.",
     match: /\bbrief\b/i,
     group: "ILP",
   },

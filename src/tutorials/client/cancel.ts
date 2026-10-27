@@ -1,5 +1,22 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { btn, card, click, hover, input, list, mark, mockShell, row, scene, set, stack, step, toggle, type, wait }  from "../presets";
+import {
+  btn,
+  card,
+  click,
+  hover,
+  input,
+  list,
+  mark,
+  mockShell,
+  row,
+  say,
+  scene,
+  set,
+  stack,
+  step,
+  toggle,
+  type,
+} from "../presets";
 
 function page() {
   return mockShell(
@@ -13,7 +30,7 @@ function page() {
             [
               { title: "Your membership stays active until the end of this month." },
               { title: "No more monthly charges after that." },
-              { title: "Your profile and documents stay in your account." },
+              { title: "Your profile and documents stay in your account.", id: "kept" },
             ],
             "plain",
           ),
@@ -38,30 +55,39 @@ function page() {
 
 export const clientCancel: Tutorial = {
   id: "client.cancel",
-  version: 1,
+  version: 2,
   title: "Cancel your membership",
-  summary: "What happens if you cancel, and how.",
+  summary: "What happens if you cancel, and how to do it.",
   audience: ["client"],
   route: "/status/money/cancel",
   steps: [
     step(
       "what",
       "Read what happens first",
-      "Cancelling stops future charges. Your profile and documents stay in your account.",
-      scene(page(), [hover("what", [mark("what")], 1500)]),
+      "Before anything changes, this page explains what cancelling means for you. Take your time.",
+      scene(page(), [
+        say(hover("what", [mark("what")]), "What happens", "Your membership stays active until the end of this month. After that, there are no more monthly charges."),
+        say(hover("kept", [mark("what", false)]), "Your profile and documents stay", "Nothing you shared with us is lost. If you come back later, it is all still here."),
+      ]),
       { target: "client-cancel-what" },
     ),
     step(
       "why",
       "Tell us why, if you like",
-      "Picking a reason is optional. It helps your ILP team improve.",
-      scene(page(), [click("r1", [set("r1", { on: true })], "I am moving back home"), type("comment", "Thank you for the help with my residency."), wait(500)]),
+      "Choosing a reason is optional. It helps your ILP team learn what to improve.",
+      scene(page(), [
+        say(click("r1", [set("r1", { on: true })]), "I am moving back home", "Tick any reasons that fit. You can tick more than one, or none at all."),
+        say(type("comment", "Thank you for the help with my residency."), "Anything you would like us to know", "An optional note in your own words. Your ILP team reads every one."),
+      ]),
     ),
     step(
       "choose",
       "Keep or cancel",
-      "Keep my membership takes you back with nothing changed. Cancel membership confirms the cancellation.",
-      scene(page(), [hover("keep", [], 1000), hover("cancel", [mark("actions")], 1000), wait(400)]),
+      "The choice is yours. Keeping your membership changes nothing. Cancel membership confirms that you want to leave.",
+      scene(page(), [
+        say(hover("keep"), "Keep my membership", "Takes you back. Nothing changes, and nothing extra is charged."),
+        say(hover("cancel", [mark("actions")]), "Cancel membership", "Confirms that you want to cancel. Your membership stays active until the end of this month."),
+      ]),
     ),
   ],
 };

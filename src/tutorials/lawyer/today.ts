@@ -111,7 +111,7 @@ export const lawyerToday: Tutorial = {
     step(
       "brief",
       "Open the pre-call brief",
-      "Click a call to open its page. It starts with a one-screen brief: the member's question and the profile facts that matter for it.",
+      "Click a call to open its page. It starts with a one-screen brief: the member's question and the key facts from their profile.",
       scene(page(), [
         say(hover("todo_note"), "1 summary needs your confirmation", "A past call still needs your check before the member and the ILP team can rely on its summary."),
         say(click("c1", [mark("c1")]), M.hiroshi, "Opens the call page: the brief first, then the recording, transcript and summary tools.", ["brief"]),

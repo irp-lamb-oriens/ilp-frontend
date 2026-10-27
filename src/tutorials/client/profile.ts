@@ -1,5 +1,29 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { btn, card, click, grid, hover, input, list, mark, meta, mockShell, p, progress, row, scene, set, show, stack, step, text, hidden, wait, pill }  from "../presets";
+import {
+  btn,
+  card,
+  click,
+  grid,
+  hidden,
+  hover,
+  input,
+  list,
+  mark,
+  meta,
+  mockShell,
+  p,
+  pill,
+  progress,
+  row,
+  say,
+  scene,
+  set,
+  show,
+  stack,
+  step,
+  text,
+  type,
+} from "../presets";
 
 const completion = card(
   "Profile completion",
@@ -11,7 +35,7 @@ const residency = card(
   "Residency",
   [
     meta("Your status and its renewal date drive several deadlines."),
-    input("Residency status in Costa Rica", { value: "Resident: pensionado", select: true }),
+    input("Residency status in Costa Rica", { value: "Resident: pensionado", select: true, id: "res_status" }),
     input("Residency card (DIMEX) expiry date", { placeholder: "Pick a date", hint: "Leave empty if you do not have one yet.", id: "dimex" }),
     row([btn("Save residency", "secondary", "save"), hidden(text("Saved.", "meta", "saved"))], "start"),
   ],
@@ -40,38 +64,44 @@ function page() {
 
 export const clientProfile: Tutorial = {
   id: "client.profile",
-  version: 1,
+  version: 2,
   title: "Profile and documents",
-  summary: "Keep your details current and upload documents.",
+  summary: "Keep your details up to date and send your documents.",
   audience: ["client"],
   route: "/status/profile",
   steps: [
     step(
       "completion",
       "Get your profile ready",
-      "Your lawyer reads your profile before every call. When it is complete enough, it says Ready for your lawyer.",
-      scene(page(), [hover("bar", [mark("bar")], 1400), wait(400)]),
+      "Your profile holds the facts about your life in Costa Rica: residency, property, family and companies. Your lawyer reads it before every call.",
+      scene(page(), [
+        say(hover("bar", [mark("bar")]), "Profile completion", "How much of your profile is filled in. At 70% or more, your lawyer has enough to help you well on a call."),
+        say(hover("readypill", [mark("bar", false)]), "Not ready yet", "This label changes to Ready for your lawyer once enough is filled in. Nothing is wrong in the meantime."),
+      ]),
       { target: "client-profile-completion" },
     ),
     step(
       "fill",
-      "Fill in one section at a time",
-      "Each section has its own Save button. Fill in what you know; you can come back to the rest later.",
+      "Fill in one part at a time",
+      "Each part has its own Save button. Fill in what you know; you can come back to the rest at any time.",
       scene(page(), [
-        click("dimex", [set("dimex", { value: dateIn(74) })], "Residency card (DIMEX) expiry date"),
-        click("save", [show("saved"), set("bar", { value: 0.76, valueText: "76%", tone: "success" }), set("readypill", { label: "Ready for your lawyer", tone: "success" })], "Save residency"),
-        wait(1100),
+        say(hover("res_status"), "Residency status in Costa Rica", "The kind of permission you have to live in Costa Rica. Yours is pensionado, the kind for retirees."),
+        say(click("dimex", [set("dimex", { value: dateIn(74) })]), "Residency card (DIMEX) expiry date", "The date printed on your residency card. We use it to remind you well before it needs renewing."),
+        say(
+          click("save", [show("saved"), set("bar", { value: 0.76, valueText: "76%", tone: "success" }), set("readypill", { label: "Ready for your lawyer", tone: "success" })]),
+          "Save residency",
+          "Keeps what you entered. Your profile now has enough for your lawyer.",
+        ),
       ]),
     ),
     step(
       "upload",
       "Upload a document",
-      "Choose which matter it is for and what kind of document it is, pick the file, then select Upload document.",
+      "Send your lawyer copies of papers, like your passport or residency card, here instead of by email. They stay in your account.",
       scene(page(), [
-        click("kind", [set("kind", { value: "Residency" })], "What kind of document is it?"),
-        click("file", [set("file", { value: "dimex-front.jpg" })], "File"),
-        click("upload", [show("doc2")], "Upload document"),
-        wait(1000),
+        say(click("kind", [set("kind", { value: "Residency" })]), "What kind of document is it?", "Pick the closest kind, for example Residency for your residency card. It helps your lawyer find it."),
+        say(click("file", [set("file", { value: "dimex-front.jpg" })]), "File", "Choose the photo or scan from your computer or phone."),
+        say(click("upload", [show("doc2")]), "Upload document", "Sends the file. It appears in the list below, and your lawyer can see it."),
       ]),
       { target: "client-documents" },
     ),
