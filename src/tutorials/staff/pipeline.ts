@@ -81,7 +81,7 @@ export const staffPipeline: Tutorial = {
     step(
       "filter",
       "Filter by stage",
-      "Pick one stage to see only the matters in it, for example everything that waits for a member to answer a price.",
+      "Pick one stage to see only the matters in it. For example, everything that waits for a member to answer a price.",
       scene(page(), [
         say(click("stage", [set("stage", { value: "Quote Sent (1)" }), hide("m1"), hide("m2"), hide("m4")]), "Stage", "A drop-down list of the steps a matter goes through. Pick one and the list keeps only the matters in that step."),
         say(hover("m3", [mark("m3")]), "S.A. clean-up", "The only matter waiting for the member's answer to a price. If it waits too long, remind them kindly."),

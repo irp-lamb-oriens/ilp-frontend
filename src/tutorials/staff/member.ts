@@ -180,7 +180,7 @@ export const staffMember: Tutorial = {
       scene(page(), [
         say(hover("handoff_legal"), "Legal next steps", "Written and approved by the lawyer. You cannot change them, and the member sees them too."),
         say(hover("handoff_notes"), "Commercial notes", "Private notes about money and sales, for the ILP team only. The member and the lawyer never see them."),
-        say(click("proposal", [hide("proposal"), show("proposal_done")]), "Create proposal task", "Makes a job to send the member a price for this extra work, with an owner and a due date, so it is not forgotten."),
+        say(click("proposal", [hide("proposal"), show("proposal_done")]), "Create proposal task", "Makes a job to send the member a price for this extra work. It gets an owner and a due date, so it is not forgotten."),
       ]),
     ),
     step(

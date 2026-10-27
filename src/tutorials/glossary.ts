@@ -106,7 +106,7 @@ export const GLOSSARY = {
   },
   handoff: {
     word: "Handoff",
-    meaning: "After a call, the lawyer's confirmed list of next steps, passed to the ILP team so they can follow up and nothing is forgotten.",
+    meaning: "The lawyer's confirmed list of next steps after a call. It goes to the ILP team, so they can follow up and nothing is forgotten.",
     match: /\bhand ?offs?\b|\bhand(s|ed)? (it )?off\b/i,
     group: "ILP",
   },
@@ -208,7 +208,7 @@ export const GLOSSARY = {
   },
   hash: {
     word: "Hash",
-    meaning: "Scramble a value, like an email address, into a code that cannot be turned back, so it no longer shows who it was.",
+    meaning: "Turn a value, like an email address, into a scrambled code. The code cannot be turned back, so it no longer shows who it was.",
     match: /\bhash(ed|es|ing)?\b/i,
     group: "ILP",
   },
@@ -312,7 +312,7 @@ export const GLOSSARY = {
   },
   titleStudy: {
     word: "Title study",
-    meaning: "A lawyer's check of the public property record, to make sure the seller really owns the land and it has no debts or claims.",
+    meaning: "A lawyer's check of the public property record. It makes sure the seller really owns the land and it has no debts or claims.",
     match: /\btitle stud(y|ies)\b/i,
     group: "Costa Rica",
   },
@@ -348,7 +348,7 @@ export const GLOSSARY = {
   },
   apostille: {
     word: "Apostille",
-    meaning: "An official stamp that makes a document from one country valid in another, like a birth certificate from the US used in Costa Rica.",
+    meaning: "An official stamp that makes a document from one country valid in another. For example, a US birth certificate used in Costa Rica.",
     match: /\bapostilles?\b/i,
     group: "Costa Rica",
   },
@@ -519,7 +519,7 @@ export const GLOSSARY = {
   },
   drawer: {
     word: "Side panel",
-    meaning: "A panel that slides in from the side to show details, so you do not lose your place on the page behind it.",
+    meaning: "A panel that slides in from the side to show details. You keep your place on the page behind it.",
     match: /\bdrawers?\b|\bside panel\b/i,
     group: "On the screen",
   },

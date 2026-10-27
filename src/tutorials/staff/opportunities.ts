@@ -123,7 +123,7 @@ export const staffOpportunities: Tutorial = {
       "Add one by hand",
       "Most opportunities come from a lawyer's notes after a call. You can also add one yourself, for example when a member mentions new work on the phone.",
       scene(page(), [
-        say(hover("import"), "Create from past handoffs", "Reads the notes lawyers left after past calls and makes a card for each piece of paid work they mentioned."),
+        say(hover("import"), "Create from past handoffs", "Reads the notes lawyers left after past calls. It makes a card for each piece of paid work they mentioned."),
         say(hover("views"), "Board and List", "Board shows cards in columns. List shows the same opportunities as a table you can sort."),
         say(click("new"), "New opportunity", "Opens a short form: the member, the kind of law, the estimated fee and the next job to do."),
       ]),

@@ -112,7 +112,7 @@ export const lawyerClients: Tutorial = {
     step(
       "tabs",
       "Check deadlines and documents",
-      "The tabs inside the panel show the matter, your notes and calls, prices, legal dates and the member's documents.",
+      "The tabs inside the panel show more: the matter, your notes and calls, prices, legal dates and documents.",
       scene(page(), [
         wait(200, [open("drawer")]),
         say(hover("i_docs"), "Documents", "Files the member uploaded, like a passport or the company's books."),

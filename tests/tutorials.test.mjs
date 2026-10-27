@@ -8,9 +8,12 @@ register("./tsResolve.mjs", import.meta.url);
 
 const { createRegistry, matchTutorial, routeToRegExp, normalizePath } = await import("../src/components/tutorial/registry.ts");
 const { createTutorialStore, MAX_SKIPS } = await import("../src/components/tutorial/storage.ts");
-const { computeTimeline, typedAt, TIMING } = await import("../src/components/tutorial/timeline.ts");
-const { collectIds, missingRefs, endState, describeScene, markers } = await import("../src/components/tutorial/sceneUtils.ts");
-const { ALL_TUTORIALS, TUTORIAL_ROUTES } = await import("../src/tutorials/index.ts");
+const { computeTimeline, typedAt, readingTime, wordCount, holdFor, TIMING } = await import("../src/components/tutorial/timeline.ts");
+const { collectIds, missingRefs, endState, describeScene, markers, captionsOf, firstUseTerms, placeCallout, stateThrough, stopIndices, MAX_TERMS } = await import(
+  "../src/components/tutorial/sceneUtils.ts"
+);
+const { ALL_TUTORIALS, TUTORIAL_ROUTES, CLIENT_TUTORIALS } = await import("../src/tutorials/index.ts");
+const { GLOSSARY, TERM_KEYS, findTerms } = await import("../src/tutorials/glossary.ts");
 
 const t = (id, route, extra = {}) => ({ id, version: 1, title: id, route, steps: [], ...extra });
 
@@ -247,4 +250,202 @@ test("every step target has a matching data-tour attribute on a live page", asyn
       if (st.target) assert.ok(found.has(st.target), `${tut.id} › ${st.id}: no element has data-tour="${st.target}"`);
     }
   }
+});
+
+// ─── Captions: timing ───────────────────────────────────────────────────────
+
+const words = (n) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
+
+test("captions: reading time is 230 ms a word, clamped to 1.8–6 s", () => {
+  assert.equal(TIMING.readPerWord, 230);
+  assert.equal(readingTime(undefined), 0);
+  assert.equal(readingTime("   "), 0);
+  assert.equal(wordCount("  Marks this   job as finished. "), 5);
+  assert.equal(readingTime(words(3)), 1800, "short captions get the minimum");
+  assert.equal(readingTime(words(10)), 2300);
+  assert.equal(readingTime(words(20)), 4600);
+  assert.equal(readingTime(words(40)), 6000, "long captions are capped");
+});
+
+test("captions: a captioned op holds until it is read, then fades before the next op", () => {
+  const ten = words(10);
+  const click = { op: "click", to: "a", explain: ten, then: [{ id: "d", set: { open: true } }] };
+  // reading 2300 + fade 180 - click 320 - settle 320
+  assert.equal(holdFor(click, TIMING.click, TIMING.settle), 2300 + TIMING.captionOut - TIMING.click - TIMING.settle);
+  assert.equal(holdFor({ op: "click", to: "a" }, TIMING.click, 0), 0, "no caption, no hold");
+  const longType = { op: "type", to: "in", text: "x".repeat(200), explain: ten };
+  assert.equal(holdFor(longType, TIMING.typeLead + 200 * TIMING.typeChar, 0), TIMING.captionOut, "a long action still leaves time to fade");
+
+  const tl = computeTimeline([{ op: "hover", to: "a", explain: ten }, { op: "click", to: "b" }]);
+  const [hv, cl] = tl.segments;
+  assert.equal(hv.hold, readingTime(ten) + TIMING.captionOut - TIMING.hover);
+  assert.ok(hv.action + hv.settle + hv.hold - TIMING.captionOut >= readingTime(ten), "visible for the whole reading time");
+  assert.equal(hv.end, hv.start + hv.travel + hv.action + hv.settle + hv.hold);
+  assert.equal(cl.start, hv.end, "the next op starts after the fade");
+  assert.equal(cl.hold, 0);
+});
+
+// ─── Captions: scene helpers ────────────────────────────────────────────────
+
+test("captions: list, numbering, paused frames and stops", () => {
+  const sc = {
+    aspect: "desktop",
+    root: { type: "stack", children: [{ type: "button", id: "go", label: "Close task" }, { type: "input", id: "in", label: "Outcome" }, { type: "drawer", id: "d", title: "T", children: [] }] },
+    script: [
+      { op: "wait", duration: 100, then: [{ id: "d", set: { open: true } }] },
+      { op: "type", to: "in", text: "Done", label: "Outcome", explain: "Write what happened." },
+      { op: "click", to: "go", label: "Close task", explain: "Marks the job as finished.", then: [{ id: "d", set: { open: false } }] },
+    ],
+  };
+  const caps = captionsOf(sc);
+  assert.deepEqual(caps.map((c) => [c.opIndex, c.n, c.id, c.name]), [
+    [1, 1, "in", "Outcome"],
+    [2, 2, "go", "Close task"],
+  ]);
+  assert.deepEqual(markers(sc).map((m) => m.n), [1, 2], "markers share the caption numbers");
+  assert.deepEqual(stopIndices(sc.script), [1, 2], "a plain wait is not a stop");
+  assert.equal(stateThrough(sc.script, 1).patch.in.value, "Done");
+  assert.equal(stateThrough(sc.script, 1).patch.d.open, true);
+  assert.equal(stateThrough(sc.script, 2).patch.d.open, false);
+});
+
+test("captions: a glossary meaning is offered once per tutorial, at most three at a time", () => {
+  const term = (key) => ({ key, word: key, meaning: "m" });
+  const op = (keys) => ({ op: "hover", to: "x", explain: "e", terms: keys.map(term) });
+  const steps = [
+    { scene: { script: [op(["a", "b", "c", "d"]), op(["a"])] } },
+    { scene: { script: [{ op: "wait" }, op(["d", "b", "e"])] } },
+  ];
+  const fu = firstUseTerms(steps);
+  assert.equal(MAX_TERMS, 3);
+  assert.deepEqual(fu[0][0].map((t) => t.key), ["a", "b", "c"]);
+  assert.deepEqual(fu[0][1], [], "already explained");
+  assert.deepEqual(fu[1][0], []);
+  assert.deepEqual(fu[1][1].map((t) => t.key), ["d", "e"], "the one held back shows on its next use");
+});
+
+test("captions: the callout goes below, above, right or left of its target and stays inside", () => {
+  const area = { width: 600, height: 400 };
+  const bubble = { width: 200, height: 80 };
+  const inside = (p) => p.x >= 0 && p.y >= 0 && p.x + bubble.width <= area.width && p.y + bubble.height <= area.height;
+  const below = placeCallout({ left: 100, top: 40, width: 80, height: 30 }, area, bubble);
+  assert.equal(below.side, "below");
+  assert.equal(below.y, 40 + 30 + 14);
+  const above = placeCallout({ left: 100, top: 330, width: 80, height: 30 }, area, bubble);
+  assert.equal(above.side, "above");
+  assert.ok(above.y + bubble.height <= 330);
+  const tall = { left: 20, top: 10, width: 60, height: 380 };
+  assert.equal(placeCallout(tall, area, bubble).side, "right");
+  assert.equal(placeCallout({ ...tall, left: 520 }, area, bubble).side, "left");
+  const edge = placeCallout({ left: 580, top: 20, width: 20, height: 20 }, area, bubble);
+  assert.ok(inside(edge), "clamped at the right edge");
+  const huge = placeCallout({ left: 0, top: 0, width: 600, height: 400 }, area, bubble);
+  assert.equal(huge.side, "inside");
+  assert.ok(inside(huge));
+});
+
+// ─── Captions: content ──────────────────────────────────────────────────────
+
+const PASSIVE = new Set(["move", "wait", "scroll"]);
+const sentences = (text) => text.split(/[.?!:;]+(?:\s+|$)/).map((x) => x.trim()).filter(Boolean);
+const avgSentence = (text) => {
+  const ss = sentences(text);
+  return ss.length ? wordCount(text) / ss.length : 0;
+};
+/** Words a beginner should never meet. */
+const BANNED = /\b(leverage|utili[sz]e|seamless(ly)?|robust|synergy|endpoint|payload|API|backend|frontend|webhook|SLA breach)\b/i;
+/** Jargon that is fine only with its glossary meaning attached. */
+const NEEDS_GLOSSARY = { sync: /\bsync/i, mrr: /\bMRR\b/, sla: /\bSLA\b/, nps: /\bNPS\b/, kpi: /\bKPI/, crm: /\bCRM\b/, rtbf: /\bRTBF\b/, legalFees: /\bGMV\b/ };
+
+test("every cursor action has a plain caption of at most 40 words", () => {
+  let n = 0;
+  for (const tut of ALL_TUTORIALS) {
+    for (const st of tut.steps) {
+      for (const op of st.scene.script ?? []) {
+        const where = `${tut.id} › ${st.id} › ${op.op} ${typeof op.to === "string" ? op.to : ""}`;
+        if (PASSIVE.has(op.op) && !op.explain) continue;
+        assert.ok(op.explain?.trim(), `${where} has no explain caption`);
+        assert.ok(op.label?.trim(), `${where} has no label`);
+        const w = wordCount(op.explain);
+        assert.ok(w <= 40, `${where} caption is ${w} words`);
+        assert.ok(!/!/.test(op.explain), `${where}: no exclamation marks`);
+        n++;
+      }
+    }
+  }
+  assert.ok(n > 200, `only ${n} captions`);
+});
+
+test("every step plays in under 25 seconds", () => {
+  for (const tut of ALL_TUTORIALS) {
+    for (const st of tut.steps) {
+      const end = computeTimeline(st.scene.script).end;
+      assert.ok(end <= 25_000, `${tut.id} › ${st.id} plays for ${(end / 1000).toFixed(1)} s`);
+    }
+  }
+});
+
+test("captions and step copy read easily: short sentences, no banned words, jargon glossaried", () => {
+  for (const tut of ALL_TUTORIALS) {
+    const glossaried = new Set();
+    for (const st of tut.steps) {
+      const where = `${tut.id} › ${st.id}`;
+      assert.ok(avgSentence(st.body) <= 18, `${where} body averages ${avgSentence(st.body).toFixed(1)} words a sentence`);
+      assert.ok(!BANNED.test(st.title + " " + st.body), `${where} body uses a banned word: ${(st.title + " " + st.body).match(BANNED)?.[0]}`);
+      for (const op of st.scene.script ?? []) {
+        if (!op.explain) continue;
+        const at = `${where} › ${op.label}`;
+        assert.ok(avgSentence(op.explain) <= 18, `${at} averages ${avgSentence(op.explain).toFixed(1)} words a sentence`);
+        assert.ok(!BANNED.test(op.explain), `${at} uses a banned word: ${op.explain.match(BANNED)?.[0]}`);
+        for (const t of op.terms ?? []) if (t.key) glossaried.add(t.key);
+        for (const [key, re] of Object.entries(NEEDS_GLOSSARY)) {
+          if (re.test(op.explain)) assert.ok(glossaried.has(key), `${at} uses ${key} without its glossary meaning`);
+        }
+      }
+    }
+  }
+});
+
+test("member tutorials stay calm: no alarming words", () => {
+  const ALARM = /\b(risk|danger|penalt(y|ies)|fined|urgent|warning|overdue|fail(ed|ure)?|must act|immediately)\b/i;
+  for (const tut of CLIENT_TUTORIALS) {
+    for (const st of tut.steps) {
+      const copy = [st.title, st.body, ...(st.scene.script ?? []).map((o) => o.explain ?? "")].join(" ");
+      assert.ok(!ALARM.test(copy), `${tut.id} › ${st.id}: “${copy.match(ALARM)?.[0]}”`);
+    }
+  }
+});
+
+test("glossary: every referenced key exists and every meaning is plain", () => {
+  assert.ok(TERM_KEYS.length >= 60, `glossary has ${TERM_KEYS.length} words`);
+  for (const key of TERM_KEYS) {
+    const e = GLOSSARY[key];
+    assert.ok(e.word && e.meaning, `${key} needs a word and a meaning`);
+    assert.ok(wordCount(e.meaning) <= 40, `${key} meaning is ${wordCount(e.meaning)} words`);
+    assert.ok(avgSentence(e.meaning) <= 22, `${key} meaning has long sentences`);
+    assert.ok(!BANNED.test(e.meaning), `${key} meaning uses a banned word`);
+    if (e.match) assert.ok(!e.match.test(""), `${key} pattern matches nothing`);
+  }
+  for (const tut of ALL_TUTORIALS) {
+    for (const st of tut.steps) {
+      for (const op of st.scene.script ?? []) {
+        for (const t of [...(op.terms ?? []), ...(op.term ? [op.term] : [])]) {
+          if (t.key) assert.ok(t.key in GLOSSARY, `${tut.id} › ${st.id}: unknown glossary key ${t.key}`);
+          assert.ok(t.word && t.meaning, `${tut.id} › ${st.id}: term without a meaning`);
+        }
+      }
+    }
+  }
+  // Every word the captions are expected to explain is in the glossary.
+  for (const key of ["member", "membership", "activationFee", "csm", "partnerLawyer", "matter", "obligation", "dimex", "residency", "pensionado", "rentista", "digitalNomad", "company", "corporationTax", "rtbf", "marchamo", "titleStudy", "caja", "aguinaldo", "handoff", "nextStep", "consultation", "recordingConsent", "transcript", "aiSummary", "quote", "opportunity", "pipeline", "stage", "mrr", "retention", "nps", "kpi", "pastDue", "renewal", "blackoutDate", "availability", "slot", "sync", "toggle", "filter", "drawer", "statusLabel", "dashboard", "export", "privacyRequest"]) {
+    assert.ok(key in GLOSSARY, `glossary is missing ${key}`);
+  }
+});
+
+test("glossary: words are found in captions, longest match wins", () => {
+  assert.deepEqual(findTerms("Write to your ILP team."), ["ilpTeam"]);
+  assert.deepEqual(findTerms("She is consultation-ready."), ["consultationReady"]);
+  assert.deepEqual(findTerms("16 days in stage, past the SLA."), ["daysInStage", "sla"]);
+  assert.deepEqual(findTerms("Your DIMEX and the marchamo."), ["dimex", "marchamo"]);
+  assert.deepEqual(findTerms("Nothing here."), []);
 });

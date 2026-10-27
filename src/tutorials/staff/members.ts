@@ -88,7 +88,7 @@ export const staffMembers: Tutorial = {
       "Each row is one member. Read it left to right: payment status, profile, minutes used this month, renewal date, who looks after them, and open jobs.",
       scene(page(), [
         say(hover("r2", [mark("r2")]), "Past due and not ready", "Two signs in one row: the payment is late and the profile is missing facts. This member may need a call soon."),
-        say(hover("r4", [mark("r2", false), mark("r4")]), "Pending payment, unassigned", "He signed up but his first payment has not arrived, and nobody on the team looks after him yet."),
+        say(hover("r4", [mark("r2", false), mark("r4")]), "Pending payment, unassigned", "He signed up, but his first payment has not arrived. Nobody on the team looks after him yet."),
         say(hover("r5", [mark("r4", false)]), "60 of 60 minutes used", "She has used all of this month's call time. She can book again after her membership renews."),
       ]),
     ),

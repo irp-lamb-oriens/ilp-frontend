@@ -137,7 +137,7 @@ export const staffToday: Tutorial = {
       scene(page(), [
         say(hover("k_mrr"), "Monthly recurring revenue", "All the money members pay us each month, added up. It goes up when someone joins and down when someone leaves.", ["mrr"]),
         say(hover("k_ret"), "Month-3 retention", "Out of the people who joined three months ago, how many are still members. We aim for 80% or more."),
-        say(hover("k_ready"), "Consultation-ready", "How many members have filled in enough of their profile for a lawyer to help them well on a call."),
+        say(hover("k_ready"), "Consultation-ready", "How many members have filled in enough of their profile. Without that, a lawyer cannot help them well on a call."),
         say(hover("k_overdue", [mark("k_overdue")]), "Overdue open tasks", "Jobs the team should already have finished. The small line under the number shows how many are yours."),
       ]),
       { target: "staff-kpis" },

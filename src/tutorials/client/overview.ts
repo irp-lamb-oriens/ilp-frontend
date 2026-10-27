@@ -116,7 +116,7 @@ export const clientOverview: Tutorial = {
     step(
       "membership",
       "See your minutes and book a call",
-      "Your membership includes up to 60 minutes of calls a month, in up to three 20-minute calls with your lawyer.",
+      "Your membership includes up to 60 minutes of calls a month. That is up to three 20-minute calls with your lawyer.",
       scene(page(), [
         say(hover("minutes", [mark("minutes")]), "Minutes left this month", "You have 40 of your 60 minutes left. They start again each month on your renewal date."),
         say(hover("message"), "Message your team", "Write to the people at ILP who look after you. They answer questions about your account and follow up for you."),
