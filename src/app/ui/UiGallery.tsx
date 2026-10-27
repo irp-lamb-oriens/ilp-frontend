@@ -23,6 +23,7 @@ import FormsGallery from "./FormsGallery";
 import ScheduleGallery from "./ScheduleGallery";
 import GuardGallery from "./GuardGallery";
 import LoadingGallery from "./LoadingGallery";
+import TutorialsGallery from "./TutorialsGallery";
 import { ACTIVITY, MEMBERS, NOW, formatDate, type MemberRow } from "./sampleData";
 import s from "./UiGallery.module.scss";
 
@@ -43,6 +44,7 @@ const SECTIONS = [
   ["loading", "Loading states"],
   ["shell", "RoleShell"],
   ["login", "PortalLogin"],
+  ["tutorials", "Tutorials"],
 ] as const;
 
 const MEMBERSHIP_PILL: Record<MemberRow["status"], { label: string; tone: StatusTone }> = {
@@ -433,6 +435,11 @@ export default function UiGallery() {
             onSuccess={({ email }) => setLoginNote(`Signed in as ${email}. A portal would route to its home now.`)}
           />
         </div>
+      </section>
+
+      <section id="tutorials" className={s.section}>
+        <h2 className={s.h2}>Tutorials</h2>
+        <TutorialsGallery />
       </section>
     </div>
   );
