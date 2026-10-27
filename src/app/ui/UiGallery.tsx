@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import { chartSeries } from "@/styles/tokens";
 import FormsGallery from "./FormsGallery";
+import ScheduleGallery from "./ScheduleGallery";
 import LoadingGallery from "./LoadingGallery";
 import { ACTIVITY, MEMBERS, NOW, formatDate, type MemberRow } from "./sampleData";
 import s from "./UiGallery.module.scss";
@@ -35,6 +36,7 @@ const SECTIONS = [
   ["tabs", "Tabs"],
   ["empty", "EmptyState"],
   ["forms", "Form fields"],
+  ["schedule", "Time and schedule"],
   ["tokens", "Chart tokens"],
   ["loading", "Loading states"],
   ["shell", "RoleShell"],
@@ -341,6 +343,11 @@ export default function UiGallery() {
       <section id="forms" className={s.section}>
         <h2 className={s.h2}>Form fields</h2>
         <FormsGallery />
+      </section>
+
+      <section id="schedule" className={s.section}>
+        <h2 className={s.h2}>Time and schedule inputs</h2>
+        <ScheduleGallery />
       </section>
 
       <section id="tokens" className={s.section}>
