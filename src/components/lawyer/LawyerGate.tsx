@@ -106,6 +106,7 @@ export default function LawyerGate({ children }: { children: ReactNode }) {
           title="Partner lawyer sign in"
           sub="Your calls, briefs and matters with ILP members. We email you a one-time code."
           onSuccess={() => {
+            setHasToken(true);
             setState({ kind: "loading" });
             check();
           }}

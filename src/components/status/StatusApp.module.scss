@@ -21,3 +21,7 @@
   color: $color-steel;
 }
 
+
+.sr {
+  @include visually-hidden;
+}

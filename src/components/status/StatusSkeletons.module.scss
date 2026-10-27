@@ -1,0 +1,109 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Member-portal card frame (18px base type, roomier padding than staff).
+.card {
+  @include card;
+  display: grid;
+  gap: $space-3;
+  padding: $space-6 $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+// Next step: accent top rule and the larger desktop padding of NextStepCard.
+.next {
+  border-color: $color-hairline-strong;
+  border-top: 4px solid $color-accent;
+
+  @include md {
+    padding: $space-8;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.facts {
+  display: grid;
+  gap: $space-2;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: $space-2;
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-4;
+}
+
+.rows {
+  display: grid;
+}
+
+.row {
+  display: grid;
+  gap: $space-1;
+  padding: $space-3 0;
+  border-top: 1px solid $color-hairline;
+}
+
+.rowSplit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: $space-3;
+  align-items: start;
+  padding: $space-2 0;
+}
+
+.stack {
+  display: grid;
+  gap: $space-6;
+}
+
+.stackSm {
+  display: grid;
+  gap: $space-4;
+}
+
+// Messages: team cards are full width, AI replies indented and smaller.
+.msgTeam {
+  display: grid;
+  gap: $space-1;
+  padding: $space-4;
+  border-left: 3px solid $color-cool-gray;
+}
+
+.msgMine {
+  display: grid;
+  gap: $space-1;
+  padding: $space-4;
+  background: $color-mist;
+  border-radius: $radius-lg;
+}
+
+.msgAi {
+  display: grid;
+  gap: $space-1;
+  margin-left: $space-6;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+}

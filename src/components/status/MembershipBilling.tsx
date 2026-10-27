@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, StatusPill } from "@/components/ui";
+import { Button, StatusPill, SkeletonRegion, StaggerItem, useSkeleton } from "@/components/ui";
 import type { StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { membershipApi, type MembershipBillingView } from "./membershipApi";
 import { useMember } from "./MemberContext";
 import { dateLong, money } from "./format";
+import { PlanSkeleton } from "./StatusSkeletons";
 import s from "./MembershipBilling.module.scss";
 
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
@@ -29,11 +30,25 @@ export default function MembershipBilling() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [loaded, setLoaded] = useState(false);
+  const { showSkeleton, skeletonVisible } = useSkeleton(!loaded);
+
   useEffect(() => {
-    membershipApi.get().then(setData).catch(() => setData(null));
+    membershipApi
+      .get()
+      .then(setData)
+      .catch(() => setData(null))
+      .finally(() => setLoaded(true));
   }, []);
 
   const m = data?.membership;
+  if (showSkeleton) {
+    return (
+      <SkeletonRegion label="Loading your membership plan" visible={skeletonVisible}>
+        <PlanSkeleton />
+      </SkeletonRegion>
+    );
+  }
   if (!data || !m) return null;
   const st = m.cancelAtPeriodEnd && m.status !== "cancelled"
     ? { label: "Ending", tone: "neutral" as StatusTone }
@@ -65,7 +80,7 @@ export default function MembershipBilling() {
   }
 
   return (
-    <section className={s.card} aria-labelledby="plan-title">
+    <StaggerItem as="section" index={1} className={s.card} aria-labelledby="plan-title">
       <div className={s.head}>
         <h2 className={s.title} id="plan-title">
           Your membership plan
@@ -123,6 +138,6 @@ export default function MembershipBilling() {
           Cancel membership
         </Link>
       )}
-    </section>
+    </StaggerItem>
   );
 }

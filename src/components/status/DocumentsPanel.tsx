@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, EmptyState, Select, StatusPill } from "@/components/ui";
+import { Button, EmptyState, Select, StatusPill, Loadable } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MemberDocument } from "./api";
 import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
 import { useMember } from "./MemberContext";
 import { DownloadButton } from "@/components/documents/DownloadButton";
 import { dateShort } from "./format";
+import { DocumentsListSkeleton } from "./StatusSkeletons";
 import s from "./DocumentsPanel.module.scss";
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -132,9 +133,8 @@ export default function DocumentsPanel() {
         )}
       </div>
 
-      {items === null ? (
-        <p className={s.muted}>Loading your documents…</p>
-      ) : items.length === 0 ? (
+      <Loadable loading={items === null} label="Loading your documents" skeleton={<DocumentsListSkeleton />}>
+      {() => items === null ? null : items.length === 0 ? (
         <EmptyState compact title="No documents yet" body="Documents you upload appear here, tagged by type and matter." />
       ) : (
         <ul className={s.list}>
@@ -153,6 +153,7 @@ export default function DocumentsPanel() {
           ))}
         </ul>
       )}
+      </Loadable>
     </section>
   );
 }

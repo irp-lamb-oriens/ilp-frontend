@@ -5,12 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
 import type { MenuLink, NavItem } from "@/components/shell";
 import PortalLogin from "@/components/auth/PortalLogin";
-import { Button, EmptyState } from "@/components/ui";
-import { ApiError } from "@/lib/api";
+import { Button, EmptyState, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { ApiError, getRoleToken } from "@/lib/api";
 import { projectIdToEmail } from "@/lib/status";
 import { memberApi, type MemberHome } from "./api";
 import { MemberContext } from "./MemberContext";
 import MatterSwitcher from "./MatterSwitcher";
+import StatusRouteSkeleton from "./StatusSkeletons";
 import s from "./StatusApp.module.scss";
 
 const MATTER_KEY = "ilp_status_matter";
@@ -53,6 +54,10 @@ export default function StatusApp({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [home, setHome] = useState<MemberHome | null>(null);
   const [matterId, setMatterIdState] = useState<string | null>(null);
+  // With a stored token, show the shell and the page skeleton straight away
+  // (read after mount so server render and hydration agree).
+  const [hasToken, setHasToken] = useState(false);
+  const boot = useSkeleton(phase === "loading" && hasToken);
 
   const load = useCallback(async () => {
     try {
@@ -71,6 +76,7 @@ export default function StatusApp({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    setHasToken(!!getRoleToken("client"));
     void load();
   }, [load]);
 
@@ -95,10 +101,51 @@ export default function StatusApp({ children }: { children: ReactNode }) {
     };
   }, [home, load, matterId, setMatterId, welcome]);
 
-  if (phase === "loading") {
+  const title = TITLES.find(([re]) => re.test(pathname))?.[1];
+
+  const shell = (ctx: typeof value, body: ReactNode) => {
+    // Matter-scoped screens only: Overview and booking.
+    const showSwitcher = !!ctx && ctx.home.matters.length > 1 && (pathname === "/status" || pathname.startsWith("/status/book"));
     return (
-      <div className={s.center} role="status">
-        <p className={s.loading}>Opening your ILP home…</p>
+      <MemberContext.Provider value={ctx}>
+        <RoleShell
+          role="client"
+          nav={CLIENT_NAV}
+          title={title}
+          actions={showSwitcher ? <MatterSwitcher /> : undefined}
+          user={ctx ? { name: ctx.home.member.name, email: ctx.home.member.email ?? "", title: "ILP member" } : null}
+          onLogout={() => {
+            void memberApi.logout().then(() => {
+              setHome(null);
+              setPhase("signedOut");
+              router.replace("/status");
+            });
+          }}
+          menuLinks={MEMBER_MENU_LINKS}
+          showCountry={false}
+          bell={null}
+          homeHref="/status"
+        >
+          <div className={s.root}>{body}</div>
+        </RoleShell>
+      </MemberContext.Provider>
+    );
+  };
+
+  if (phase === "loading") {
+    if (hasToken) {
+      return shell(
+        null,
+        <SkeletonRegion label="Opening your ILP home" visible={boot.skeletonVisible}>
+          <StatusRouteSkeleton pathname={pathname} />
+        </SkeletonRegion>,
+      );
+    }
+    return (
+      <div className={s.center}>
+        <p className={s.sr} role="status">
+          Opening your ILP home…
+        </p>
       </div>
     );
   }
@@ -116,6 +163,7 @@ export default function StatusApp({ children }: { children: ReactNode }) {
             : undefined
         }
         onSuccess={() => {
+          setHasToken(true);
           setPhase("loading");
           if (next && next.startsWith("/status")) router.replace(next);
           void load();
@@ -136,32 +184,5 @@ export default function StatusApp({ children }: { children: ReactNode }) {
     );
   }
 
-  const title = TITLES.find(([re]) => re.test(pathname))?.[1];
-  // Matter-scoped screens only: Overview and booking.
-  const showSwitcher = value.home.matters.length > 1 && (pathname === "/status" || pathname.startsWith("/status/book"));
-
-  return (
-    <MemberContext.Provider value={value}>
-      <RoleShell
-        role="client"
-        nav={CLIENT_NAV}
-        title={title}
-        actions={showSwitcher ? <MatterSwitcher /> : undefined}
-        user={{ name: value.home.member.name, email: value.home.member.email ?? "", title: "ILP member" }}
-        onLogout={() => {
-          void memberApi.logout().then(() => {
-            setHome(null);
-            setPhase("signedOut");
-            router.replace("/status");
-          });
-        }}
-        menuLinks={MEMBER_MENU_LINKS}
-        showCountry={false}
-        bell={null}
-        homeHref="/status"
-      >
-        <div className={s.root}>{children}</div>
-      </RoleShell>
-    </MemberContext.Provider>
-  );
+  return shell(value, children);
 }

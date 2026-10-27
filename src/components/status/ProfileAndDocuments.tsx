@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, DateInput, ProgressBar, Select, StatusPill, TextInput } from "@/components/ui";
+import { Button, DateInput, ProgressBar, Select, Stagger, StaggerItem, StatusPill, TextInput } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import type { ProfileSection } from "@/lib/contracts";
 import { memberApi } from "./api";
@@ -29,8 +29,9 @@ export default function ProfileAndDocuments() {
   }, []);
 
   return (
+    <Stagger>
     <div className={s.page}>
-      <section className={s.summary} aria-labelledby="completion-title">
+      <StaggerItem as="section" index={0} className={s.summary} aria-labelledby="completion-title">
         <div className={s.summaryHead}>
           <h2 className={s.summaryTitle} id="completion-title">
             Your profile is {pct}% complete
@@ -47,16 +48,21 @@ export default function ProfileAndDocuments() {
             ? "Your lawyer has what they need before a call. Keep it up to date when something changes."
             : "Fill in at least 70% so your lawyer can prepare before your call. Your ILP team sees the same number."}
         </p>
-      </section>
+      </StaggerItem>
 
       <div className={s.sections}>
-        {PROFILE_SECTIONS.map((sec) => (
-          <SectionForm key={sec} section={sec} />
+        {PROFILE_SECTIONS.map((sec, i) => (
+          <StaggerItem key={sec} index={i + 1}>
+            <SectionForm section={sec} />
+          </StaggerItem>
         ))}
       </div>
 
-      <DocumentsPanel />
+      <StaggerItem index={PROFILE_SECTIONS.length + 1}>
+        <DocumentsPanel />
+      </StaggerItem>
     </div>
+    </Stagger>
   );
 }
 

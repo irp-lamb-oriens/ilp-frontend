@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Checkbox, EmptyState, StatusPill, TextInput } from "@/components/ui";
+import { Button, Checkbox, EmptyState, SkeletonRegion, Stagger, StaggerItem, StatusPill, TextInput, useSkeleton } from "@/components/ui";
 import type { StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MoneyPayload, type QuoteView } from "./api";
 import { useMember } from "./MemberContext";
 import { dateLong, dateShort, money } from "./format";
+import { MoneySkeleton } from "./StatusSkeletons";
 import s from "./MoneyView.module.scss";
 
 const CHARGE_STATUS: Record<string, { label: string; tone: StatusTone }> = {
@@ -25,17 +26,29 @@ export default function MoneyView() {
     memberApi.money().then(setData).catch(() => setError(true));
   }, []);
 
+  const { showSkeleton, skeletonVisible } = useSkeleton(!data && !error);
   if (error) {
-    return <EmptyState title="We could not load your payments" body="Try again in a minute. Nothing has changed on your account." />;
+    return (
+      <StaggerItem>
+        <EmptyState title="We could not load your payments" body="Try again in a minute. Nothing has changed on your account." />
+      </StaggerItem>
+    );
   }
-  if (!data) return <p className={s.muted}>Loading…</p>;
+  if (showSkeleton || !data) {
+    return (
+      <SkeletonRegion label="Loading your payments" visible={skeletonVisible}>
+        <MoneySkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const awaiting = data.quotes.filter((q) => q.status === "awaiting");
   const others = data.quotes.filter((q) => q.status !== "awaiting");
 
   return (
+    <Stagger>
     <div className={s.page}>
-      <section className={s.balance} aria-labelledby="balance-title">
+      <StaggerItem as="section" index={0} className={s.balance} aria-labelledby="balance-title">
         <h2 className={s.balanceLabel} id="balance-title">
           Balance due
         </h2>
@@ -47,10 +60,10 @@ export default function MoneyView() {
               : "Your ILP team sends payment instructions by email."
             : "You are all paid up. Thank you."}
         </p>
-      </section>
+      </StaggerItem>
 
       {awaiting.length > 0 && (
-        <section className={s.block} aria-labelledby="awaiting-title">
+        <StaggerItem as="section" index={1} className={s.block} aria-labelledby="awaiting-title">
           <h2 className={s.blockTitle} id="awaiting-title">
             {awaiting.length === 1 ? "A proposal is waiting for your answer" : "Proposals waiting for your answer"}
           </h2>
@@ -59,10 +72,10 @@ export default function MoneyView() {
               <QuoteCard key={q.id} quote={q} onAccepted={setData} />
             ))}
           </div>
-        </section>
+        </StaggerItem>
       )}
 
-      <section className={s.block} aria-labelledby="history-title">
+      <StaggerItem as="section" index={2} className={s.block} aria-labelledby="history-title">
         <h2 className={s.blockTitle} id="history-title">
           Charges and proposals
         </h2>
@@ -108,8 +121,9 @@ export default function MoneyView() {
             })}
           </ul>
         )}
-      </section>
+      </StaggerItem>
     </div>
+    </Stagger>
   );
 }
 

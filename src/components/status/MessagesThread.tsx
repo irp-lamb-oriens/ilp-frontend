@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, EmptyState, TextArea } from "@/components/ui";
+import { Button, EmptyState, TextArea, Loadable, Stagger, StaggerItem, STAGGER_MAX } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type ThreadItem } from "./api";
 import { isLegalTopic } from "./messageRules";
 import { announceAiConsent, useAiConsent } from "@/components/legal/aiConsent";
 import { dateShort, timeOfDay } from "./format";
+import { ThreadSkeleton } from "./StatusSkeletons";
 import s from "./MessagesThread.module.scss";
 
 /**
@@ -59,17 +60,24 @@ export default function MessagesThread() {
       </p>
 
       <div className={s.thread} aria-live="polite">
-        {items === null ? (
-          <p className={s.muted}>Loading messages…</p>
-        ) : items.length === 0 ? (
-          <EmptyState compact title="No messages yet" body="Your conversation with your ILP team will appear here." />
-        ) : (
-          <ol className={s.list}>
-            {items.map((m) => (
-              <Message key={m.id} m={m} />
-            ))}
-          </ol>
-        )}
+        <Loadable loading={items === null} label="Loading messages" skeleton={<ThreadSkeleton />}>
+          {() =>
+            items === null ? null : items.length === 0 ? (
+              <StaggerItem>
+                <EmptyState compact title="No messages yet" body="Your conversation with your ILP team will appear here." />
+              </StaggerItem>
+            ) : (
+              <Stagger>
+                <ol className={s.list}>
+                  {items.map((m, i) => (
+                    // The newest messages (at the bottom, in view) stagger; older ones land together.
+                    <Message key={m.id} m={m} index={Math.max(0, i - (items.length - STAGGER_MAX - 1))} />
+                  ))}
+                </ol>
+              </Stagger>
+            )
+          }
+        </Loadable>
         <div ref={endRef} />
       </div>
 
@@ -111,11 +119,11 @@ export default function MessagesThread() {
   );
 }
 
-function Message({ m }: { m: ThreadItem }) {
+function Message({ m, index }: { m: ThreadItem; index: number }) {
   const when = m.at ? `${dateShort(m.at)}, ${timeOfDay(m.at)}` : "";
   if (m.kind === "ai") {
     return (
-      <li className={s.ai}>
+      <StaggerItem as="li" index={index} className={s.ai}>
         <p className={s.aiHead}>
           <span className={s.aiTag}>AI assistant</span>
           <span className={s.when}>{when}</span>
@@ -124,18 +132,18 @@ function Message({ m }: { m: ThreadItem }) {
         {isLegalTopic(m.body) && (
           <p className={s.confirm}>This is general information, not legal advice. Your team will confirm.</p>
         )}
-      </li>
+      </StaggerItem>
     );
   }
   const mine = m.kind === "member";
   return (
-    <li className={mine ? s.mine : s.team}>
+    <StaggerItem as="li" index={index} className={mine ? s.mine : s.team}>
       <p className={s.head}>
         <span className={s.author}>{mine ? "You" : m.author}</span>
         {mine && m.to === "ai" && <span className={s.toAi}>to the AI assistant</span>}
         <span className={s.when}>{when}</span>
       </p>
       <p className={s.body}>{m.body}</p>
-    </li>
+    </StaggerItem>
   );
 }
