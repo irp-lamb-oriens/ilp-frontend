@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, TextInput } from "@/components/ui";
+import { Button, TextInput, Loadable, Skeleton, SkeletonRegion, SkeletonText } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 
@@ -17,6 +17,7 @@ interface LilyMessage {
  */
 export default function CrmLilyTab({ clientId }: { clientId: string }) {
   const [thread, setThread] = useState<LilyMessage[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +31,8 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
       setThread(res.thread ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load Lily thread.");
+    } finally {
+      setLoaded(true);
     }
   }, [clientId]);
 
@@ -64,13 +67,25 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
   return (
     <div className={s.stack}>
       <div ref={listRef} className={s.thread}>
-        {thread.length === 0 && <p className={s.meta}>No conversation yet.</p>}
-        {thread.map((m, i) => (
-          <div key={i} className={`${s.bubble} ${m.role === "user" ? s.user : s.assistant}`}>
-            {m.role !== "user" && <span className={s.aiLabel}>Lily (AI)</span>}
-            {m.content}
-          </div>
-        ))}
+        <Loadable loading={!loaded} label="Loading the Lily thread" className={s.threadSk} skeleton={<LilyThreadSkeleton />}>
+          {() => (
+            <>
+              {thread.length === 0 && <p className={s.meta}>No conversation yet.</p>}
+              {thread.map((m, i) => (
+                <div key={i} className={`${s.bubble} ${m.role === "user" ? s.user : s.assistant}`}>
+                  {m.role !== "user" && <span className={s.aiLabel}>Lily (AI)</span>}
+                  {m.content}
+                </div>
+              ))}
+              {busy && (
+                <SkeletonRegion label="Lily is writing a reply" className={`${s.bubble} ${s.assistant} ${s.bubbleSk}`}>
+                  <Skeleton shape="line" size="xs" width="25" />
+                  <SkeletonText lines={2} size="sm" />
+                </SkeletonRegion>
+              )}
+            </>
+          )}
+        </Loadable>
       </div>
       {error && (
         <p className={s.error} role="alert">
@@ -91,5 +106,24 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
         </Button>
       </form>
     </div>
+  );
+}
+
+/** Two exchanges: a question on the right, Lily's labeled answer on the left. */
+function LilyThreadSkeleton() {
+  return (
+    <>
+      {[0, 1].map((i) => (
+        <div key={i} className={s.threadSk}>
+          <div className={`${s.bubble} ${s.user} ${s.bubbleSk}`} aria-hidden="true">
+            <SkeletonText lines={1} size="sm" />
+          </div>
+          <div className={`${s.bubble} ${s.assistant} ${s.bubbleSk}`} aria-hidden="true">
+            <Skeleton shape="line" size="xs" width="25" />
+            <SkeletonText lines={2} size="sm" />
+          </div>
+        </div>
+      ))}
+    </>
   );
 }

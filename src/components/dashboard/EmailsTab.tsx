@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, Drawer } from "@/components/ui";
+import { Button, Drawer, Loadable, Skeleton } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
@@ -103,7 +103,9 @@ export default function EmailsTab() {
           {error}
         </p>
       )}
-      {pending === null && <p className={s.meta}>Loading…</p>}
+      <Loadable loading={pending === null && !error} label="Loading the email queue" skeleton={<EmailQueueSkeleton />}>
+        {null}
+      </Loadable>
       {pending !== null && pending.length === 0 && <p className={s.meta}>No pending emails.</p>}
 
       {pending !== null && pending.length > 0 && (
@@ -147,6 +149,28 @@ export default function EmailsTab() {
           <pre className={s.pre}>{preview?.text ?? "(no body)"}</pre>
         )}
       </Drawer>
+    </div>
+  );
+}
+
+/** Search field, then queued emails: subject, recipient and type, three actions. */
+function EmailQueueSkeleton() {
+  return (
+    <div className={s.stack} aria-hidden="true">
+      <Skeleton shape="block" size="sm" />
+      {[0, 1, 2].map((i) => (
+        <div key={i} className={s.item}>
+          <div className={s.itemTextSk}>
+            <Skeleton shape="line" size="md" width={i % 2 ? "40" : "60"} />
+            <Skeleton shape="line" size="sm" width="40" />
+          </div>
+          <div className={s.itemActions}>
+            <Skeleton shape="pill" size="lg" width="pill" />
+            <Skeleton shape="pill" size="lg" width="pill-sm" />
+            <Skeleton shape="pill" size="lg" width="pill-sm" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

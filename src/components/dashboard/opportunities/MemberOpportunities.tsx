@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button, Drawer, StatusPill } from "@/components/ui";
+import { Button, Drawer, Loadable, Skeleton, StatusPill } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { memberName, usd } from "../staff/format";
 import type { MemberBundle } from "../staff/types";
@@ -44,7 +44,9 @@ export function MemberOpportunities({ bundle }: { bundle: MemberBundle }) {
       </div>
       {error && <ErrorText>{error}</ErrorText>}
       {items === null && !error ? (
-        <p className={s.meta}>Loading…</p>
+        <Loadable loading label="Loading opportunities" skeleton={<MemberOpportunitiesSkeleton />}>
+          {null}
+        </Loadable>
       ) : sorted.length === 0 ? (
         <p className={s.meta}>None yet. A handoff with commercial notes opens one automatically.</p>
       ) : (
@@ -90,5 +92,24 @@ export function MemberOpportunities({ bundle }: { bundle: MemberBundle }) {
         }}
       />
     </section>
+  );
+}
+
+/** Two opportunity rows: title, then stage pill and value. */
+function MemberOpportunitiesSkeleton() {
+  return (
+    <ul className={s.memberList} aria-hidden="true">
+      {[0, 1].map((i) => (
+        <li key={i}>
+          <div className={s.memberRow}>
+            <Skeleton shape="line" size="md" width={i ? "40" : "60"} />
+            <span className={s.memberRowMeta}>
+              <Skeleton shape="pill" size="sm" />
+              <Skeleton shape="line" size="sm" width="pill-sm" />
+            </span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

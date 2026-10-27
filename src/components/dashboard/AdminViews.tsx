@@ -12,7 +12,8 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
-import { Select } from "@/components/ui";
+import { Select, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { AdminListSkeleton, AssignmentSkeleton, FinanceChartsSkeleton, SalesSkeleton } from "./AdminSkeletons";
 
 interface Provider {
   id: string;
@@ -51,8 +52,15 @@ export function ProvidersList() {
       pageSize: 20,
     });
 
+  const sk = useSkeleton(rows === null && !error);
   if (error) return <p className={styles.errorText}>{error}</p>;
-  if (rows === null) return <p className={styles.muted}>Loading providers…</p>;
+  if (sk.showSkeleton || rows === null) {
+    return (
+      <SkeletonRegion label="Loading providers" visible={sk.skeletonVisible}>
+        <AdminListSkeleton />
+      </SkeletonRegion>
+    );
+  }
   if (rows.length === 0) return <p className={styles.muted}>No providers yet.</p>;
 
   return (
@@ -89,8 +97,15 @@ export function VendorsList() {
       pageSize: 20,
     });
 
+  const sk = useSkeleton(rows === null && !error);
   if (error) return <p className={styles.errorText}>{error}</p>;
-  if (rows === null) return <p className={styles.muted}>Loading vendors…</p>;
+  if (sk.showSkeleton || rows === null) {
+    return (
+      <SkeletonRegion label="Loading vendors" visible={sk.skeletonVisible}>
+        <AdminListSkeleton sub={false} trail />
+      </SkeletonRegion>
+    );
+  }
   if (rows.length === 0) return <p className={styles.muted}>No vendors yet.</p>;
 
   return (
@@ -167,8 +182,15 @@ export function FinanceView() {
       .catch((e) => setError(e instanceof Error ? e.message : "Failed to load finance metrics."));
   }, []);
 
+  const sk = useSkeleton(metrics === null && !error);
   if (error) return <p className={styles.errorText}>{error}</p>;
-  if (metrics === null) return <p className={styles.muted}>Loading finance…</p>;
+  if (sk.showSkeleton || metrics === null) {
+    return (
+      <SkeletonRegion label="Loading quote finance" visible={sk.skeletonVisible}>
+        <FinanceChartsSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const totals = metrics.totals;
 
@@ -287,8 +309,15 @@ export function SalesView() {
       pageSize: 20,
     });
 
+  const sk = useSkeleton(rows === null && !error);
   if (error) return <p className={styles.errorText}>{error}</p>;
-  if (rows === null) return <p className={styles.muted}>Loading sales…</p>;
+  if (sk.showSkeleton || rows === null) {
+    return (
+      <SkeletonRegion label="Loading the sales report" visible={sk.skeletonVisible}>
+        <SalesSkeleton />
+      </SkeletonRegion>
+    );
+  }
   if (rows.length === 0) return <p className={styles.muted}>No sales data.</p>;
 
   return (
@@ -399,8 +428,15 @@ export function AssignmentView() {
     }
   }
 
+  const sk = useSkeleton(queue === null && !error);
   if (error) return <p className={styles.errorText}>{error}</p>;
-  if (queue === null) return <p className={styles.muted}>Loading assignment queue…</p>;
+  if (sk.showSkeleton || queue === null) {
+    return (
+      <SkeletonRegion label="Loading the assignment queue" visible={sk.skeletonVisible}>
+        <AssignmentSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   return (
     <div className={styles.listStack}>

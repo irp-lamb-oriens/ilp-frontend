@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { dashboardFetch } from "@/lib/api";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
-import { Tabs, type TabItem } from "@/components/ui";
+import { Skeleton, SkeletonRegion, Tabs, useSkeleton, type TabItem } from "@/components/ui";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -71,8 +71,15 @@ export default function ClientsPanel() {
     pageSize: 20,
   });
 
+  const sk = useSkeleton(clients === null && !error);
   if (error) return <p className={styles.error} role="alert">{error}</p>;
-  if (clients === null) return <p className={styles.empty}>Loading clients…</p>;
+  if (sk.showSkeleton || clients === null) {
+    return (
+      <SkeletonRegion label="Loading clients" visible={sk.skeletonVisible}>
+        <ClientsPanelSkeleton />
+      </SkeletonRegion>
+    );
+  }
 
   const c = selected;
   const notes = Array.isArray(c?.notes) ? (c.notes as Array<Record<string, unknown>>) : [];
@@ -182,6 +189,27 @@ export default function ClientsPanel() {
         )}
       </div>
     </section>
+  );
+}
+
+/** Client list pane (title, search, rows) beside the empty detail pane. */
+function ClientsPanelSkeleton() {
+  return (
+    <div className={styles.section} aria-hidden="true">
+      <div className={styles.listPane}>
+        <Skeleton shape="line" size="md" width="40" />
+        <Skeleton shape="block" size="sm" />
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className={styles.clientItem}>
+            <Skeleton shape="line" size="md" width={i % 2 ? "60" : "75"} />
+            <Skeleton shape="line" size="xs" width="40" />
+          </div>
+        ))}
+      </div>
+      <div className={styles.detailPane}>
+        <Skeleton shape="line" size="sm" width="40" />
+      </div>
+    </div>
   );
 }
 

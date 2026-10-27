@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, StatusPill, type StatusTone } from "@/components/ui";
+import { Button, Loadable, Skeleton, StatusPill, type StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import type { ConsentKind, PrivacyRequest } from "@/lib/contracts";
 import { useMember } from "@/components/status/MemberContext";
 import { type PrivacyMe, privacyApi, recordConsent } from "./consentApi";
 import { announceAiConsent } from "./aiConsent";
+import { PrivacyRequestsSkeleton } from "@/components/status/StatusSkeletons";
 import s from "./PrivacyCenter.module.scss";
 
 const KIND_LABEL: Record<PrivacyRequest["kind"], string> = {
@@ -91,7 +92,7 @@ export default function PrivacyCenter() {
         )}
       </section>
 
-      <Choices me={me} onChange={load} />
+      <Choices me={me} loading={me === null && !loadError} onChange={load} />
 
       <RequestForm
         kind="rectify"
@@ -120,6 +121,9 @@ export default function PrivacyCenter() {
             {loadError}
           </p>
         )}
+        <Loadable loading={me === null && !loadError} label="Loading your requests" skeleton={<PrivacyRequestsSkeleton />}>
+          {null}
+        </Loadable>
         {me && me.requests.length === 0 && <p className={s.text}>No requests yet.</p>}
         {me && me.requests.length > 0 && (
           <ul className={s.requests}>
@@ -151,7 +155,7 @@ export default function PrivacyCenter() {
 
 // ─── Consents ────────────────────────────────────────────────────────────
 
-function Choices({ me, onChange }: { me: PrivacyMe | null; onChange: () => Promise<void> }) {
+function Choices({ me, loading, onChange }: { me: PrivacyMe | null; loading: boolean; onChange: () => Promise<void> }) {
   const [busy, setBusy] = useState<ConsentKind | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -185,6 +189,9 @@ function Choices({ me, onChange }: { me: PrivacyMe | null; onChange: () => Promi
   return (
     <section className={s.card} aria-labelledby="choices-title">
       <h2 id="choices-title" className={s.title}>Your choices</h2>
+      <Loadable loading={loading} label="Loading your choices" className={s.choices} skeleton={<ChoicesSkeleton />}>
+      {() => (
+      <>
 
       <div className={s.choice}>
         <div>
@@ -232,6 +239,9 @@ function Choices({ me, onChange }: { me: PrivacyMe | null; onChange: () => Promi
           </Button>
         )}
       </div>
+      </>
+      )}
+      </Loadable>
 
       {msg && (
         <p className={s.ok} role="status">
@@ -244,6 +254,24 @@ function Choices({ me, onChange }: { me: PrivacyMe | null; onChange: () => Promi
         </p>
       )}
     </section>
+  );
+}
+
+/** The three consent rows (name, status line, button) while /privacy/me loads. */
+function ChoicesSkeleton() {
+  return (
+    <>
+      {[0, 1, 2].map((i) => (
+        <div key={i} className={s.choice}>
+          <div>
+            <Skeleton shape="line" size="md" width="40" />
+            <Skeleton shape="line" size="sm" width="90" />
+            <Skeleton shape="line" size="sm" width="60" />
+          </div>
+          <Skeleton shape="block" size="sm" width="pill-lg" />
+        </div>
+      ))}
+    </>
   );
 }
 

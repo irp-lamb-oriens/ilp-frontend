@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AgingBadge, Button, EmptyState, StatusPill, TextInput } from "@/components/ui";
+import { AgingBadge, Button, EmptyState, Loadable, StatusPill, TextInput } from "@/components/ui";
 import BriefPanel from "./BriefPanel";
 import MoveToMenu from "./MoveToMenu";
 import NotesTab from "./NotesTab";
+import { BriefPanelSkeleton, InspectorCallsSkeleton, NotesSkeleton } from "./LawyerSkeletons";
 import { areaLabel, errorText, fmtDate, fmtShortDate, lawyerApi, WHO_LABEL, type BoardCard, type ClientBrief } from "./lawyerApi";
 import { SummaryPill } from "./pills";
 import type { LawyerClient } from "./types";
@@ -26,8 +27,11 @@ function useLoad<T>(load: () => Promise<T>) {
 export function BriefTab({ load }: { load: () => Promise<ClientBrief> }) {
   const { data, error } = useLoad(load);
   if (error) return <EmptyState compact title="Brief did not load" body={error} />;
-  if (!data) return <p className={s.muted}>Loading brief…</p>;
-  return <BriefPanel brief={data} showWhen={false} />;
+  return (
+    <Loadable loading={!data} label="Loading the brief" skeleton={<BriefPanelSkeleton />}>
+      {() => data && <BriefPanel brief={data} showWhen={false} />}
+    </Loadable>
+  );
 }
 
 const LEGAL_FIELDS = [
@@ -121,8 +125,12 @@ export function NotesCallsTab({ loadBrief, loadClient }: { loadBrief: () => Prom
     <div className={s.stack}>
       <section aria-labelledby="calls-h">
         <h3 id="calls-h" className={s.h3}>Your calls</h3>
-        {!brief.data ? (
-          <p className={s.muted}>{brief.error ?? "Loading calls…"}</p>
+        {brief.error ? (
+          <p className={s.muted}>{brief.error}</p>
+        ) : !brief.data ? (
+          <Loadable loading label="Loading calls" skeleton={<InspectorCallsSkeleton />}>
+            {null}
+          </Loadable>
         ) : brief.data.calls.length === 0 ? (
           <p className={s.muted}>No calls with this member yet.</p>
         ) : (
@@ -145,7 +153,13 @@ export function NotesCallsTab({ loadBrief, loadClient }: { loadBrief: () => Prom
       </section>
       <section aria-labelledby="notes-h">
         <h3 id="notes-h" className={s.h3}>Notes</h3>
-        {client.data ? <NotesTab client={client.data} onRefreshed={(c) => client.setData(c)} /> : <p className={s.muted}>{client.error ?? "Loading notes…"}</p>}
+        {client.error ? (
+          <p className={s.muted}>{client.error}</p>
+        ) : (
+          <Loadable loading={!client.data} label="Loading notes" skeleton={<NotesSkeleton />}>
+            {() => client.data && <NotesTab client={client.data} onRefreshed={(c) => client.setData(c)} />}
+          </Loadable>
+        )}
       </section>
     </div>
   );

@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
-import { Button, EmptyState, StatusPill, TextInput, type StatusTone } from "@/components/ui";
+import { Button, EmptyState, Loadable, StatusPill, TextInput, type StatusTone } from "@/components/ui";
 import { errorText, fmtShortDate, money } from "./lawyerApi";
 import { QUOTE_STATUS_LABELS, type FeeLine, type QuoteStatus } from "./types";
+import { QuotesListSkeleton } from "./LawyerSkeletons";
 import s from "./FeeQuotesTab.module.scss";
 
 /** A quote as the provider API returns it: no margins, no client price. */
@@ -153,7 +154,9 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
         <Button size="sm" onClick={() => edit()}>New quote</Button>
       </div>
       {error && <p className={s.error} role="alert">{error}</p>}
-      {quotes === null && !error && <p className={s.muted}>Loading quotes…</p>}
+      <Loadable loading={quotes === null && !error} label="Loading quotes" skeleton={<QuotesListSkeleton />}>
+        {null}
+      </Loadable>
       {quotes && quotes.length === 0 && <EmptyState compact title="No quotes yet" body="Scope paid work here after a call. The ILP team prices and sends it." />}
       {quotes && quotes.length > 0 && (
         <ul className={s.list}>

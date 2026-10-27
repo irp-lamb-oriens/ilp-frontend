@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
+import { SkeletonRegion, useSkeleton } from "@/components/ui";
+import { DeadlinesSkeleton } from "./LawyerSkeletons";
 import styles from "./DeadlineEditor.module.scss";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -80,6 +82,7 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
   useEffect(() => {
     load();
   }, [load]);
+  const sk = useSkeleton(loading && !payload);
 
   async function act(priorityId: string, fn: () => Promise<void>) {
     setBusyId(priorityId);
@@ -103,7 +106,13 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
     act(priorityId, () => adapter.save(priorityId, date));
   }
 
-  if (loading && !payload) return <p className={styles.empty}>Loading deadlines…</p>;
+  if (sk.showSkeleton) {
+    return (
+      <SkeletonRegion label="Loading deadlines" visible={sk.skeletonVisible}>
+        <DeadlinesSkeleton />
+      </SkeletonRegion>
+    );
+  }
   if (!payload) return <p className={styles.error}>{error ?? "Could not load deadlines."}</p>;
 
   if (!payload.countryCode || payload.priorities.length === 0) {

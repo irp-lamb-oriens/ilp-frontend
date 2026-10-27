@@ -45,3 +45,30 @@ export default function MemberSkeleton() {
     </>
   );
 }
+
+/** Task drawer "Member at a glance": name and email, completeness bar, four facts, next step. */
+export function MemberGlanceSkeleton() {
+  return (
+    <div className={s.block} aria-hidden="true">
+      <div className={s.blockHead}>
+        <Skeleton shape="line" size="lg" width="40" />
+        <Skeleton shape="line" size="sm" width="25" />
+      </div>
+      <Skeleton shape="line" size="sm" width="40" />
+      <Skeleton shape="pill" size="xs" width="100" />
+      <div className={s.facts}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i}>
+            <Skeleton shape="line" size="xs" width="60" />
+            <Skeleton shape="line" size="md" width="40" />
+          </div>
+        ))}
+      </div>
+      <div className={s.nextStep}>
+        <Skeleton shape="line" size="xs" width="25" />
+        <Skeleton shape="line" size="md" width="75" />
+        <Skeleton shape="line" size="sm" width="25" />
+      </div>
+    </div>
+  );
+}

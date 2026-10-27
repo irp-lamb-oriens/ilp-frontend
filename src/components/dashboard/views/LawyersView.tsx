@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { DataTable, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
+import { DataTable, EmptyState, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, useSkeleton, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
+import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
 import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
 import { useLawyers } from "../staff/useLawyers";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
@@ -74,7 +75,7 @@ function Capacity() {
 
 /** Staff edit any lawyer's weekly hours, days off, limits and specialties (P3 routes). */
 function Hours() {
-  const { lawyers } = useLawyers();
+  const { lawyers, loaded } = useLawyers();
   const [pick, setPick] = useState("");
   const id = pick || lawyers[0]?.id || "";
   const name = lawyers.find((l) => l.id === id)?.name ?? "Lawyer";
@@ -86,7 +87,15 @@ function Hours() {
     };
   }, [id]);
 
-  if (!lawyers.length) return <p className={s.note}>Loading lawyers…</p>;
+  const sk = useSkeleton(!loaded);
+  if (sk.showSkeleton) {
+    return (
+      <SkeletonRegion label="Loading lawyers" visible={sk.skeletonVisible}>
+        <HoursSkeleton />
+      </SkeletonRegion>
+    );
+  }
+  if (!lawyers.length) return <EmptyState compact title="No active lawyers" body="Add a lawyer in the Directory tab, then set their hours here." />;
   return (
     <div className={s.stack}>
       <Select label="Lawyer" value={id} onChange={(e) => setPick(e.target.value)}>
@@ -97,6 +106,19 @@ function Hours() {
         ))}
       </Select>
       <AvailabilityView key={id} adapter={adapter} title={`${name}: hours`} showBack={false} />
+    </div>
+  );
+}
+
+/** Lawyer picker over the hours editor, while the lawyer list loads. */
+export function HoursSkeleton() {
+  return (
+    <div className={s.stack} aria-hidden="true">
+      <div className={s.fieldSk}>
+        <Skeleton shape="line" size="sm" width="25" />
+        <Skeleton shape="block" size="sm" />
+      </div>
+      <LawyerAvailabilitySkeleton />
     </div>
   );
 }

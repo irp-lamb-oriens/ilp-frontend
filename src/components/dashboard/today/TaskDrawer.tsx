@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
-import { Drawer, ProgressBar, StatusPill } from "@/components/ui";
-import { ErrorText, Muted } from "../staff/PageHeader";
+import { Drawer, Loadable, ProgressBar, StatusPill } from "@/components/ui";
+import { ErrorText } from "../staff/PageHeader";
+import { MemberGlanceSkeleton } from "../member/MemberSkeleton";
 import { dueLabel, memberName, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import type { MemberBundle, QueueTask } from "../staff/types";
 import { CloseTaskForm } from "../member/CloseTaskForm";
@@ -78,7 +79,9 @@ export function TaskDrawer({
           </div>
 
           {error && <ErrorText>{error}</ErrorText>}
-          {!b && !error && <Muted>Loading member…</Muted>}
+          <Loadable loading={!b && !error} label="Loading member" skeleton={<MemberGlanceSkeleton />}>
+            {null}
+          </Loadable>
 
           {b && (
             <>

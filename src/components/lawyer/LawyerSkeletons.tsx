@@ -7,6 +7,11 @@ import clients from "./ClientsView.module.scss";
 import finance from "./FinanceView.module.scss";
 import avail from "./AvailabilityView.module.scss";
 import call from "./CallView.module.scss";
+import brief from "./BriefPanel.module.scss";
+import insp from "./InspectorTabs.module.scss";
+import notes from "./notesTab.module.scss";
+import fq from "./FeeQuotesTab.module.scss";
+import dl from "./DeadlineEditor.module.scss";
 
 /** Today's call rows: time, member and matter, consent and summary pills. */
 export function CallsSkeleton({ rows = 4 }: { rows?: number }) {
@@ -143,6 +148,146 @@ export function LawyerCallSkeleton() {
           <SkeletonCard badge lines={3} action />
         </div>
       </div>
+    </div>
+  );
+}
+
+/** BriefPanel: name and facts, the question, six profile cells, matters and dates, completeness. */
+export function BriefPanelSkeleton() {
+  return (
+    <div className={brief.brief} aria-hidden="true">
+      <div className={brief.head}>
+        <div>
+          <Skeleton shape="line" size="lg" width="pill-lg" />
+          <Skeleton shape="line" size="sm" width="pill-lg" />
+        </div>
+      </div>
+      <div className={brief.question}>
+        <Skeleton shape="line" size="xs" width="25" />
+        <SkeletonText lines={2} />
+      </div>
+      <div className={brief.grid}>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className={brief.cell}>
+            <Skeleton shape="line" size="xs" width="40" />
+            <Skeleton shape="line" size="md" width={i % 2 ? "60" : "75"} />
+          </div>
+        ))}
+      </div>
+      <div className={brief.split}>
+        {[0, 1].map((c) => (
+          <div key={c}>
+            <Skeleton shape="line" size="md" width="40" />
+            <div className={brief.items}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className={brief.item}>
+                  <Skeleton shape="line" size="md" width={i % 2 ? "60" : "75"} />
+                  <Skeleton shape="line" size="sm" width="40" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className={brief.foot}>
+        <Skeleton shape="line" size="sm" width="40" />
+        <Skeleton shape="pill" size="xs" width="100" />
+      </div>
+    </div>
+  );
+}
+
+/** Inspector "Your calls": date, pills, the question and summary per call. */
+export function InspectorCallsSkeleton({ rows = 2 }: { rows?: number }) {
+  return (
+    <ul className={insp.calls} aria-hidden="true">
+      {Array.from({ length: rows }, (_, i) => (
+        <li key={i} className={insp.call}>
+          <span className={insp.callHead}>
+            <Skeleton shape="line" size="md" width="40" />
+            <Skeleton shape="pill" size="sm" />
+          </span>
+          <Skeleton shape="line" size="sm" width="75" />
+          <Skeleton shape="line" size="sm" width="90" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Notes: the composer, then a few notes with author and time. */
+export function NotesSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className={notes.notes} aria-hidden="true">
+      <div className={notes.composer}>
+        <Skeleton shape="block" size="md" />
+        <Skeleton shape="line" size="sm" width="25" />
+      </div>
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className={notes.note}>
+          <div className={notes.noteMeta}>
+            <Skeleton shape="line" size="sm" width="25" />
+            <Skeleton shape="line" size="xs" width="15" />
+          </div>
+          <SkeletonText lines={i % 2 ? 1 : 2} size="sm" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Fee quotes: title and status, fee lines, the footer with your fee. */
+export function QuotesListSkeleton({ rows = 2 }: { rows?: number }) {
+  return (
+    <ul className={fq.list} aria-hidden="true">
+      {Array.from({ length: rows }, (_, i) => (
+        <li key={i} className={fq.quote}>
+          <div className={fq.qHead}>
+            <Skeleton shape="line" size="md" width="40" />
+            <Skeleton shape="pill" size="sm" />
+          </div>
+          <ul className={fq.qLines}>
+            {[0, 1].map((l) => (
+              <li key={l}>
+                <Skeleton shape="line" size="sm" width="40" />
+                <Skeleton shape="line" size="sm" width="15" />
+              </li>
+            ))}
+          </ul>
+          <div className={fq.qFoot}>
+            <Skeleton shape="line" size="xs" width="25" />
+            <Skeleton shape="line" size="sm" width="25" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Deadline editor: a category heading, then rows with title, description and a date field. */
+export function DeadlinesSkeleton({ groups = [2, 2] }: { groups?: number[] }) {
+  return (
+    <div className={dl.wrap} aria-hidden="true">
+      {groups.map((n, g) => (
+        <section key={g} className={dl.group}>
+          <Skeleton shape="line" size="md" width="25" />
+          <ul className={dl.list}>
+            {Array.from({ length: n }, (_, i) => (
+              <li key={i} className={dl.row}>
+                <div className={dl.rowHead}>
+                  <Skeleton shape="line" size="md" width="60" />
+                </div>
+                <Skeleton shape="line" size="sm" width="90" />
+                <div className={dl.rowControls}>
+                  <Skeleton shape="line" size="sm" width="25" />
+                  <Skeleton shape="block" size="sm" width="pill-lg" />
+                  <Skeleton shape="block" size="sm" width="pill" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }

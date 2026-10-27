@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { downloadFile, staffApi } from "@/lib/api";
 import { providerApi } from "@/lib/provider";
-import { StatusPill } from "@/components/ui";
+import { Loadable, Skeleton, StatusPill } from "@/components/ui";
 import { DownloadButton } from "./DownloadButton";
 import s from "./MemberDocumentsList.module.scss";
 
@@ -87,7 +87,9 @@ export function MemberDocumentsList({
           {error}
         </p>
       )}
-      {!error && !items && <p className={s.meta}>Loading documents…</p>}
+      <Loadable loading={!error && !items} label="Loading documents" skeleton={<DocumentsSkeleton />}>
+        {null}
+      </Loadable>
       {items && items.length === 0 && <p className={s.meta}>The member has not uploaded any documents yet.</p>}
       {items && items.length > 0 && (
         <ul className={s.list}>
@@ -110,6 +112,23 @@ export function MemberDocumentsList({
         </ul>
       )}
     </section>
+  );
+}
+
+/** Three files: name, matter and date, category pill. */
+function DocumentsSkeleton() {
+  return (
+    <ul className={s.list} aria-hidden="true">
+      {[0, 1, 2].map((i) => (
+        <li key={i} className={s.item}>
+          <div className={s.mainSk}>
+            <Skeleton shape="line" size="md" width={i % 2 ? "40" : "60"} />
+            <Skeleton shape="line" size="xs" width="40" />
+          </div>
+          <Skeleton shape="pill" size="sm" />
+        </li>
+      ))}
+    </ul>
   );
 }
 

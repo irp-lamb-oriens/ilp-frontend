@@ -73,3 +73,11 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+// Skeleton row text: takes the free width so percent-wide lines have a size.
+.mainSk {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}

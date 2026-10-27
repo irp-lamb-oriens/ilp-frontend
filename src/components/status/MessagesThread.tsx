@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, EmptyState, TextArea, Loadable, Stagger, StaggerItem, STAGGER_MAX } from "@/components/ui";
+import { Button, EmptyState, TextArea, Loadable, Skeleton, SkeletonRegion, SkeletonText, Stagger, StaggerItem, STAGGER_MAX } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type ThreadItem } from "./api";
 import { isLegalTopic } from "./messageRules";
@@ -78,6 +78,15 @@ export default function MessagesThread() {
             )
           }
         </Loadable>
+        {busy === "ai" && items !== null && (
+          // Where the assistant's reply will land, in the reply's own bubble.
+          <SkeletonRegion label="The AI assistant is writing a reply" className={s.pendingReply}>
+            <div className={s.ai} aria-hidden="true">
+              <Skeleton shape="pill" size="sm" />
+              <SkeletonText lines={2} size="sm" />
+            </div>
+          </SkeletonRegion>
+        )}
         <div ref={endRef} />
       </div>
 

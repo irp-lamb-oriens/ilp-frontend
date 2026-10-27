@@ -7,8 +7,10 @@ import {
   Button,
   DateInput,
   Drawer,
+  Loadable,
   MoneyInput,
   Select,
+  Skeleton,
   StatusPill,
   TextArea,
   TextInput,
@@ -233,6 +235,24 @@ function QuotePanel({ o, onChanged }: { o: OpportunityRow; onChanged: (row: Oppo
       ) : (
         <>
           <p className={s.meta}>Linking a quote moves the opportunity to quoted. When the member accepts it, the opportunity is marked won.</p>
+          {quotes === null && (
+            <Loadable
+              loading
+              label="Loading this member's quotes"
+              className={s.inlineForm}
+              skeleton={
+                <>
+                  <div>
+                    <Skeleton shape="line" size="sm" width="40" />
+                    <Skeleton shape="block" size="sm" />
+                  </div>
+                  <Skeleton shape="block" size="sm" width="pill-lg" />
+                </>
+              }
+            >
+              {null}
+            </Loadable>
+          )}
           {quotes && quotes.length > 0 && (
             <div className={s.inlineForm}>
               <Select

@@ -127,3 +127,8 @@
   flex-wrap: wrap;
   gap: $space-2;
 }
+
+// Placeholder for the assistant's reply while it is being written (list gap above it).
+.pendingReply {
+  margin-top: $space-3;
+}

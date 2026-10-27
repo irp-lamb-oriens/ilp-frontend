@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import FunnelHeader from "@/app/check/FunnelHeader";
 import { setRoleToken } from "@/lib/api";
 import { type JoinStatus, PRICE, joinStatus, longDate, portalSession } from "../joinApi";
+import { Skeleton, SkeletonRegion, SkeletonText } from "@/components/ui";
 import s from "@/app/check/funnel.module.scss";
 
 const POLL_MS = 3000;
@@ -95,7 +96,9 @@ export default function WelcomePage() {
             <Link href="/status" className={s.primary}>Sign in with my email</Link>
           </>
         ) : !status ? (
-          <p className={s.help} role="status">Loading your membership…</p>
+          <SkeletonRegion label="Loading your membership">
+            <WelcomeSkeleton />
+          </SkeletonRegion>
         ) : active ? (
           <>
             <h1 className={s.title}>Welcome to ILP</h1>
@@ -150,6 +153,26 @@ export default function WelcomePage() {
           </>
         )}
       </main>
+    </div>
+  );
+}
+
+/** The active-membership welcome: heading, intro, minutes / calls / renewal card, next step, button. */
+function WelcomeSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <Skeleton shape="line" size="xl" width="60" className={s.title} />
+      <SkeletonText lines={1} className={s.help} />
+      <div className={s.statusCard}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={s.totalRow}>
+            <Skeleton shape="line" size="md" width="25" />
+            <Skeleton shape="line" size="md" width="25" />
+          </div>
+        ))}
+      </div>
+      <SkeletonText lines={2} className={s.help} />
+      <Skeleton shape="block" size="sm" width="pill-lg" />
     </div>
   );
 }

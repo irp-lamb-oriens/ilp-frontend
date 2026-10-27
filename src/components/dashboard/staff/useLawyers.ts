@@ -32,15 +32,20 @@ function load(): Promise<LawyerOption[]> {
 }
 
 /** Lawyers (providers) for names and the assign picker. Fetched once per page load. */
-export function useLawyers(): { lawyers: LawyerOption[]; nameOf: (id?: string | null) => string } {
+export function useLawyers(): { lawyers: LawyerOption[]; loaded: boolean; nameOf: (id?: string | null) => string } {
   const [lawyers, setLawyers] = useState<LawyerOption[]>([]);
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     let live = true;
-    load().then((l) => live && setLawyers(l));
+    load().then((l) => {
+      if (!live) return;
+      setLawyers(l);
+      setLoaded(true);
+    });
     return () => {
       live = false;
     };
   }, []);
   const nameOf = (id?: string | null) => (id ? lawyers.find((l) => l.id === id)?.name ?? "Assigned lawyer" : "Unassigned");
-  return { lawyers, nameOf };
+  return { lawyers, loaded, nameOf };
 }

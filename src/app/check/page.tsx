@@ -5,6 +5,7 @@ import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import FunnelHeader from "./FunnelHeader";
+import { Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
 import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
 import {
   type CheckAnswers,
@@ -171,6 +172,8 @@ export default function CheckPage() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [leadId, setLeadId] = useState<string | undefined>();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // While the dates are computed, the results page's placeholder replaces the last question.
+  const sk = useSkeleton(busy);
 
   const visible = useMemo(() => STEPS.filter((st) => !("show" in st) || !st.show || st.show(answers)), [answers]);
   const step = visible[Math.min(index, visible.length - 1)];
@@ -243,6 +246,19 @@ export default function CheckPage() {
   const motionProps = reduce
     ? {}
     : { initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.22, ease: [0.23, 1, 0.32, 1] as const } };
+
+  if (sk.showSkeleton) {
+    return (
+      <div className={s.page}>
+        <FunnelHeader note="Free, no account needed" />
+        <main className={s.main}>
+          <SkeletonRegion label="Checking the dates" visible={sk.skeletonVisible}>
+            <CheckResultsSkeleton />
+          </SkeletonRegion>
+        </main>
+      </div>
+    );
+  }
 
   if (done) {
     const groups = groupFindings(findings);
@@ -420,8 +436,6 @@ export default function CheckPage() {
             </form>
           )}
 
-          {busy && <p className={s.progressLabel} role="status">Checking the dates…</p>}
-
           {position > 0 && (
             <div className={s.actions}>
               <button type="button" className={s.linkButton} onClick={back} disabled={busy}>
@@ -431,6 +445,37 @@ export default function CheckPage() {
           )}
         </motion.section>
       </main>
+    </div>
+  );
+}
+
+/** The results page: heading, intro, two groups of dated findings, the join call to action. */
+function CheckResultsSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <div className={s.title}>
+        <Skeleton shape="line" size="xl" width="90" />
+        <Skeleton shape="line" size="xl" width="60" />
+      </div>
+      <SkeletonText lines={2} className={s.help} />
+      {[2, 1].map((n, g) => (
+        <div key={g} className={s.group}>
+          <Skeleton shape="line" size="xs" width="25" className={s.groupTitle} />
+          <ul className={s.findings}>
+            {Array.from({ length: n }, (_, i) => (
+              <li key={i} className={s.finding}>
+                <Skeleton shape="line" size="sm" width="25" />
+                <Skeleton shape="line" size="lg" width="60" />
+                <SkeletonText lines={2} size="sm" />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <div className={s.cta}>
+        <SkeletonText lines={2} />
+        <Skeleton shape="block" size="sm" />
+      </div>
     </div>
   );
 }

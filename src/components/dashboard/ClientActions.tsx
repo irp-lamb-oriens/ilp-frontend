@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, Loadable, Skeleton } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch } from "@/lib/api";
 
@@ -31,6 +31,7 @@ export default function ClientActions({
   stage: string;
 }) {
   const [actions, setActions] = useState<ClientAction[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +44,8 @@ export default function ClientActions({
       setActions(res.actions ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load actions.");
+    } finally {
+      setLoaded(true);
     }
   }, [clientId]);
 
@@ -86,7 +89,9 @@ export default function ClientActions({
         </p>
       )}
 
-      {actions.length === 0 && <p className={s.meta}>No actions for this stage.</p>}
+      <Loadable loading={!loaded} label="Loading actions" className={s.stack} skeleton={<ActionsSkeleton />}>
+        {() => actions.length === 0 && <p className={s.meta}>No actions for this stage.</p>}
+      </Loadable>
       {actions.map((a) => (
         <div key={a.actionKey} className={s.item}>
           <div className={s.itemText}>
@@ -99,5 +104,22 @@ export default function ClientActions({
         </div>
       ))}
     </div>
+  );
+}
+
+/** Two stage actions: label, description, Run. */
+function ActionsSkeleton() {
+  return (
+    <>
+      {[0, 1].map((i) => (
+        <div key={i} className={s.item} aria-hidden="true">
+          <div className={s.itemTextSk}>
+            <Skeleton shape="line" size="md" width={i ? "40" : "60"} />
+            <Skeleton shape="line" size="sm" width="75" />
+          </div>
+          <Skeleton shape="pill" size="lg" width="pill-sm" />
+        </div>
+      ))}
+    </>
   );
 }

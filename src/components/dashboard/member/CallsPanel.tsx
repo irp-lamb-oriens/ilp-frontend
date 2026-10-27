@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { Consultation } from "@/lib/contracts";
-import { Button, DateInput, Select, StatusPill, TextInput, type StatusTone } from "@/components/ui";
+import { Button, DateInput, Loadable, Select, Skeleton, StatusPill, TextInput, type StatusTone } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import s from "./member.module.scss";
 
@@ -206,14 +206,27 @@ function CallItem({ call: c, lawyer, onChanged }: { call: Consultation; lawyer: 
 
       {mode === "reschedule" && (
         <form className={s.actions} onSubmit={reschedule} noValidate>
-          <Select label={<>Open times for {lawyer} (Costa Rica time)</>} value={slot} onChange={(e) => setSlot(e.target.value)} disabled={!slots?.length || !!custom}>
-            <option value="">{slots === null ? "Loading…" : slots.length ? "Choose a time" : "No open times"}</option>
-            {(slots ?? []).slice(0, 60).map((t) => (
-              <option key={t} value={t}>
-                {crTime(t)}
-              </option>
-            ))}
-          </Select>
+          <Loadable
+            loading={slots === null}
+            label="Loading open times"
+            skeleton={
+              <>
+                <Skeleton shape="line" size="sm" width="60" />
+                <Skeleton shape="block" size="sm" />
+              </>
+            }
+          >
+            {() => (
+              <Select label={<>Open times for {lawyer} (Costa Rica time)</>} value={slot} onChange={(e) => setSlot(e.target.value)} disabled={!slots?.length || !!custom}>
+                <option value="">{slots?.length ? "Choose a time" : "No open times"}</option>
+                {(slots ?? []).slice(0, 60).map((t) => (
+                  <option key={t} value={t}>
+                    {crTime(t)}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Loadable>
           <DateInput label="Or another time agreed with both (your local time)" kind="datetime-local" value={custom} onChange={(e) => setCustom(e.target.value)} />
           <div className={s.row}>
             <Button size="sm" type="submit" busy={busy === "reschedule"}>

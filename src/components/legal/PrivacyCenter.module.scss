@@ -56,6 +56,12 @@
   color: $color-navy;
 }
 
+// Skeleton region for the consent rows: the card's own rhythm.
+.choices {
+  display: grid;
+  gap: $space-3;
+}
+
 .choice {
   display: grid;
   gap: $space-3;

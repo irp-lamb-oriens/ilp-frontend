@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, Loadable } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { useMember } from "./MemberContext";
 import { recordConsent } from "@/components/legal/consentApi";
 import { dateLong, dayKey, relativeDue, timeOfDay } from "./format";
 import { joinState, memberCalls, type RecordingChoice, type UpcomingCall } from "./callsApi";
+import { SlotPickerSkeleton } from "./StatusSkeletons";
 import s from "./UpcomingCalls.module.scss";
 
 /** Re-render every 30 s so the Join button switches on by itself. */
@@ -177,7 +178,13 @@ function ChangeTime({ call: c, onDone }: { call: UpcomingCall; onDone: () => voi
   return (
     <div className={s.panel} role="group" aria-label="Pick a new time">
       <p className={s.panelTitle}>Pick a new time (Costa Rica time)</p>
-      {!slots && !error && <p className={s.small}>Loading times…</p>}
+      <Loadable
+        loading={!slots && !error}
+        label="Loading open times"
+        skeleton={<SlotPickerSkeleton daysClassName={s.chips} timesClassName={s.chips} days={4} times={6} />}
+      >
+        {null}
+      </Loadable>
       {slots && slots.length === 0 && <p className={s.small}>No other times are open in the next two weeks. Message your team.</p>}
       {days.length > 0 && (
         <>

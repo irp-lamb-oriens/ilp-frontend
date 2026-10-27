@@ -169,3 +169,22 @@
   color: $color-charcoal;
 }
 
+
+// Skeleton row text: takes the free width so percent-wide lines have a size.
+.itemTextSk {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+
+// Lily thread placeholders: the thread's own column, bubbles at a fixed share
+// of the width so percent-wide lines have a size.
+.threadSk {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.bubbleSk {
+  width: 60%;
+}

@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, ButtonLink, EmptyState, RadioGroup, TextArea } from "@/components/ui";
+import { Button, ButtonLink, EmptyState, RadioGroup, SkeletonRegion, TextArea, useSkeleton } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { membershipApi, type MembershipBillingView } from "./membershipApi";
 import { useMember } from "./MemberContext";
 import { dateLong } from "./format";
+import { CancelSkeleton } from "./StatusSkeletons";
 import s from "./CancelMembership.module.scss";
 
 /**
@@ -25,9 +26,16 @@ export default function CancelMembership() {
   useEffect(() => {
     membershipApi.get().then(setData).catch(() => setFailed(true));
   }, []);
+  const { showSkeleton, skeletonVisible } = useSkeleton(!data && !failed);
 
   if (failed) return <EmptyState title="We could not load your membership" body="Try again in a minute. Nothing has changed." />;
-  if (!data) return <p className={s.muted}>Loading…</p>;
+  if (showSkeleton || !data) {
+    return (
+      <SkeletonRegion label="Loading your membership" visible={skeletonVisible}>
+        <CancelSkeleton />
+      </SkeletonRegion>
+    );
+  }
   const m = data.membership;
   if (!m || m.status === "pending" || m.status === "cancelled") {
     return (

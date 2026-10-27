@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Button, ButtonLink, EmptyState, TextArea } from "@/components/ui";
+import { Button, ButtonLink, EmptyState, Loadable, Skeleton, TextArea } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { memberApi, type SlotsPayload } from "./api";
@@ -10,6 +10,7 @@ import { useMember } from "./MemberContext";
 import Link from "next/link";
 import { recordConsent } from "@/components/legal/consentApi";
 import { dateLong, dayKey, timeOfDay } from "./format";
+import { SlotPickerSkeleton } from "./StatusSkeletons";
 import s from "./BookingFlow.module.scss";
 
 /** Pick a 20-minute slot, say what you want to ask, see the minutes it uses. */
@@ -145,47 +146,61 @@ export default function BookingFlow() {
         <h2 className={s.stepTitle} id="t-title">
           2. Pick a time <span className={s.tz}>(Costa Rica time)</span>
         </h2>
-        {data?.lawyerName && <p className={s.lawyer}>With {data.lawyerName}</p>}
         {loadError && <p className={s.error}>{loadError}</p>}
-        {!data && !loadError && <p className={s.muted}>Loading times…</p>}
-        {data && data.slots.length === 0 && (
-          <p className={s.muted}>{data.reason ?? "No times are open in the next two weeks. Message your team and we will find one."}</p>
-        )}
-        {days.length > 0 && (
-          <>
-            <div className={s.days} role="radiogroup" aria-label="Day">
-              {days.map(([k, list]) => (
-                <button
-                  key={k}
-                  type="button"
-                  role="radio"
-                  aria-checked={day === k}
-                  className={`${s.day} ${day === k ? s.selected : ""}`}
-                  onClick={() => {
-                    setDay(k);
-                    setSlot(null);
-                  }}
-                >
-                  {new Date(list[0]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Costa_Rica" })}
-                </button>
-              ))}
-            </div>
-            <div className={s.times} role="radiogroup" aria-label="Time">
-              {(days.find(([k]) => k === day)?.[1] ?? []).map((iso) => (
-                <button
-                  key={iso}
-                  type="button"
-                  role="radio"
-                  aria-checked={slot === iso}
-                  className={`${s.time} ${slot === iso ? s.selected : ""}`}
-                  onClick={() => setSlot(iso)}
-                >
-                  {timeOfDay(iso)}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        <Loadable
+          loading={!data && !loadError}
+          label="Loading open times"
+          skeleton={
+            <>
+              <Skeleton shape="line" size="md" width="25" />
+              <SlotPickerSkeleton />
+            </>
+          }
+        >
+          {() => (
+            <>
+            {data?.lawyerName && <p className={s.lawyer}>With {data.lawyerName}</p>}
+            {data && data.slots.length === 0 && (
+              <p className={s.muted}>{data.reason ?? "No times are open in the next two weeks. Message your team and we will find one."}</p>
+            )}
+            {days.length > 0 && (
+              <>
+                <div className={s.days} role="radiogroup" aria-label="Day">
+                  {days.map(([k, list]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      role="radio"
+                      aria-checked={day === k}
+                      className={`${s.day} ${day === k ? s.selected : ""}`}
+                      onClick={() => {
+                        setDay(k);
+                        setSlot(null);
+                      }}
+                    >
+                      {new Date(list[0]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Costa_Rica" })}
+                    </button>
+                  ))}
+                </div>
+                <div className={s.times} role="radiogroup" aria-label="Time">
+                  {(days.find(([k]) => k === day)?.[1] ?? []).map((iso) => (
+                    <button
+                      key={iso}
+                      type="button"
+                      role="radio"
+                      aria-checked={slot === iso}
+                      className={`${s.time} ${slot === iso ? s.selected : ""}`}
+                      onClick={() => setSlot(iso)}
+                    >
+                      {timeOfDay(iso)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            </>
+          )}
+        </Loadable>
       </section>
 
       <section className={s.step} aria-labelledby="rec-title">
