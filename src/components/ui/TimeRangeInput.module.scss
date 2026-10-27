@@ -1,0 +1,103 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// One box, two fields: "8:30 AM – 12:00 PM". The box carries the border; each
+// half lights up with the accent-soft field when focused.
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: $space-2;
+  font-size: 0.9em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: $color-navy;
+
+  > span + span {
+    font-size: 0.9em;
+    font-weight: 400;
+    color: $color-steel;
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: $space-3;
+  row-gap: $space-1;
+  min-width: 0;
+}
+
+.box {
+  display: inline-grid;
+  grid-template-columns: minmax(8.5rem, auto) auto minmax(6.5rem, auto);
+  align-items: center;
+  min-height: $touch-target;
+  max-width: 100%;
+  background: $color-surface;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+  transition: border-color $duration-press ease;
+
+  &:focus-within {
+    border-color: $color-navy;
+  }
+
+  @include hover-only {
+    &:hover:not(.disabled):not(:focus-within) {
+      border-color: $color-navy;
+    }
+  }
+
+  @include below-md {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+.invalid {
+  border-color: $color-error;
+  background: $color-error-soft;
+}
+
+.disabled {
+  background: $color-neutral-soft;
+  border-color: $color-hairline;
+}
+
+.sep {
+  padding: 0 $space-1;
+  color: $color-muted;
+  user-select: none;
+}
+
+// "10 calls": quiet, tabular, never wraps mid-phrase.
+.slots {
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  color: $color-steel;
+  white-space: nowrap;
+
+  // Phones: the pair and its remove button keep the line; the count drops below.
+  @include below-md {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+.srOnly {
+  @include visually-hidden;
+}

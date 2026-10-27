@@ -61,3 +61,39 @@ export { SearchInput } from "./SearchInput";
 export type { SearchInputProps } from "./SearchInput";
 export { useForm, validators } from "./useForm";
 export type { Errors, UseFormOptions } from "./useForm";
+
+// Time, schedule and list inputs (availability redesign). Values stay in the
+// stored formats: "HH:MM" 24-hour times, "YYYY-MM-DD" dates, string arrays.
+export { Switch } from "./Switch";
+export type { SwitchProps } from "./Switch";
+export { TimeInput, TimeField } from "./TimeInput";
+export type { TimeInputProps, TimeFieldProps } from "./TimeInput";
+export { TimeRangeInput } from "./TimeRangeInput";
+export type { TimeRange, TimeRangeInputProps } from "./TimeRangeInput";
+export { WeeklyHoursEditor, WEEKDAY_NAMES } from "./WeeklyHoursEditor";
+export type { WeeklyHoursEditorProps, WeeklyWindowValue } from "./WeeklyHoursEditor";
+export { ChipSelect } from "./ChipSelect";
+export type { ChipOption, ChipSelectProps } from "./ChipSelect";
+export { DateListInput, formatDateChip } from "./DateListInput";
+export type { DateListInputProps } from "./DateListInput";
+export { NumberStepper } from "./NumberStepper";
+export type { NumberStepperProps } from "./NumberStepper";
+export {
+  findOverlaps,
+  formatDuration,
+  formatRange12,
+  formatTime12,
+  isTimeValue,
+  minutesToTime,
+  nextWindow,
+  parseTimeInput,
+  rangeError,
+  slotCount,
+  stepTime,
+  timeOptions,
+  timeToMinutes,
+  validateWindows,
+  weeklySlotTotal,
+} from "./timeUtils";
+export type { DayWindow } from "./timeUtils";
+export { IconCalendar, IconCheck, IconClock, IconClose, IconCopy, IconMinus, IconPlus } from "./icons";

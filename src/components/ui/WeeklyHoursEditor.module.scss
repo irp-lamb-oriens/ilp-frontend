@@ -1,0 +1,225 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Phones: day name + switch + count on one line, ranges below.
+// Tablet and up: three columns — day switch | ranges | count and copy.
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.total {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.9375rem;
+}
+
+.totalN {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.totalNote {
+  color: $color-steel;
+}
+
+.days {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid $color-hairline;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-hairline;
+
+  @include md {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    column-gap: $space-4;
+    row-gap: 0;
+    align-items: start;
+  }
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: $space-3;
+
+  @include md {
+    display: contents;
+  }
+}
+
+.switch {
+  @include md {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+}
+
+.off {
+  color: $color-muted;
+  font-size: 0.9375rem;
+
+  @include md {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    min-height: $touch-target;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.daySlots {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: $color-steel;
+  white-space: nowrap;
+
+  @include md {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    margin-left: 0;
+    min-height: $touch-target;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.ranges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-2;
+  min-width: 0;
+
+  @include below-md {
+    align-items: stretch;
+  }
+
+  @include md {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  > * {
+    max-width: 100%;
+  }
+}
+
+.add {
+  align-self: flex-start;
+  margin-left: -#{$space-2};
+}
+
+// Quiet text button with an icon (copy); 44px target.
+.textBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: 0 $space-2;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      color: $color-navy;
+      background: $color-mist;
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  @include below-md {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    margin-left: calc(40px + #{$space-3} - #{$space-2});
+    min-height: 36px;
+
+    @media (pointer: coarse) {
+      min-height: $touch-target;
+    }
+  }
+
+  @include md {
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: end;
+  }
+}
+
+.textBtnLabel {
+  white-space: nowrap;
+}
+
+// Square 44px icon button (remove a range).
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: $touch-target;
+  height: $touch-target;
+  padding: 0;
+  color: $color-steel;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong;
+  @include focus-ring;
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      color: $color-error;
+      background: $color-error-soft;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  @include reduced-motion {
+    transition: none;
+
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+.srOnly {
+  @include visually-hidden;
+}
