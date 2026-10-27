@@ -387,8 +387,27 @@ export interface CursorOp {
   duration?: number;
   /** Applied when the op finishes (for "type", the value is typed first). */
   then?: StateChange[];
-  /** Words for screen readers and reduced-motion markers, e.g. "Close task". */
+  /** Short name of the element, shown in bold in the caption, e.g. "Close task". */
   label?: string;
+  /**
+   * Plain-language caption shown next to the target while this op runs: what
+   * the element is, why it matters and what the click does. One or two short
+   * sentences, about 28 words at most. The op's dwell grows to fit the
+   * reading time (see timeline.ts).
+   */
+  explain?: string;
+  /** One meaning offered under the caption ("What's this?"). */
+  term?: TermRef;
+  /** Glossary meanings the caption uses, resolved from keys by the config helpers. */
+  terms?: TermRef[];
+}
+
+/** A word and its plain meaning, usually resolved from src/tutorials/glossary.ts. */
+export interface TermRef {
+  /** Glossary key, when it came from the glossary. */
+  key?: string;
+  word: string;
+  meaning: string;
 }
 
 export type CursorScript = CursorOp[];

@@ -3,18 +3,20 @@
 /**
  * The walkthrough modal, on the kit Dialog (focus trap, Esc, aria-modal,
  * labelled by the step title). A centred card on desktop, a bottom sheet on
- * phones. ← / → move between steps; Enter goes on when focus is not on a
- * control. The scene's cursor actions are also written out for screen
+ * phones. ← / → move between steps (while the demo is paused they step
+ * between its actions first); Enter goes on when focus is not on a control.
+ * Captions offer a glossary meaning the first time a word appears in the
+ * tutorial. The scene's cursor actions are also written out for screen
  * readers, so every step reads without the animation.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/Button";
 import { Checkbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
 import { cx } from "../ui/cx";
 import type { ActiveTutorial, CloseReason } from "./context";
 import { ScenePlayer } from "./ScenePlayer";
-import { describeScene } from "./sceneUtils";
+import { describeScene, firstUseTerms } from "./sceneUtils";
 import s from "./TutorialModal.module.scss";
 
 export interface TutorialModalProps {
@@ -47,6 +49,7 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
   const [dontShow, setDontShow] = useState(false);
   const [targetHere, setTargetHere] = useState(false);
   const description = st.describe ?? describeScene(st.scene);
+  const newTerms = useMemo(() => firstUseTerms(steps), [steps]);
 
   useEffect(() => {
     setTargetHere(tourTargetExists(st.target));
@@ -108,7 +111,7 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
           · Step {step + 1} of {steps.length}
         </span>
       </p>
-      <ScenePlayer key={`${tutorial.id}:${st.id}`} scene={st.scene} className={s.scene} />
+      <ScenePlayer key={`${tutorial.id}:${st.id}`} scene={st.scene} className={s.scene} keys newTerms={newTerms[step]} />
       <p className={s.body}>{st.body}</p>
       {description && <p className={s.sr}>{description}</p>}
       <div className={s.meta}>

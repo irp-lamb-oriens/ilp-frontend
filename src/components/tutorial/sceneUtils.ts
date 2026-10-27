@@ -3,7 +3,7 @@
  * collection, state patches, the reduced-motion end state and the plain
  * description of what the cursor does. Pure.
  */
-import type { CursorOp, CursorScript, MockNode, PatchValue, Scene, StateChange } from "./types";
+import type { CursorOp, CursorScript, MockNode, PatchValue, Scene, StateChange, TermRef, TutorialStep } from "./types";
 
 export interface Overrides {
   /** Field patches by node or sub-item id. */
@@ -185,13 +185,132 @@ export function describeScene(scene: Scene): string {
 
 /** Numbered markers for the reduced-motion frame: one per action on a node. */
 export function markers(scene: Scene): Marker[] {
-  const ids = collectIds(scene.root);
-  const out: Marker[] = [];
-  for (const op of scene.script ?? []) {
-    const verb = VERB[op.op];
-    if (!verb || typeof op.to !== "string") continue;
-    const text = op.op === "type" ? `Type “${op.text ?? ""}”` : `${verb} “${nameFor(op, ids)}”`;
-    out.push({ n: out.length + 1, id: op.to, text });
-  }
+  return captionsOf(scene)
+    .filter((c) => c.id !== null)
+    .map((c) => ({ n: c.n, id: c.id as string, text: c.terse }));
+}
+
+// ─── Captions ───────────────────────────────────────────────────────────────
+
+/** Ops that do not count as an action on their own (unless they carry a caption). */
+const PASSIVE = new Set<CursorOp["op"]>(["move", "wait", "scroll"]);
+
+/** True when the op is something a person would do (or it explains something). */
+export function isAction(op: CursorOp): boolean {
+  return !!op.explain || !PASSIVE.has(op.op);
+}
+
+/** Op indices the paused player steps between with ← / →. */
+export function stopIndices(script: CursorScript | undefined): number[] {
+  const out: number[] = [];
+  (script ?? []).forEach((op, i) => {
+    if (isAction(op)) out.push(i);
+  });
   return out;
+}
+
+/** Every term an op offers: `terms` first, then `term`. */
+export function termsOf(op: CursorOp): TermRef[] {
+  const out = [...(op.terms ?? [])];
+  if (op.term && !out.some((t) => sameTerm(t, op.term as TermRef))) out.push(op.term);
+  return out;
+}
+
+function sameTerm(a: TermRef, b: TermRef): boolean {
+  return (a.key ?? a.word.toLowerCase()) === (b.key ?? b.word.toLowerCase());
+}
+
+export interface CaptionInfo {
+  /** Index of the op in the script. */
+  opIndex: number;
+  /** Number shared with the reduced-motion marker. */
+  n: number;
+  /** Target node id, or null when the op has none. */
+  id: string | null;
+  /** Element name, bold in the caption. */
+  name: string;
+  /** Plain-language explanation; empty for ops written before captions existed. */
+  explain: string;
+  /** The terse fallback ("Select “Close task”"). */
+  terse: string;
+  terms: TermRef[];
+}
+
+/** The ordered captions of a scene: one per action, numbered like the markers. */
+export function captionsOf(scene: Scene): CaptionInfo[] {
+  const ids = collectIds(scene.root);
+  const out: CaptionInfo[] = [];
+  (scene.script ?? []).forEach((op, opIndex) => {
+    const verb = VERB[op.op];
+    const targeted = typeof op.to === "string";
+    if (!op.explain && (!verb || !targeted)) return;
+    const name = nameFor(op, ids);
+    const terse = op.op === "type" ? `Type “${op.text ?? ""}”` : verb ? `${verb} “${name}”` : name;
+    out.push({ opIndex, n: out.length + 1, id: targeted ? (op.to as string) : null, name, explain: op.explain ?? "", terse, terms: termsOf(op) });
+  });
+  return out;
+}
+
+export const MAX_TERMS = 3;
+
+/**
+ * For each step and op, the terms used there for the first time in the
+ * tutorial. The player offers only these under the caption, so a meaning is
+ * shown once per tutorial.
+ */
+export function firstUseTerms(steps: TutorialStep[]): TermRef[][][] {
+  const seen: TermRef[] = [];
+  return steps.map((st) =>
+    (st.scene.script ?? []).map((op) => {
+      // At most three meanings under one caption; the rest wait for a later caption.
+      const fresh = termsOf(op)
+        .filter((t) => !seen.some((x) => sameTerm(x, t)))
+        .slice(0, MAX_TERMS);
+      seen.push(...fresh);
+      return fresh;
+    }),
+  );
+}
+
+/** State after ops 0..index (inclusive): the frame the paused player shows. */
+export function stateThrough(script: CursorScript | undefined, index: number): Overrides {
+  return endState((script ?? []).slice(0, Math.max(0, index + 1)));
+}
+
+export interface Rect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export type CalloutSide = "below" | "above" | "right" | "left" | "inside";
+
+/**
+ * Where to put a caption of size `bubble` next to `target`, inside an area
+ * of `area` size. Tries below, above, right, then left; if none fits, it
+ * takes the roomiest side and clamps into the area. Pure, for the tests.
+ */
+export function placeCallout(target: Rect, area: { width: number; height: number }, bubble: { width: number; height: number }, gap = 14, pad = 8): { x: number; y: number; side: CalloutSide } {
+  const W = area.width;
+  const H = area.height;
+  const bw = Math.min(bubble.width, W - pad * 2);
+  const bh = bubble.height;
+  const clampX = (x: number) => Math.max(pad, Math.min(W - pad - bw, x));
+  const clampY = (y: number) => Math.max(pad, Math.min(H - pad - bh, y));
+  const cx = target.left + target.width / 2;
+  const cy = target.top + target.height / 2;
+  const bottom = target.top + target.height;
+  const right = target.left + target.width;
+  const below = { x: clampX(cx - bw / 2), y: bottom + gap, side: "below" as const };
+  if (below.y + bh <= H - pad) return below;
+  const above = { x: clampX(cx - bw / 2), y: target.top - gap - bh, side: "above" as const };
+  if (above.y >= pad) return above;
+  const rightP = { x: right + gap, y: clampY(cy - bh / 2), side: "right" as const };
+  if (rightP.x + bw <= W - pad) return rightP;
+  const leftP = { x: target.left - gap - bw, y: clampY(cy - bh / 2), side: "left" as const };
+  if (leftP.x >= pad) return leftP;
+  const roomBelow = H - bottom;
+  const roomAbove = target.top;
+  return { x: clampX(cx - bw / 2), y: clampY(roomBelow >= roomAbove ? bottom + gap : target.top - gap - bh), side: "inside" };
 }

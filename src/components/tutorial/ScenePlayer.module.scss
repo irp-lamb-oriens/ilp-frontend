@@ -8,6 +8,17 @@
   min-width: 0;
 }
 
+// Positioning context for the box and the caption layer above it.
+.frame {
+  position: relative;
+  min-width: 0;
+}
+
+.framePhone {
+  width: min(100%, 17rem);
+  margin-inline: auto;
+}
+
 // The box keeps the scene's aspect ratio; the stage inside is drawn at the
 // design size and scaled down (--scene-k is set from the box width).
 .box {
@@ -31,8 +42,6 @@
 
 .phone {
   aspect-ratio: 390 / 720;
-  width: min(100%, 17rem);
-  margin-inline: auto;
 }
 
 .stage {
@@ -168,8 +177,16 @@
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: $space-1;
+}
+
+.position {
+  margin-right: auto;
+  font-size: 0.8125rem;
+  color: $color-steel;
 }
 
 .control {
@@ -185,10 +202,198 @@
   font-weight: 600;
   cursor: pointer;
 
+  &:disabled {
+    color: $color-muted;
+    cursor: default;
+  }
+
   @include hover-only {
-    &:hover {
+    &:hover:not(:disabled) {
       background: $color-mist;
       color: $color-navy;
     }
   }
+}
+
+// ─── Captions ───────────────────────────────────────────────────────────────
+
+// Layer over the scene; only the visible bubble takes pointer events.
+.capLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+}
+
+// Placed by the player with transform (placeCallout).
+.capPos {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 18rem;
+  max-width: 100%;
+}
+
+.cap {
+  padding: $space-2 $space-3;
+  border-radius: $radius-md;
+  background: $color-navy;
+  color: $color-on-navy;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity $duration-fast $ease-out-strong,
+    transform $duration-fast $ease-out-strong;
+  pointer-events: none;
+}
+
+.capOn {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+// Docked under the scene: a calm bar instead of a floating callout.
+.capDocked {
+  border-left: 3px solid $color-accent;
+  border-radius: $radius-sm;
+  background: $color-mist;
+  color: $color-charcoal;
+
+  .capName {
+    color: $color-navy;
+  }
+
+  .capMore {
+    color: $color-navy;
+  }
+
+  .capTerm dd {
+    color: $color-steel;
+  }
+}
+
+.capText {
+  margin: 0;
+}
+
+.capName {
+  font-weight: 700;
+}
+
+.capTerms {
+  margin-top: $space-1;
+}
+
+.capMore {
+  @include focus-ring;
+  min-height: 1.75rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $color-accent;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.capDl {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  margin: $space-1 0 0;
+}
+
+.capTerm {
+  dt {
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-on-navy-muted;
+  }
+}
+
+.dock {
+  min-height: 4.5rem;
+}
+
+.dockPhone {
+  width: min(100%, 17rem);
+  margin-inline: auto;
+}
+
+// ─── What happens here ──────────────────────────────────────────────────────
+
+.explain {
+  border-top: 1px solid $color-hairline;
+  padding-top: $space-2;
+}
+
+.explainSummary {
+  @include focus-ring;
+  min-height: $touch-target;
+  display: flex;
+  align-items: center;
+  color: $color-navy;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.explainTitle {
+  margin: 0 0 $space-2;
+  color: $color-navy;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.explainList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $color-charcoal;
+}
+
+.explainItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  padding: $space-1;
+  border-radius: $radius-sm;
+}
+
+.explainOn {
+  background: $color-accent-soft;
+}
+
+.explainText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.explainName {
+  color: $color-navy;
+}
+
+.explainTerm {
+  color: $color-steel;
+  font-size: 0.8125rem;
+}
+
+.explainWord {
+  font-weight: 700;
 }

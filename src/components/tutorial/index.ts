@@ -17,8 +17,23 @@ export { createRegistry, matchTutorial, routeMatches, routeToRegExp, normalizePa
 export type { TutorialRegistry } from "./registry";
 export { createTutorialStore, noopTutorialSync, STORAGE_KEY, MAX_SKIPS } from "./storage";
 export type { TutorialStore, TutorialSync, TutorialState, TutorialRecord, StorageLike } from "./storage";
-export { computeTimeline, typedAt, TIMING } from "./timeline";
+export { computeTimeline, typedAt, readingTime, wordCount, TIMING } from "./timeline";
 export type { Timeline, Segment } from "./timeline";
-export { collectIds, missingRefs, scriptRefs, describeScene, markers, endState, applyChanges, EMPTY_OVERRIDES } from "./sceneUtils";
-export type { Overrides } from "./sceneUtils";
+export {
+  collectIds,
+  missingRefs,
+  scriptRefs,
+  describeScene,
+  markers,
+  endState,
+  applyChanges,
+  captionsOf,
+  firstUseTerms,
+  placeCallout,
+  stateThrough,
+  stopIndices,
+  termsOf,
+  EMPTY_OVERRIDES,
+} from "./sceneUtils";
+export type { Overrides, CaptionInfo, Rect, CalloutSide } from "./sceneUtils";
 export type * from "./types";

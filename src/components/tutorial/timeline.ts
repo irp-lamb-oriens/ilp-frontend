@@ -6,6 +6,11 @@
  * (press, typing, dragging, scrolling, waiting). State changes in `then`
  * land at the segment's end. After the last op the scene holds for
  * `loopPause`, resets and plays again.
+ *
+ * Ops with an `explain` caption get a `hold`: extra time after the action so
+ * the caption can be read. Reading time is 230 ms a word, at least 1.8 s and
+ * at most 6 s, counted from when the cursor arrives; the caption then fades
+ * out (`captionOut`) before the next op starts.
  */
 import type { CursorOp, CursorScript } from "./types";
 
@@ -25,7 +30,32 @@ export const TIMING = {
   /** After an op changes the scene (a drawer opens), before the next op measures it. */
   settle: 320,
   loopPause: 2200,
+  /** Caption reading speed and bounds. */
+  readPerWord: 230,
+  readMin: 1800,
+  readMax: 6000,
+  /** Caption fade-out at the end of its op. */
+  captionOut: 180,
 } as const;
+
+/** Words in a caption (anything between spaces). */
+export function wordCount(text: string | undefined): number {
+  return (text ?? "").trim().split(/\s+/).filter(Boolean).length;
+}
+
+/** Milliseconds a caption stays readable: 230 ms a word, clamped to 1.8–6 s. 0 without text. */
+export function readingTime(text: string | undefined): number {
+  const n = wordCount(text);
+  if (!n) return 0;
+  return Math.min(TIMING.readMax, Math.max(TIMING.readMin, n * TIMING.readPerWord));
+}
+
+/** Extra time after the action and settle so the caption is read, then fades out. */
+export function holdFor(op: CursorOp, action: number, settle: number): number {
+  const read = readingTime(op.explain);
+  if (!read) return 0;
+  return Math.max(TIMING.captionOut, read + TIMING.captionOut - action - settle);
+}
 
 export interface Segment {
   index: number;
@@ -36,6 +66,8 @@ export interface Segment {
   action: number;
   /** Pause after the state changes land. */
   settle: number;
+  /** Caption reading time beyond action + settle, including the fade-out. 0 without a caption. */
+  hold: number;
   end: number;
 }
 
@@ -88,8 +120,9 @@ export function computeTimeline(script: CursorScript | undefined): Timeline {
     const travel = travelFor(op, at);
     const action = actionFor(op);
     const settle = (op.then && op.then.length > 0) || op.op === "drag" ? TIMING.settle : 0;
-    segments.push({ index, op, start: t, travel, action, settle, end: t + travel + action + settle });
-    t += travel + action + settle;
+    const hold = holdFor(op, action, settle);
+    segments.push({ index, op, start: t, travel, action, settle, hold, end: t + travel + action + settle + hold });
+    t += travel + action + settle + hold;
     // A drag leaves the cursor on the destination column, not on the card.
     if (op.op === "drag" && op.dest) at = op.dest;
     else if (op.to !== undefined && op.op !== "scroll") at = op.to;
