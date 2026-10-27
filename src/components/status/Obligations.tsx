@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, ButtonLink, EmptyState, StatusPill } from "@/components/ui";
+import { Button, ButtonLink, EmptyState, ErrorNotice, Notice, StatusPill } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi } from "./api";
 import { useMember } from "./MemberContext";
@@ -41,9 +41,25 @@ export default function Obligations() {
       <h2 className={s.title} id="obligations-title">
         Dates that may need attention
       </h2>
-      <p className={s.intro}>
-        These come from what you told us. Each one may require review; your lawyer tells you whether it applies to you.
-      </p>
+      <Notice
+        tone="neutral"
+        variant="inline"
+        className={s.intro}
+        title="These dates may require review"
+        terms={["obligation", "partnerLawyer"]}
+        fix={{
+          steps: [
+            "These dates come from the answers in your profile. They are general dates, not legal advice.",
+            "Some may not apply to you. Your lawyer tells you which ones do.",
+            "Press Ask my lawyer on any date to add it to your next call.",
+            "If something in your life changes, update your profile so the list stays right.",
+          ],
+          tutorialId: "client.overview",
+          tutorialStep: "dates",
+        }}
+      >
+        They come from what you told us; your lawyer tells you whether each one applies to you.
+      </Notice>
       {items.length === 0 ? (
         <EmptyState
           compact
@@ -87,20 +103,27 @@ export default function Obligations() {
         </ul>
       )}
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
       {home.pendingQuestions.length > 0 && home.upcomingCalls.length === 0 && home.capacity.canBook && (
-        <div className={s.pending}>
-          <p className={s.pendingText}>
-            {home.pendingQuestions.length === 1 ? "1 question is" : `${home.pendingQuestions.length} questions are`} waiting
-            for your next call.
-          </p>
-          <ButtonLink href="/status/book" variant="secondary">
-            Book a call
-          </ButtonLink>
-        </div>
+        <Notice
+          tone="info"
+          className={s.pending}
+          title={`${home.pendingQuestions.length === 1 ? "1 question is" : `${home.pendingQuestions.length} questions are`} waiting for your next call`}
+          actions={
+            <ButtonLink href="/status/book" variant="secondary">
+              Book a call
+            </ButtonLink>
+          }
+          fix={{
+            label: "What to do next",
+            steps: [
+              "Press Book a call and pick a time that suits you.",
+              "Your questions go to your lawyer with the booking, so they can prepare.",
+            ],
+            tutorialId: "client.book",
+          }}
+        />
       )}
     </section>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, TextArea } from "@/components/ui";
+import { Button, TextArea, ErrorNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { feedbackApi, type PendingCall } from "./feedbackApi";
 import { dateLong } from "./format";
@@ -85,9 +85,7 @@ export default function PostCallRating() {
         />
       </div>
       {error && (
-        <p className={s.err} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
       <div className={s.actions}>
         <Button variant="secondary" onClick={send} busy={busy}>

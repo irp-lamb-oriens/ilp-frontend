@@ -83,9 +83,7 @@ export default function CancelMembership() {
           to ask how we could have done better; you do not have to take the call.
         </p>
         {error && (
-          <p className={s.err} role="alert">
-            {error}
-          </p>
+          <ErrorNotice audience="member">{error}</ErrorNotice>
         )}
         <div className={s.actions}>
           <Button variant="secondary" onClick={undo} busy={busy}>
@@ -138,9 +136,7 @@ export default function CancelMembership() {
       </div>
 
       {error && (
-        <p className={s.err} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
       <div className={s.actions}>
         <Button variant="danger" onClick={confirm} busy={busy}>

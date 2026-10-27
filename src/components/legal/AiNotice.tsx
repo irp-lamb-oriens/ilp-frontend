@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui";
+import { Button, ErrorNotice, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { recordConsent } from "./consentApi";
 import { announceAiConsent, useAiConsent } from "./aiConsent";
-import s from "./AiNotice.module.scss";
 
 /**
  * One-time AI assistant notice above Messages (P6). Shown until the member
@@ -35,26 +33,37 @@ export default function AiNotice() {
   }
 
   return (
-    <section className={s.notice} aria-labelledby="ai-notice-title" data-tour="client-ai-notice">
-      <h2 id="ai-notice-title" className={s.title}>Before you use the AI assistant</h2>
-      <ul className={s.list}>
+    <Notice
+      tone="info"
+      headingLevel={2}
+      title="Before you use the AI assistant"
+      data-tour="client-ai-notice"
+      terms={["aiAssistant", "ilpTeam"]}
+      actions={
+        <Button onClick={accept} busy={busy}>
+          I understand
+        </Button>
+      }
+      fix={{
+        label: "What does this mean?",
+        steps: [
+          "Read the three points above. Press I understand to turn the AI assistant on. You only do this once.",
+          "Use it for general questions, like what a word means or how a process usually works.",
+          "For anything about your own situation, write to your ILP team instead. They confirm anything legal.",
+          "Changed your mind? Open the menu under your name, choose Your data and privacy, and press Withdraw next to AI assistant.",
+        ],
+        tutorialId: "client.messages",
+        tutorialStep: "notice",
+        learnMoreHref: "/legal/recording",
+        learnMoreLabel: "How ILP uses AI",
+      }}
+    >
+      <ul>
         <li>It gives general information, not legal advice, and it can be wrong. It is not your lawyer.</li>
         <li>Its answers are labeled AI assistant. Your ILP team confirms anything legal.</li>
         <li>Your questions are kept with your account and sent to our AI provider to produce an answer. Share only what the question needs.</li>
       </ul>
-      <p className={s.more}>
-        <Link href="/legal/recording">How ILP uses AI</Link>
-      </p>
-      {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
-      )}
-      <div>
-        <Button onClick={accept} busy={busy}>
-          I understand
-        </Button>
-      </div>
-    </section>
+      {error && <ErrorNotice audience="member">{error}</ErrorNotice>}
+    </Notice>
   );
 }

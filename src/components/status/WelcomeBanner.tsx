@@ -1,8 +1,8 @@
 "use client";
 
+import { Notice } from "@/components/ui";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { useMember } from "./MemberContext";
-import s from "./WelcomeBanner.module.scss";
 
 /** First visit after joining (?welcome=1). Short, so the next step stays above the fold. */
 export default function WelcomeBanner() {
@@ -11,14 +11,23 @@ export default function WelcomeBanner() {
   const minutes = home.membership?.minutesIncluded ?? PLAN_STANDARD.minutesIncluded;
   const calls = home.membership?.callsIncluded ?? PLAN_STANDARD.callsIncluded;
   return (
-    <section className={s.banner} aria-labelledby="welcome-title">
-      <h1 className={s.title} id="welcome-title">
-        Your membership is active
-      </h1>
-      <p className={s.body}>
-        {home.capacity.minutesLeft} of {minutes} minutes and {home.capacity.callsLeft} of {calls} calls are ready this
-        month. Your profile is {Math.round(home.completeness.score * 100)}% complete.
-      </p>
-    </section>
+    <Notice
+      tone="success"
+      headingLevel={1}
+      title="Your membership is active"
+      terms={["membership", "profile", "consultationReady"]}
+      fix={{
+        label: "What to do first",
+        steps: [
+          "Fill in your profile (Profile in the menu). At 70% complete, your lawyer has what they need to prepare.",
+          "Book your first call with the Book a call button in your membership box on this page.",
+          "Write to your ILP team from Messages any time you have a question.",
+        ],
+        tutorialId: "client.overview",
+      }}
+    >
+      {home.capacity.minutesLeft} of {minutes} minutes and {home.capacity.callsLeft} of {calls} calls are ready this month.
+      Your profile is {Math.round(home.completeness.score * 100)}% complete.
+    </Notice>
   );
 }

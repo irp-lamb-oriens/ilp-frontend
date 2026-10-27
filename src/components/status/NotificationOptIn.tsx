@@ -7,7 +7,7 @@ import {
   requestNotificationPermission,
   subscribeToPush,
 } from "@/lib/push";
-import s from "./notificationOptIn.module.scss";
+import { Button, Notice } from "@/components/ui";
 
 /**
  * Compact notification opt-in for the client portal. Shown only when the
@@ -50,17 +50,28 @@ export default function NotificationOptIn() {
   if (!visible) return null;
 
   return (
-    <div className={s.banner} role="status">
-      <p className={s.text}>Get a reminder on this device before each date on your list.</p>
-      <button
-        type="button"
-        className={s.enable}
-        onClick={handleEnable}
-        disabled={busy}
-        aria-busy={busy || undefined}
-      >
-        {busy ? "Enabling…" : "Enable notifications"}
-      </button>
-    </div>
+    <Notice
+      id="status.notifications"
+      dismissible
+      tone="info"
+      title="Get a reminder before each date"
+      terms={["notification"]}
+      actions={
+        <Button onClick={handleEnable} busy={busy}>
+          Enable notifications
+        </Button>
+      }
+      fix={{
+        label: "How this works",
+        steps: [
+          "Press Enable notifications. Your browser asks for permission; choose Allow.",
+          "ILP then reminds you on this device before each date on your list. Email reminders continue as before.",
+          "To turn them off later, change the notification setting for this site in your browser.",
+          "Not now? Close this box. Nothing changes and you can still get reminders by email.",
+        ],
+      }}
+    >
+      A notification on this device before each date on your list.
+    </Notice>
   );
 }

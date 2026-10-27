@@ -193,9 +193,7 @@ function QuoteCard({ quote, onAccepted }: { quote: QuoteView; onAccepted: (d: Mo
             onChange={(e) => setAgree(e.target.checked)}
           />
           {error && (
-            <p className={s.err} role="alert">
-              {error}
-            </p>
+            <ErrorNotice audience="member">{error}</ErrorNotice>
           )}
           <div className={s.quoteActions}>
             <Button onClick={accept} busy={busy}>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Button, TextArea } from "@/components/ui";
+import { Button, TextArea, ErrorNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { feedbackApi } from "./feedbackApi";
 import ScoreScale from "./ScoreScale";
@@ -112,9 +112,7 @@ export default function MonthlyFeedback() {
         ))}
 
       {error && (
-        <p className={s.err} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
       <Link className={s.back} href="/status">
         Back to your ILP home

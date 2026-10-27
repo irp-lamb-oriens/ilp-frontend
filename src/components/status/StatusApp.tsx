@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
 import type { MenuLink, NavItem } from "@/components/shell";
 import PortalLogin from "@/components/auth/PortalLogin";
-import { Button, EmptyState, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { Button, SkeletonRegion, useSkeleton, Notice } from "@/components/ui";
 import { ApiError, getRoleToken } from "@/lib/api";
 import { projectIdToEmail } from "@/lib/status";
 import { memberApi, type MemberHome } from "./api";
@@ -175,11 +175,22 @@ export default function StatusApp({ children }: { children: ReactNode }) {
   if (phase === "error" || !value) {
     return (
       <div className={s.center}>
-        <EmptyState
+        <Notice
+          tone="danger"
+          headingLevel={1}
           title="We could not open your home right now"
-          body="This is on our side. Try again in a minute; if it keeps happening, email your ILP team."
-          action={<Button onClick={() => { setPhase("loading"); void load(); }}>Try again</Button>}
-        />
+          actions={<Button onClick={() => { setPhase("loading"); void load(); }}>Try again</Button>}
+          fix={{
+            summary: "Your membership, profile and documents are safe.",
+            steps: [
+              "Wait a minute, then press Try again.",
+              "Check that you are connected to the internet: open any other website.",
+              "If it keeps happening, email your ILP team. You cannot use Messages until your home opens.",
+            ],
+          }}
+        >
+          This is on our side, not something you did.
+        </Notice>
       </div>
     );
   }

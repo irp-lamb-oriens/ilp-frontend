@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, DateInput, ProgressBar, Select, Stagger, StaggerItem, StatusPill, TextInput, useUnsavedChanges } from "@/components/ui";
+import { Button, DateInput, ProgressBar, Select, Stagger, StaggerItem, StatusPill, TextInput, useUnsavedChanges, ErrorNotice, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import type { ProfileSection } from "@/lib/contracts";
 import { memberApi } from "./api";
@@ -176,9 +176,7 @@ function SectionForm({ section }: { section: ProfileSection }) {
           Save {copy.title.toLowerCase()}
         </Button>
         {msg && (
-          <p className={msg.ok ? s.ok : s.err} role={msg.ok ? "status" : "alert"}>
-            {msg.text}
-          </p>
+          msg.ok ? <Notice tone="success" variant="inline" title={msg.text} /> : <ErrorNotice audience="member">{msg.text}</ErrorNotice>
         )}
       </div>
     </section>

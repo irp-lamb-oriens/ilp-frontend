@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, EmptyState, Select, StatusPill, Loadable } from "@/components/ui";
+import { Button, EmptyState, Select, StatusPill, Loadable, ErrorNotice, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type MemberDocument } from "./api";
 import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
@@ -127,9 +127,7 @@ export default function DocumentsPanel() {
           </Button>
         </div>
         {msg && (
-          <p className={msg.ok ? s.ok : s.err} role={msg.ok ? "status" : "alert"}>
-            {msg.text}
-          </p>
+          msg.ok ? <Notice tone="success" variant="inline" title={msg.text} /> : <ErrorNotice audience="member">{msg.text}</ErrorNotice>
         )}
       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, EmptyState, TextArea, Loadable, Skeleton, SkeletonRegion, SkeletonText, Stagger, StaggerItem, STAGGER_MAX } from "@/components/ui";
+import { Button, EmptyState, TextArea, Loadable, Skeleton, SkeletonRegion, SkeletonText, Stagger, StaggerItem, STAGGER_MAX, ErrorNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { memberApi, type ThreadItem } from "./api";
 import { isLegalTopic } from "./messageRules";
@@ -100,9 +100,7 @@ export default function MessagesThread() {
           onChange={(e) => setText(e.target.value)}
         />
         {error && (
-          <p className={s.err} role="alert">
-            {error}
-          </p>
+          <ErrorNotice audience="member">{error}</ErrorNotice>
         )}
         <div className={s.actions}>
           <Button onClick={() => send("team")} busy={busy === "team"} disabled={!!busy}>
