@@ -136,3 +136,6 @@ No CTA label wraps to two lines at desktop. One primary CTA per viewport tier.
   `@use "../styles/mixins" as *;`.
 - No Tailwind. No inline styles. No global CSS except the token files.
 - New shared primitives go in `src/styles/_mixins.scss`, not page-specific CSS.
+## Copy
+
+All user-facing text follows copy-rules.md (plain language, no AI giveaways, no em dashes, page intros answer what, how, why).
