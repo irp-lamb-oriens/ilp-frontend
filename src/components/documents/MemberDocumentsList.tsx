@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { downloadFile, staffApi } from "@/lib/api";
 import { providerApi } from "@/lib/provider";
-import { Loadable, Skeleton, StatusPill } from "@/components/ui";
+import { Loadable, Skeleton, StatusPill, ErrorNotice } from "@/components/ui";
 import { DownloadButton } from "./DownloadButton";
 import s from "./MemberDocumentsList.module.scss";
 
@@ -83,9 +83,7 @@ export function MemberDocumentsList({
         {items && <span className={s.meta}>{items.length}</span>}
       </div>
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience={role}>{error}</ErrorNotice>
       )}
       <Loadable loading={!error && !items} label="Loading documents" skeleton={<DocumentsSkeleton />}>
         {null}

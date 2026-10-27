@@ -4,6 +4,7 @@ import type { FormEvent, ReactNode } from "react";
 import Image from "next/image";
 import AuthButton from "./AuthButton";
 import styles from "./authShell.module.scss";
+import { Notice, type NoticeFix } from "@/components/ui";
 
 interface BrandProps {
   src: string;
@@ -26,6 +27,17 @@ interface AuthShellProps {
   secondaryVisible?: boolean;
   brand?: BrandProps;
 }
+
+/** Steps shown under any sign-in failure (wrong code, expired code, too many tries, no connection). */
+const SIGN_IN_FIX: NoticeFix = {
+  steps: [
+    "Check that the email address is the one ILP has for you, with no typing mistake.",
+    "Codes expire after 10 minutes and work once. If yours is older, press Send a new code or Use a different email and send again.",
+    "Look for the code email in your spam or promotions folder.",
+    "After several wrong tries, wait a few minutes before you try again.",
+    "Still stuck? Write to the ILP person who invited you, or reply to any ILP email.",
+  ],
+};
 
 /**
  * Shared OTP auth chrome for the staff dashboard and client status portal.
@@ -75,8 +87,10 @@ export default function AuthShell({
 
           {children}
 
-          {notice && <p className={styles.notice}>{notice}</p>}
-          {error && <p className={styles.error}>{error}</p>}
+          {notice && <Notice tone="success" variant="inline" title={notice} />}
+          {error && (
+            <Notice tone="danger" variant="inline" urgent title={error} fix={SIGN_IN_FIX} />
+          )}
 
           <AuthButton
             type="submit"

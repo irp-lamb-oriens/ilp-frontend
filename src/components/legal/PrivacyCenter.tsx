@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Loadable, Skeleton, StatusPill, type StatusTone } from "@/components/ui";
+import { Button, Loadable, Skeleton, StatusPill, type StatusTone, ErrorNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import type { ConsentKind, PrivacyRequest } from "@/lib/contracts";
 import { useMember } from "@/components/status/MemberContext";
@@ -86,9 +86,7 @@ export default function PrivacyCenter() {
           </Button>
         </div>
         {exportError && (
-          <p className={s.error} role="alert">
-            {exportError}
-          </p>
+          <ErrorNotice audience="member">{exportError}</ErrorNotice>
         )}
       </section>
 
@@ -117,9 +115,7 @@ export default function PrivacyCenter() {
       <section className={s.card} aria-labelledby="req-title">
         <h2 id="req-title" className={s.title}>Your requests</h2>
         {loadError && (
-          <p className={s.error} role="alert">
-            {loadError}
-          </p>
+          <ErrorNotice audience="member">{loadError}</ErrorNotice>
         )}
         <Loadable loading={me === null && !loadError} label="Loading your requests" skeleton={<PrivacyRequestsSkeleton />}>
           {null}
@@ -249,9 +245,7 @@ function Choices({ me, loading, onChange }: { me: PrivacyMe | null; loading: boo
         </p>
       )}
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
     </section>
   );
@@ -332,9 +326,7 @@ function RequestForm({
         </label>
         <textarea id={id} className={s.textarea} rows={3} maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
         {error && (
-          <p className={s.error} role="alert">
-            {error}
-          </p>
+          <ErrorNotice audience="member">{error}</ErrorNotice>
         )}
         {done && (
           <p className={s.ok} role="status">
@@ -414,9 +406,7 @@ function DeleteAccount({ email, active, onDone }: { email: string | null; active
         </p>
       )}
       {error && (
-        <p className={s.error} role="alert">
-          {error}
-        </p>
+        <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
     </section>
   );
