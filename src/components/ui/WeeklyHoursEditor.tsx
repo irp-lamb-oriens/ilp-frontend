@@ -63,6 +63,8 @@ export function WeeklyHoursEditor({
   const total = weeklySlotTotal(value, slotMinutes, maxPerDay);
   const uncapped = weeklySlotTotal(value, slotMinutes);
   const [announce, setAnnounce] = useState("");
+  // A no-break space makes a repeated message (two identical removes) read again.
+  const say = (msg: string) => setAnnounce((prev) => (prev === msg ? `${msg}\u00a0` : msg));
   // Ranges a day had before it was switched off, so switching back restores them.
   const parked = useRef(new Map<number, { start: string; end: string }[]>());
   const focusNext = useRef<string | null>(null);
@@ -88,11 +90,11 @@ export function WeeklyHoursEditor({
       const restore = parked.current.get(day) ?? [defaultWindow];
       parked.current.delete(day);
       onChange([...value, ...restore.map((r) => ({ day, ...r }))]);
-      setAnnounce(`${name} available, ${restore.map((r) => formatRange12(r.start, r.end)).join(" and ")}.`);
+      say(`${name} available, ${restore.map((r) => formatRange12(r.start, r.end)).join(" and ")}.`);
     } else {
       parked.current.set(day, byDay(day).map(({ w }) => ({ start: w.start, end: w.end })));
       onChange(value.filter((w) => w.day !== day));
-      setAnnounce(`${name} not available.`);
+      say(`${name} not available.`);
     }
   };
 
@@ -102,14 +104,19 @@ export function WeeklyHoursEditor({
     if (!next) return;
     focusNext.current = `${rangeId(day, rows.length)}-start`;
     onChange([...value, { day, ...next }]);
+    say(`Added ${formatRange12(next.start, next.end)} on ${dayNames[day]}.`);
   };
 
   const remove = (day: WeeklyWindowValue["day"], i: number) => {
     const w = value[i];
-    const left = byDay(day).length - 1;
-    focusNext.current = left > 0 ? `${idPrefix}-d${day}-add` : `${idPrefix}-d${day}-switch`;
+    const rows = byDay(day);
+    const k = rows.findIndex((r) => r.i === i);
+    const left = rows.length - 1;
+    // Focus the range that moves up into this slot, else "Add hours", else the day switch.
+    focusNext.current =
+      k >= 0 && k < left ? `${rangeId(day, k)}-start` : left > 0 ? `${idPrefix}-d${day}-add` : `${idPrefix}-d${day}-switch`;
     onChange(value.filter((_, j) => j !== i));
-    setAnnounce(`Removed ${formatRange12(w.start, w.end)} on ${dayNames[day]}.`);
+    say(`Removed ${formatRange12(w.start, w.end)} on ${dayNames[day]}.${left === 0 ? ` ${dayNames[day]} not available.` : ""}`);
   };
 
   const copyToWeekdays = (day: WeeklyWindowValue["day"]) => {
@@ -118,7 +125,7 @@ export function WeeklyHoursEditor({
     const kept = value.filter((w) => !targets.includes(w.day as (typeof WEEKDAYS)[number]));
     onChange([...kept, ...targets.flatMap((d) => src.map((r) => ({ day: d, ...r })))]);
     const names = targets.map((d) => dayNames[d]);
-    setAnnounce(`Copied ${dayNames[day]}'s hours to ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}.`);
+    say(`Copied ${dayNames[day]}'s hours to ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}.`);
   };
 
   const setRange = (i: number, r: { start: string; end: string }) => onChange(value.map((w, j) => (j === i ? { ...w, ...r } : w)));
