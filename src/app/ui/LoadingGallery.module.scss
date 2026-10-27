@@ -1,0 +1,149 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  display: grid;
+  gap: $space-8;
+}
+
+.h3 {
+  margin: 0 0 $space-3;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.note {
+  margin: 0 0 $space-3;
+  font-size: 0.9375rem;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+// Shapes: an asymmetric two-column sheet (lines wide, others narrow).
+.shapes {
+  display: grid;
+  gap: $space-6;
+
+  @include md {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+.shapeCol {
+  display: grid;
+  gap: $space-2;
+  align-content: start;
+}
+
+.shapeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+// Compositions: wide column for list/table/board, narrow for card/timeline.
+.compositions {
+  display: grid;
+  gap: $space-6;
+
+  @include lg {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.stack {
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin-bottom: $space-4;
+}
+
+.demo {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.tileCell {
+  display: grid;
+}
+
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  overflow: hidden;
+
+  > li + li {
+    border-top: 1px solid $color-hairline;
+  }
+}
+
+.rowItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $space-3;
+  min-height: 64px;
+  padding: $space-3 $space-4;
+
+  @include below-md {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    > :first-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.rowText {
+  display: grid;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-weight: 600;
+  color: $color-charcoal;
+}
+
+.rowSub {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+// Same grid as the default SkeletonStatStrip and the staff Today strip.
+.strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: $space-3;
+
+  > :first-child {
+    grid-row: span 2;
+  }
+
+  @include below-md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > :first-child {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+  }
+}
