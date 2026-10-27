@@ -42,7 +42,9 @@ export default function NextStepCard() {
         )}
       </dl>
       {m.action && (
-        <ButtonLink href={m.action.href} block className={s.cta}>
+        // Full prefetch: the target pages render from the member data already in
+        // context, so the click can paint them without a server round trip.
+        <ButtonLink href={m.action.href} prefetch block className={s.cta}>
           {m.action.label}
         </ButtonLink>
       )}

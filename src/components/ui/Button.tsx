@@ -54,7 +54,11 @@ export function Button({
 }
 
 export type ButtonLinkProps = CommonProps &
-  AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
+  AnchorHTMLAttributes<HTMLAnchorElement> & {
+    href: string;
+    /** next/link prefetch. Default (auto) prefetches up to the route's loading.tsx; true prefetches the whole page. */
+    prefetch?: boolean | null;
+  };
 
 /** Same look as Button, rendered as a Next.js link. */
 export function ButtonLink({
@@ -65,10 +69,11 @@ export function ButtonLink({
   children,
   className,
   href,
+  prefetch,
   ...rest
 }: ButtonLinkProps) {
   return (
-    <Link href={href} className={classes({ variant, size, block }, className)} {...rest}>
+    <Link href={href} prefetch={prefetch} className={classes({ variant, size, block }, className)} {...rest}>
       {icon && <span className={s.icon} aria-hidden="true">{icon}</span>}
       {children && <span>{children}</span>}
     </Link>
