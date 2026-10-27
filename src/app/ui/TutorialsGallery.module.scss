@@ -111,3 +111,54 @@
   font-weight: 700;
   color: $color-navy;
 }
+
+.capControls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-3;
+  align-items: end;
+
+  @include md {
+    grid-template-columns: 2fr 1fr auto;
+  }
+}
+
+.glossary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-6;
+
+  @include lg {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.glossaryGroup {
+  min-width: 0;
+}
+
+.glossaryTitle {
+  @include eyebrow;
+  margin: 0 0 $space-2;
+}
+
+.glossaryList {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  margin: 0;
+}
+
+.glossaryItem {
+  dt {
+    font-weight: 700;
+    color: $color-navy;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: $color-charcoal;
+  }
+}

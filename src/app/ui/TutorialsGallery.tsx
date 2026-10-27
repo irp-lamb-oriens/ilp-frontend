@@ -2,14 +2,16 @@
 
 /**
  * /ui → Tutorials: preview any tutorial in the real modal or inline (with a
- * static reduced-motion frame), and a playground with every mock element and
- * every cursor op.
+ * static reduced-motion frame and its captions), the glossary behind the
+ * "What's this?" meanings, a caption-only playground, and a playground with
+ * every mock element and every cursor op.
  */
 import { useMemo, useState } from "react";
-import { Button, Select, Switch, Tabs } from "@/components/ui";
-import { ScenePlayer, useTutorial } from "@/components/tutorial";
-import type { CursorOpName, MockNode, Scene, TutorialRole } from "@/components/tutorial";
+import { Button, Select, Switch, Tabs, TextArea, TextInput } from "@/components/ui";
+import { firstUseTerms, readingTime, ScenePlayer, useTutorial, wordCount } from "@/components/tutorial";
+import type { CursorOpName, MockNode, Scene, SceneAspect, TutorialRole } from "@/components/tutorial";
 import { ALL_TUTORIALS } from "@/tutorials";
+import { findTerms, GLOSSARY, TERM_KEYS, type GlossaryEntry } from "@/tutorials/glossary";
 import {
   MEMBERS as M,
   board,
@@ -33,6 +35,7 @@ import {
   pill,
   progress,
   row,
+  say,
   scroll,
   set,
   stack,
@@ -141,6 +144,36 @@ const OVERLAYS: Scene = {
   ],
 };
 
+// ─── Caption playground ─────────────────────────────────────────────────────
+
+const CAP_TARGETS: Array<{ id: string; label: string }> = [
+  { id: "tl", label: "Top left" },
+  { id: "tr", label: "Top right" },
+  { id: "mid", label: "Middle" },
+  { id: "bl", label: "Bottom left" },
+  { id: "br", label: "Bottom right" },
+];
+
+const filler = (t: string) => card(undefined, [meta(t)], { tone: "mist" });
+
+function captionScene(target: string, label: string, explain: string, aspect: SceneAspect): Scene {
+  const root = stack(
+    [
+      row([btn("Top left", "secondary", "tl", "sm"), btn("Top right", "secondary", "tr", "sm")], "between"),
+      filler("Filler, so the targets sit near the edges of the scene."),
+      filler("The caption is placed below, above, right or left of its target, whichever fits."),
+      row([btn("Middle", "secondary", "mid", "sm")], "center"),
+      filler("On phone scenes and narrow screens it docks under the scene instead."),
+      filler("Reading time: 230 ms a word, at least 1.8 s, at most 6 s."),
+      row([btn("Bottom left", "secondary", "bl", "sm"), btn("Bottom right", "secondary", "br", "sm")], "between"),
+    ],
+    6,
+  );
+  return { aspect, root, script: [say(hover(target), label || "Element", explain), wait(500)] };
+}
+
+const GROUPS: GlossaryEntry["group"][] = ["ILP", "Costa Rica", "Money and numbers", "On the screen"];
+
 // ─── Gallery ────────────────────────────────────────────────────────────────
 
 export default function TutorialsGallery() {
@@ -153,6 +186,16 @@ export default function TutorialsGallery() {
   const st = tut?.steps[Math.min(stepIdx, (tut?.steps.length ?? 1) - 1)];
   const [staticFrame, setStaticFrame] = useState(false);
   const [op, setOp] = useState<CursorOpName>("click");
+  const newTerms = useMemo(() => (tut ? firstUseTerms(tut.steps) : []), [tut]);
+  const [capLabel, setCapLabel] = useState("Close task");
+  const [capText, setCapText] = useState(
+    "Marks this job as finished. You write one line about what happened, so anyone on the team can see it later.",
+  );
+  const [capTarget, setCapTarget] = useState("mid");
+  const [capPhone, setCapPhone] = useState(false);
+  const capScene = useMemo(() => captionScene(capTarget, capLabel, capText, capPhone ? "phone" : "wide"), [capTarget, capLabel, capText, capPhone]);
+  const capWords = wordCount(capText);
+  const capTerms = findTerms(`${capLabel}. ${capText}`);
 
   return (
     <div className={s.wrap}>
@@ -231,7 +274,7 @@ export default function TutorialsGallery() {
             <Switch label="Reduced-motion frame" checked={staticFrame} onChange={setStaticFrame} />
           </div>
           <div className={s.preview}>
-            <ScenePlayer key={`${tut.id}:${st.id}:${staticFrame}`} scene={st.scene} forceStatic={staticFrame} />
+            <ScenePlayer key={`${tut.id}:${st.id}:${staticFrame}`} scene={st.scene} forceStatic={staticFrame} newTerms={newTerms[stepIdx]} />
             <div className={s.copy}>
               <p className={s.stepTitle}>{st.title}</p>
               <p>{st.body}</p>
@@ -240,10 +283,60 @@ export default function TutorialsGallery() {
                   Live target: <code>data-tour=&quot;{st.target}&quot;</code>
                 </p>
               )}
+              <p className={s.small}>
+                {(st.scene.script ?? []).filter((o) => o.explain).length} captions · glossary words shown here for the first time:{" "}
+                {newTerms[stepIdx]?.flat().map((t) => t.word).join(", ") || "none"}
+              </p>
             </div>
           </div>
         </>
       )}
+
+      <h3 className={s.h3}>Caption playground</h3>
+      <p className={s.small}>
+        Write a caption and pick where its target sits. Keep it to one or two short sentences, about 28 words at most, for someone who knows nothing about
+        the law, ILP or the app.
+      </p>
+      <div className={s.capControls}>
+        <TextInput label="Element name (bold)" value={capLabel} onChange={(e) => setCapLabel(e.target.value)} />
+        <Select label="Target" value={capTarget} onChange={(e) => setCapTarget(e.target.value)}>
+          {CAP_TARGETS.map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.label}
+            </option>
+          ))}
+        </Select>
+        <Switch label="Phone scene (docked caption)" checked={capPhone} onChange={setCapPhone} />
+      </div>
+      <TextArea label="Explanation" value={capText} rows={3} onChange={(e) => setCapText(e.target.value)} />
+      <p className={s.small}>
+        {capWords} words{capWords > 28 ? " (too long: aim for 28 or fewer)" : ""} · shown for {(readingTime(capText) / 1000).toFixed(1)} s · glossary words:{" "}
+        {capTerms.map((k) => GLOSSARY[k].word).join(", ") || "none"}
+      </p>
+      <ScenePlayer scene={capScene} loops={20} explainList={false} />
+
+      <h3 className={s.h3}>Glossary</h3>
+      <p className={s.small}>
+        {TERM_KEYS.length} words in <code>src/tutorials/glossary.ts</code>. A caption that uses one offers its meaning under &ldquo;What&rsquo;s this?&rdquo;
+        the first time it appears in a tutorial.
+      </p>
+      <div className={s.glossary}>
+        {GROUPS.map((g) => (
+          <section key={g} className={s.glossaryGroup} aria-label={g}>
+            <p className={s.glossaryTitle}>{g}</p>
+            <dl className={s.glossaryList}>
+              {TERM_KEYS.filter((k) => (GLOSSARY[k] as GlossaryEntry).group === g).map((k) => (
+                <div key={k} className={s.glossaryItem}>
+                  <dt>
+                    {GLOSSARY[k].word} <code className={s.route}>{k}</code>
+                  </dt>
+                  <dd>{GLOSSARY[k].meaning}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ))}
+      </div>
 
       <h3 className={s.h3}>Scene playground: mock elements</h3>
       <ScenePlayer scene={{ aspect: "desktop", root: ELEMENTS }} />
