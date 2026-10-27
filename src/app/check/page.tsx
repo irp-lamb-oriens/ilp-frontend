@@ -5,7 +5,7 @@ import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import FunnelHeader from "./FunnelHeader";
-import { Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
+import { Notice, Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
 import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
 import {
   type CheckAnswers,
@@ -272,11 +272,28 @@ export default function CheckPage() {
                 ? `${findings.length} ${findings.length === 1 ? "date" : "dates"} that may apply to you`
                 : "Nothing dated came up from your answers"}
             </h1>
-            <p className={s.help}>
-              {findings.length
-                ? "Based on your answers, these may require review. They are general dates, not legal advice, and a lawyer can confirm what applies to you."
-                : "That is good news. Rules and dates change, so it is worth checking again once a year or when something changes."}
-            </p>
+            {findings.length ? (
+              <Notice
+                tone="neutral"
+                className={s.disclaimer}
+                headingLevel={2}
+                title="These dates may require review"
+                fix={{
+                  steps: [
+                    "These are general dates based on your answers. They are not legal advice.",
+                    "Some may not apply to you, or may have a different date in your case.",
+                    "A lawyer can confirm which ones apply. ILP members get that on a call.",
+                    "Nothing is due from you on this page.",
+                  ],
+                }}
+              >
+                {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
+              </Notice>
+            ) : (
+              <p className={s.help}>
+                That is good news. Rules and dates change, so it is worth checking again once a year or when something changes.
+              </p>
+            )}
 
             {groups.map(([area, items]) => (
               <section key={area} className={s.group} aria-label={AREA_LABELS[area] ?? area}>
@@ -308,7 +325,7 @@ export default function CheckPage() {
             <div className={s.emailBox}>
               <h2>Keep these dates</h2>
               {emailState === "saved" ? (
-                <p role="status" className={s.notice}>Saved. We sent the list to {email.trim().toLowerCase()}.</p>
+                <Notice tone="success" variant="inline" title={`Saved. We sent the list to ${email.trim().toLowerCase()}.`} />
               ) : (
                 <form onSubmit={saveEmail} noValidate>
                   <p>We will email you this list. No account and no spam.</p>
@@ -346,9 +363,11 @@ export default function CheckPage() {
                 Change my answers
               </button>
             </div>
-            <p className={s.fine}>
-              {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
-            </p>
+            {findings.length === 0 && (
+              <p className={s.fine}>
+                {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
+              </p>
+            )}
             <p className={s.fine}>
               ILP is a membership service that connects you with vetted, independent Costa Rica lawyers.
             </p>

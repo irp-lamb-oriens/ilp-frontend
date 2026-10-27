@@ -1,8 +1,7 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
-.box,
-.notice {
+.box {
   display: flex;
   flex-direction: column;
   gap: $space-3;
@@ -10,15 +9,6 @@
   border: 1px solid $color-hairline;
   border-radius: $radius-md;
   background: $color-mist;
-}
-
-.notice {
-  @include md {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: $space-6;
-  }
 }
 
 .title {
