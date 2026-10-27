@@ -1,9 +1,9 @@
 /**
  * Client-side auth helpers: token decode + role gating, portal session checks.
- * No session token is stored in the browser (P1: HttpOnly cookies only).
+ * Portal sessions are Bearer tokens kept per role in localStorage (see api.ts).
  */
 
-import { createApiClient, purgeLegacyTokens, type ApiRole } from "./api";
+import { clearRoleToken, createApiClient, getRoleToken, type ApiRole } from "./api";
 
 export type Role = "customer" | "provider" | "staff";
 
@@ -29,9 +29,9 @@ function decodeJwt<T>(token: string): T | null {
 }
 
 /**
- * The signed-in customer, decoded from a customer JWT. Sessions are HttpOnly
- * cookies now (P1), so the browser holds no JWT to decode: this returns null
- * unless a caller passes a token it received in memory.
+ * The signed-in customer, decoded from a customer JWT. Portal sessions are
+ * opaque tokens, not JWTs, so this returns null unless a caller passes a
+ * customer JWT it received.
  */
 export function getUser(token?: string | null): SessionUser | null {
   if (!token) return null;
@@ -48,19 +48,17 @@ export function hasRole(required: Role | Role[], token?: string | null): boolean
     : user.role === required;
 }
 
-/** @deprecated Cookie-only auth: tokens are never stored in the browser. Does nothing. */
+/** @deprecated Customer JWTs are not stored. Does nothing. */
 export function setToken(_token?: string): void {}
 
-/** @deprecated Cookie-only auth: removes tokens left by older builds only. */
-export function clearToken(): void {
-  purgeLegacyTokens();
-}
+/** @deprecated Customer JWTs are not stored. Does nothing. */
+export function clearToken(): void {}
 
 // ── Portal sessions ─────────────────────────────────────────────────────────
-// Staff, lawyer and client portals each keep their own HttpOnly cookie
-// (ilp_staff_session, ilp_lawyer_session, ilp_client_session). JavaScript
-// cannot see it: ask the server whether a session exists (an authenticated
-// GET; 401 means signed out) and use createApiClient(role).logout() to end it.
+// Staff, lawyer and client portals each keep their own Bearer token
+// (ilp_staff_token, ilp_lawyer_token, ilp_client_token). A stored token may
+// have expired: ask the server (an authenticated GET; 401 means signed out and
+// clears the token) and use createApiClient(role).logout() to end it.
 
 export type PortalRole = Exclude<ApiRole, "customer">;
 
@@ -71,8 +69,9 @@ const SESSION_CHECK: Record<PortalRole, string> = {
   client: "/api/client-status/auth/check",
 };
 
-/** True when the server accepts this browser's session cookie for the role. */
+/** True when the server accepts this browser's stored token for the role. */
 export async function hasPortalSession(role: PortalRole): Promise<boolean> {
+  if (!getRoleToken(role)) return false;
   try {
     await createApiClient(role).get(SESSION_CHECK[role], { on401: "throw" });
     return true;
@@ -81,12 +80,13 @@ export async function hasPortalSession(role: PortalRole): Promise<boolean> {
   }
 }
 
-/** @deprecated Cookie-only auth: the browser holds no token. Always false; use hasPortalSession(). */
-export function hasPortalToken(_role?: PortalRole): boolean {
-  return false;
+/** True when a token is stored for the role (it may still be expired; see hasPortalSession). */
+export function hasPortalToken(role: PortalRole): boolean {
+  return !!getRoleToken(role);
 }
 
-/** End the role's session on the server (clears the cookie). Never throws. */
+/** End the role's session on the server and forget the token. Never throws. */
 export async function clearPortalSession(role: PortalRole): Promise<void> {
   await createApiClient(role).logout();
+  clearRoleToken(role);
 }

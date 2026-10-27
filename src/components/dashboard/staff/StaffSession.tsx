@@ -57,7 +57,7 @@ function safeNext(): string | null {
 }
 
 /**
- * Staff frame: checks the session (cookie or legacy header token), shows the
+ * Staff frame: checks the session (the staff Bearer token), shows the
  * email-code login when there is none, and otherwise renders the staff
  * RoleShell around the page.
  */

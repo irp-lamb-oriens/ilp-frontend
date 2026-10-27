@@ -2,7 +2,7 @@
  * components/status/membershipApi.ts — membership billing + cancel (P2).
  *
  * Talks to /api/payments/me/* (server/API/payments/cancel.ts) through the
- * client portal's api client (cookie + legacy header).
+ * client portal's api client (Bearer token).
  */
 
 import { clientApi } from "@/lib/status";

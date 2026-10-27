@@ -7,6 +7,7 @@
  */
 
 import { API_URL } from "./api";
+import { clientApi } from "./status";
 
 const SW_PATH = "/sw.js";
 
@@ -62,8 +63,8 @@ async function fetchVapidPublicKey(): Promise<string> {
 
 /**
  * Subscribe the browser to push and persist the subscription to the backend.
- * Requires an active client session (the HttpOnly ilp_client_session cookie,
- * sent with credentials: "include"). Returns true on success.
+ * Requires an active client session (the member's Bearer token, sent by
+ * `clientApi`). Returns true on success.
  */
 export async function subscribeToPush(): Promise<boolean> {
   if (!pushSupported()) return false;
@@ -81,14 +82,8 @@ export async function subscribeToPush(): Promise<boolean> {
       });
     }
 
-    const res = await fetch(`${API_URL}/api/push/subscribe`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscription: subscription.toJSON() }),
-    });
-
-    return res.ok;
+    await clientApi.post("/api/push/subscribe", { subscription: subscription.toJSON() }, { on401: "throw" });
+    return true;
   } catch {
     return false;
   }
@@ -135,10 +130,7 @@ export async function unsubscribeFromPush(): Promise<boolean> {
 
     // Best effort: without a session the server answers 401 and the
     // browser-side subscription is already gone.
-    await fetch(`${API_URL}/api/push/subscribe`, {
-      method: "DELETE",
-      credentials: "include",
-    }).catch(() => undefined);
+    await clientApi.del("/api/push/subscribe", { on401: "throw" }).catch(() => undefined);
     return true;
   } catch {
     return false;

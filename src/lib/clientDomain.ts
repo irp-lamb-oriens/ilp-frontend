@@ -1,7 +1,7 @@
 /**
  * Typed client helpers for the customer-facing domains: consultations
- * (booking) and alerts (compliance micro-form). Both require the user's
- * session cookie (HttpOnly; no token is kept in the browser).
+ * (booking) and alerts (compliance micro-form), through the public/customer
+ * client (`apiFetch`, no portal session token).
  */
 import { apiFetch } from "./api";
 

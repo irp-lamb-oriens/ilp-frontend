@@ -1,7 +1,9 @@
 /**
  * Join funnel API (W3): free deadline check, join, membership status.
  * Talks to server/API/leads and server/API/payments. No auth: these are the
- * public routes a visitor uses before they have an account.
+ * public routes a visitor uses before they have an account. The join
+ * portal-session route returns the new member's `token`, which the welcome
+ * page stores for the client role.
  */
 
 import { API_URL, ApiError } from "@/lib/api";
@@ -29,7 +31,7 @@ export type PaymentsMode = "stripe" | "manual";
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    credentials: "include", // accept the HttpOnly portal cookie set after joining
+    credentials: "omit", // public routes; the portal session comes back as `token` (AUTH)
     headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
   });
   let data: unknown = null;

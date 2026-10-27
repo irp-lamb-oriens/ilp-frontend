@@ -5,6 +5,7 @@ import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import FunnelHeader from "@/app/check/FunnelHeader";
+import { setRoleToken } from "@/lib/api";
 import { type JoinStatus, PRICE, joinStatus, longDate, portalSession } from "../joinApi";
 import s from "@/app/check/funnel.module.scss";
 
@@ -28,9 +29,11 @@ export default function WelcomePage() {
       setOpening(true);
       try {
         const res = await portalSession(t);
-        // The session is the HttpOnly cookie set by this response; the body
-        // carries no token. loginRequired = existing client, sign in by code.
-        if (res.projectId && !res.loginRequired) {
+        // The body carries the member's session token: keep it for the client
+        // role (sent as Authorization: Bearer). loginRequired = existing
+        // client, sign in by code.
+        if (res.token && res.projectId && !res.loginRequired) {
+          setRoleToken("client", res.token);
           router.push(`/status/${encodeURIComponent(res.projectId)}?welcome=1`);
           return;
         }

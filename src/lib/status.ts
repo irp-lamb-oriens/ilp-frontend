@@ -2,24 +2,26 @@
  * lib/status.ts — client-portal API client.
  *
  * Wraps `createApiClient("client")`: client-status endpoints, authenticated by
- * the HttpOnly `ilp_client_session` cookie only (P1); no token is stored.
+ * the member's Bearer token (localStorage `ilp_client_token`, see api.ts).
  */
 
-import { createApiClient, legacyFetch, purgeLegacyTokens } from "./api";
+import { clearRoleToken, createApiClient, getRoleToken, legacyFetch, setRoleToken } from "./api";
 
 export const clientApi = createApiClient("client");
 
-/** @deprecated Cookie-only auth (ilp_client_session, HttpOnly): always null. */
+/** The member session token, or null. */
 export function getClientToken(): string | null {
-  return null;
+  return getRoleToken("client");
 }
 
-/** @deprecated Cookie-only auth: the server sets the cookie; this does nothing. */
-export function setClientToken(_token?: string): void {}
+/** Store the member session token returned by verify-otp or the join portal-session route. */
+export function setClientToken(token?: string): void {
+  if (token) setRoleToken("client", token);
+}
 
-/** @deprecated Use `clientApi.logout()`. Removes tokens left by older builds only. */
+/** Forget the member token (prefer `clientApi.logout()`, which also ends the server session). */
 export function clearClientToken(): void {
-  purgeLegacyTokens();
+  clearRoleToken("client");
 }
 
 /**
@@ -48,7 +50,7 @@ export function projectIdToEmail(projectId: string): string {
 }
 
 /**
- * Client-status API fetch: the client session cookie. The staff-token fallback is gone (plan overhaul 2): staff viewing a
+ * Client-status API fetch: the member's Bearer token. The staff-token fallback is gone (plan overhaul 2): staff viewing a
  * member's page must use the dashboard's own routes, which audit the access.
  * 401s throw (no redirect) so /status keeps its own login flow.
  */

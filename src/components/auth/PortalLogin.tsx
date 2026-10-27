@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ApiError, createApiClient } from "@/lib/api";
+import { ApiError, createApiClient, setRoleToken } from "@/lib/api";
 import type { PortalRole } from "@/lib/auth";
 import { emailToProjectId } from "@/lib/status";
 import AuthButton from "./AuthButton";
@@ -61,8 +61,8 @@ function describe(err: unknown, step: Step): string {
 /**
  * Email → 6-digit code login shared by the three portals. Handles the
  * server's 401 (wrong or expired code), 429 (too many attempts / resend too
- * soon) and a 30-second resend cooldown. The server sets the HttpOnly session
- * cookie (ilp_<role>_session); no token is stored in the browser.
+ * soon) and a 30-second resend cooldown. On success the session token from
+ * verify-otp is stored for the role (ilp_<role>_token, see lib/api.ts).
  */
 export default function PortalLogin({ role, onSuccess, title, sub, initialEmail = "", brand }: PortalLoginProps) {
   const api = useRef(createApiClient(role)).current;
@@ -126,9 +126,14 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
     }
     setBusy(true);
     try {
-      const res = await api.post<{ role?: string; expiresAt?: string } | undefined>(`${base}/verify-otp`, bodyFor({ code }), {
-        on401: "throw",
-      });
+      const res = await api.post<{ token?: string; role?: string; expiresAt?: string } | undefined>(
+        `${base}/verify-otp`,
+        bodyFor({ code }),
+        { on401: "throw" },
+      );
+      if (!res?.token) throw new ApiError("Sign-in did not complete. Request a new code and try again.", 500);
+      // Kept per role in localStorage and sent as `Authorization: Bearer` (lib/api.ts).
+      setRoleToken(role, res.token);
       const clean = email.trim().toLowerCase();
       onSuccess({
         email: clean,

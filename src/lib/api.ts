@@ -1,14 +1,21 @@
 /**
  * Centralized API client. All frontend->backend calls route through
- * `createApiClient(role)` so the base URL, credentials, error shape and 401
+ * `createApiClient(role)` so the base URL, auth header, error shape and 401
  * handling stay in one place.
  *
- * Auth is cookie-only (P1): verify-otp sets an HttpOnly session cookie per
- * role (ilp_staff_session, ilp_lawyer_session, ilp_client_session) and every
- * request sends `credentials: "include"`. No session token is ever read from
- * or written to localStorage/sessionStorage; JavaScript cannot see the
- * session. Legacy tokens left in a browser by older builds are removed once
- * on load (`purgeLegacyTokens`).
+ * Auth (AUTH, 2026-10): the site and the API are on different sites
+ * (Netlify / Render), so browsers drop the API's session cookie. Each portal
+ * keeps its own session token instead:
+ *   - verify-otp (and the join portal-session route) return `{ token, expiresAt }`;
+ *   - the token is kept in localStorage under the role's key (ilp_staff_token,
+ *     ilp_lawyer_token, ilp_client_token), or in memory when storage is
+ *     unavailable;
+ *   - every request sends `Authorization: Bearer <token>` with
+ *     `credentials: "omit"`;
+ *   - a 401 clears that role's token (and, by default, sends the user to the
+ *     role's login page); logout clears it and ends the server session.
+ * Files the API streams (documents, data export, contract PDFs) are fetched as
+ * blobs with the same header: see `downloadFile`.
  */
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -30,9 +37,9 @@ export type ApiRole = "staff" | "lawyer" | "client" | "customer";
 interface RoleConfig {
   /** Where a 401 sends the user. */
   loginPath: string;
-  /** HttpOnly session cookie set by verify-otp. Read by the server only. */
-  cookieName?: string;
-  /** Server route that ends this session and clears the cookie. */
+  /** localStorage key holding this role's session token. */
+  tokenKey?: string;
+  /** Server route that ends this session. */
   logoutPath?: string;
   /** Server route that ends every session of this email ("sign out everywhere"). */
   logoutAllPath?: string;
@@ -41,19 +48,19 @@ interface RoleConfig {
 export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
   staff: {
     loginPath: "/dashboard",
-    cookieName: "ilp_staff_session",
+    tokenKey: "ilp_staff_token",
     logoutPath: "/api/dashboard/auth/logout",
     logoutAllPath: "/api/dashboard/auth/logout-all",
   },
   lawyer: {
     loginPath: "/lawyer",
-    cookieName: "ilp_lawyer_session",
+    tokenKey: "ilp_lawyer_token",
     logoutPath: "/api/provider/auth/logout",
     logoutAllPath: "/api/provider/auth/logout-all",
   },
   client: {
     loginPath: "/status",
-    cookieName: "ilp_client_session",
+    tokenKey: "ilp_client_token",
     logoutPath: "/api/client-status/auth/logout",
     logoutAllPath: "/api/client-status/auth/logout-all",
   },
@@ -62,27 +69,50 @@ export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
   },
 };
 
-/** Keys older builds used for header tokens. Removed on load; never written. */
-const LEGACY_TOKEN_KEYS = ["ilp_dashboard_token", "ilp_provider_token", "ilp_client_token", "ilp_token"];
+// ── Session tokens (one per role) ───────────────────────────────────────────
 
-/** Delete session tokens that older builds stored in web storage. Never throws. */
-export function purgeLegacyTokens(): void {
+/** Fallback when localStorage throws (private mode, blocked storage). */
+const memoryTokens: Partial<Record<ApiRole, string>> = {};
+
+/** The stored session token for a role, or null. Never throws. */
+export function getRoleToken(role: ApiRole): string | null {
+  const key = ROLE_CONFIG[role].tokenKey;
+  if (!key) return null;
+  if (typeof window !== "undefined") {
+    try {
+      const v = window.localStorage.getItem(key);
+      if (v) return v;
+    } catch {
+      // storage unavailable: use the in-memory copy
+    }
+  }
+  return memoryTokens[role] ?? null;
+}
+
+/** Store the token returned by verify-otp / portal-session for a role. Never throws. */
+export function setRoleToken(role: ApiRole, token: string): void {
+  const key = ROLE_CONFIG[role].tokenKey;
+  if (!key || !token) return;
+  memoryTokens[role] = token;
   if (typeof window === "undefined") return;
-  for (const key of LEGACY_TOKEN_KEYS) {
-    try {
-      window.localStorage.removeItem(key);
-    } catch {
-      // storage unavailable
-    }
-    try {
-      window.sessionStorage.removeItem(key);
-    } catch {
-      // storage unavailable
-    }
+  try {
+    window.localStorage.setItem(key, token);
+  } catch {
+    // storage unavailable: the in-memory copy lasts until the tab closes
   }
 }
 
-purgeLegacyTokens();
+/** Forget a role's token (logout, 401). Never throws. */
+export function clearRoleToken(role: ApiRole): void {
+  const key = ROLE_CONFIG[role].tokenKey;
+  delete memoryTokens[role];
+  if (!key || typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // storage unavailable
+  }
+}
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   /** Plain objects are JSON-encoded; strings, FormData and Blobs pass through. */
@@ -106,9 +136,11 @@ export interface ApiClient {
   put<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   patch<T = unknown>(path: string, body?: unknown, options?: RequestOptions): Promise<T>;
   del<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
-  /** Absolute URL for a GET the browser opens itself (downloads): the cookie rides along. */
+  /** Absolute URL for a path. Carries no credentials: use `blob` / `downloadFile` for files. */
   url(path: string, query?: RequestOptions["query"]): string;
-  /** Ends this session (server clears the cookie). Never throws. */
+  /** GET a file with the Bearer header; resolves to the bytes and the server's file name. */
+  blob(path: string, options?: RequestOptions): Promise<{ blob: Blob; fileName: string | null }>;
+  /** Ends this session on the server and forgets the token. Never throws. */
   logout(): Promise<void>;
   /** Ends every session of this email for the role, on every device. Throws ApiError on failure. */
   logoutAll(): Promise<{ ended: number }>;
@@ -143,9 +175,24 @@ function encodeBody(body: unknown, headers: Headers): BodyInit | undefined {
   return JSON.stringify(body);
 }
 
-/** Auth endpoints never redirect: a wrong code is a form error, not a lost session. */
+/** OTP endpoints never redirect or clear the token: a wrong code is a form error, not a lost session. */
 function isAuthPath(path: string): boolean {
-  return /\/auth\//.test(path);
+  return /\/auth\/(request-otp|verify-otp)(\?|$)/.test(path);
+}
+
+/** File name from a Content-Disposition header (filename* first). */
+function dispositionName(header: string | null): string | null {
+  if (!header) return null;
+  const star = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (star) {
+    try {
+      return decodeURIComponent(star[1].trim());
+    } catch {
+      // fall back to the plain filename
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header);
+  return plain ? plain[1].trim() : null;
 }
 
 function redirectToLogin(loginPath: string) {
@@ -160,42 +207,56 @@ function redirectToLogin(loginPath: string) {
 export function createApiClient(role: ApiRole): ApiClient {
   const cfg = ROLE_CONFIG[role];
 
+  /** fetch with the role's Bearer token; throws ApiError (after 401 handling) on a non-2xx. */
+  async function send(path: string, options: RequestOptions = {}): Promise<Response> {
+    const { body, query, on401 = "redirect", headers: rawHeaders, ...init } = options;
+    const headers = new Headers(rawHeaders);
+    const encoded = encodeBody(body, headers);
+    const token = getRoleToken(role);
+    if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
+
+    const res = await fetch(`${API_URL}${withQuery(path, query)}`, {
+      ...init,
+      headers,
+      body: encoded,
+      credentials: "omit",
+    });
+
+    if (!res.ok) {
+      let message = `Request failed (${res.status})`;
+      let data: unknown;
+      try {
+        data = await res.json();
+        const err = (data as { error?: unknown } | null)?.error;
+        if (err) message = String(err);
+      } catch {
+        // ignore parse failures
+      }
+      if (res.status === 401 && !isAuthPath(path)) {
+        // The token is missing, expired or ended elsewhere: forget it.
+        if (token && getRoleToken(role) === token) clearRoleToken(role);
+        if (on401 === "redirect") redirectToLogin(cfg.loginPath);
+      }
+      throw new ApiError(message, res.status, data);
+    }
+    return res;
+  }
+
   const client: ApiClient = {
     role,
     loginPath: cfg.loginPath,
     url: (path, query) => `${API_URL}${withQuery(path, query)}`,
 
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-      const { body, query, on401 = "redirect", headers: rawHeaders, ...init } = options;
-      const headers = new Headers(rawHeaders);
-      const encoded = encodeBody(body, headers);
-
-      const res = await fetch(`${API_URL}${withQuery(path, query)}`, {
-        ...init,
-        headers,
-        body: encoded,
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        let message = `Request failed (${res.status})`;
-        let data: unknown;
-        try {
-          data = await res.json();
-          const err = (data as { error?: unknown } | null)?.error;
-          if (err) message = String(err);
-        } catch {
-          // ignore parse failures
-        }
-        if (res.status === 401 && on401 === "redirect" && !isAuthPath(path)) {
-          redirectToLogin(cfg.loginPath);
-        }
-        throw new ApiError(message, res.status, data);
-      }
-
+      const res = await send(path, options);
       if (res.status === 204) return undefined as T;
       const text = await res.text();
       return (text ? JSON.parse(text) : undefined) as T;
+    },
+
+    async blob(path, options = {}) {
+      const res = await send(path, { ...options, method: "GET" });
+      return { blob: await res.blob(), fileName: dispositionName(res.headers.get("Content-Disposition")) };
     },
 
     get: (path, options) => client.request(path, { ...options, method: "GET" }),
@@ -206,20 +267,60 @@ export function createApiClient(role: ApiRole): ApiClient {
 
     async logout() {
       try {
-        if (cfg.logoutPath) await client.request(cfg.logoutPath, { method: "POST", on401: "throw" });
+        if (cfg.logoutPath && getRoleToken(role)) {
+          await client.request(cfg.logoutPath, { method: "POST", on401: "throw" });
+        }
       } catch {
-        // already signed out or offline: nothing else to clear on this side
+        // already signed out or offline
+      } finally {
+        clearRoleToken(role);
       }
     },
 
     async logoutAll() {
       if (!cfg.logoutAllPath) return { ended: 0 };
       const res = await client.request<{ ended?: number }>(cfg.logoutAllPath, { method: "POST", on401: "throw" });
+      clearRoleToken(role);
       return { ended: Number(res?.ended ?? 0) };
     },
   };
 
   return client;
+}
+
+/**
+ * Download a file the API streams (member documents, data export, contract
+ * PDFs): fetch it with the role's Bearer header, then save it through a
+ * temporary object URL. Throws ApiError on failure (401 also clears the token
+ * and sends the user to the role's login).
+ */
+export async function downloadFile(
+  role: ApiRole,
+  path: string,
+  filename?: string,
+  query?: RequestOptions["query"],
+): Promise<void> {
+  const { blob, fileName } = await createApiClient(role).blob(path, { query });
+  if (typeof window === "undefined") return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName || filename || "download";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+/**
+ * Alternative to `downloadFile` for when the browser itself must open the URL
+ * (e.g. a new tab): asks the API for a single-use ticket (60 s, bound to this
+ * session and path) and returns the absolute URL with `?ticket=`.
+ */
+export async function ticketUrl(role: ApiRole, path: string): Promise<string> {
+  const res = await createApiClient(role).post<{ url: string }>("/api/download-ticket", { path });
+  return `${API_URL}${res.url}`;
 }
 
 export const staffApi = createApiClient("staff");
@@ -235,34 +336,33 @@ export function legacyFetch<T>(client: ApiClient, path: string, options: Request
 }
 
 // ── Legacy exports (kept so current pages compile) ──────────────────────────
-// Sessions are HttpOnly cookies now: JavaScript can neither read nor store
-// them. These shims stay only so older call sites compile; ask the server
-// (e.g. GET /api/dashboard/auth/check) whether a session exists.
 
-/** @deprecated Cookie-only auth: always null. */
+/** @deprecated Customer JWTs are not stored in the browser: always null. */
 export function getToken(): string | null {
   return null;
 }
 
-/** @deprecated Cookie-only auth: always null. Use GET /api/dashboard/auth/check. */
+/** The staff session token, or null. */
 export function getDashboardToken(): string | null {
-  return null;
+  return getRoleToken("staff");
 }
 
-/** @deprecated Cookie-only auth: the server sets the cookie; this does nothing. */
-export function setDashboardToken(_token?: string): void {}
+/** Store the staff session token returned by verify-otp. */
+export function setDashboardToken(token?: string): void {
+  if (token) setRoleToken("staff", token);
+}
 
-/** @deprecated Cookie-only auth: use `staffApi.logout()`. Removes legacy leftovers only. */
+/** Forget the staff session token (prefer `staffApi.logout()`, which also ends the server session). */
 export function clearDashboardToken(): void {
-  purgeLegacyTokens();
+  clearRoleToken("staff");
 }
 
-/** Staff dashboard fetch (session cookie). */
+/** Staff dashboard fetch (Bearer staff token). */
 export function dashboardFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   return legacyFetch<T>(staffApi, path, options);
 }
 
-/** Public / customer fetch (cookies only; no bearer token is stored in the browser). */
+/** Public / customer fetch (no session token). */
 export function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   return legacyFetch<T>(customerApi, path, options);
 }
