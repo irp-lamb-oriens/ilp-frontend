@@ -1,5 +1,29 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { MEMBERS as M, btn, click, dateIn, dayIn, h3, hover, list, mark, meta, mockShell, p, row, scene, stack, step, text, grid, wait, set, weekdayIn } from "../presets";
+import {
+  MEMBERS as M,
+  btn,
+  click,
+  dateIn,
+  dayIn,
+  grid,
+  h3,
+  hover,
+  list,
+  mark,
+  meta,
+  mockShell,
+  open,
+  p,
+  row,
+  say,
+  scene,
+  set,
+  stack,
+  step,
+  text,
+  type,
+  weekdayIn,
+} from "../presets";
 
 const calls = list(
   [
@@ -44,10 +68,10 @@ function page() {
       stack(
         [
           text("3 calls today", "h1"),
-          meta(`${weekdayIn(0)}, ${dateIn(0)} · 1 summary needs your confirmation`),
+          meta(`${weekdayIn(0)}, ${dateIn(0)} · 1 summary needs your confirmation`, "todo_note"),
           text("Your hours and availability", "meta", "hours"),
           calls,
-          row([btn("Join call", "primary", "join", "sm"), meta("Join opens 10 minutes before the call")], "start"),
+          row([btn("Join call", "primary", "join", "sm"), meta("Join opens 10 minutes before the call", "join_note")], "start"),
         ],
         3,
       ),
@@ -58,36 +82,49 @@ function page() {
 
 export const lawyerToday: Tutorial = {
   id: "lawyer.today",
-  version: 1,
+  version: 2,
   title: "Today",
-  summary: "Your calls today and what each one needs.",
+  summary: "Your calls today and what each one needs from you.",
   audience: ["lawyer"],
   route: "/lawyer",
   steps: [
     step(
       "list",
       "See today's calls",
-      "Calls are in time order; the next one is tagged Next. Each shows the matter, profile completeness and the member's question.",
-      scene(page(), [hover("c1", [mark("c1")], 1200), hover("c2", [mark("c1", false)], 800)]),
+      "Today lists your video calls with ILP members, in time order. Each call lasts up to 20 minutes and shows the member's question in advance.",
+      scene(page(), [
+        say(hover("c1", [mark("c1")]), M.hiroshi, "Your next call. You see the topic, how complete his profile is, and the question he wants to ask."),
+        say(hover("u1", [mark("c1", false)]), "Next 3 days", "Calls booked for the coming days, so you can plan ahead."),
+        say(hover("hours"), "Your hours and availability", "Members can only book inside the hours you set. You change them on the Availability page."),
+      ]),
       { target: "lawyer-today-calls" },
     ),
     step(
       "status",
-      "Read consent and summary status",
-      "Consent pending means ask before recording. Suggested — confirm means a summary waits for you after the call.",
-      scene(page(), [hover("c2", [mark("c2")], 1100), hover("c3", [mark("c2", false), mark("c3")], 1100)]),
+      "Read the labels on each call",
+      "The labels on each call tell you what to do before or after it: ask about recording, or check a summary that waits for you.",
+      scene(page(), [
+        say(hover("c2", [mark("c2")]), "Consent pending", "The member has not said yet whether the call may be recorded. Ask at the start, before you record.", ["recordingConsent"]),
+        say(hover("c3", [mark("c2", false), mark("c3")]), "Suggested — confirm", "A computer drafted a summary of this call. It counts only after you check and confirm it.", ["aiSummary"]),
+      ]),
     ),
     step(
       "brief",
       "Open the pre-call brief",
-      "Select a call to open its page: the brief on one screen, then consent, transcript and summary.",
-      scene(page(), [click("c1", [mark("c1")], M.hiroshi), wait(800)]),
+      "Click a call to open its page. It starts with a one-screen brief: the member's question and the profile facts that matter for it.",
+      scene(page(), [
+        say(hover("todo_note"), "1 summary needs your confirmation", "A past call still needs your check before the member and the ILP team can rely on its summary."),
+        say(click("c1", [mark("c1")]), M.hiroshi, "Opens the call page: the brief first, then the recording, transcript and summary tools.", ["brief"]),
+      ]),
     ),
     step(
       "join",
       "Join on time",
-      "Join call opens the Google Meet link shortly before the start. If the link is not ready, the ILP team sends it by email.",
-      scene(page(), [hover("join", [], 900), click("join", [set("join", { label: "Joining…" })], "Join call"), wait(700)]),
+      "Calls happen on Google Meet. Join call opens the video link shortly before the start time.",
+      scene(page(), [
+        say(hover("join_note"), "Join opens 10 minutes before the call", "The button works from 10 minutes before the start, so you can arrive a little early."),
+        say(click("join", [set("join", { label: "Joining…" })]), "Join call", "Opens the video call in your browser. If the link is not ready, the ILP team emails it to you.", ["videoLink"]),
+      ]),
     ),
   ],
 };

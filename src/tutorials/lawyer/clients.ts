@@ -1,5 +1,33 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { LAWYERS as L, MEMBERS as M, click, dateIn, deflist, drawer, hide, hover, input, list, mark, meta, mockShell, open, p, pill, scene, set, show, stack, step, table, tabs, text, type, wait } from "../presets";
+import {
+  LAWYERS as L,
+  MEMBERS as M,
+  click,
+  dateIn,
+  deflist,
+  drawer,
+  hide,
+  hover,
+  input,
+  list,
+  mark,
+  meta,
+  mockShell,
+  open,
+  p,
+  pill,
+  say,
+  scene,
+  set,
+  show,
+  stack,
+  step,
+  table,
+  tabs,
+  text,
+  type,
+  wait,
+} from "../presets";
 
 const rows = table(
   ["Member", "Matter", "Stage", "Deadlines", "Next call"],
@@ -55,33 +83,41 @@ function page() {
 
 export const lawyerClients: Tutorial = {
   id: "lawyer.clients",
-  version: 1,
+  version: 2,
   title: "Clients",
-  summary: "Every member assigned to you, with their matters.",
+  summary: "Every member assigned to you, with their matters and legal dates.",
   audience: ["lawyer"],
   route: "/lawyer/clients",
   steps: [
     step(
       "find",
       "Find a member or matter",
-      "Search by name, matter or legal area. Deadlines shows what is overdue or due soon for each matter.",
-      scene(page(), [type("search", "Tanaka", [hide("r2"), hide("r3"), hide("r4")]), hover("r1", [mark("r1")], 800)]),
+      "Clients lists every ILP member assigned to you, one row for each matter. Search to find one quickly.",
+      scene(page(), [
+        say(type("search", "Tanaka", [hide("r2"), hide("r3"), hide("r4")]), "Find a member or matter", "Type a name, a matter or a kind of law. The list keeps only what matches."),
+        say(hover("r1", [mark("r1")]), M.hiroshi, "One matter, with its stage, upcoming legal dates and next call. 1 due soon means a legal date is close."),
+      ]),
       { target: "lawyer-clients-search" },
     ),
     step(
       "open",
-      "Open the inspector",
-      "Select a row to open the member on the side. It opens on Brief: their question and the profile facts that matter.",
-      scene(page(), [hover("r2", [], 600), click("r1", [open("drawer")], M.hiroshi), wait(1000)]),
+      "Open the side panel",
+      "Click a row to open the member in a panel on the side. It opens on Brief: their question and the profile facts that matter.",
+      scene(page(), [
+        say(hover("r2"), M.omar, "This row shows 1 overdue: a legal date for this matter has already passed."),
+        say(click("r1", [open("drawer")]), M.hiroshi, "Opens his details in a side panel, so you keep your place in the list."),
+        say(hover("i_brief_body"), "Brief", "His question in his own words, and the profile facts that matter: residency, property and company."),
+      ]),
     ),
     step(
       "tabs",
       "Check deadlines and documents",
-      "Use the tabs for the matter, notes and calls, quotes, deadlines and the member's documents.",
+      "The tabs inside the panel show the matter, your notes and calls, prices, legal dates and the member's documents.",
       scene(page(), [
         wait(200, [open("drawer")]),
-        click("i_deadlines", [set("itabs", { active: "Deadlines" }), hide("i_brief_body"), show("i_deadlines_body")], "Deadlines"),
-        wait(1100),
+        say(hover("i_docs"), "Documents", "Files the member uploaded, like a passport or the company's books."),
+        say(click("i_deadlines", [set("itabs", { active: "Deadlines" }), hide("i_brief_body"), show("i_deadlines_body")]), "Deadlines", "Legal dates for this matter, like a yearly tax return. Due soon means the date is close."),
+        say(hover("i_deadlines_body"), "Corporate tax return (D-101)", "The company's yearly tax return, due in six days. Worth mentioning on your next call."),
       ]),
     ),
   ],

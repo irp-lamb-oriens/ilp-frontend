@@ -1,5 +1,33 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { MEMBERS as M, board, btn, chip, click, drag, hover, input, mark, menu, mockShell, open, p, row, scene, set, shut, stack, step, tabs, wait, hide, show, table, pill } from "../presets";
+import {
+  MEMBERS as M,
+  board,
+  btn,
+  chip,
+  click,
+  drag,
+  hide,
+  hover,
+  input,
+  mark,
+  menu,
+  mockShell,
+  move,
+  open,
+  p,
+  pill,
+  row,
+  say,
+  scene,
+  set,
+  show,
+  shut,
+  stack,
+  step,
+  table,
+  tabs,
+  type,
+} from "../presets";
 
 const cards = board(
   [
@@ -54,44 +82,49 @@ function page() {
 
 export const lawyerBoard: Tutorial = {
   id: "lawyer.board",
-  version: 1,
+  version: 2,
   title: "Board",
-  summary: "Your matters by stage.",
+  summary: "Your matters by stage, and what has waited too long.",
   audience: ["lawyer"],
   route: "/lawyer/board",
   steps: [
     step(
       "aging",
       "Find what is waiting on you",
-      "Each card shows days in stage. Warn and Overdue follow the stage's SLA; overdue deadlines are flagged on the card.",
-      scene(page(), [hover("k3", [mark("k3")], 1200), hover("k2", [mark("k3", false), mark("k2")], 900)]),
+      "Your board shows every matter assigned to you. Each column is a stage, and each card shows how many days the matter has waited there.",
+      scene(page(), [
+        say(hover("k3", [mark("k3")]), M.omar, "Overdue: 16 days in Legal Review, past the time limit ILP set for that step, and one legal deadline missed. Look at this first.", ["sla"]),
+        say(hover("k2", [mark("k3", false), mark("k2")]), M.hiroshi, "Warn: half of the time limit for this step is used. Not late yet."),
+        say(hover("c_intake", [mark("k2", false)]), "Intake", "New matters nobody has worked on yet. Move them on once you start."),
+      ]),
       { target: "lawyer-board" },
     ),
     step(
       "drag",
       "Move a matter to its next stage",
-      "Drag a card to the next column. The member's portal and the ILP team see the new stage.",
-      scene(page(), [drag("k2", "c_quote"), wait(900)]),
+      "When a matter moves on, drag its card to the next column. The member and the ILP team then see the new stage on their own screens.",
+      scene(page(), [
+        say(drag("k2", "c_quote"), M.hiroshi, "You sent a price for the extra work, so the card goes to Quote Sent. The member sees the new step in their portal."),
+        say(hover("c_filing"), "Filing", "Papers are with a public office, such as the National Registry. Move cards here when you file."),
+      ]),
     ),
     step(
       "keyboard",
       "Or use Move to…",
-      "Every card has Move to…, which works with the keyboard: arrows to pick a stage, Enter to move.",
+      "Move to… does the same without dragging, and it works with the keyboard: arrow keys to pick a stage, Enter to move.",
       scene(page(), [
-        click("moveto", [open("menu")], "Move to…"),
-        hover("mi_filing", [mark("mi_filing")], 600),
-        click("mi_filing", [shut("menu"), { id: "k3", moveTo: "c_filing" }], "Filing"),
-        wait(900),
+        say(click("moveto", [open("menu")]), "Move to…", "Opens a short list of stages. Handy when dragging is hard, or when you use the keyboard."),
+        say(click("mi_filing", [shut("menu"), { id: "k3", moveTo: "c_filing" }]), "Filing", "Moves the card to Filing. The result is the same as dragging it."),
       ]),
     ),
     step(
       "list",
-      "Filter, or switch to the list",
-      "Filter by legal area, or switch to List for a sortable table of the same matters.",
+      "Filter, or switch to a list",
+      "Filter the board by legal area, or switch to List to see the same matters as a table.",
       scene(page(), [
-        click("area", [set("area", { value: "Property" })], "Legal area"),
-        click("t_list", [set("layout", { active: "List" }), hide("board"), show("list")], "List"),
-        hover("l1", [mark("l1")], 900),
+        say(click("area", [set("area", { value: "Property" })]), "Legal area", "Shows only matters of one kind of law, here property."),
+        say(click("t_list", [set("layout", { active: "List" }), hide("board"), show("list")]), "List", "Shows the same matters as a table, one row each, easy to sort and scan."),
+        say(hover("l1", [mark("l1")]), M.omar, "The same overdue matter, now as a row. Both views always match."),
       ]),
     ),
   ],

@@ -1,5 +1,30 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { btn, card, chip, click, dateIn, grid, hover, input, meta, mockShell, pill, row, scene, set, show, stack, step, text, timeRange, toggle, type, wait, hidden, list }  from "../presets";
+import {
+  btn,
+  card,
+  chip,
+  click,
+  dateIn,
+  grid,
+  hidden,
+  hover,
+  input,
+  list,
+  meta,
+  mockShell,
+  pill,
+  row,
+  say,
+  scene,
+  set,
+  show,
+  stack,
+  step,
+  text,
+  timeRange,
+  toggle,
+  type,
+} from "../presets";
 
 const weekly = card(
   "Weekly hours",
@@ -53,44 +78,49 @@ function page() {
 
 export const lawyerAvailability: Tutorial = {
   id: "lawyer.availability",
-  version: 1,
+  version: 2,
   title: "Availability",
-  summary: "The hours, days off and areas members can book.",
+  summary: "The hours, days off and kinds of law members can book you for.",
   audience: ["lawyer"],
   route: "/lawyer/availability",
   steps: [
     step(
       "weekly",
       "Set your weekly hours",
-      "Add one or more time windows per day. Members see 20-minute slots inside these windows only.",
-      scene(page(), [click("addwed", [show("wed"), set("addwed", { hidden: true }), show("dirty")], "Add hours"), click("tue", [set("tue", { to: "3:00 pm" })], "Tuesday hours"), wait(700)]),
+      "Members can book you only inside the hours you set here. Add one or more time windows for each day; members see 20-minute times inside them.",
+      scene(page(), [
+        say(click("addwed", [show("wed"), set("addwed", { hidden: true }), show("dirty")]), "Add hours", "Opens a new time window on a day you had marked unavailable, here Wednesday morning."),
+        say(click("tue", [set("tue", { to: "3:00 pm" })]), "Tuesday hours", "Click a time to change it. Tuesday now ends at 3:00 pm."),
+        say(hover("dirty"), "Unsaved changes", "A reminder that your changes are not kept until you press Save hours."),
+      ]),
       { target: "lawyer-availability-weekly" },
     ),
     step(
       "daysoff",
       "Block days off",
-      "Add a date and no calls are offered that day. Planned days off are listed below.",
+      "Add a date when you are away, and no calls are offered on that day.",
       scene(page(), [
-        click("dayoff", [set("dayoff", { value: dateIn(31) })], "Add a day off"),
-        click("adddayoff", [show("d2"), set("dayoff", { value: "" }), show("dirty")], "Add day off"),
-        wait(800),
+        say(click("dayoff", [set("dayoff", { value: dateIn(31) })]), "Add a day off", "Pick a date when you are away, like a holiday.", ["blackoutDate"]),
+        say(click("adddayoff", [show("d2"), set("dayoff", { value: "" }), show("dirty")]), "Add day off", "Adds the date to the list below. Members cannot book a call with you on it."),
       ]),
     ),
     step(
       "limits",
       "Limit notice and daily calls",
-      "Minimum notice stops last-minute bookings. Most calls in one day caps your load.",
-      scene(page(), [click("notice", [set("notice", { value: "48 hours" }), show("dirty")], "Minimum notice"), type("maxcalls", "3"), wait(500)]),
+      "Two limits protect your time: how much warning you need before a call, and the most calls you take in one day.",
+      scene(page(), [
+        say(click("notice", [set("notice", { value: "48 hours" }), show("dirty")]), "Minimum notice before a call", "Members cannot book a call that starts sooner than this. 48 hours stops last-minute bookings."),
+        say(type("maxcalls", "3"), "Most calls in one day", "Once you have this many calls on a day, no more are offered that day."),
+      ]),
     ),
     step(
       "areas",
       "Choose your areas and save",
-      "Pick the legal areas you take; unassigned members are routed by them. Turn on Google Calendar so busy times are blocked. Then Save hours.",
+      "Pick the kinds of law you take. Members without a lawyer are matched to you by these. Then save.",
       scene(page(), [
-        click("a_imm", [set("a_imm", { selected: true }), show("dirty")], "Immigration"),
-        hover("busy", [], 700),
-        click("save", [set("save", { label: "Saved" }), set("dirty", { hidden: true })], "Save hours"),
-        wait(900),
+        say(click("a_imm", [set("a_imm", { selected: true }), show("dirty")]), "Immigration", "Adds immigration to your areas, so members with residency questions can be sent to you.", ["legalArea"]),
+        say(hover("busy"), "Google Calendar", "This switch keeps ILP in sync with your Google Calendar: times that are busy there are hidden from members.", ["toggle"]),
+        say(click("save", [set("save", { label: "Saved" }), set("dirty", { hidden: true })]), "Save hours", "Keeps all your changes. Members see the new times when they book."),
       ]),
     ),
   ],
