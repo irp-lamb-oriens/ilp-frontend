@@ -625,6 +625,27 @@ export const GLOSSARY = {
     match: /\bnotifications?\b/i,
     group: "On the screen",
   },
+  // Used by key only (Notice "How to fix this" panels); no caption pattern.
+  placeholderData: {
+    word: "Placeholder data",
+    meaning: "Made-up members, calls and payments loaded so the screens can be tried out. They are not real people and should be removed before real members join.",
+    group: "On the screen",
+  },
+  admin: {
+    word: "Admin",
+    meaning: "An ILP staff member with full access, including money and settings. Admins can give other staff more access.",
+    group: "ILP",
+  },
+  counsel: {
+    word: "Counsel",
+    meaning: "The lawyer who advises ILP itself, not its members. Counsel checks ILP's terms and policies before they are final.",
+    group: "ILP",
+  },
+  gracePeriod: {
+    word: "Grace period",
+    meaning: "Seven days after a missed payment when everything still works, so there is time to fix the card.",
+    group: "Money and numbers",
+  },
   videoLink: {
     word: "Video link",
     meaning: "A web address that opens the video call (Google Meet) in your browser. No app is needed on a computer.",

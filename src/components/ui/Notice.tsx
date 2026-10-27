@@ -35,8 +35,12 @@ export interface NoticeFix {
   tutorialId?: string;
   /** Step id inside that tutorial (e.g. "weekly"). */
   tutorialStep?: string;
-  /** Or a one-off mock scene to play instead of a tutorial. */
-  scene?: Scene;
+  /**
+   * Or a one-off mock scene to play instead of a tutorial. Pass a loader
+   * (`() => import("@/tutorials/noticeScenes").then((m) => m.x)`) so the
+   * scene code loads only when someone presses "Show me".
+   */
+  scene?: Scene | (() => Promise<Scene>);
   learnMoreHref?: string;
   learnMoreLabel?: string;
   /** Disclosure label. Default: "What does this mean?" for neutral, else "How to fix this". */
@@ -188,7 +192,12 @@ export function Notice(props: NoticeProps) {
   function showMe() {
     if (!tutorial || !fix) return;
     if (fix.tutorialId) void tutorial.start(fix.tutorialId, { stepId: fix.tutorialStep });
-    else if (fix.scene) tutorial.startScene(fix.scene, titleText ?? "How to fix this", fix.summary ?? "");
+    else if (fix.scene) {
+      const t = titleText ?? "How to fix this";
+      const sc = fix.scene;
+      if (typeof sc === "function") void sc().then((x) => tutorial.startScene(x, t, fix.summary ?? ""));
+      else tutorial.startScene(sc, t, fix.summary ?? "");
+    }
   }
 
   const heading = createElement(

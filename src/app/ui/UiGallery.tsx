@@ -24,6 +24,7 @@ import ScheduleGallery from "./ScheduleGallery";
 import GuardGallery from "./GuardGallery";
 import LoadingGallery from "./LoadingGallery";
 import TutorialsGallery from "./TutorialsGallery";
+import NoticeGallery from "./NoticeGallery";
 import { ACTIVITY, MEMBERS, NOW, formatDate, type MemberRow } from "./sampleData";
 import s from "./UiGallery.module.scss";
 
@@ -37,6 +38,7 @@ const SECTIONS = [
   ["timeline", "Timeline"],
   ["tabs", "Tabs"],
   ["empty", "EmptyState"],
+  ["notices", "Notice"],
   ["forms", "Form fields"],
   ["schedule", "Time and schedule"],
   ["guard", "Dialog and unsaved changes"],
@@ -342,6 +344,11 @@ export default function UiGallery() {
           body="You have 60 minutes this month across up to three 20-minute calls."
           action={<Button>Book a call</Button>}
         />
+      </section>
+
+      <section id="notices" className={s.section}>
+        <h2 className={s.h2}>Notice</h2>
+        <NoticeGallery />
       </section>
 
       <section id="forms" className={s.section}>

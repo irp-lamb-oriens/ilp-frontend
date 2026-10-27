@@ -1,0 +1,30 @@
+@use "../../styles/variables" as *;
+
+.wrap {
+  display: grid;
+  gap: $space-4;
+}
+
+.note {
+  margin: 0;
+  max-width: 65ch;
+  color: $color-steel;
+  font-size: 0.9375rem;
+}
+
+.switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.list {
+  display: grid;
+  gap: $space-3;
+}
+
+.h3 {
+  margin: $space-4 0 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
