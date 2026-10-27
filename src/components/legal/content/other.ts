@@ -61,14 +61,14 @@ export const RECORDING_SECTIONS: LegalSection[] = [
 
 // ─── Cookies and browser storage ──────────────────────────────────────────
 export const COOKIES_INTRO =
-  "ILP uses no advertising cookies and no third-party trackers. We use a few cookies and browser storage items that the site needs to work, and one optional measurement id that you can allow or refuse.";
+  "ILP uses no advertising cookies and no third-party trackers. Signing in does not use cookies: we use a few browser storage items that the site needs to work, and one optional measurement id that you can allow or refuse.";
 
 export const COOKIES_SECTIONS: LegalSection[] = [
   {
     heading: "Needed for the site to work",
     body: ["These are set only when you use the feature, and they are not used for advertising."],
     rows: [
-      ["ilp_client_session, ilp_lawyer_session, ilp_staff_session (cookies)", "Keep you signed in. Secure and HttpOnly, so page scripts cannot read them. Member sessions last 7 days from your last visit (up to 30 days); lawyer and staff sessions 12 hours."],
+      ["ilp_client_token, ilp_lawyer_token, ilp_staff_token (browser storage)", "Keep you signed in. A random sign-in token kept in your browser's local storage and sent only to ILP's server over HTTPS. Member sessions last 7 days from your last visit (up to 30 days); lawyer and staff sessions 12 hours. Signing out deletes it from your browser and ends the session on our server."],
       ["ilp_check (this tab only)", "Carries your free-check answers into the join form. Cleared when you close the tab."],
       ["ilp_status_matter, ilp_rating_later (this tab only)", "Remember which matter you were viewing and that you chose to rate a call later."],
       ["ilp_shell_nav_collapsed, ilp_lawyer_board_view", "Remember how you like the menu and the lawyer board laid out."],
@@ -87,7 +87,7 @@ export const COOKIES_SECTIONS: LegalSection[] = [
   {
     heading: "Why there is no large cookie banner",
     body: [
-      "The cookies and storage above are needed for the service you ask for, so we do not ask for consent for them. We ask once, in a small notice, about the optional measurement id. [Counsel: confirm no broader consent banner is required for Costa Rica and US visitors, and whether one is needed if ILP markets to visitors in the EU or UK.]",
+      "The storage items above are needed for the service you ask for, so we do not ask for consent for them. We ask once, in a small notice, about the optional measurement id. [Counsel: confirm no broader consent banner is required for Costa Rica and US visitors, and whether one is needed if ILP markets to visitors in the EU or UK.]",
     ],
   },
 ];

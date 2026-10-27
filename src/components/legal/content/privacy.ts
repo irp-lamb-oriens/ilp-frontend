@@ -137,7 +137,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
     list: [
       "Encrypted connections (HTTPS) everywhere, and encryption at rest in Google Cloud.",
       "Documents in a private storage bucket. Every download is checked and logged.",
-      "One-time sign-in codes stored as hashes; sessions in secure, HttpOnly cookies.",
+      "One-time sign-in codes stored as hashes; sign-in sessions as random tokens kept in your browser and sent only to our server over HTTPS, ending when you sign out or after a set time.",
       "Role-based access for staff and lawyers, and an audit log of sign-ins, downloads and staff actions.",
       "A strict content security policy on our site, and daily backups.",
       "No system is perfectly secure. If a breach affects your information, we will tell you and the authorities as the law requires.",
