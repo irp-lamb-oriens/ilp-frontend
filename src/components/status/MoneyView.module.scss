@@ -148,12 +148,6 @@
   font-weight: 600;
 }
 
-.err {
-  margin: 0;
-  color: $color-error;
-  font-size: 1rem;
-}
-
 .rows {
   @include card;
   list-style: none;

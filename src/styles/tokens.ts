@@ -16,6 +16,8 @@ export const color = {
   hairline: "rgba(18, 59, 93, 0.14)",
   error: "#c0392b",
   warning: "#b7791f",
+  /** Notice and warning-pill line color: warning mixed toward steel. */
+  noticeWarning: "#8e6d3a",
   success: "#1f7a5c",
 } as const;
 

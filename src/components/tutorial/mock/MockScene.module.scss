@@ -577,8 +577,9 @@ $cols: (
 }
 
 .tone_warning {
-  background: $color-warning-soft;
-  color: $color-warning;
+  background: transparent;
+  border-color: $notice-warning;
+  color: $notice-warning;
 }
 
 .tone_danger {

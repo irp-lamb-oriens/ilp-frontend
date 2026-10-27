@@ -34,6 +34,7 @@ component; import the token.
 | `$color-error` | `#c0392b` | errors |
 | `$color-warning` | `#b7791f` | warnings |
 | `$color-success` | `#1f7a5c` | success |
+| `$notice-warning` | `#8e6d3a` | notice and warning-pill line (warning toward steel) |
 
 **Rules:**
 - One accent (Light Blue). No purple, no neon, no gradients on text.
@@ -73,6 +74,12 @@ Reach for a mixin before inventing a class. All live in `src/styles/_mixins.scss
 - `press` — `transform: scale(0.97)` on `:active`, 160ms strong ease-out.
 - `eyebrow`, `section`, `heading-xl`, `heading-lg`, `section-head`.
 - `md` / `lg` — breakpoint media queries (`$bp-md` 768px, `$bp-lg` 1024px).
+
+**Notices:** every prerequisite, warning, disclaimer, alert and banner is a
+`<Notice>` from `@/components/ui` (see docs/workstreams/NOTICES.md): no fill,
+1px dashed border, outline icon, tone only in border and icon color. Never a
+yellow or amber background. Warning and danger notices must pass `fix` with
+beginner steps; `npm test` checks both.
 
 **Buttons:** text must be readable against the fill (accent-ink on accent).
 No CTA label wraps to two lines at desktop. One primary CTA per viewport tier.

@@ -119,12 +119,6 @@
   color: $color-steel;
 }
 
-.error {
-  margin: 0 0 $space-3;
-  color: $color-error;
-  font-size: 1rem;
-}
-
 .done {
   @include card;
   padding: $space-8 $space-4;

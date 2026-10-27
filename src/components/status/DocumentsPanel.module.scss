@@ -60,21 +60,8 @@
 }
 
 .ok,
-.err {
-  margin: 0;
-  font-size: 1rem;
-
-  @include md {
-    grid-column: 1 / -1;
-  }
-}
-
 .ok {
   color: $color-success;
-}
-
-.err {
-  color: $color-error;
 }
 
 .muted {
