@@ -1,5 +1,6 @@
 "use client";
 
+import { QUOTE_PHASE_LABEL, QUOTE_STATUS_PHASE } from "@/lib/quoteStatus";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { OpportunityStage } from "@/lib/contracts";
@@ -227,7 +228,7 @@ function QuotePanel({ o, onChanged }: { o: OpportunityRow; onChanged: (row: Oppo
           <div>
             <p className={s.quoteTitle}>{o.quote.title || "Untitled quote"}</p>
             <p className={s.meta}>
-              {usd(o.quote.totalCents)} · {o.quote.status ? o.quote.status.replace(/_/g, " ") : "draft"}
+              {usd(o.quote.totalCents)} · {o.quote.status ? (QUOTE_STATUS_PHASE[o.quote.status] ? QUOTE_PHASE_LABEL[QUOTE_STATUS_PHASE[o.quote.status]] : o.quote.status.replace(/_/g, " ")) : "Draft"}
             </p>
           </div>
           <StatusPill size="sm" label={o.quote.accepted ? "Accepted by member" : "Waiting on member"} tone={o.quote.accepted ? "success" : "info"} />

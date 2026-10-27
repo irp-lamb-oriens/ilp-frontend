@@ -1,5 +1,6 @@
 "use client";
 
+import { isQuoteAccepted } from "@/lib/quoteStatus";
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PLAN_STANDARD, type CsmTask } from "@/lib/contracts";
@@ -29,7 +30,7 @@ export function NextActions({
   const { lawyers, nameOf } = useLawyers();
   const openMatters = bundle.matters.filter((m) => !m.closedAt);
   const assigned = openMatters.find((m) => m.assignedProviderId)?.assignedProviderId ?? (bundle.client?.assignedProviderId as string | undefined);
-  const quotes = ((bundle.client?.quotes as Quote[] | undefined) ?? []).filter((q) => !["client_accepted", "accepted", "cancelled"].includes(String(q.status)));
+  const quotes = ((bundle.client?.quotes as Quote[] | undefined) ?? []).filter((q) => !isQuoteAccepted(q) && String(q.status) !== "cancelled");
 
   return (
     <>

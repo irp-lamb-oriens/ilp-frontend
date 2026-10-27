@@ -1,5 +1,6 @@
 "use client";
 
+import { QUOTE_PHASE_LABEL, quotePhase } from "@/lib/quoteStatus";
 import { useCallback, useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import { Button, EmptyState, Loadable, StatusPill, TextInput, type StatusTone } from "@/components/ui";
@@ -35,9 +36,16 @@ const TONE: Record<string, StatusTone> = {
   sent_to_client: "info",
   sent: "info",
   client_accepted: "success",
+  accepted: "success",
+  declined: "neutral",
 };
 
 const idOf = (q: RawQuote) => String(q.quoteId ?? q.id ?? "");
+/** Other stored spellings (sent, accepted, declined) read through the shared mapping. */
+const phaseLabel = (q: RawQuote) => {
+  const p = quotePhase(q as { status?: unknown });
+  return p ? QUOTE_PHASE_LABEL[p] : undefined;
+};
 const linesOf = (q: RawQuote): Array<{ label: string; amount: number }> =>
   q.lineItems?.length
     ? q.lineItems.map((l) => ({ label: l.label, amount: Number(l.amount) || 0 }))
@@ -166,7 +174,7 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
               <li key={idOf(q)} className={s.quote}>
                 <div className={s.qHead}>
                   <span className={s.qTitle}>{q.title ?? "Quote"}</span>
-                  <StatusPill size="sm" tone={TONE[status] ?? "neutral"} label={QUOTE_STATUS_LABELS[status] ?? status.replace(/_/g, " ")} />
+                  <StatusPill size="sm" tone={TONE[status] ?? "neutral"} label={QUOTE_STATUS_LABELS[status] ?? phaseLabel(q) ?? status.replace(/_/g, " ")} />
                 </div>
                 <ul className={s.qLines}>
                   {linesOf(q).map((l, i) => (
