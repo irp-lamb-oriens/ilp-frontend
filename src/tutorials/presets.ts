@@ -30,6 +30,7 @@ import type {
   TutorialRole,
   TutorialStep,
 } from "../components/tutorial/types";
+import { findTerms, termRef, type TermKey } from "./glossary";
 
 // ─── People and dates ───────────────────────────────────────────────────────
 
@@ -232,6 +233,19 @@ export const drag = (card: string, dest: string, then?: StateChange[]): CursorOp
 export const scroll = (to?: string): CursorOp => ({ op: "scroll", to });
 export const wait = (ms = 700, then?: StateChange[]): CursorOp => ({ op: "wait", duration: ms, then });
 export const move = (to: string | { x: number; y: number }): CursorOp => ({ op: "move", to });
+
+/**
+ * Adds a caption to a cursor op: the element's name (bold) and a plain
+ * explanation shown while the cursor is on it. Glossary words in the name or
+ * the explanation are found automatically; pass `terms` for meanings the
+ * text does not spell out (e.g. a label that only says "MRR").
+ *
+ *   say(click("close", [...]), "Close task", "Marks this job as finished. …")
+ */
+export function say(op: CursorOp, label: string, explain: string, terms: TermKey[] = []): CursorOp {
+  const found = findTerms(`${label}. ${explain}`).filter((k) => !terms.includes(k));
+  return { ...op, label, explain, terms: [...terms, ...found].map(termRef) };
+}
 
 // ─── Steps ──────────────────────────────────────────────────────────────────
 
