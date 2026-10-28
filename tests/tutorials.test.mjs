@@ -14,7 +14,7 @@ const { collectIds, missingRefs, endState, describeScene, markers, captionsOf, f
 );
 const { ALL_TUTORIALS, TUTORIAL_ROUTES, CLIENT_TUTORIALS } = await import("../src/tutorials/index.ts");
 const { GLOSSARY, TERM_KEYS, findTerms } = await import("../src/tutorials/glossary.ts");
-const { PUBLIC_TUTORIALS } = await import("../src/tutorials/public/index.ts");
+const { PUBLIC_TUTORIALS, HOMEPAGE_TUTORIAL_IDS } = await import("../src/tutorials/public/index.ts");
 /** Portal and public tutorials: every content check applies to both. */
 const EVERY_TUTORIAL = [...ALL_TUTORIALS, ...PUBLIC_TUTORIALS];
 
@@ -429,7 +429,7 @@ test("glossary: every referenced key exists and every meaning is plain", () => {
     assert.ok(!BANNED.test(e.meaning), `${key} meaning uses a banned word`);
     if (e.match) assert.ok(!e.match.test(""), `${key} pattern matches nothing`);
   }
-  for (const tut of ALL_TUTORIALS) {
+  for (const tut of EVERY_TUTORIAL) {
     for (const st of tut.steps) {
       for (const op of st.scene.script ?? []) {
         for (const t of [...(op.terms ?? []), ...(op.term ? [op.term] : [])]) {
@@ -467,4 +467,29 @@ test("public tutorials need no role or route and never auto-start", () => {
     for (const role of ["staff", "lawyer", "client"]) assert.ok(!reg.forRole(role).includes(tut), `${tut.id} stays out of the ${role} list`);
   }
   assert.ok(!ALL_TUTORIALS.some((t) => t.audience?.includes("public")), "portal list has no public tutorial");
+});
+
+test("homepage tutorials: each embedded id is a public tutorial with 3 to 6 steps and captions on every action", () => {
+  const byId = new Map(PUBLIC_TUTORIALS.map((t) => [t.id, t]));
+  assert.equal(HOMEPAGE_TUTORIAL_IDS.length, 4);
+  for (const id of HOMEPAGE_TUTORIAL_IDS) {
+    const tut = byId.get(id);
+    assert.ok(tut, `${id} is registered in PUBLIC_TUTORIALS`);
+    assert.ok(tut.steps.length >= 3 && tut.steps.length <= 6, `${id} has ${tut.steps.length} steps`);
+    assert.ok(tut.title && tut.summary, `${id} has a title and summary`);
+    for (const st of tut.steps) {
+      assert.deepEqual(missingRefs(st.scene), [], `${id} › ${st.id}: every cursor target exists`);
+      assert.ok((st.scene.script ?? []).some((op) => op.explain), `${id} › ${st.id} has at least one caption`);
+    }
+  }
+  const ids = PUBLIC_TUTORIALS.map((t) => t.id);
+  assert.equal(new Set(ids).size, ids.length, "public tutorial ids are unique");
+});
+
+test("homepage tutorials: prices match the plan (US$79.99 a month, US$100 activation, 60 minutes, three 20-minute calls)", () => {
+  const copy = PUBLIC_TUTORIALS.flatMap((t) => t.steps.flatMap((st) => [st.title, st.body, ...(st.scene.script ?? []).map((o) => `${o.label ?? ""} ${o.explain ?? ""}`)])).join(" ");
+  for (const m of copy.matchAll(/US\$([0-9][0-9,]*(?:\.[0-9]+)?)/g)) {
+    assert.ok(["79.99", "100", "100.00", "1,200", "350"].includes(m[1]), `unexpected price US$${m[1]}`);
+  }
+  assert.ok(!/\b(30|90|120) minutes\b/.test(copy), "minutes match the plan");
 });
