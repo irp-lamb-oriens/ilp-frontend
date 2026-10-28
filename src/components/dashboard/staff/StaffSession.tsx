@@ -42,7 +42,7 @@ export function staffNav(role: StaffRole): NavItem[] {
     { href: "/dashboard/lawyers", label: "Lawyers", icon: "§" },
     { href: "/dashboard/finance", label: "Finance", icon: "$", admin: true },
     { href: "/dashboard/reports", label: "Reports", icon: "▤" },
-    { href: "/dashboard/settings", label: "Settings", icon: "⚙", admin: true },
+    { href: "/dashboard/settings", label: "Settings", icon: "⊞", admin: true },
     { href: "/dashboard/privacy", label: "Privacy", icon: "◎", admin: true },
   ];
   return all.filter((i) => !i.admin || role === "admin").map(({ admin: _admin, ...rest }) => rest);
@@ -189,7 +189,7 @@ export function AdminsOnlyNotice({ what }: { what?: string }) {
   return (
     <Notice
       tone="info"
-      title="Admins only — ask an ILP admin"
+      title="Admins only: ask an ILP admin"
       terms={["admin"]}
       fix={{
         summary: "Access is set on the server by email address, not in this screen.",

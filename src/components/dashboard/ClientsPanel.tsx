@@ -93,11 +93,11 @@ export default function ClientsPanel() {
           content: (
             <div className={styles.overview}>
               <Row label="Email" value={c.email} />
-              <Row label="Phone" value={c.phone ?? "—"} />
-              <Row label="Legal area" value={c.legalArea ?? "—"} />
-              <Row label="Legal matter" value={c.legalMatter ?? "—"} />
-              <Row label="Jurisdiction" value={c.jurisdiction ?? "—"} />
-              <Row label="Source" value={c.source ?? "—"} />
+              <Row label="Phone" value={c.phone ?? "Not set"} />
+              <Row label="Legal area" value={c.legalArea ?? "Not set"} />
+              <Row label="Legal matter" value={c.legalMatter ?? "Not set"} />
+              <Row label="Jurisdiction" value={c.jurisdiction ?? "Not set"} />
+              <Row label="Source" value={c.source ?? "Not set"} />
               <Row label="Quotes" value={String(c.quotes?.length ?? 0)} />
               <Row label="Charges" value={String(c.charges?.length ?? 0)} />
               <Row label="Pending actions" value={String(c.pendingCount)} />
@@ -114,7 +114,7 @@ export default function ClientsPanel() {
                 <div key={i} className={styles.listCard}>
                   <div className={styles.listCardBody}>{String(n.text ?? "")}</div>
                   <div className={styles.listCardMeta}>
-                    {String(n.author ?? "—")} · {String(n.createdAt ?? "")}
+                    {String(n.author ?? "Unknown author")} · {String(n.createdAt ?? "")}
                   </div>
                 </div>
               ))}

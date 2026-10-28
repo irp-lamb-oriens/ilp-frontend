@@ -115,9 +115,9 @@ export default function MembersList() {
       ),
     },
     { key: "usage", header: "Minutes used", render: (r) => `${r.minutesUsed} of ${r.minutesIncluded}`, hideOnMobile: true, align: "end" },
-    { key: "renewal", header: "Renews", render: (r) => (r.status === "cancelled" ? "—" : shortDate(r.periodEnd)), hideOnMobile: true },
+    { key: "renewal", header: "Renews", render: (r) => (r.status === "cancelled" ? "Does not renew" : shortDate(r.periodEnd)), hideOnMobile: true },
     { key: "csm", header: "CSM", render: (r) => r.csmEmail?.split("@")[0] ?? "Unassigned", hideOnMobile: true },
-    { key: "tasks", header: "Open tasks", render: (r) => r.openTasks || "—", align: "end", hideOnMobile: true },
+    { key: "tasks", header: "Open tasks", render: (r) => r.openTasks || "None", align: "end", hideOnMobile: true },
   ];
 
   return (

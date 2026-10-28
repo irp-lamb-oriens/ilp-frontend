@@ -29,7 +29,7 @@ const rows = [
   { id: "r1", cells: [M.imani, pill("Active", "success"), pill("Ready", "success"), "20 of 60", dateIn(12), TEAM.csmEmail, "1"] },
   { id: "r2", cells: [M.joseLuis, pill("Past due", "danger"), pill("Not ready", "warning"), "40 of 60", dateIn(-3), TEAM.csmEmail, "2"] },
   { id: "r3", cells: [M.genevieve, pill("Active", "success"), pill("Ready", "success"), "0 of 60", dateIn(21), TEAM.csm2Email, "0"] },
-  { id: "r4", cells: [M.dmitri, pill("Pending payment", "warning"), pill("Not ready", "warning"), "0 of 60", "—", "Unassigned", "1"] },
+  { id: "r4", cells: [M.dmitri, pill("Pending payment", "warning"), pill("Not ready", "warning"), "0 of 60", "Not set", "Unassigned", "1"] },
   { id: "r5", cells: [M.winona, pill("Active", "success"), pill("Ready", "success"), "60 of 60", dateIn(5), TEAM.csm2Email, "0"] },
 ];
 
@@ -54,7 +54,7 @@ function page() {
 
 export const staffMembers: Tutorial = {
   id: "staff.members",
-  version: 2,
+  version: 3,
   title: "Members",
   summary: "Find a member, narrow the list and open their page.",
   audience: ["staff"],

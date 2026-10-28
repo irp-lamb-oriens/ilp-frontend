@@ -26,7 +26,7 @@ export const STEP_LABEL: Record<FunnelStep, string> = {
   first_call_booked: "Booked a first call",
 };
 
-const pct = (x: number | null) => (x === null ? "–" : `${(x * 100).toFixed(1)}%`);
+const pct = (x: number | null) => (x === null ? "No data yet" : `${(x * 100).toFixed(1)}%`);
 
 export function usePmf(days = 30) {
   const [data, setData] = useState<PmfSummary | null>(null);
@@ -69,17 +69,17 @@ export default function PmfPanel() {
         <StatTile
           size="lg"
           label="Free check → paid member"
-          value={started ? pct(paid / started) : "–"}
+          value={started ? pct(paid / started) : "No data yet"}
           hint={`${paid} of ${started} visitors, last ${data.days} days · target ≥ 5%`}
         />
         <StatTile
           label="Average call rating"
-          value={data.postCall.average === null ? "–" : `${data.postCall.average.toFixed(1)} of 5`}
+          value={data.postCall.average === null ? "No data yet" : `${data.postCall.average.toFixed(1)} of 5`}
           hint={`${data.postCall.count} ratings · ${data.postCall.low} at 1-2`}
         />
         <StatTile
           label="NPS (monthly question)"
-          value={data.nps.score === null ? "–" : String(data.nps.score)}
+          value={data.nps.score === null ? "No data yet" : String(data.nps.score)}
           hint={`${data.nps.count} answers · ${data.nps.promoters} promoters, ${data.nps.detractors} detractors`}
         />
         <StatTile label="Cancel requests" value={data.cancels.count} hint={`last ${data.days} days`} />

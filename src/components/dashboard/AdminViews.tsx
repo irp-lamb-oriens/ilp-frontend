@@ -72,7 +72,7 @@ export function ProvidersList() {
           <div>
             <div className={styles.itemTitle}>{p.name ?? p.id}</div>
             <div className={styles.itemSub}>
-              {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "—"}
+              {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "No contact details yet"}
             </div>
           </div>
         </div>
@@ -350,7 +350,7 @@ export function SalesView() {
               <tr key={i}>
                 {keys.map((k) => (
                   <td key={k} className={styles.tableCell}>
-                    {r[k] == null ? "—" : String(r[k])}
+                    {r[k] == null ? "None" : String(r[k])}
                   </td>
                 ))}
               </tr>
@@ -474,7 +474,7 @@ export function AssignmentView() {
               <span className={styles.scoreBadge}>{p.score.toFixed(1)}</span>
             </div>
             <div className={styles.itemSub}>
-              {(p.legalAreas ?? []).join(", ") || "—"}
+              {(p.legalAreas ?? []).join(", ") || "No legal areas set"}
             </div>
           </div>
         </div>
@@ -491,7 +491,7 @@ export function AssignmentView() {
               {[c.name, c.surname].filter(Boolean).join(" ") || c.email}
             </div>
             <div className={styles.itemSub}>
-              {c.legalArea ?? "—"}
+              {c.legalArea ?? "Legal area not set"}
               {c.jurisdiction ? ` · ${c.jurisdiction}` : ""}
             </div>
           </div>

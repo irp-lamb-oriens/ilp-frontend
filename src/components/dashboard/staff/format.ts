@@ -15,9 +15,9 @@ const DATE_Y = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric"
 const TIME = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
 
 export function shortDate(iso?: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "Not set";
   const t = Date.parse(iso);
-  if (Number.isNaN(t)) return "—";
+  if (Number.isNaN(t)) return "Not set";
   return new Date(t).getFullYear() === new Date().getFullYear() ? DATE.format(t) : DATE_Y.format(t);
 }
 
@@ -25,7 +25,7 @@ export function shortDate(iso?: string | null): string {
 export function dueLabel(iso?: string | null, now = new Date()): { text: string; tone: StatusTone } {
   if (!iso) return { text: "No due date", tone: "neutral" };
   const t = Date.parse(iso);
-  if (Number.isNaN(t)) return { text: "—", tone: "neutral" };
+  if (Number.isNaN(t)) return { text: "No due date", tone: "neutral" };
   const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const diff = Math.round((day(new Date(t)) - day(now)) / 86400000);
   if (t < now.getTime()) {
@@ -72,7 +72,7 @@ export const MEMBERSHIP_TONE: Record<MembershipStatus, StatusTone> = {
 };
 
 export function pct(v: number | null | undefined): string {
-  return v == null ? "—" : `${Number.isInteger(v) ? v : v.toFixed(1)}%`;
+  return v == null ? "No data" : `${Number.isInteger(v) ? v : v.toFixed(1)}%`;
 }
 
 export function memberName(client: Record<string, unknown> | null | undefined, fallback = "Member"): string {

@@ -88,7 +88,7 @@ function MattersTable() {
     {
       key: "next",
       header: "Next step",
-      render: (m) => (m.nextStep ? `${m.nextStep.what} · ${dueLabel(m.nextStep.dueAt).text}` : "—"),
+      render: (m) => (m.nextStep ? `${m.nextStep.what} · ${dueLabel(m.nextStep.dueAt).text}` : "None set"),
       hideOnMobile: true,
     },
     { key: "lawyer", header: "Lawyer", render: (m) => nameOf(m.assignedProviderId), sortValue: (m) => nameOf(m.assignedProviderId), hideOnMobile: true },

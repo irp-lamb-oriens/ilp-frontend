@@ -110,14 +110,14 @@ export default function OpportunitiesView() {
       sortValue: (o) => STAGES.findIndex((x) => x.id === o.stage),
       render: (o) => <StatusPill size="sm" label={STAGE_LABEL[o.stage]} tone={STAGE_TONE[o.stage]} />,
     },
-    { key: "value", header: "Legal fees", align: "end", sortValue: (o) => o.valueCents ?? -1, render: (o) => (o.valueCents != null ? usd(o.valueCents, true) : "—") },
+    { key: "value", header: "Legal fees", align: "end", sortValue: (o) => o.valueCents ?? -1, render: (o) => (o.valueCents != null ? usd(o.valueCents, true) : "Not priced") },
     { key: "area", header: "Area", hideOnMobile: true, sortValue: (o) => o.area, render: (o) => areaLabel(o.area) },
     {
       key: "next",
       header: "Next action",
       hideOnMobile: true,
       sortValue: (o) => o.nextAction?.dueAt ?? "9999",
-      render: (o) => (o.nextAction ? `${o.nextAction.what}${o.nextAction.dueAt ? ` · ${dueLabel(o.nextAction.dueAt).text}` : ""}` : "—"),
+      render: (o) => (o.nextAction ? `${o.nextAction.what}${o.nextAction.dueAt ? ` · ${dueLabel(o.nextAction.dueAt).text}` : ""}` : "None set"),
     },
     { key: "owner", header: "Owner", hideOnMobile: true, sortValue: (o) => o.ownerEmail ?? "", render: (o) => o.ownerEmail ?? "Unassigned" },
     { key: "updated", header: "Updated", hideOnMobile: true, sortValue: (o) => o.updatedAt, render: (o) => shortDate(o.updatedAt) },
@@ -243,8 +243,8 @@ function SummaryStrip({ summary }: { summary: OpportunitySummary }) {
     <div className={s.summary} data-tour="staff-opps-summary">
       <StatTile size="lg" label="Open pipeline" value={usd(summary.open.valueCents, true)} hint={`${summary.open.count} open · legal fees (GMV)`} />
       <div className={s.summarySmall}>
-        <StatTile label="Win rate" value={summary.winRate == null ? "—" : pct(summary.winRate)} hint={`${summary.byStage.won.count} won · ${summary.byStage.lost.count} lost`} />
-        <StatTile label="Days to win" value={summary.avgDaysToWin == null ? "—" : String(summary.avgDaysToWin)} hint={summary.avgDaysToClose == null ? "average" : `${summary.avgDaysToClose} to close, won or lost`} />
+        <StatTile label="Win rate" value={summary.winRate == null ? "No data yet" : pct(summary.winRate)} hint={`${summary.byStage.won.count} won · ${summary.byStage.lost.count} lost`} />
+        <StatTile label="Days to win" value={summary.avgDaysToWin == null ? "No data yet" : String(summary.avgDaysToWin)} hint={summary.avgDaysToClose == null ? "average" : `${summary.avgDaysToClose} to close, won or lost`} />
         <StatTile label="Won legal fees" value={usd(summary.legalGmvWonCents, true)} hint="GMV, not ILP revenue" />
         <StatTile label="ILP share on won quotes" value={usd(summary.platformRevenueCents, true)} hint="Platform revenue" />
       </div>

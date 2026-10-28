@@ -115,7 +115,7 @@ export default function EmailsTab() {
           <div className={s.itemText}>
             <div className={s.itemTitle}>{e.subject ?? "(no subject)"}</div>
             <div className={s.itemSub}>
-              {e.to ?? "—"} · {e.emailType ?? e.status ?? "pending"}
+              {e.to ?? "No recipient"} · {e.emailType ?? e.status ?? "pending"}
             </div>
           </div>
           <div className={s.itemActions}>
@@ -139,7 +139,7 @@ export default function EmailsTab() {
         onClose={() => setPreview(null)}
         size="lg"
         title={preview?.subject ?? "(no subject)"}
-        subtitle={`To: ${preview?.to ?? "—"}`}
+        subtitle={`To: ${preview?.to ?? "no recipient"}`}
       >
         {preview?.html ? (
           <iframe title="Email preview" srcDoc={preview.html} className={s.preview} />

@@ -54,7 +54,7 @@ function page() {
 
 export const staffFinance: Tutorial = {
   id: "staff.finance",
-  version: 2,
+  version: 3,
   title: "Finance",
   summary: "ILP's membership income and lawyers' legal fees, always kept apart.",
   audience: ["staff"],
@@ -67,7 +67,7 @@ export const staffFinance: Tutorial = {
       scene(page(), [
         say(hover("mrr", [mark("mrr")]), "MRR", "Monthly recurring revenue: active members times the monthly fee. Here, 46 members paying US$79.99 each.", ["mrr"]),
         say(hover("arr", [mark("mrr", false)]), "ARR run rate", "This month's MRR times 12: what a full year would bring if nothing changed."),
-        say(hover("rev30"), "Membership revenue, 30 days", "Money that actually came in from memberships in the last 30 days, including the one-time activation fees.", ["activationFee"]),
+        say(hover("rev30"), "Membership revenue, 30 days", "Money that came in from memberships in the last 30 days, including the one-time activation fees.", ["activationFee"]),
       ]),
       { target: "staff-finance-kpis" },
     ),
