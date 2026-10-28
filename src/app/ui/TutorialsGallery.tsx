@@ -172,7 +172,7 @@ function captionScene(target: string, label: string, explain: string, aspect: Sc
   return { aspect, root, script: [say(hover(target), label || "Element", explain), wait(500)] };
 }
 
-const GROUPS: GlossaryEntry["group"][] = ["ILP", "Costa Rica", "Money and numbers", "On the screen"];
+const GROUPS: GlossaryEntry["group"][] = ["ILP", "Colombia", "Costa Rica", "Mexico", "Panama", "Portugal", "Spain", "Money and numbers", "On the screen"];
 
 // ─── Gallery ────────────────────────────────────────────────────────────────
 

@@ -197,7 +197,7 @@ export const staffMember: Tutorial = {
     step(
       "payment",
       "Record a payment",
-      "Some members pay by bank transfer or by SINPE, Costa Rica's instant bank payment. When the money arrives, record it here.",
+      "Some members pay by bank transfer, or in Costa Rica by SINPE, the instant bank payment. When the money arrives, record it here.",
       scene(page(), [
         scroll("membership"),
         say(hover("mem_used"), "Minutes and calls used", "How much of this month's membership the member has used: minutes out of 60, and calls out of 3."),

@@ -82,7 +82,7 @@ export const publicPricing: Tutorial = {
       "What the monthly fee includes",
       "Each month includes up to 60 minutes with your lawyer, split into up to three 20-minute calls. Your ILP team and your profile are included too.",
       scene(page(), [
-        say(hover("minutes", [mark("included")]), "60 minutes a month", "Up to three 20-minute video calls with a lawyer licensed in Costa Rica."),
+        say(hover("minutes", [mark("included")]), "60 minutes a month", "Up to three 20-minute video calls with a lawyer licensed in your country."),
         say(hover("calls"), "Unused minutes do not carry over", "The minutes start again each month on your renewal date. Minutes you did not use are not added to the next month."),
         say(hover("extras", [mark("included", false)]), "Also included", "Your profile, the brief your lawyer reads before each call, reminders and follow-up from your team."),
       ]),

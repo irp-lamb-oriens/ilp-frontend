@@ -1,6 +1,7 @@
 /**
  * Plain-language meanings for every word in the tutorials that a newcomer
- * may not know: ILP's business words, Costa Rican legal words, and screen
+ * may not know: ILP's business words, each country's legal words (from
+ * docs/research, one group per country), and screen
  * words. One place, so a meaning is written once.
  *
  * Captions reference terms by key (`say(op, label, explain, ["mrr"])`), and
@@ -8,7 +9,7 @@
  * offers the meaning under the caption ("What's this?") the first time the
  * word appears in a tutorial.
  *
- * Write meanings for someone who has never lived in Costa Rica, never worked
+ * Write meanings for someone who has never lived abroad, never worked
  * at ILP and rarely uses business software: short sentences, everyday words.
  */
 import type { TermRef } from "../components/tutorial/types";
@@ -21,14 +22,14 @@ export interface GlossaryEntry {
   /** How the word appears in captions. Omit for terms used only by key. */
   match?: RegExp;
   /** Group for the /ui glossary list. */
-  group: "ILP" | "Costa Rica" | "Money and numbers" | "On the screen";
+  group: "ILP" | "Colombia" | "Costa Rica" | "Mexico" | "Panama" | "Portugal" | "Spain" | "Money and numbers" | "On the screen";
 }
 
 export const GLOSSARY = {
   // ─── ILP ──────────────────────────────────────────────────────────────────
   ilp: {
     word: "ILP",
-    meaning: "International Legal Partner. A monthly membership that gives people who live in Costa Rica a local lawyer to talk to and a team that follows up.",
+    meaning: "International Legal Partner. A monthly membership that gives people in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain a local lawyer to talk to and a team that follows up.",
     match: /\bILP\b/,
     group: "ILP",
   },
@@ -64,7 +65,7 @@ export const GLOSSARY = {
   },
   partnerLawyer: {
     word: "Partner lawyer",
-    meaning: "A licensed Costa Rican lawyer who works with ILP. They take the calls and give the legal advice; ILP staff do not.",
+    meaning: "A lawyer licensed in the member's country who works with ILP. They take the calls and give the legal advice; ILP staff do not.",
     match: /\bpartner lawyers?\b/i,
     group: "ILP",
   },
@@ -252,7 +253,7 @@ export const GLOSSARY = {
   },
   residency: {
     word: "Residency",
-    meaning: "Permission from Costa Rica to live in the country. It comes in several kinds and must be renewed before it runs out.",
+    meaning: "Permission from a country to live there. It comes in several kinds and must be renewed before it runs out.",
     match: /\bresidency\b|\bresident\b/i,
     group: "Costa Rica",
   },
@@ -358,11 +359,159 @@ export const GLOSSARY = {
     match: /\bCosta Rica time\b/i,
     group: "Costa Rica",
   },
+  localTime: {
+    word: "Your time zone",
+    meaning: "The clock time where you are. Call times are shown in your own time zone, and each lawyer sets their hours in theirs.",
+    match: /\byour (?:own )?time zone\b/i,
+    group: "ILP",
+  },
   sinpe: {
     word: "SINPE",
     meaning: "Costa Rica's instant bank transfer system. People pay from their bank app with a phone number or account number.",
     match: /\bSINPE\b/,
     group: "Costa Rica",
+  },
+
+  // ─── Colombia (docs/research/colombia.md) ─────────────────────────────────
+  cedulaExtranjeria: {
+    word: "Cédula de extranjería",
+    meaning: "The ID card Colombia gives to foreigners aged 7 and up with a visa longer than three months. It is requested within 15 days of arriving.",
+    match: /\bc[ée]dula de extranjer[ií]a\b/i,
+    group: "Colombia",
+  },
+  traspaso: {
+    word: "Traspaso",
+    meaning: "Moving a Colombian visa to a new passport or to the current format. Older resident visas need one by October 31, 2026.",
+    match: /\btraspaso\b/i,
+    group: "Colombia",
+  },
+  dian: {
+    word: "DIAN",
+    meaning: "Colombia's national tax and customs office. Tax residents file a yearly return with it between August and October.",
+    match: /\bDIAN\b/,
+    group: "Colombia",
+  },
+  pila: {
+    word: "PILA",
+    meaning: "The monthly form used in Colombia to pay social security for someone who works for you.",
+    match: /\bPILA\b/,
+    group: "Colombia",
+  },
+  cesantias: {
+    word: "Cesantías",
+    meaning: "Severance savings in Colombia: about one month's pay a year, paid into a fund by February 14.",
+    match: /\bcesant[ií]as\b/i,
+    group: "Colombia",
+  },
+  predial: {
+    word: "Predial",
+    meaning: "The yearly property tax paid to the town or city in Colombia and in Mexico. Many places give a discount for paying early.",
+    match: /\bpredial\b/i,
+    group: "Colombia",
+  },
+
+  // ─── Mexico (docs/research/mexico.md) ─────────────────────────────────────
+  inm: {
+    word: "INM",
+    meaning: "Mexico's immigration office. It issues and renews resident cards and must hear about a new address or job within 90 days.",
+    match: /\bINM\b/,
+    group: "Mexico",
+  },
+  sat: {
+    word: "SAT",
+    meaning: "Mexico's federal tax office. People who rent out property pay it every month and file a yearly return in April.",
+    match: /\bSAT\b/,
+    group: "Mexico",
+  },
+  fideicomiso: {
+    word: "Fideicomiso",
+    meaning: "A bank trust that holds a home for a foreign owner near Mexico's coasts and borders. It has a yearly fee and a 50-year term.",
+    match: /\bfideicomisos?\b/i,
+    group: "Mexico",
+  },
+  imss: {
+    word: "IMSS",
+    meaning: "Mexico's social security institute. A household worker is registered with it.",
+    match: /\bIMSS\b/,
+    group: "Mexico",
+  },
+
+  // ─── Panama (docs/research/panama.md) ─────────────────────────────────────
+  tasaUnica: {
+    word: "Tasa única",
+    meaning: "The yearly fee every Panamanian company or foundation pays: July 15 or January 15, depending on when it was registered.",
+    match: /\btasa [úu]nica\b/i,
+    group: "Panama",
+  },
+  residentAgent: {
+    word: "Resident agent",
+    meaning: "The Panamanian lawyer or firm every company or foundation must have. It keeps the owner and accounting records.",
+    match: /\bresident agents?\b/i,
+    group: "Panama",
+  },
+  decimo: {
+    word: "Décimo tercer mes",
+    meaning: "The thirteenth-month pay in Panama, paid to staff in three parts: April 15, August 15 and December 15.",
+    match: /\bd[ée]cimo\b/i,
+    group: "Panama",
+  },
+
+  // ─── Portugal (docs/research/portugal.md) ─────────────────────────────────
+  aima: {
+    word: "AIMA",
+    meaning: "Portugal's immigration agency. Residence permits are renewed with it online, from 90 to 30 days before the card expires.",
+    match: /\bAIMA\b/,
+    group: "Portugal",
+  },
+  nif: {
+    word: "NIF",
+    meaning: "Portugal's tax number. You need it to rent, buy property or open a bank account.",
+    match: /\bNIF\b/,
+    group: "Portugal",
+  },
+  imi: {
+    word: "IMI",
+    meaning: "Portugal's yearly municipal property tax, paid in May, August and November depending on the amount.",
+    match: /\bIMI\b/,
+    group: "Portugal",
+  },
+  ifici: {
+    word: "IFICI",
+    meaning: "A Portuguese tax regime with a 20% rate for some new residents. It replaced NHR and is requested by January 15.",
+    match: /\bIFICI\b/,
+    group: "Portugal",
+  },
+
+  // ─── Spain (docs/research/spain.md) ───────────────────────────────────────
+  tie: {
+    word: "TIE",
+    meaning: "Spain's residence card for people from outside the EU. It shows your NIE and expires with your permit.",
+    match: /\bTIE\b/,
+    group: "Spain",
+  },
+  nie: {
+    word: "NIE",
+    meaning: "Spain's permanent number for foreigners, used for tax, property and paperwork.",
+    match: /\bNIE\b/,
+    group: "Spain",
+  },
+  irpf: {
+    word: "IRPF",
+    meaning: "Spain's yearly income tax return for residents, filed from early April to June 30.",
+    match: /\bIRPF\b/,
+    group: "Spain",
+  },
+  modelo720: {
+    word: "Modelo 720",
+    meaning: "Spain's yearly form listing what a resident holds abroad above EUR 50,000. It is due by March 31.",
+    match: /\bModelo 720\b/i,
+    group: "Spain",
+  },
+  ibi: {
+    word: "IBI",
+    meaning: "Spain's yearly property tax, paid to the town hall in a period it sets.",
+    match: /\bIBI\b/,
+    group: "Spain",
   },
 
   // ─── Money and numbers ────────────────────────────────────────────────────

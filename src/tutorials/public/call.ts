@@ -18,7 +18,7 @@ const bookPage = mockShell(
   stack([
     card("When", [
       row([chip(dayIn(1), false, "d1"), chip(dayIn(3), false, "d3"), chip(dayIn(6), false, "d6")], "start", 1),
-      text("Time (Costa Rica time)", "label"),
+      text("Time (your time zone)", "label"),
       row([chip("9:00 am", false, "t1"), chip("10:30 am", false, "t2"), chip("2:20 pm", false, "t3")], "start", 1),
     ]),
     card("Your question", [input(undefined, { multiline: true, placeholder: "Write it in your own words", id: "question" })]),
@@ -118,7 +118,7 @@ export const publicCall: Tutorial = {
       "Pick a day and a time, write your question and choose whether the call may be recorded.",
       scene(bookPage, [
         say(click("d3"), dayIn(3), "Pick a day, then one of the open times. Only times when your lawyer is free are shown."),
-        say(click("t2", [set("t2", { selected: true })]), "10:30 am", "Times are in Costa Rica time. Each call lasts 20 minutes."),
+        say(click("t2", [set("t2", { selected: true })]), "10:30 am", "Times are in your own time zone. Each call lasts 20 minutes."),
         say(type("question", QUESTION), "Your question", "One or two sentences in your own words. Your lawyer reads it before the call."),
         say(click("rec_yes", [set("rec_yes", { on: true })]), "Yes, record it", "You decide. If you say yes, a written summary is drafted from the recording. Saying no is fine too.", ["recordingConsent"]),
         say(click("book", [show("booked")]), "Book this call", "Books the call. An email with the video link follows."),
@@ -127,7 +127,7 @@ export const publicCall: Tutorial = {
     step(
       "call",
       "Talk with your lawyer",
-      "Your lawyer is licensed in Costa Rica. Before the call, they read your question and your profile, so the 20 minutes go to your answer.",
+      "Your lawyer is licensed in your country. Before the call, they read your question and your profile, so the 20 minutes go to your answer.",
       scene(callPage, [
         say(hover("b1", [mark("b1")]), "Your question", "What you wrote when you booked. Your lawyer has it in front of them."),
         say(hover("b2", [mark("b1", false), mark("b2")]), "Your profile", "Your residency, property, company and car, from your legal profile. You do not have to explain it all again."),

@@ -35,7 +35,7 @@ const residency = card(
   "Residency",
   [
     meta("Your status and its renewal date drive several deadlines."),
-    input("Residency status in Costa Rica", { value: "Resident: pensionado", select: true, id: "res_status" }),
+    input("Residency status", { value: "Resident: pensionado", select: true, id: "res_status" }),
     input("Residency card (DIMEX) expiry date", { placeholder: "Pick a date", hint: "Leave empty if you do not have one yet.", id: "dimex" }),
     row([btn("Save residency", "secondary", "save"), hidden(text("Saved.", "meta", "saved"))], "start"),
   ],
@@ -73,7 +73,7 @@ export const clientProfile: Tutorial = {
     step(
       "completion",
       "Get your profile ready",
-      "Your profile holds the facts about your life in Costa Rica: residency, property, family and companies. Your lawyer reads it before every call.",
+      "Your profile holds the facts about your life in the country your membership covers: residency, property, family and companies. Your lawyer reads it before every call.",
       scene(page(), [
         say(hover("bar", [mark("bar")]), "Profile completion", "How much of your profile is filled in. At 70% or more, your lawyer has enough to help you well on a call."),
         say(hover("readypill", [mark("bar", false)]), "Not ready yet", "This label changes to Ready for your lawyer once enough is filled in. Nothing is wrong in the meantime."),
@@ -85,7 +85,7 @@ export const clientProfile: Tutorial = {
       "Fill in one part at a time",
       "Each part has its own Save button. Fill in what you know; you can come back to the rest at any time.",
       scene(page(), [
-        say(hover("res_status"), "Residency status in Costa Rica", "The kind of permission you have to live in Costa Rica. Yours is pensionado, the kind for retirees."),
+        say(hover("res_status"), "Residency status", "The kind of permission you have to live in your country. This example member lives in Costa Rica as a pensionado, the kind for retirees."),
         say(click("dimex", [set("dimex", { value: dateIn(74) })]), "Residency card (DIMEX) expiry date", "The date printed on your residency card. We use it to remind you well before it needs renewing."),
         say(
           click("save", [show("saved"), set("bar", { value: 0.76, valueText: "76%", tone: "success" }), set("readypill", { label: "Ready for your lawyer", tone: "success" })]),

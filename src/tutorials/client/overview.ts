@@ -127,9 +127,9 @@ export const clientOverview: Tutorial = {
     step(
       "calls",
       "Join your booked call",
-      "Your booked call shows the day and the time in Costa Rica time. You can join it, move it or cancel it here.",
+      "Your booked call shows the day and the time in your time zone. You can join it, move it or cancel it here.",
       scene(page(), [
-        say(hover("calls"), "Your booked call", "The day, time and lawyer for your next call. The time shown is Costa Rica time."),
+        say(hover("calls"), "Your booked call", "The day, time and lawyer for your next call. This example member lives in Costa Rica, so the time is Costa Rica time."),
         say(hover("change"), "Change time", "Pick another day or time if this one no longer suits you."),
         say(click("join", [set("join", { label: "Opening…" })]), "Join call", "Opens the video call in your web browser at the time of the call. On a computer, there is nothing to install.", ["videoLink"]),
       ]),
@@ -137,7 +137,7 @@ export const clientOverview: Tutorial = {
     step(
       "dates",
       "Ask your lawyer about a date",
-      "Some legal dates in Costa Rica come back every year. We list the ones that may apply to you, based on your profile.",
+      "Some legal dates in your country come back every year. We list the ones that may apply to you, based on your profile.",
       scene(page(), [
         say(hover("o1", [mark("o1")]), "Corporate tax return (D-101)", "A yearly tax form for your company that may need a review. It is listed early, so there is plenty of time."),
         say(hover("o2", [mark("o1", false)]), "Vehicle permit (marchamo)", "The yearly permit every car in Costa Rica needs, paid by December 31."),

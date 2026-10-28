@@ -42,7 +42,7 @@ const form = stack(
     ]),
     card("Pick a time", [
       row([chip(dayIn(1), false, "d1"), chip(dayIn(2), false, "d2"), chip(dayIn(3), true, "d3"), chip(dayIn(6), false, "d4")], "start", 1),
-      text("Time (Costa Rica time)", "label", "tz"),
+      text("Time (your time zone)", "label", "tz"),
       times,
     ]),
     card("May the call be recorded?", [
@@ -89,7 +89,7 @@ export const clientBook: Tutorial = {
       "Pick a day first, then one of the open times. Only times when your lawyer is free are shown.",
       scene(page(), [
         say(click("d3"), dayIn(3), "The days with open times. Pick the one that suits you."),
-        say(hover("tz"), "Costa Rica time", "Times are shown in Costa Rica time. Costa Rica never changes its clocks, so check the difference with your own time."),
+        say(hover("tz"), "Your time zone", "Times are shown in the time zone on your profile. Your lawyer sees the same call in their own time zone."),
         say(click("t3", [set("t3", { selected: true })]), "10:30 am", "Each button is a free 20-minute time. Pick one and it stays highlighted to show it is chosen."),
       ]),
       { target: "client-book-time" },

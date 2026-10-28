@@ -92,7 +92,7 @@ export const staffLawyers: Tutorial = {
     step(
       "capacity",
       "Check who has room",
-      "Partner lawyers are the Costa Rican lawyers who take members' calls. Capacity shows how busy each one is, so new members go to someone with room.",
+      "Partner lawyers are the lawyers licensed in each country who take members' calls. Capacity shows how busy each one is, so new members go to someone with room.",
       scene(page(), [
         say(hover("l2", [mark("l2")]), L.mauricio, "Eleven open matters and four waiting too long. He is very busy, so give new members to someone else this week."),
         say(hover("l3", [mark("l2", false), mark("l3")]), L.daniela, "Only four open matters and five calls this week. She has room for new members in immigration and family law."),
