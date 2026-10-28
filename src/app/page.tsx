@@ -3,7 +3,7 @@ import Nav from "@/components/Nav";
 import HeroCTA from "@/components/HeroCTA";
 import ParallaxBand from "@/components/ParallaxBand";
 import { CostsMorph, FeaturesSticky, StepsPan } from "@/components/landing/StorySections";
-import TrustStrip from "@/components/landing/TrustStrip";
+import { ProblemScroll, StepsScroll, WhatYouGet } from "@/components/landing/HeroStory";
 import { TutorialBand } from "@/components/landing/TutorialBand";
 import {
   CoverageGutenberg,
@@ -22,11 +22,15 @@ export const metadata: Metadata = {
 };
 
 /**
- * Homepage order (T1): why, how, what hero -> three facts -> the problem ->
- * demo: the free check -> photo band -> what members get -> demo: the member
- * home -> real situations -> demo: a call with your lawyer -> photo band ->
- * Costa Rica first -> example situations -> pricing -> demo: what you pay ->
- * questions -> final call to action -> footer.
+ * Homepage order (HERO, 2026-10-27): hero (title and the two actions, one
+ * screen) -> the problem (pinned, phrase by phrase) -> how ILP works (pinned,
+ * one step at a time, #how-it-works) -> what you get (price and terms) ->
+ * what a missed date can cost you -> demo: the free check -> photo band ->
+ * what the membership includes -> demo: the member home -> real situations ->
+ * demo: a call with your lawyer -> photo band -> Costa Rica first -> example
+ * situations -> pricing -> demo: what you pay -> questions -> final call to
+ * action -> footer. The three-facts strip (TrustStrip) is no longer rendered:
+ * "What you get" now says the same facts.
  */
 export default function HomePage() {
   return (
@@ -34,8 +38,9 @@ export default function HomePage() {
       <Nav />
       <main>
         <HeroCTA />
-
-        <TrustStrip />
+        <ProblemScroll />
+        <StepsScroll />
+        <WhatYouGet />
 
         <CostsMorph />
         <TutorialBand band={TUTORIAL_BANDS.check} />
