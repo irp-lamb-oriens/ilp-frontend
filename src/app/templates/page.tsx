@@ -6,10 +6,10 @@ import { fetchTemplates, type PublicTemplate } from "@/lib/public";
 import styles from "./page.module.scss";
 
 const FALLBACK_TEMPLATES = [
-  "Panama Property Due-Diligence Checklist",
-  "Costa Rica Vehicle Import Checklist",
-  "Residency Renewal Tracker",
-  "Corporation Annual Filing Guide",
+  "Costa Rica vehicle import checklist",
+  "Residency renewal tracker",
+  "Corporation annual filing guide",
+  "Panama property due diligence checklist",
 ];
 
 export default function TemplatesPage() {
@@ -39,9 +39,9 @@ export default function TemplatesPage() {
       <main className={styles.main}>
         <h1 className={styles.headline}>Legal templates</h1>
         <p className={styles.sub}>
-          Versioned, jurisdiction-specific downloads, reviewed by local
-          professionals. Downloading shares your intent and enriches your
-          profile.
+          Checklists and guides for common legal tasks abroad, each one for a
+          specific country. They help you see what a task needs before you
+          talk to a lawyer.
         </p>
         <ul className={styles.list}>
           {items.map((t) => (

@@ -61,14 +61,14 @@ export default function Nav() {
           className={`${styles.link} ${styles.audience} ${!isLawyers ? styles.active : ""}`}
           aria-current={!isLawyers ? "page" : undefined}
         >
-          For Customers
+          For members
         </Link>
         <Link
           href="/attorneys"
           className={`${styles.link} ${styles.audience} ${isLawyers ? styles.active : ""}`}
           aria-current={isLawyers ? "page" : undefined}
         >
-          For Lawyers
+          For lawyers
         </Link>
 
         <span className={styles.divider} aria-hidden="true" />
@@ -92,7 +92,7 @@ export default function Nav() {
             href="/status"
             className={`${styles.link} ${pathname.startsWith("/status") ? styles.active : ""}`}
           >
-            Track your matter
+            Member sign in
           </Link>
         )}
 

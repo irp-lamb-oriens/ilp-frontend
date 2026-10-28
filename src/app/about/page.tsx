@@ -4,16 +4,20 @@ import s from "@/components/MarketingPage.module.scss";
 
 const PILLARS = [
   {
-    title: "The context follows the client",
-    body: "Your legal history, documents, and obligations live in one profile that moves with you across countries and matters.",
+    title: "Your legal profile stays with you",
+    body: "Your residency, property, companies, vehicles and household details sit in one legal profile. Your lawyer reads it before every call, so you do not have to repeat yourself.",
   },
   {
-    title: "Real professionals, not a call center",
-    body: "Every consultation is with a vetted local attorney, matched to your jurisdiction and situation.",
+    title: "Calls with a lawyer licensed in Costa Rica",
+    body: "Members get up to three 20-minute video calls a month (60 minutes) with an independent lawyer licensed in Costa Rica.",
   },
   {
-    title: "Continuity over one-off advice",
-    body: "Reminders, summaries, and follow-up keep your legal life moving between consultations.",
+    title: "Follow-up after every call",
+    body: "Your lawyer confirms the summary and the next steps. Your customer success manager (CSM) at ILP then follows up on them with you.",
+  },
+  {
+    title: "Dates before they are due",
+    body: "The free deadline check lists the dates that may apply to you, and members are reminded before them.",
   },
 ];
 
@@ -25,12 +29,11 @@ export default function AboutPage() {
         <section className={`${s.wrap} ${s.section}`}>
           <div className={s.sectionHead}>
             <p className={s.eyebrow}>About us</p>
-            <RevealTitle text="Built to replace fragmented legal advice." className={s.headingXl} />
+            <RevealTitle text="Your legal life in Costa Rica, kept in one place." className={s.headingXl} />
             <p className={s.sub}>
-              International Legal Partner is a U.S.-registered legal-tech
-              platform. We pair access to qualified local attorneys with a
-              persistent client profile, reminders, and follow-up, so your
-              legal life abroad stays organized.
+              International Legal Partner (ILP) is a legal membership for North Americans who live in Costa Rica or
+              own property there. ILP keeps your legal profile, books your calls with a lawyer licensed in Costa Rica
+              and follows up on what comes next. Panama and Mexico are planned after Costa Rica.
             </p>
           </div>
 
@@ -48,19 +51,19 @@ export default function AboutPage() {
           <div className={s.split}>
             <div className={s.rail}>
               <p className={s.eyebrow}>Our model</p>
-              <RevealTitle text="Independent partners, coordinated by ILP." className={s.headingLg} />
+              <RevealTitle text="Independent lawyers, coordinated by ILP." className={s.headingLg} />
             </div>
             <div className={s.featureList}>
-              <li>ILP provides the platform, the client profile, and the Customer Success coordination.</li>
-              <li>Vetted local attorneys provide the legal judgment, matched to your specialty and language.</li>
-              <li>Cross-border legal expertise and content bridge the gap between living abroad and staying compliant.</li>
+              <li>ILP runs the platform and keeps your legal profile, and your customer success manager follows up with you after each call.</li>
+              <li>Independent lawyers licensed in Costa Rica give the legal advice. ILP checks each lawyer&apos;s license before they take calls.</li>
+              <li>Legal work beyond the calls, such as drafting or filings, is quoted separately. Nothing starts until you accept the quote.</li>
             </div>
           </div>
         </section>
 
         <footer className={s.footer}>
           <div className={s.wrap}>
-            <p>International Legal Partner. Trusted legal support for your life abroad.</p>
+            <p>International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.</p>
           </div>
         </footer>
       </main>

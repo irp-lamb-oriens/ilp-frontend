@@ -39,7 +39,7 @@ export default function AlertsPage() {
 
   useEffect(() => {
     if (!user || user.role !== "customer") {
-      setError("Sign in as a customer to see your compliance alerts.");
+      setError("Sign in as a member to see your deadline alerts.");
       return;
     }
     let active = true;
@@ -75,7 +75,7 @@ export default function AlertsPage() {
       });
       setBooking(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Booking failed");
+      setError(err instanceof Error ? err.message : "The booking did not go through. Try again.");
     } finally {
       setBusy(null);
     }
@@ -93,7 +93,7 @@ export default function AlertsPage() {
         ),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Response failed");
+      setError(err instanceof Error ? err.message : "Your answer was not saved. Try again.");
     } finally {
       setBusy(null);
     }
@@ -103,7 +103,7 @@ export default function AlertsPage() {
     <>
       <Nav />
       <main className={styles.main}>
-        <RevealTitle as="h1" text="Your compliance alerts" className={styles.headline} />
+        <RevealTitle as="h1" text="Your deadline alerts" className={styles.headline} />
 
         {error && <p className={styles.error}>{error}</p>}
 
@@ -111,8 +111,8 @@ export default function AlertsPage() {
           <section className={styles.alerts}>
             {alerts.length === 0 ? (
               <p className={styles.empty}>
-                No alerts yet. They appear as local teams publish obligations
-                matching your country.
+                No alerts yet. An alert appears here when a date that may apply
+                to you comes up.
               </p>
             ) : (
               <ul className={styles.list}>
@@ -153,14 +153,14 @@ export default function AlertsPage() {
         )}
 
         <section className={styles.booking}>
-          <RevealTitle text="Book a consultation" className={styles.subhead} />
+          <RevealTitle text="Book a call with a lawyer" className={styles.subhead} />
           <p className={styles.sub}>
-            Choose a vetted legal partner and a real time slot. Confirmation
-            arrives once the partner accepts.
+            Choose a lawyer and a time. The call is confirmed once the lawyer
+            accepts it.
           </p>
 
           <label htmlFor="provider" className={styles.label}>
-            Legal partner
+            Lawyer
           </label>
           <select
             id="provider"
@@ -168,7 +168,7 @@ export default function AlertsPage() {
             value={providerId}
             onChange={(e) => loadSlots(e.target.value)}
           >
-            <option value="">Select a partner</option>
+            <option value="">Choose a lawyer</option>
             {providers.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name ?? p.id}
@@ -178,7 +178,7 @@ export default function AlertsPage() {
 
           {slots.length > 0 && (
             <>
-              <label className={styles.label}>Time slot</label>
+              <label className={styles.label}>Time</label>
               <div className={styles.slots}>
                 {slots.map((s) => (
                   <button
@@ -213,12 +213,12 @@ export default function AlertsPage() {
             disabled={!providerId || !slot || busy === "booking"}
             onClick={submitBooking}
           >
-            Request consultation
+            Request this call
           </button>
 
           {booking && (
             <p className={styles.success}>
-              Consultation requested (id {booking.id}). The partner will confirm.
+              Call requested (reference {booking.id}). The lawyer will confirm it.
             </p>
           )}
         </section>

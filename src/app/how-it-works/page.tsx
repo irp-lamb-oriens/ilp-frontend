@@ -4,19 +4,24 @@ import s from "@/components/MarketingPage.module.scss";
 
 const STEPS = [
   {
-    n: "01",
-    title: "Onboard with your CSM",
-    body: "A Customer Success Manager sets up your living legal profile, gathers your documents, and maps the obligations that apply to you.",
+    n: "1",
+    title: "Take the free deadline check",
+    body: "It takes about two minutes and you do not need an account. You get a dated list of what may apply to you in Costa Rica.",
   },
   {
-    n: "02",
-    title: "Consult a vetted specialist",
-    body: "Book a consultation with a local attorney matched to your situation. They explain the law, your options, and the next steps.",
+    n: "2",
+    title: "Join and set up your legal profile",
+    body: "The membership is US$79.99 a month plus a one-time US$100 activation fee. Your customer success manager (CSM) helps you complete your legal profile.",
   },
   {
-    n: "03",
-    title: "Get a summary and follow-up",
-    body: "Your call is transcribed and summarized. Action items and deadlines are attached to your profile, and your CSM coordinates what comes next.",
+    n: "3",
+    title: "Book a call with a lawyer",
+    body: "Book up to three 20-minute video calls a month with a lawyer licensed in Costa Rica. Before the call, the lawyer reads a brief built from your profile.",
+  },
+  {
+    n: "4",
+    title: "Get the next steps in writing",
+    body: "If you allow it, the call is recorded and transcribed. Your lawyer confirms the summary and the next steps, and your CSM follows up on them with you.",
   },
 ];
 
@@ -28,10 +33,10 @@ export default function HowItWorksPage() {
         <section className={`${s.wrap} ${s.section}`}>
           <div className={s.sectionHead}>
             <p className={s.eyebrow}>How it works</p>
-            <RevealTitle text="Three steps. One organized legal life." className={s.headingXl} />
+            <RevealTitle text="From the free check to your next step." className={s.headingXl} />
             <p className={s.sub}>
-              Membership gives you technical legal explanations and ongoing
-              coordination. Formal legal work is scoped and paid separately.
+              The membership covers your calls with a lawyer and the follow-up after them. Legal work such as
+              drafting or filings is quoted separately, and you decide whether to go ahead.
             </p>
           </div>
 
@@ -63,7 +68,7 @@ export default function HowItWorksPage() {
 
         <footer className={s.footer}>
           <div className={s.wrap}>
-            <p>International Legal Partner. Trusted legal support for your life abroad.</p>
+            <p>International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.</p>
           </div>
         </footer>
       </main>

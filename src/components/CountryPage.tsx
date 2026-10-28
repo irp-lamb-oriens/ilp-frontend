@@ -11,6 +11,9 @@ import { openLeadForm } from "@/lib/leadEvents";
 import { CLAIM, CHECK_CTA } from "@/components/landing/content";
 import s from "./CountryPage.module.scss";
 
+/** Countries planned after Costa Rica (the others are not available yet). */
+const PLANNED = new Set(["PA", "MX"]);
+
 export interface CountryStory {
   heroImage: string;
   heroAlt: string;
@@ -44,6 +47,13 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
   }, [countryCode]);
 
   const start = () => openLeadForm({ country: countryCode, topic: `${country} obligations` });
+  // Launch order (docs/PLAN.md): Costa Rica is open; Panama and Mexico come next.
+  const availability =
+    countryCode === "CR"
+      ? null
+      : PLANNED.has(countryCode)
+        ? `ILP is open in Costa Rica now. ${country} is planned after Costa Rica.`
+        : `ILP is open in Costa Rica now. ${country} is not available yet.`;
 
   return (
     <>
@@ -57,6 +67,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
               <RevealTitle as="h1" text={story.headline} className={s.headline} glossary={story.glossary} />
               <p className={s.claim}>{CLAIM}</p>
               <p className={s.sub}>{renderGlossary(story.sub, story.glossary)}</p>
+              {availability && <p className={s.sub}>{availability}</p>}
               <button type="button" className={s.primary} onClick={start}>
                 {CHECK_CTA}
               </button>
@@ -68,7 +79,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
           <section className={s.section}>
             <div className={s.wrap}>
               <div className={s.sectionHead}>
-                <p className={s.eyebrowDark}>What we track in {country}</p>
+                <p className={s.eyebrowDark}>{countryCode === "CR" ? `What we track in ${country}` : `Dates to know in ${country}`}</p>
                 <RevealTitle text={`The ${country} obligations that cost people most.`} className={s.headingXl} />
               </div>
               <GutenbergList items={story.obligations} rhythm="zigzag" glossary={story.glossary} />
@@ -84,7 +95,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
           <section className={s.section}>
             <div className={s.wrap}>
               <div className={s.sectionHead}>
-                <p className={s.eyebrowDark}>Reviewed this season</p>
+                <p className={s.eyebrowDark}>Legal updates</p>
                 <RevealTitle text={`Latest legal updates in ${country}`} className={s.headingXl} />
               </div>
               <ul className={s.updatesList}>
@@ -108,7 +119,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
               <button type="button" className={s.primary} onClick={start}>
                 {CHECK_CTA}
               </button>
-              <p className={s.closeHint}>Free for one country. No card required.</p>
+              <p className={s.closeHint}>The check is free and takes about two minutes. You do not need an account.</p>
             </Reveal>
           </div>
         </section>
@@ -129,11 +140,11 @@ function PinnedObligations({
 }) {
   const slice = 1 / items.length;
   return (
-    <section className={s.pinned} aria-label={`What we track in ${country}`}>
+    <section className={s.pinned} aria-label={`Dates to know in ${country}`}>
       <MorphStage heightVh={90 * items.length}>
         {(progress, reduce) => (
           <div className={s.pinnedInner}>
-            <p className={s.pinnedKicker}>What we track in {country}</p>
+            <p className={s.pinnedKicker}>Dates to know in {country}</p>
             <div className={reduce ? s.pinnedStatic : s.pinnedLayer}>
               {items.map((it, i) => {
                 const a = i * slice;

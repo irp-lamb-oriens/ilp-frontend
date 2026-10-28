@@ -8,7 +8,7 @@ import s from "./pricing.module.scss";
 export const metadata: Metadata = {
   title: "Pricing | International Legal Partner",
   description:
-    "One ILP membership: US$79.99 a month plus a US$100 activation. 60 minutes a month with a vetted Costa Rica lawyer; legal work quoted separately.",
+    "One ILP membership: US$79.99 a month plus a one-time US$100 activation fee. Up to three 20-minute calls a month with a lawyer licensed in Costa Rica. Other legal work is quoted separately.",
 };
 
 const usd = (cents: number) => `US$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
@@ -16,9 +16,9 @@ const MONTHLY = usd(PLAN_STANDARD.monthlyCents);
 const ACTIVATION = usd(PLAN_STANDARD.activationCents);
 
 const INCLUDED = [
-  `${PLAN_STANDARD.minutesIncluded} minutes a month with a vetted Costa Rica lawyer, across up to ${PLAN_STANDARD.callsIncluded} calls of ${PLAN_STANDARD.callLengthMin} minutes`,
+  `${PLAN_STANDARD.minutesIncluded} minutes a month with a lawyer licensed in Costa Rica, across up to ${PLAN_STANDARD.callsIncluded} calls of ${PLAN_STANDARD.callLengthMin} minutes`,
   "A brief prepared from your profile before each call, so the minutes go to your question",
-  "Your ILP team follows up on the next steps after every call",
+  "Your customer success manager (CSM) follows up on the next steps after every call",
   "A living legal profile: residency, property, companies, vehicles and household in one place",
   "Reminders before the dates that apply to you",
 ];
@@ -26,7 +26,7 @@ const INCLUDED = [
 const FAQ = [
   {
     q: "What does the activation fee cover?",
-    a: "Setting up your legal profile, your welcome call with the ILP team and the review of the documents you share at the start.",
+    a: "Setting up your legal profile, your welcome call with your customer success manager and the review of the documents you share at the start.",
   },
   {
     q: "Do unused minutes roll over?",
@@ -63,7 +63,7 @@ export default function PricingPage() {
                 {MONTHLY}
                 <span className={s.unit}> a month</span>
               </p>
-              <p className={s.activation}>plus {ACTIVATION} one-time activation</p>
+              <p className={s.activation}>plus a one-time {ACTIVATION} activation fee</p>
               <Link href="/check" className={m.primary}>Start with the free check</Link>
               <Link href="/join" className={s.joinLink}>Or join now</Link>
             </div>
@@ -77,7 +77,7 @@ export default function PricingPage() {
           </div>
 
           <div className={m.section}>
-            <h2 className={m.headingLg}>Questions</h2>
+            <h2 className={m.headingLg}>Questions about the price</h2>
             <div className={s.faq}>
               {FAQ.map((f) => (
                 <div key={f.q} className={m.callout}>
@@ -91,7 +91,7 @@ export default function PricingPage() {
 
         <footer className={m.footer}>
           <div className={m.wrap}>
-            <p>International Legal Partner. Trusted legal support for your life abroad.</p>
+            <p>International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.</p>
           </div>
         </footer>
       </main>

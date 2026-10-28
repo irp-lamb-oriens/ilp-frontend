@@ -5,7 +5,7 @@
  */
 
 /** One claim shared with the country landings (CountryPage). */
-export const CLAIM = "If you are an expat and need confidence to live abroad.";
+export const CLAIM = "A legal membership for North Americans abroad, open in Costa Rica first.";
 export const CHECK_CTA = "Check your deadlines free";
 
 export const IMG = {
@@ -264,8 +264,8 @@ export const MEMBERSHIP = PLANS[1];
  * Kept here for reference until the offer documents confirm them.
  */
 export const UNCONFIRMED_PLANS = [
-  { id: "smart-alerts", name: "Smart Alerts", price: "$0", note: "Optional $5/month premium" },
-  { id: "enterprise", name: "Enterprise & Business", price: "$499.99", note: "$150 one-time activation, 120 minutes a month" },
+  { id: "smart-alerts", name: "Smart Alerts", price: "US$0", note: "Optional US$5 a month premium" },
+  { id: "enterprise", name: "Enterprise & Business", price: "US$499.99", note: "US$150 one-time activation, 120 minutes a month" },
 ];
 
 export const ADDONS = [

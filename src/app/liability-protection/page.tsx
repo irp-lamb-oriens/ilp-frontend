@@ -3,13 +3,13 @@ import LegalPage from "@/components/LegalPage";
 export default function LiabilityProtectionPage() {
   return (
     <LegalPage
-      title="Professional Liability Protection Terms"
+      title="Professional liability protection terms"
       updated="October 2026"
       sections={[
         {
           heading: "What it is",
           body: [
-            "ILP plans to provide conditional professional liability protection of up to $100,000 for eligible covered services, as part of the membership offering.",
+            "ILP plans to provide conditional professional liability protection of up to US$100,000 for eligible covered services, as part of the membership offering.",
           ],
         },
         {
