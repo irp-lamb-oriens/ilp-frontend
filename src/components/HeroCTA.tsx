@@ -1,36 +1,22 @@
 "use client";
 
-import { useRef } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useReducedMotion,
-} from "framer-motion";
-import { RevealTitle, Reveal, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import Link from "next/link";
-import { CLAIM, CHECK_CTA } from "@/components/landing/content";
+import { motion, useReducedMotion } from "framer-motion";
+import { PageIntro } from "@/components/ui";
+import { EASE_OUT_EXPO } from "@/components/motion/Motion";
+import { CHECK_CTA, HERO, MEMBERSHIP, TUTORIAL_BANDS } from "@/components/landing/content";
 import styles from "./HeroCTA.module.scss";
 
 const HERO_IMAGE =
-  "https://images.pexels.com/photos/4226140/pexels-photo-4226140.jpeg";
-
-const VALUE_STACK = [
-  "Smart Compliance Alert",
-  "legal advice on a membership",
-  "Vetted International attorneys",
-  "Legal customer support",
-];
+  "https://images.pexels.com/photos/4226140/pexels-photo-4226140.jpeg?auto=compress&cs=tinysrgb&w=1400";
 
 /**
- * Animated checkmark: the stroke draws in on a cubic-bezier curve while the
- * mark scales in on a spring, so it "draws then bounces". Staggered per line
- * via `index`.
+ * Check mark for the "included" list: the mark scales in on a spring, one line
+ * after another. Transform and opacity only; reduced motion shows it at rest.
  */
 function CheckMark({ index }: { index: number }) {
   const reduce = useReducedMotion();
-  const drawDelay = 0.35 + index * 0.16;
-
+  const delay = 0.45 + index * 0.12;
   return (
     <motion.svg
       className={styles.valueCheck}
@@ -40,93 +26,80 @@ function CheckMark({ index }: { index: number }) {
       initial={reduce ? false : { scale: 0.4, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{
-        scale: { type: "spring", stiffness: 280, damping: 13, delay: drawDelay },
-        opacity: { duration: 0.2, delay: drawDelay },
+        scale: { type: "spring", stiffness: 280, damping: 15, delay },
+        opacity: { duration: 0.2, delay },
       }}
     >
       <circle cx="12" cy="12" r="10.5" className={styles.checkCircle} />
-      <motion.path
-        d="M7.2 12.4 L10.4 15.6 L16.8 8.4"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        initial={reduce ? false : { pathLength: 0, opacity: 0 }}
-        animate={{ pathLength: 1, opacity: 1 }}
-        transition={{
-          pathLength: { delay: drawDelay, duration: 0.55, ease: [0.65, 0, 0.35, 1] },
-          opacity: { delay: drawDelay, duration: 0.01 },
-        }}
-      />
+      <path d="M7.2 12.4 L10.4 15.6 L16.8 8.4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
     </motion.svg>
   );
 }
 
+/** The right-hand side of the hero: a photo and what the membership includes. */
+function HeroArt() {
+  const reduce = useReducedMotion();
+  return (
+    <div className={styles.art}>
+      <div className={styles.photo} role="img" aria-label={HERO.imageAlt} style={{ backgroundImage: `url("${HERO_IMAGE}")` }} />
+      <div className={styles.included}>
+        <h2 className={styles.includedTitle}>{HERO.includedTitle}</h2>
+        <ul className={styles.valueStack}>
+          {HERO.included.map((item, i) => (
+            <motion.li
+              key={item}
+              className={styles.valueItem}
+              initial={reduce ? false : { opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: EASE_OUT_EXPO, delay: 0.3 + i * 0.12 }}
+            >
+              <CheckMark index={i} />
+              <span>{item}</span>
+            </motion.li>
+          ))}
+        </ul>
+        <p className={styles.price}>
+          <span className={styles.priceFigure}>{MEMBERSHIP.price}</span> {MEMBERSHIP.unit}, {MEMBERSHIP.activation}.
+        </p>
+        <a href="#pricing" className={styles.pricingLink}>
+          {HERO.pricingLink}
+        </a>
+      </div>
+    </div>
+  );
+}
+
 /**
- * Landing hero: slogan + subheading on the left, a right-justified value stack
- * with the primary CTA beneath it on the right. Navy headline on a white/mist
- * canvas with a light-blue CTA. The copy lifts gently as the hero scrolls away.
+ * Homepage hero in Golden Circle order (copy-rules.md): why (the reader's
+ * problem), how (four steps), what (the membership and its price). Primary
+ * action: the free deadline check. Secondary: scroll to the first demo.
  */
 export default function HeroCTA() {
-  const heroRef = useRef<HTMLElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
-
   return (
-    <section
-      ref={heroRef}
-      className={styles.hero}
-      style={{ backgroundImage: `url("${HERO_IMAGE}")` }}
-    >
-      <motion.div
-        className={styles.heroGrid}
-        style={reduce ? undefined : { y: copyY }}
-      >
-        <div className={styles.heroCopy}>
-          <Reveal delay={0.05}>
-            <p className={styles.eyebrow}>For You</p>
-          </Reveal>
-          <RevealTitle
-            as="h1"
-            text={CLAIM}
-            className={styles.headline}
-            delay={0.15}
-          />
-          <Reveal delay={0.4}>
-            <p className={styles.sub}>
-              Get a free check that shows every renewal, filing, and payment before your deadlines arrive.
-            </p>
-          </Reveal>
-        </div>
-
-        <Reveal className={styles.heroCta} from="right" delay={0.2}>
-          <ul className={styles.valueStack}>
-            {VALUE_STACK.map((item, i) => (
-              <motion.li
-                key={item}
-                className={styles.valueItem}
-                initial={reduce ? false : { opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.65, ease: EASE_OUT_EXPO, delay: 0.25 + i * 0.15 }}
-              >
-                <span className={styles.valueLabel}>{item}</span>
-                <CheckMark index={i} />
-              </motion.li>
-            ))}
-          </ul>
-          <Link href="/check" className={styles.primary}>
-            {CHECK_CTA}
-          </Link>
-          <Link href="/pricing" className={styles.secondary}>
-            See what is included
-          </Link>
-        </Reveal>
-      </motion.div>
-    </section>
+    <div className={styles.hero}>
+      <div className={styles.inner}>
+        <PageIntro
+          order="why-how-what"
+          eyebrow={HERO.eyebrow}
+          title={HERO.title}
+          why={HERO.why}
+          how={HERO.how}
+          what={HERO.what}
+          labels={HERO.labels}
+          className={styles.intro}
+          illustration={<HeroArt />}
+          actions={
+            <>
+              <Link href="/check" className={styles.primary}>
+                {CHECK_CTA}
+              </Link>
+              <a href={`#${TUTORIAL_BANDS.check.anchor}`} className={styles.secondary}>
+                {HERO.secondary}
+              </a>
+            </>
+          }
+        />
+      </div>
+    </div>
   );
 }

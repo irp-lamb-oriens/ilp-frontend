@@ -1,120 +1,30 @@
 @use "../styles/variables" as *;
 @use "../styles/mixins" as *;
 
+// Homepage hero: PageIntro (why, how, what) on the left, a photo and the
+// "included" list on the right from 1024px, stacked on phones. Light canvas,
+// hairlines, one accent (rules.md).
+
 .hero {
-  position: relative;
-  isolation: isolate;
-  background-color: $color-navy;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  padding-block: clamp(6rem, 18vh, 12rem);
+  background: $color-mist;
+  border-bottom: 1px solid $color-hairline;
+  padding-block: calc(64px + #{$space-12}) $space-16;
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-      180deg,
-      rgba(10, 18, 28, 0.72) 0%,
-      rgba(10, 18, 28, 0.55) 100%
-    );
+  @include lg {
+    padding-block: calc(64px + #{$space-16}) $space-24;
   }
 }
 
-.heroGrid {
+.inner {
   @include container;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: $space-12;
-  align-items: center;
-
-  @include lg {
-    grid-template-columns: 1.4fr 1fr;
-    gap: $space-16;
-  }
 }
 
-.heroCopy {
-  display: flex;
-  flex-direction: column;
-  gap: $space-6;
-}
-
-.eyebrow {
-  @include eyebrow;
-  margin: 0;
-  color: $color-accent;
-}
-
-.headline {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  letter-spacing: -0.04em;
-  line-height: 1.02;
-  margin: 0;
-  color: #ffffff;
-  max-width: 16ch;
-}
-
-.sub {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
-  line-height: 1.4;
-  margin: 0;
-  max-width: 30ch;
-  font-weight: 600;
-}
-
-.valueStack {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.valueItem {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: $space-3;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 1.05rem;
-  font-weight: 500;
-  line-height: 1.3;
-}
-
-.valueLabel {
-  text-align: right;
-}
-
-.valueCheck {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  flex: none;
-  color: $color-accent;
-}
-
-.checkCircle {
-  fill: rgba(92, 204, 247, 0.16);
-  stroke: rgba(92, 204, 247, 0.55);
-  stroke-width: 1.5;
-}
-
-.heroCta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: $space-4;
-
-  @include lg {
-    align-items: flex-end;
+.intro {
+  h1 {
+    font-size: clamp(2.25rem, 5.5vw, 4rem);
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    color: $color-navy;
   }
 }
 
@@ -127,18 +37,105 @@
 }
 
 .secondary {
-  @include press;
+  @include button-ghost;
+  @include focus-ring;
+  padding: $space-3 $space-6;
+  min-height: $touch-target;
+  text-decoration: none;
+}
+
+.art {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.photo {
+  aspect-ratio: 4 / 3;
+  border-radius: $radius-lg;
+  background-color: $color-cool-gray;
+  background-size: cover;
+  background-position: center;
+  display: none;
+
+  @include md {
+    display: block;
+  }
+}
+
+.included {
+  @include card;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  @include lg {
+    margin-inline-start: -$space-12;
+    margin-top: -$space-16;
+  }
+}
+
+.includedTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  color: $color-navy;
+}
+
+.valueStack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.valueItem {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: $space-3;
+  color: $color-charcoal;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.valueCheck {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: $color-navy;
+}
+
+.checkCircle {
+  fill: $color-accent-soft;
+  stroke: $color-accent;
+  stroke-width: 1.5;
+}
+
+.price {
+  margin: 0;
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+  color: $color-steel;
+  font-size: 0.95rem;
+}
+
+.priceFigure {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+}
+
+.pricingLink {
+  @include focus-ring;
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  padding: $space-3 $space-6;
-  min-height: 44px;
-  border-radius: $radius-pill;
-  color: $color-canvas;
+  min-height: $touch-target;
+  color: $color-navy;
   font-weight: 600;
-  text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-  }
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
