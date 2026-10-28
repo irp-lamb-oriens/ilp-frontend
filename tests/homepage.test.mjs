@@ -231,3 +231,50 @@ test("homepage: every key phrase sits inside one phrase of its line", async () =
   }
   assert.ok(c.FEATURES.some((f) => f.mark === "may require review"), "reminders underline may require review");
 });
+
+test("homepage costs story: beats in a Gutenberg Z, never two on stage", async () => {
+  const m = await import("../src/components/landing/costsBeats.ts");
+  assert.deepEqual(
+    m.COSTS_ZIGZAG.map((z) => [z.text, z.visual]),
+    [
+      ["start", "end"],
+      ["end", "start"],
+      ["start", "end"],
+    ],
+    "Fines text left and picture right, Doubt the other way, Retelling as Fines",
+  );
+  for (let i = 0; i < m.COSTS_RANGES.length - 1; i++) {
+    assert.ok(m.COSTS_RANGES[i][3] < m.COSTS_RANGES[i + 1][0], `beat ${i + 1} has left before beat ${i + 2} enters`);
+  }
+  const src = readFileSync(new URL("../src/components/landing/CostsStory.tsx", import.meta.url), "utf8");
+  assert.ok(src.includes('slot.text === "end" && s.textEnd'), "pinned beats take their side from COSTS_ZIGZAG");
+  assert.ok(src.includes('COSTS_ZIGZAG[index].text === "end" && s.beatFlip'), "tablet rows alternate the same way");
+  const scss = readFileSync(new URL("../src/components/landing/CostsStory.module.scss", import.meta.url), "utf8");
+  assert.ok(/\.textEnd > \.beatText \{[^}]*grid-column: 5 \/ -1/.test(scss), "Doubt text sits right in the pinned layout");
+});
+
+test("homepage steps: one example screen at a time, alternating sides", async () => {
+  const a = await import("../src/components/landing/stepAnchors.ts");
+  for (let k = 0; k <= 4000; k++) {
+    const p = k / 4000;
+    const on = [0, 1, 2, 3].filter((i) => a.stepScreenOpacity(p, i) > 0);
+    assert.ok(on.length <= 1, `p=${p}: screens ${on.join(", ")} on stage together`);
+  }
+  for (let i = 0; i < a.STEP_COUNT; i++) {
+    assert.equal(a.stepScreenOpacity(a.stepProgress(i), i), 1, `step ${i + 1}'s link lands on its screen at full opacity`);
+  }
+  assert.equal(a.stepScreenOpacity(0, 0), 1, "step 1's screen is there from the start");
+  assert.equal(a.stepScreenOpacity(1, 3), 1, "step 4's screen holds to the end");
+  assert.deepEqual(a.STEP_SCREEN_SIDES, ["end", "start", "end", "start"]);
+});
+
+test("homepage: no scrubbed text starts dimmed (0 to 1 reveals only)", () => {
+  const story = readFileSync(new URL("../src/components/motion/Story.tsx", import.meta.url), "utf8");
+  const hero = readFileSync(new URL("../src/components/landing/HeroStory.tsx", import.meta.url), "utf8");
+  for (const [name, src] of [["Story.tsx", story], ["HeroStory.tsx", hero]]) {
+    assert.ok(!/floor/.test(src), `${name} has no dim floor opacity`);
+  }
+  assert.ok(story.includes('hidden: { opacity: 0, y: "0.5em" }'), "staged words start at opacity 0");
+  assert.ok(story.includes("<span className={s.srOnly}>{text}</span>"), "split lines keep the sentence for screen readers");
+  assert.ok(hero.includes("parts={PROBLEM.phrases}"), "the problem reveals its phrases with RevealText");
+});
