@@ -141,15 +141,16 @@ export function useSchemaList<T>(o: UseSchemaListOptions<T>): SchemaList<T> {
     const cur = listRef.current.filters;
     setFilters({ ...cur, ...base });
   }, [baseKey, setFilters]);
-  const firstRows = useRef(true);
+  // New rows (an edit, a reload): page them again. Only a change of rows triggers this, not a new query.
+  const seenRows = useRef(o.rows);
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
   useEffect(() => {
-    if (!isLocal || o.rows == null) return;
-    if (firstRows.current) {
-      firstRows.current = false;
-      return;
-    }
-    refresh();
-  }, [isLocal, o.rows, refresh]);
+    if (!isLocal || seenRows.current === o.rows) return;
+    const first = seenRows.current == null;
+    seenRows.current = o.rows;
+    if (!first && o.rows != null) refreshRef.current();
+  }, [isLocal, o.rows]);
 
   const merged = useMemo(() => mergeSchemaMeta(schema, list.meta.schema as PublicListSchema | undefined), [schema, list.meta.schema]);
   const filterState = useMemo(() => readFilterParams(schema, { get: (k) => list.filters[k] || null }), [schema, list.filters]);
