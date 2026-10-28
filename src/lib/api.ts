@@ -138,6 +138,11 @@ export interface ApiClient {
   del<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
   /** Absolute URL for a path. Carries no credentials: use `blob` / `downloadFile` for files. */
   url(path: string, query?: RequestOptions["query"]): string;
+  /**
+   * The raw Response (status already checked, 401 handled) for callers that
+   * read the body themselves, such as streamed NDJSON lists (lib/listSource.ts).
+   */
+  open(path: string, options?: RequestOptions): Promise<Response>;
   /** GET a file with the Bearer header; resolves to the bytes and the server's file name. */
   blob(path: string, options?: RequestOptions): Promise<{ blob: Blob; fileName: string | null }>;
   /** Ends this session on the server and forgets the token. Never throws. */
@@ -253,6 +258,8 @@ export function createApiClient(role: ApiRole): ApiClient {
       const text = await res.text();
       return (text ? JSON.parse(text) : undefined) as T;
     },
+
+    open: (path, options = {}) => send(path, options),
 
     async blob(path, options = {}) {
       const res = await send(path, { ...options, method: "GET" });
