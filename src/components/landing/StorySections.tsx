@@ -1,23 +1,26 @@
 "use client";
 
 import { motion, useTransform, type MotionValue } from "framer-motion";
-import { MorphStage, MorphItem, Reveal, RevealTitle } from "@/components/motion/Motion";
-import { COSTS, FEATURES, STEPS } from "./content";
+import { MorphStage, MorphItem, Reveal } from "@/components/motion/Motion";
+import { COSTS, COSTS_HEAD, FEATURES, FEATURES_HEAD, LOOP, STEPS, STEPS_HEAD } from "./content";
+import { SectionHead } from "./SectionHead";
 import s from "./landing.module.scss";
 
 /**
- * Signature moment: the stage locks to the viewport while three costs of a
+ * Problem section. Signature moment: the stage locks to the viewport while three costs of a
  * missed deadline morph in, hold, and morph out one after another. The giant
  * figure word and its explanation travel on separate axes and curves.
  */
 export function CostsMorph() {
   const slice = 1 / COSTS.length;
   return (
-    <section className={s.costs} aria-label="What a missed deadline costs">
+    <section className={s.costs} aria-label={COSTS_HEAD.title}>
+      <div className={`${s.wrap} ${s.costsIntro}`}>
+        <SectionHead title={COSTS_HEAD.title} why={COSTS_HEAD.why} icon="calendar" />
+      </div>
       <MorphStage heightVh={320} mobileHeightVh={240} className={s.costsStage} spring>
         {(progress, reduce) => (
           <>
-            <p className={s.costsKicker}>What a missed deadline costs</p>
             <div className={s.costsLayer}>
               {COSTS.map((c, i) => {
                 const a = i * slice;
@@ -69,12 +72,16 @@ export function FeaturesSticky() {
   return (
     <section className={`${s.wrap} ${s.sticky}`}>
       <div className={s.stickyHead}>
-        <p className={s.eyebrow}>What you get</p>
-        <RevealTitle text="The ILP system at a glance." className={s.headingXl} immediate />
-        <p className={s.sub}>
-          A living profile, transcribed history, a human CSM, and automated
-          reminders. The context follows the client.
-        </p>
+        <SectionHead title={FEATURES_HEAD.title} why={FEATURES_HEAD.why} icon="profile" immediate />
+        <ol className={s.loop} aria-label="How membership works, step by step">
+          {LOOP.map((step, i) => (
+            <li key={step.title} className={s.loopStep}>
+              <span className={s.loopNum} aria-hidden="true">{i + 1}</span>
+              <span className={s.loopTitle}>{step.title}</span>
+              <span className={s.loopBody}>{step.body}</span>
+            </li>
+          ))}
+        </ol>
       </div>
       <ol className={s.featureList}>
         {FEATURES.map((f, i) => (
@@ -94,7 +101,7 @@ export function FeaturesSticky() {
 /** Steps pan horizontally while the stage is locked (vertical scroll -> x). */
 export function StepsPan() {
   return (
-    <section className={s.steps} aria-label="How it works">
+    <section className={s.steps} aria-label={STEPS_HEAD.title}>
       <MorphStage heightVh={240} className={s.stepsStage}>
         {(progress, reduce) => <StepsTrack progress={progress} reduce={reduce} />}
       </MorphStage>
@@ -106,10 +113,7 @@ function StepsTrack({ progress, reduce }: { progress: MotionValue<number>; reduc
   const x = useTransform(progress, [0.05, 0.95], ["0%", "-52%"]);
   return (
     <div className={s.stepsViewport}>
-      <div className={s.stepsIntro}>
-        <p className={s.eyebrow}>How it works</p>
-        <RevealTitle text="How ILP works in practice." className={s.headingXl} immediate />
-      </div>
+      <SectionHead title={STEPS_HEAD.title} why={STEPS_HEAD.why} icon="path" immediate className={s.stepsIntro} />
       <motion.ol className={s.stepsTrack} style={reduce ? undefined : { x }}>
         {STEPS.map((st) => (
           <li key={st.n} className={s.stepCard}>

@@ -1,31 +1,28 @@
 "use client";
 
 import { Reveal } from "@/components/motion/Motion";
+import { TRUST } from "./content";
 import s from "./landing.module.scss";
 
-const ITEMS = [
-  { value: "Three countries live", label: "Costa Rica, Panama, and Mexico" },
-  { value: "Professionally maintained rules", label: "Reviewed by local legal teams" },
-  { value: "Before the due date", label: "Advance + deadline-day reminders" },
-];
-
 /**
- * First beat after the hero: a light proof strip whose stats stagger up the
- * moment it enters, so there is no empty scroll between the hero and the
- * signature morph.
+ * First beat after the hero: three plain facts about the offer (the free
+ * check, the price, the calls). Only facts from docs/PLAN.md, no counts or
+ * ratings.
  */
 export default function TrustStrip() {
   return (
-    <section className={s.trustBar} aria-label="At a glance">
+    <section className={s.trustBar} aria-label="ILP at a glance">
       <div className={s.trustInner}>
-        <div className={s.trustStats}>
-          {ITEMS.map((it, i) => (
-            <Reveal key={it.value} className={s.stat} delay={i * 0.09}>
-              <span className={s.statValue}>{it.value}</span>
-              <span className={s.statLabel}>{it.label}</span>
-            </Reveal>
+        <ul className={s.trustStats}>
+          {TRUST.map((it, i) => (
+            <li key={it.value}>
+              <Reveal className={s.stat} delay={i * 0.09}>
+                <span className={s.statValue}>{it.value}</span>
+                <span className={s.statLabel}>{it.label}</span>
+              </Reveal>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

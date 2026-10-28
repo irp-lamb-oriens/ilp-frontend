@@ -8,7 +8,8 @@ import s from "./ParallaxBand.module.scss";
 interface ParallaxBandProps {
   image: string;
   alt: string;
-  eyebrow: string;
+  /** Optional mono label. At most one eyebrow per three sections (rules.md). */
+  eyebrow?: string;
   title: string;
   body: string;
   align?: "left" | "right" | "center";
@@ -51,7 +52,7 @@ export default function ParallaxBand({
       />
       <div className={s.inner}>
         <Reveal className={s.glass} from={align === "right" ? "right" : "left"}>
-          <p className={s.eyebrow}>{eyebrow}</p>
+          {eyebrow && <p className={s.eyebrow}>{eyebrow}</p>}
           <RevealTitle text={title} className={s.title} />
           <p className={s.body}>{body}</p>
         </Reveal>
