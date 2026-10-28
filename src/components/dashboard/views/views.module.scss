@@ -196,3 +196,39 @@
     background: $color-accent-soft;
   }
 }
+
+// BOARDS: Board / List switch on the Pipeline matters tab.
+.viewSwitch {
+  display: inline-flex;
+  margin-bottom: $space-3;
+  padding: 2px;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+}
+
+.seg {
+  min-height: 40px;
+  padding: 0 $space-4;
+  font: inherit;
+  font-size: 0.875rem;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  // 44px hit area.
+  position: relative;
+  @include focus-ring;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -2px 0;
+  }
+
+  &[aria-pressed="true"] {
+    font-weight: 600;
+    color: $color-navy;
+    background: $color-accent-soft;
+  }
+}
