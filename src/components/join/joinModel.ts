@@ -5,6 +5,9 @@
  * (server/API/payments/joinIntake.ts) and returns the same field keys.
  */
 
+import { COUNTRIES, COUNTRY_CODES, type CountryCode, isCountryCode } from "@/lib/contracts";
+import { type CountryAnswers, type CountryQuestion, missingAnswers } from "@/lib/countryQuestions";
+
 export const STEP_IDS = ["you", "household", "situation", "first", "plan"] as const;
 export type StepId = (typeof STEP_IDS)[number];
 
@@ -19,19 +22,32 @@ export const LANGUAGE_OPTIONS = [
 export const CITIZENSHIPS = [
   { value: "United States", label: "United States" },
   { value: "Canada", label: "Canada" },
-  { value: "Costa Rica", label: "Costa Rica" },
   { value: "other", label: "Another country" },
 ] as const;
 
+/** COUNTRIES: the six countries a membership can cover, for "Which country is your membership about?". */
+export const LEGAL_COUNTRY_OPTIONS = COUNTRY_CODES.map((code) => ({ value: code, label: COUNTRIES[code].name }));
+
 export const RESIDENCE_COUNTRIES = [
-  { value: "Costa Rica", label: "Costa Rica" },
+  ...COUNTRY_CODES.map((code) => ({ value: COUNTRIES[code].name, label: COUNTRIES[code].name })),
   { value: "United States", label: "United States" },
   { value: "Canada", label: "Canada" },
   { value: "other", label: "Somewhere else" },
 ];
 
+/** Each country's own zones first (Spain and Portugal have two, Mexico five), then North America. */
+export const COUNTRY_TIME_ZONES = COUNTRY_CODES.flatMap((code) =>
+  COUNTRIES[code].timeZones.map((z) => ({
+    value: z.id,
+    label: COUNTRIES[code].timeZones.length === 1 ? COUNTRIES[code].name : `${COUNTRIES[code].name}: ${z.label}`,
+  })),
+);
+
+/** The default time zone for a member of `country`. */
+export const defaultTimezoneFor = (country: string): string => (isCountryCode(country) ? COUNTRIES[country].defaultTimeZone : "");
+
 export const TIME_ZONES = [
-  { value: "America/Costa_Rica", label: "Costa Rica" },
+  ...COUNTRY_TIME_ZONES,
   { value: "America/New_York", label: "US and Canada Eastern (New York, Toronto)" },
   { value: "America/Chicago", label: "US and Canada Central (Chicago, Winnipeg)" },
   { value: "America/Denver", label: "US and Canada Mountain (Denver, Calgary)" },
@@ -111,10 +127,10 @@ export const URGENCY_OPTIONS = [
 
 export const DOCUMENT_OPTIONS = [
   { value: "passport", label: "Passport" },
-  { value: "dimex", label: "DIMEX or residency card" },
-  { value: "property_title", label: "Property title or plano" },
-  { value: "company_books", label: "Company books (S.A. or S.R.L.)" },
-  { value: "vehicle_papers", label: "Vehicle papers (título)" },
+  { value: "dimex", label: "Residence card or visa" },
+  { value: "property_title", label: "Property title or deed" },
+  { value: "company_books", label: "Company books or registry papers" },
+  { value: "vehicle_papers", label: "Vehicle registration papers" },
   { value: "none", label: "None yet" },
 ] as const;
 
@@ -126,6 +142,36 @@ export const QUESTION_EXAMPLES = [
   "We bought our house through an S.A. in 2019. Is the company up to date with its filings?",
   "Our housekeeper works three days a week. Do we have to register her with the Caja?",
 ];
+
+/** Example first questions per country, in each country's own terms (docs/research). */
+export const QUESTION_EXAMPLES_BY_COUNTRY: Record<CountryCode, string[]> = {
+  CR: QUESTION_EXAMPLES,
+  CO: [
+    "I have a resident visa from before October 2022. Do I need to do the traspaso, and by when?",
+    "We bought our apartment in Medellín with money from the US. Was the foreign investment registered?",
+    "Our housekeeper works five days a week. What do we owe her each June and December?",
+  ],
+  PA: [
+    "My Friendly Nations provisional residency ends next year. When should I apply for permanent residency?",
+    "Our house is held by a Panamanian S.A. When is the tasa única due, and is the resident agent up to date?",
+    "Can I register our home as Vivienda Principal to lower the property tax?",
+  ],
+  MX: [
+    "My temporary resident card expires in April. When should I file the renewal with INM?",
+    "Our condo in Puerto Vallarta is in a fideicomiso. What is due each year, and who are the substitute beneficiaries?",
+    "We rent our place on Airbnb. Which monthly SAT payments apply to us?",
+  ],
+  ES: [
+    "My non-lucrative permit expires in May. When can I file the renewal, and what will Extranjería ask for?",
+    "Do I have to file Modelo 720 for my US retirement accounts this year?",
+    "When does my US driving licence stop being valid now that I live in Valencia?",
+  ],
+  PT: [
+    "My D7 residence card expires in June. When should I file the renewal with AIMA?",
+    "I became resident last year. Can I still apply for IFICI, and by when?",
+    "We rent our Lisbon apartment long-term. Have we registered the lease with the tax authority?",
+  ],
+};
 
 type YesNo = "" | "yes" | "no";
 
@@ -147,6 +193,9 @@ export interface Draft {
   childrenAtHome: number;
   otherHousehold: number;
   pets: string;
+  /** COUNTRIES: the country the membership covers, and that country's situation answers. */
+  legalCountry: string;
+  countryAnswers: CountryAnswers;
   residencyStatus: string;
   residencyCategory: string;
   residencyExpiresAt: string;
@@ -189,6 +238,8 @@ export const EMPTY_DRAFT: Draft = {
   childrenAtHome: 0,
   otherHousehold: 0,
   pets: "",
+  legalCountry: "",
+  countryAnswers: {},
   residencyStatus: "",
   residencyCategory: "",
   residencyExpiresAt: "",
@@ -234,6 +285,8 @@ export const FIELD_STEP: Record<string, StepId> = {
   childrenAtHome: "household",
   otherHousehold: "household",
   pets: "household",
+  legalCountry: "situation",
+  countryAnswers: "situation",
   residencyStatus: "situation",
   residencyCategory: "situation",
   residencyExpiresAt: "situation",
@@ -257,6 +310,12 @@ export const FIELD_STEP: Record<string, StepId> = {
   acceptPrivacy: "plan",
 };
 
+/** The step that shows a field (country answers are "countryAnswers.<key>"). */
+export function stepOfField(key: string): StepId | undefined {
+  if (key.startsWith("countryAnswers.")) return "situation";
+  return FIELD_STEP[key];
+}
+
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9 ()-]{7,24}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -276,8 +335,11 @@ export function nationalityOf(d: Draft): string {
     .join(", ");
 }
 
-/** Checks for one step. Messages match the server's where the rule is the same. */
-export function validateStep(step: StepId, d: Draft, now = today()): Errors {
+/**
+ * Checks for one step. Messages match the server's where the rule is the same.
+ * `questions`: the membership country's situation questions (step 3).
+ */
+export function validateStep(step: StepId, d: Draft, now = today(), questions?: CountryQuestion[]): Errors {
   const e: Errors = {};
   if (step === "you") {
     if (d.fullName.trim().length < 2) e.fullName = "Enter your full name as it appears on your passport.";
@@ -300,30 +362,11 @@ export function validateStep(step: StepId, d: Draft, now = today()): Errors {
     if (!Number.isInteger(d.otherHousehold) || d.otherHousehold < 0 || d.otherHousehold > 20) e.otherHousehold = "Enter how many other people live with you, from 0 to 20.";
   }
   if (step === "situation") {
-    if (!d.residencyStatus) e.residencyStatus = "Choose your residency status.";
-    if ((d.residencyStatus === "resident" || d.residencyStatus === "applying") && !d.residencyCategory) {
-      e.residencyCategory = "Choose your residency category, or I am not sure.";
+    if (!isCountryCode(d.legalCountry)) e.legalCountry = "Choose the country your membership is about.";
+    // The country's questions come from the server; without them the server checks the answers.
+    else for (const key of missingAnswers(questions ?? [], d.countryAnswers)) {
+      e[`countryAnswers.${key}`] = "Choose an answer, or I am not sure if it is listed.";
     }
-    if (d.residencyStatus === "resident" && d.residencyExpiresAt && !DATE_RE.test(d.residencyExpiresAt)) {
-      e.residencyExpiresAt = "Enter the expiry date from your DIMEX card, or leave it empty.";
-    }
-    if (d.residencyStatus === "visitor" && d.lastEntryDate && (!DATE_RE.test(d.lastEntryDate) || d.lastEntryDate > now)) {
-      e.lastEntryDate = "Enter the date of your last entry stamp, or leave it empty.";
-    }
-    if (!d.ownsProperty) e.ownsProperty = "Tell us whether you own property in Costa Rica.";
-    if (d.ownsProperty === "yes") {
-      if (!d.propertyType) e.propertyType = "Choose the kind of property.";
-      if (!(PROVINCES as readonly string[]).includes(d.propertyLocation)) e.propertyLocation = "Choose the province where the property is.";
-      if (!d.propertyHolding) e.propertyHolding = "Tell us whose name the property is in, or I am not sure.";
-    }
-    if (!d.companyType) e.companyType = "Tell us whether you have a Costa Rican company.";
-    if (d.companyType === "SA" || d.companyType === "SRL") {
-      if (!Number.isInteger(d.companyCount) || d.companyCount < 1 || d.companyCount > 20) e.companyCount = "Enter how many companies, from 1 to 20.";
-      if (!d.companyUpToDate) e.companyUpToDate = "Tell us whether the company filings are up to date, or I am not sure.";
-    }
-    if (!d.ownsVehicle) e.ownsVehicle = "Tell us whether you own a vehicle in Costa Rica.";
-    if (d.ownsVehicle === "yes" && !d.marchamoStatus) e.marchamoStatus = "Tell us whether the marchamo is paid for this year, or I am not sure.";
-    if (!d.hasEmployees) e.hasEmployees = "Tell us whether anyone works for you in Costa Rica.";
   }
   if (step === "first") {
     const n = d.question.trim().length;
@@ -343,41 +386,29 @@ export function validateStep(step: StepId, d: Draft, now = today()): Errors {
 const yn = (v: YesNo) => (v === "yes" ? true : v === "no" ? false : undefined);
 
 /** The answers the free check needs, from the form (so the lead and its dates match what the member said). */
-export function checkAnswersFromDraft(d: Draft): Record<string, string | boolean | undefined> & { country: "CR" } {
-  return {
-    country: "CR",
-    residencyStatus: d.residencyStatus || undefined,
-    residencyExpiresAt: d.residencyStatus === "resident" ? d.residencyExpiresAt || undefined : undefined,
-    lastEntryDate: d.residencyStatus === "visitor" ? d.lastEntryDate || undefined : undefined,
-    ownsProperty: yn(d.ownsProperty),
-    propertyLocation: d.ownsProperty === "yes" ? d.propertyLocation || undefined : undefined,
-    companyType: d.companyType || undefined,
-    ownsVehicle: yn(d.ownsVehicle),
-    hasEmployees: yn(d.hasEmployees),
-  };
+export function checkAnswersFromDraft(d: Draft): CountryAnswers & { country: string } {
+  return { country: isCountryCode(d.legalCountry) ? d.legalCountry : "CR", ...d.countryAnswers };
 }
 
 /** Fill the form from the free check's answers (only empty fields). */
 export function draftFromCheck(d: Draft, answers: Record<string, unknown>, email?: string): Draft {
   const out = { ...d };
-  const str = (v: unknown) => (typeof v === "string" ? v : "");
-  const ynOf = (v: unknown): YesNo => (v === true ? "yes" : v === false ? "no" : "");
-  if (!out.residencyStatus) out.residencyStatus = str(answers.residencyStatus);
-  if (!out.residencyExpiresAt) out.residencyExpiresAt = str(answers.residencyExpiresAt);
-  if (!out.lastEntryDate) out.lastEntryDate = str(answers.lastEntryDate);
-  if (!out.ownsProperty) out.ownsProperty = ynOf(answers.ownsProperty);
-  if (!out.propertyLocation) out.propertyLocation = str(answers.propertyLocation);
-  if (!out.companyType) out.companyType = str(answers.companyType);
-  if (!out.ownsVehicle) out.ownsVehicle = ynOf(answers.ownsVehicle);
-  if (!out.hasEmployees) out.hasEmployees = ynOf(answers.hasEmployees);
+  const country = typeof answers.country === "string" && isCountryCode(answers.country) ? answers.country : "";
+  if (!out.legalCountry && country) out.legalCountry = country;
+  if (out.legalCountry === country && !Object.keys(out.countryAnswers).length) {
+    const copied: CountryAnswers = {};
+    for (const [k, v] of Object.entries(answers)) {
+      if (k === "country") continue;
+      if (typeof v === "string" || (Array.isArray(v) && v.every((x) => typeof x === "string"))) copied[k] = v as string | string[];
+    }
+    out.countryAnswers = copied;
+  }
   if (!out.email && email) out.email = email;
   return out;
 }
 
 /** The profile and intake parts of POST /api/payments/join (server/API/payments/joinIntake.ts). */
 export function toJoinDetails(d: Draft) {
-  const resident = d.residencyStatus === "resident" || d.residencyStatus === "applying";
-  const company = d.companyType === "SA" || d.companyType === "SRL";
   const inCR = d.residenceCountry === "Costa Rica";
   const docs = d.documents.filter((x) => x !== "none");
   return {
@@ -396,17 +427,9 @@ export function toJoinDetails(d: Draft) {
       childrenAtHome: d.childrenAtHome,
       otherHousehold: d.otherHousehold,
       pets: d.pets.trim(),
-      residencyStatus: d.residencyStatus,
-      ...(resident ? { residencyCategory: d.residencyCategory } : {}),
-      ...(d.residencyStatus === "resident" && d.residencyExpiresAt ? { residencyExpiresAt: d.residencyExpiresAt } : {}),
-      ...(d.residencyStatus === "visitor" && d.lastEntryDate ? { lastEntryDate: d.lastEntryDate } : {}),
-      ownsProperty: yn(d.ownsProperty),
-      ...(d.ownsProperty === "yes" ? { propertyType: d.propertyType, propertyLocation: d.propertyLocation, propertyHolding: d.propertyHolding } : {}),
-      companyType: d.companyType,
-      ...(company ? { companyCount: d.companyCount, companyUpToDate: d.companyUpToDate } : {}),
-      ownsVehicle: yn(d.ownsVehicle),
-      ...(d.ownsVehicle === "yes" ? { marchamoStatus: d.marchamoStatus } : {}),
-      hasEmployees: yn(d.hasEmployees),
+      // COUNTRIES: the server cleans these against the country's questions and derives the shared fields.
+      legalCountry: d.legalCountry,
+      countryAnswers: d.countryAnswers,
     },
     intake: {
       question: d.question.trim(),
@@ -426,7 +449,7 @@ export function toggleDocuments(next: string[], prev: string[]): string[] {
   return next;
 }
 
-/** The browser's time zone when it is one we list, else Costa Rica's. */
+/** The browser's time zone when it is one we list (any of the six countries' or North America's). */
 export function guessTimezone(): string {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -492,5 +515,5 @@ export function clearDraft(store: StorageLike | null | undefined): void {
 
 /** True when anything was typed, so a fresh visit is not called a draft. */
 export function hasContent(d: Draft): boolean {
-  return !!(d.fullName || d.phone || d.question || d.citizenships.length || d.maritalStatus);
+  return !!(d.fullName || d.phone || d.question || d.citizenships.length || d.maritalStatus || d.legalCountry);
 }

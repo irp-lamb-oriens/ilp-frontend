@@ -28,17 +28,8 @@ const full = {
   livesWithPartner: "yes",
   childrenAtHome: 0,
   otherHousehold: 1,
-  residencyStatus: "applying",
-  residencyCategory: "pensionado",
-  ownsProperty: "yes",
-  propertyType: "house",
-  propertyLocation: "Guanacaste",
-  propertyHolding: "company",
-  companyType: "SA",
-  companyCount: 1,
-  companyUpToDate: "unsure",
-  ownsVehicle: "no",
-  hasEmployees: "no",
+  legalCountry: "CR",
+  countryAnswers: { residencyStatus: "pending", residencyCategory: "pensionado", ownsProperty: "yes", hasCompany: "inactive", rentsProperty: "no", ownsVehicle: "no", hasEmployees: "no", hasLocalWill: "unsure" },
   question: "Is my S.A. up to date with its filings?",
   urgency: "deadline",
   deadlineAt: "2027-01-31",
@@ -60,7 +51,7 @@ test("join: empty steps list each required field", () => {
   const e = M.EMPTY_DRAFT;
   assert.deepEqual(Object.keys(M.validateStep("you", e, TODAY)).sort(), ["citizenships", "email", "fullName", "phone", "preferredLanguage", "residenceCountry", "timezone"]);
   assert.deepEqual(Object.keys(M.validateStep("household", e, TODAY)).sort(), ["livesWithPartner", "maritalStatus"]);
-  assert.deepEqual(Object.keys(M.validateStep("situation", e, TODAY)).sort(), ["companyType", "hasEmployees", "ownsProperty", "ownsVehicle", "residencyStatus"]);
+  assert.deepEqual(Object.keys(M.validateStep("situation", e, TODAY)).sort(), ["legalCountry"]);
   assert.deepEqual(Object.keys(M.validateStep("first", e, TODAY)).sort(), ["documents", "question", "urgency"]);
   assert.deepEqual(Object.keys(M.validateStep("plan", e, TODAY)).sort(), ["acceptPrivacy", "acceptTerms"]);
   // optional fields stay optional
@@ -68,12 +59,23 @@ test("join: empty steps list each required field", () => {
   assert.deepEqual(M.validateStep("household", { ...full, pets: "" }, TODAY), {});
 });
 
-test("join: follow-up questions are required only when they apply", () => {
-  assert.ok(M.validateStep("situation", { ...full, propertyHolding: "" }, TODAY).propertyHolding);
-  assert.deepEqual(M.validateStep("situation", { ...full, ownsProperty: "no", propertyHolding: "", propertyType: "" }, TODAY), {});
-  assert.ok(M.validateStep("situation", { ...full, ownsVehicle: "yes" }, TODAY).marchamoStatus);
-  assert.ok(M.validateStep("situation", { ...full, companyCount: 0 }, TODAY).companyCount);
-  assert.deepEqual(M.validateStep("situation", { ...full, companyType: "none", companyUpToDate: "" }, TODAY), {});
+/** A few of the Costa Rica check questions, as GET /api/countries/CR/questions?stage=check returns them. */
+const QS = [
+  { key: "residencyStatus", stage: "check", question: "Status?", type: "choice", options: [{ value: "pending", label: "a" }, { value: "temporary", label: "b" }, { value: "none", label: "c" }], source: "research" },
+  { key: "residencyCategory", stage: "check", question: "Category?", type: "choice", showIf: { residencyStatus: ["temporary", "pending"] }, options: [{ value: "pensionado", label: "a" }], source: "research" },
+  { key: "residencyExpiryDate", stage: "check", question: "Expiry?", type: "date", optional: true, showIf: { residencyStatus: ["temporary"] }, options: [], source: "research" },
+  { key: "ownsProperty", stage: "check", question: "Property?", type: "choice", options: [{ value: "yes", label: "Yes" }, { value: "no", label: "No" }], source: "research" },
+  { key: "propertyUse", stage: "profile", question: "Use?", type: "choice", options: [{ value: "residence", label: "a" }], source: "ilp" },
+];
+
+test("join: the country's questions are required only when shown, dates and profile questions stay optional", () => {
+  assert.deepEqual(M.validateStep("situation", full, TODAY, QS), {});
+  const none = M.validateStep("situation", { ...full, countryAnswers: {} }, TODAY, QS);
+  assert.deepEqual(Object.keys(none).sort(), ["countryAnswers.ownsProperty", "countryAnswers.residencyStatus"]);
+  const temp = M.validateStep("situation", { ...full, countryAnswers: { residencyStatus: "temporary", ownsProperty: "no" } }, TODAY, QS);
+  assert.deepEqual(Object.keys(temp), ["countryAnswers.residencyCategory"]);
+  assert.deepEqual(M.validateStep("situation", { ...full, countryAnswers: { residencyStatus: "none", ownsProperty: "no" } }, TODAY, QS), {});
+  assert.equal(M.stepOfField("countryAnswers.ownsProperty"), "situation");
   assert.ok(M.validateStep("first", { ...full, deadlineAt: "2026-01-01" }, TODAY).deadlineAt);
   assert.ok(M.validateStep("you", { ...full, residenceProvince: "" }, TODAY).residenceProvince);
   assert.deepEqual(M.validateStep("you", { ...full, residenceCountry: "Canada", residenceProvince: "" }, TODAY), {});
@@ -85,9 +87,9 @@ test("join: the body uses the server's profile keys and intake", () => {
   assert.equal(b.profile.nationality, "United States, Ireland");
   assert.equal(b.profile.residenceCountry, "Costa Rica");
   assert.equal(b.profile.livesWithPartner, true);
-  assert.equal(b.profile.ownsVehicle, false);
-  assert.equal("marchamoStatus" in b.profile, false);
-  assert.equal(b.profile.companyCount, 1);
+  assert.equal(b.profile.legalCountry, "CR");
+  assert.deepEqual(b.profile.countryAnswers, full.countryAnswers);
+  assert.equal("residencyStatus" in b.profile, false); // derived by the server from the country answers
   assert.deepEqual(b.intake, {
     question: "Is my S.A. up to date with its filings?",
     urgency: "deadline",
@@ -110,15 +112,19 @@ test("join: None yet and the documents exclude each other", () => {
   assert.deepEqual(M.toggleDocuments(["dimex"], ["dimex", "passport"]), ["dimex"]);
 });
 
-test("join: the free check fills only empty answers, and the form gives the check's answers back", () => {
-  const d = M.draftFromCheck({ ...M.EMPTY_DRAFT, ownsVehicle: "yes" }, { residencyStatus: "resident", residencyExpiresAt: "2027-03-01", ownsProperty: true, propertyLocation: "Alajuela", companyType: "none", ownsVehicle: false, hasEmployees: true }, "a@b.co");
-  assert.equal(d.residencyStatus, "resident");
-  assert.equal(d.ownsProperty, "yes");
-  assert.equal(d.ownsVehicle, "yes"); // already answered
-  assert.equal(d.hasEmployees, "yes");
+test("join: the free check fills the country and its answers once, and the form gives the check's answers back", () => {
+  const d = M.draftFromCheck({ ...M.EMPTY_DRAFT }, { country: "ES", residencyStatus: "nonLucrative", ownsProperty: "yes", lifeEvent: ["sale"] }, "a@b.co");
+  assert.equal(d.legalCountry, "ES");
+  assert.deepEqual(d.countryAnswers, { residencyStatus: "nonLucrative", ownsProperty: "yes", lifeEvent: ["sale"] });
   assert.equal(d.email, "a@b.co");
-  const a = M.checkAnswersFromDraft({ ...full, residencyStatus: "resident", residencyExpiresAt: "2027-03-01" });
-  assert.deepEqual(a, { country: "CR", residencyStatus: "resident", residencyExpiresAt: "2027-03-01", lastEntryDate: undefined, ownsProperty: true, propertyLocation: "Guanacaste", companyType: "SA", ownsVehicle: false, hasEmployees: false });
+  // Already chose another country: the check's answers are not mixed in.
+  const other = M.draftFromCheck({ ...M.EMPTY_DRAFT, legalCountry: "PT" }, { country: "ES", residencyStatus: "visitor" });
+  assert.deepEqual(other.countryAnswers, {});
+  assert.deepEqual(M.checkAnswersFromDraft(full), { country: "CR", ...full.countryAnswers });
+  // Each country's own time zones come first in the list; Spain has two.
+  assert.equal(M.defaultTimezoneFor("PT"), "Europe/Lisbon");
+  assert.ok(M.TIME_ZONES.some((z) => z.value === "Atlantic/Canary"));
+  assert.equal(M.LEGAL_COUNTRY_OPTIONS.length, 6);
 });
 
 test("join: the draft never stores consents", () => {
@@ -140,5 +146,5 @@ test("join: the draft never stores consents", () => {
 });
 
 test("join: server field keys open the right step", () => {
-  for (const k of ["nationality", "documentsOnHand", "deadlineAt", "marchamoStatus", "residenceProvince", "acceptTerms"]) assert.ok(M.FIELD_STEP[k], k);
+  for (const k of ["nationality", "documentsOnHand", "deadlineAt", "legalCountry", "residenceProvince", "acceptTerms"]) assert.ok(M.FIELD_STEP[k], k);
 });

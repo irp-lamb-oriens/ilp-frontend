@@ -1,4 +1,16 @@
 import { PROFILE_DETAIL_FIELDS, PROFILE_FIELDS, PROFILE_SECTIONS, type ProfileSection } from "@/lib/contracts";
+import { COUNTRY_ZONE_OPTIONS } from "@/lib/timeZones";
+
+const NORTH_AMERICA_ZONES = [
+  { value: "America/New_York", label: "US and Canada Eastern" },
+  { value: "America/Chicago", label: "US and Canada Central" },
+  { value: "America/Denver", label: "US and Canada Mountain" },
+  { value: "America/Phoenix", label: "Arizona" },
+  { value: "America/Los_Angeles", label: "US and Canada Pacific" },
+  { value: "America/Anchorage", label: "Alaska" },
+  { value: "Pacific/Honolulu", label: "Hawaii" },
+  { value: "America/Halifax", label: "Atlantic (Halifax)" },
+];
 
 export type FieldKind = "text" | "tel" | "date" | "number" | "yesno" | "select";
 
@@ -15,9 +27,9 @@ export const SECTION_COPY: Record<ProfileSection, { title: string; why: string }
   identity: { title: "About you", why: "So your lawyer knows who they are advising." },
   household: { title: "Household", why: "Family details change residency and inheritance questions." },
   immigration: { title: "Residency", why: "Your status and its renewal date drive several deadlines." },
-  property: { title: "Property", why: "Owning property in Costa Rica brings yearly taxes and registrations." },
-  company: { title: "Company", why: "Costa Rican companies have yearly filings, even when inactive." },
-  vehicle: { title: "Vehicle", why: "Vehicles need a yearly circulation permit (marchamo)." },
+  property: { title: "Property", why: "Owning property in your country brings yearly taxes and registrations." },
+  company: { title: "Company", why: "Local companies have yearly filings, even when inactive." },
+  vehicle: { title: "Vehicle", why: "Vehicles have yearly fees, inspections and insurance (in Costa Rica, the marchamo)." },
 };
 
 /** One entry per PROFILE_FIELDS key, so the completion bar matches staff and lawyer views. */
@@ -40,7 +52,7 @@ export const FIELD_META: Record<string, FieldMeta> = {
   },
   dependents: { label: "Dependents living with you", kind: "number", hint: "Children or others you support. Enter 0 if none." },
   residencyStatus: {
-    label: "Residency status in Costa Rica",
+    label: "Residency status",
     kind: "select",
     options: [
       { value: "resident", label: "Resident" },
@@ -54,10 +66,10 @@ export const FIELD_META: Record<string, FieldMeta> = {
       { value: "unsure", label: "Not sure" },
     ],
   },
-  residencyExpiresAt: { label: "Residency card (DIMEX) expiry date", kind: "date", hint: "Leave empty if you do not have one yet." },
-  ownsProperty: { label: "Do you own property in Costa Rica?", kind: "yesno" },
-  propertyLocation: { label: "Where is the property?", kind: "text", hint: "Town and province, e.g. Tamarindo, Guanacaste." },
-  hasCompany: { label: "Do you own a Costa Rican company?", kind: "yesno" },
+  residencyExpiresAt: { label: "Residency card or visa expiry date", kind: "date", hint: "Your DIMEX, TIE, resident card or visa. Leave empty if you do not have one yet." },
+  ownsProperty: { label: "Do you own property in your country?", kind: "yesno" },
+  propertyLocation: { label: "Where is the property?", kind: "text", hint: "Town and region, e.g. Tamarindo, Guanacaste or Lagos, Faro." },
+  hasCompany: { label: "Do you own a local company?", kind: "yesno" },
   companyType: {
     label: "Type of company",
     kind: "select",
@@ -68,7 +80,7 @@ export const FIELD_META: Record<string, FieldMeta> = {
       { value: "unsure", label: "Not sure" },
     ],
   },
-  ownsVehicle: { label: "Do you own a vehicle in Costa Rica?", kind: "yesno" },
+  ownsVehicle: { label: "Do you own a vehicle in your country?", kind: "yesno" },
 
   // T3: detail keys (PROFILE_DETAIL_FIELDS), filled by the join form. They do not count toward completion.
   preferredName: { label: "What should we call you?", kind: "text", hint: "Optional. The name your lawyer and your ILP team use with you." },
@@ -82,14 +94,15 @@ export const FIELD_META: Record<string, FieldMeta> = {
     ],
   },
   residenceCountry: { label: "Country where you live now", kind: "text" },
-  residenceProvince: { label: "Province where you live", kind: "text", hint: "If you live in Costa Rica." },
-  residenceTown: { label: "Town where you live", kind: "text", hint: "If you live in Costa Rica, like Atenas or Tamarindo." },
-  timezone: { label: "Time zone", kind: "text", hint: "Call times are shown in this time zone, like America/Costa_Rica." },
+  residenceProvince: { label: "Province, state or region where you live", kind: "text" },
+  residenceTown: { label: "Town where you live", kind: "text", hint: "Like Atenas, Medellín or Valencia." },
+  timezone: { label: "Time zone", kind: "select", hint: "Call times are shown in this time zone.", options: [...COUNTRY_ZONE_OPTIONS, ...NORTH_AMERICA_ZONES] },
+  legalCountry: { label: "Country your membership covers", kind: "text", readOnly: true, hint: "Your ILP team can change it for you." },
   livesWithPartner: { label: "Does a spouse or partner live with you?", kind: "yesno" },
   childrenAtHome: { label: "Children living with you", kind: "number", hint: "Enter 0 if none." },
   otherHousehold: { label: "Other people living with you", kind: "number", hint: "Parents or other relatives you support. Enter 0 if none." },
   pets: { label: "Pets", kind: "text", hint: "Optional. Useful if you travel or move with them, like two dogs." },
-  hasEmployees: { label: "Does anyone work for you in Costa Rica?", kind: "yesno", hint: "Including a housekeeper, gardener, caretaker or driver." },
+  hasEmployees: { label: "Does anyone work for you in your country?", kind: "yesno", hint: "Including a housekeeper, gardener, caretaker or driver." },
   residencyCategory: {
     label: "Residency category",
     kind: "select",
@@ -104,7 +117,7 @@ export const FIELD_META: Record<string, FieldMeta> = {
       { value: "unsure", label: "Not sure" },
     ],
   },
-  lastEntryDate: { label: "Date of your last entry to Costa Rica", kind: "date", hint: "For visitors: the date on your most recent entry stamp." },
+  lastEntryDate: { label: "Date of your last entry to the country", kind: "date", hint: "For visitors: the date on your most recent entry stamp." },
   propertyType: {
     label: "Kind of property",
     kind: "select",
@@ -122,12 +135,12 @@ export const FIELD_META: Record<string, FieldMeta> = {
     kind: "select",
     options: [
       { value: "personal", label: "My own name (or my spouse's)" },
-      { value: "company", label: "A company (S.A. or S.R.L.)" },
+      { value: "company", label: "A company" },
       { value: "both", label: "Some in my name, some in a company" },
       { value: "unsure", label: "Not sure" },
     ],
   },
-  companyCount: { label: "How many Costa Rican companies", kind: "number" },
+  companyCount: { label: "How many local companies", kind: "number" },
   companyUpToDate: {
     label: "Are the company filings up to date?",
     kind: "select",

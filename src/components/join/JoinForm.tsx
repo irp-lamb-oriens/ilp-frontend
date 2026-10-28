@@ -29,32 +29,33 @@ import {
   runCheck,
   saveCheck,
 } from "@/app/join/joinApi";
+import { COUNTRIES, isCountryCode } from "@/lib/contracts";
+import { CountryQuestionFields } from "@/components/countries/CountryQuestionFields";
+import { useCountryQuestions } from "@/components/countries/useCountryQuestions";
 import {
   CITIZENSHIPS,
   checkAnswersFromDraft,
   clearDraft,
-  COMPANY_OPTIONS,
+  defaultTimezoneFor,
   DOCUMENT_OPTIONS,
   type Draft,
   draftFromCheck,
   EMPTY_DRAFT,
   type Errors,
-  FIELD_STEP,
   guessTimezone,
   hasContent,
   LANGUAGE_OPTIONS,
+  LEGAL_COUNTRY_OPTIONS,
   loadDraft,
   MARITAL_OPTIONS,
-  PROPERTY_HOLDING_OPTIONS,
-  PROPERTY_TYPE_OPTIONS,
   PROVINCES,
   QUESTION_EXAMPLES,
+  QUESTION_EXAMPLES_BY_COUNTRY,
   QUESTION_MAX,
   RESIDENCE_COUNTRIES,
-  RESIDENCY_CATEGORY_OPTIONS,
-  RESIDENCY_STATUS_OPTIONS,
   saveDraft,
   STEP_IDS,
+  stepOfField,
   type StepId,
   TIME_ZONES,
   toggleDocuments,
@@ -62,7 +63,6 @@ import {
   URGENCY_OPTIONS,
   validateStep,
   YES_NO,
-  YES_NO_UNSURE,
 } from "./joinModel";
 import s from "./join.module.scss";
 
@@ -87,9 +87,9 @@ const STEPS: Record<StepId, StepCopy> = {
     next: "Next we ask about your residency, property, companies, vehicles and anyone who works for you.",
   },
   situation: {
-    title: "Your situation in Costa Rica",
-    ask: "Your residency, any property, Costa Rican companies, vehicles, and anyone who works for you. You can answer I am not sure to most of them.",
-    why: "These answers put dates on your profile, like the corporation tax or the marchamo. Each date is general and may require review by your lawyer.",
+    title: "Your situation",
+    ask: "Which country your membership is about (Colombia, Costa Rica, Mexico, Panama, Portugal or Spain), then your residency, property, companies, vehicles and anyone who works for you there. Most questions have an I am not sure answer.",
+    why: "These answers put that country's dates on your profile, like a residency renewal or a yearly company filing. Each date is general and may require review by your lawyer.",
     next: "Next you tell us what you want to ask first.",
   },
   first: {
@@ -169,6 +169,9 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
   const id = STEP_IDS[step];
   const copy = STEPS[id];
   const last = step === STEP_IDS.length - 1;
+  // COUNTRIES: the membership country's situation questions (the free check's).
+  const { questions: countryQs, error: countryQsError, retry: retryCountryQs } = useCountryQuestions(d.legalCountry, "check");
+  const countryName = isCountryCode(d.legalCountry) ? COUNTRIES[d.legalCountry].name : "";
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
     setD((prev) => ({ ...prev, [key]: value }));
@@ -192,7 +195,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
   }
 
   function next() {
-    const e = validateStep(id, d);
+    const e = validateStep(id, d, undefined, countryQs ?? undefined);
     if (Object.keys(e).length) {
       setErrors(e);
       focusFirstError(e);
@@ -214,9 +217,9 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
 
   async function submit() {
     const all: Errors = {};
-    for (const sid of STEP_IDS) Object.assign(all, validateStep(sid, d));
+    for (const sid of STEP_IDS) Object.assign(all, validateStep(sid, d, undefined, countryQs ?? undefined));
     if (Object.keys(all).length) {
-      const firstStep = STEP_IDS.indexOf(FIELD_STEP[Object.keys(all)[0]] ?? id);
+      const firstStep = STEP_IDS.indexOf(stepOfField(Object.keys(all)[0]) ?? id);
       if (firstStep !== step) go(firstStep);
       setErrors(all);
       focusFirstError(all);
@@ -255,7 +258,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
       const status = (err as { status?: number } | null)?.status;
       if (fields) {
         const e = fromServer(fields);
-        const firstStep = STEP_IDS.indexOf(FIELD_STEP[Object.keys(e)[0]] ?? "plan");
+        const firstStep = STEP_IDS.indexOf(stepOfField(Object.keys(e)[0]) ?? "plan");
         if (firstStep !== step) go(firstStep);
         setErrors(e);
         focusFirstError(e);
@@ -284,7 +287,17 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
 
   const err = (k: string) => errors[k];
   const yesNo = (v: string) => v as Draft["ownsProperty"];
-  const company = d.companyType === "SA" || d.companyType === "SRL";
+  const examples = isCountryCode(d.legalCountry) ? QUESTION_EXAMPLES_BY_COUNTRY[d.legalCountry] : QUESTION_EXAMPLES;
+  function chooseCountry(code: string) {
+    setD((prev) => {
+      const next: Draft = { ...prev, legalCountry: code, countryAnswers: prev.legalCountry === code ? prev.countryAnswers : {} };
+      // Living in that country: its time zone, unless one of its zones is already chosen.
+      const c = isCountryCode(code) ? COUNTRIES[code] : null;
+      if (c && prev.residenceCountry === c.name && !c.timeZones.some((z) => z.id === prev.timezone)) next.timezone = defaultTimezoneFor(code);
+      return next;
+    });
+    if (errors.legalCountry) setErrors((prev) => ({ ...prev, legalCountry: undefined }));
+  }
   const tzOptions = d.timezone && !TIME_ZONES.some((z) => z.value === d.timezone) ? [...TIME_ZONES, { value: d.timezone, label: d.timezone }] : TIME_ZONES;
 
   return (
@@ -333,7 +346,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
         )}
         {step === 0 && !restored && fromCheck && (
           <Notice tone="info" title="Your free check answers are filled in">
-            We copied your answers about residency, property, companies, vehicles and staff. You can change them in step 3.
+            We copied your country and your answers about residency, property, companies, vehicles and staff. You can change them in step 3.
           </Notice>
         )}
 
@@ -375,7 +388,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
                 <TextInput type="email" inputMode="email" label="Email" hint="You sign in with a code sent to this address. We never ask for a password." autoComplete="email" value={d.email} onChange={(e) => set("email", e.target.value)} error={err("email")} required />
               </div>
               <div data-field="phone">
-                <TextInput type="tel" inputMode="tel" label="Mobile or WhatsApp" hint="With the country code, like +1 503 555 0141 or +506 8888 1234. Your team uses it to confirm calls." autoComplete="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} error={err("phone")} required />
+                <TextInput type="tel" inputMode="tel" label="Mobile or WhatsApp" hint="With the country code, like +1 503 555 0141 or +34 612 345 678. Your team uses it to confirm calls." autoComplete="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} error={err("phone")} required />
               </div>
               <div data-field="preferredLanguage">
                 <RadioGroup label="Language for calls and messages" hint="Your lawyer and your team speak English. Some also speak Spanish." name="preferredLanguage" inline options={LANGUAGE_OPTIONS} value={d.preferredLanguage} onChange={(v) => set("preferredLanguage", v)} error={err("preferredLanguage")} required />
@@ -415,7 +428,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
           {id === "household" && (
             <>
               <div data-field="maritalStatus">
-                <Select label="Marital status" hint="In Costa Rica, being married can change how property is held and inherited." value={d.maritalStatus} onChange={(e) => set("maritalStatus", e.target.value)} error={err("maritalStatus")} required placeholder="Choose one" options={MARITAL_OPTIONS} />
+                <Select label="Marital status" hint="In each of our six countries, being married can change how property is held and inherited." value={d.maritalStatus} onChange={(e) => set("maritalStatus", e.target.value)} error={err("maritalStatus")} required placeholder="Choose one" options={MARITAL_OPTIONS} />
               </div>
               <div data-field="livesWithPartner">
                 <RadioGroup label="Does a spouse or partner live with you?" name="livesWithPartner" inline options={YES_NO} value={d.livesWithPartner} onChange={(v) => set("livesWithPartner", yesNo(v))} error={err("livesWithPartner")} required />
@@ -436,81 +449,41 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
 
           {id === "situation" && (
             <>
-              <fieldset className={s.group}>
-                <legend className={s.groupLegend}>Residency</legend>
-                <div data-field="residencyStatus">
-                  <RadioGroup label="What is your residency status in Costa Rica?" name="residencyStatus" options={RESIDENCY_STATUS_OPTIONS} value={d.residencyStatus} onChange={(v) => set("residencyStatus", v)} error={err("residencyStatus")} required />
-                </div>
-                {(d.residencyStatus === "resident" || d.residencyStatus === "applying") && (
-                  <div data-field="residencyCategory">
-                    <Select label="Residency category" hint="It is on your DIMEX card or your application." value={d.residencyCategory} onChange={(e) => set("residencyCategory", e.target.value)} error={err("residencyCategory")} required placeholder="Choose a category" options={RESIDENCY_CATEGORY_OPTIONS} />
-                  </div>
-                )}
-                {d.residencyStatus === "resident" && (
-                  <div data-field="residencyExpiresAt">
-                    <DateInput label="When does your DIMEX card expire?" hint="It is printed on the front of the card. Leave it empty if you do not have it at hand." value={d.residencyExpiresAt} onChange={(e) => set("residencyExpiresAt", e.target.value)} error={err("residencyExpiresAt")} optional />
-                  </div>
-                )}
-                {d.residencyStatus === "visitor" && (
-                  <div data-field="lastEntryDate">
-                    <DateInput label="When did you last enter Costa Rica?" hint="The date on your most recent entry stamp. Leave it empty if you are not sure." value={d.lastEntryDate} onChange={(e) => set("lastEntryDate", e.target.value)} error={err("lastEntryDate")} optional />
-                  </div>
-                )}
-              </fieldset>
-
-              <fieldset className={s.group}>
-                <legend className={s.groupLegend}>Property</legend>
-                <div data-field="ownsProperty">
-                  <RadioGroup label="Do you own property in Costa Rica?" hint="A house, condo or land, in your own name or through a company." name="ownsProperty" inline options={YES_NO} value={d.ownsProperty} onChange={(v) => set("ownsProperty", yesNo(v))} error={err("ownsProperty")} required />
-                </div>
-                {d.ownsProperty === "yes" && (
-                  <>
-                    <div className={s.pair}>
-                      <div data-field="propertyType">
-                        <Select label="What kind of property?" value={d.propertyType} onChange={(e) => set("propertyType", e.target.value)} error={err("propertyType")} required placeholder="Choose one" options={PROPERTY_TYPE_OPTIONS} />
-                      </div>
-                      <div data-field="propertyLocation">
-                        <Select label="Which province is it in?" hint="If you own more than one, choose the main one." value={d.propertyLocation} onChange={(e) => set("propertyLocation", e.target.value)} error={err("propertyLocation")} required placeholder="Choose a province" options={PROVINCES.map((p) => ({ value: p, label: p }))} />
-                      </div>
-                    </div>
-                    <div data-field="propertyHolding">
-                      <RadioGroup label="Whose name is it in?" hint="Many people hold a house through a company. It changes which yearly filings apply." name="propertyHolding" options={PROPERTY_HOLDING_OPTIONS} value={d.propertyHolding} onChange={(v) => set("propertyHolding", v)} error={err("propertyHolding")} required />
-                    </div>
-                  </>
-                )}
-              </fieldset>
-
-              <fieldset className={s.group}>
-                <legend className={s.groupLegend}>Companies</legend>
-                <div data-field="companyType">
-                  <RadioGroup label="Do you have a Costa Rican company?" hint="Even a company that does no business has yearly filings." name="companyType" options={COMPANY_OPTIONS} value={d.companyType} onChange={(v) => set("companyType", v)} error={err("companyType")} required />
-                </div>
-                {company && (
-                  <>
-                    <div data-field="companyCount">
-                      <NumberStepper label="How many companies?" value={d.companyCount} onChange={(v) => set("companyCount", v)} min={1} max={20} unit={["company", "companies"]} error={err("companyCount")} required />
-                    </div>
-                    <div data-field="companyUpToDate">
-                      <RadioGroup label="Are the company's yearly filings and tax up to date?" hint="I am not sure is a common answer. Your lawyer can check." name="companyUpToDate" inline options={YES_NO_UNSURE} value={d.companyUpToDate} onChange={(v) => set("companyUpToDate", v)} error={err("companyUpToDate")} required />
-                    </div>
-                  </>
-                )}
-              </fieldset>
-
-              <fieldset className={s.group}>
-                <legend className={s.groupLegend}>Vehicles and staff</legend>
-                <div data-field="ownsVehicle">
-                  <RadioGroup label="Do you own a car or motorcycle registered in Costa Rica?" name="ownsVehicle" inline options={YES_NO} value={d.ownsVehicle} onChange={(v) => set("ownsVehicle", yesNo(v))} error={err("ownsVehicle")} required />
-                </div>
-                {d.ownsVehicle === "yes" && (
-                  <div data-field="marchamoStatus">
-                    <RadioGroup label="Is this year's marchamo paid?" hint="The marchamo is the yearly circulation permit, due by December 31." name="marchamoStatus" inline options={YES_NO_UNSURE} value={d.marchamoStatus} onChange={(v) => set("marchamoStatus", v)} error={err("marchamoStatus")} required />
-                  </div>
-                )}
-                <div data-field="hasEmployees">
-                  <RadioGroup label="Does anyone work for you in Costa Rica?" hint="Including a housekeeper, gardener, caretaker or driver, even part time." name="hasEmployees" inline options={YES_NO} value={d.hasEmployees} onChange={(v) => set("hasEmployees", yesNo(v))} error={err("hasEmployees")} required />
-                </div>
-              </fieldset>
+              <div data-field="legalCountry">
+                <RadioGroup
+                  label="Which country is your membership about?"
+                  hint="The country where your residency, property or company is. Your lawyer is licensed there, and the dates on your profile are that country's."
+                  name="legalCountry"
+                  options={LEGAL_COUNTRY_OPTIONS}
+                  value={d.legalCountry}
+                  onChange={chooseCountry}
+                  error={err("legalCountry")}
+                  required
+                />
+              </div>
+              {isCountryCode(d.legalCountry) && (
+                <fieldset className={s.group}>
+                  <legend className={s.groupLegend}>Your situation in {countryName}</legend>
+                  {countryQsError ? (
+                    <Notice tone="warning" title="The questions did not load" fix={{ steps: ["Check your connection.", "Press Try again.", "Your other answers are kept in this browser."] }} actions={<Button type="button" variant="secondary" size="sm" onClick={retryCountryQs}>Try again</Button>}>
+                      {countryQsError}
+                    </Notice>
+                  ) : countryQs === null ? (
+                    <p className={s.railNote} aria-live="polite">Loading the questions for {countryName}…</p>
+                  ) : (
+                    <CountryQuestionFields
+                      questions={countryQs}
+                      answers={d.countryAnswers}
+                      onChange={(next) => {
+                        set("countryAnswers", next);
+                        setErrors((prev) => Object.fromEntries(Object.entries(prev).filter(([k]) => !k.startsWith("countryAnswers."))));
+                      }}
+                      errors={errors}
+                      idPrefix="join"
+                    />
+                  )}
+                </fieldset>
+              )}
             </>
           )}
 
@@ -519,7 +492,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
               <div className={s.guide}>
                 <p className={s.guideTitle}>Examples of a first question</p>
                 <ul>
-                  {QUESTION_EXAMPLES.map((q) => (
+                  {examples.map((q) => (
                     <li key={q}>{q}</li>
                   ))}
                 </ul>
@@ -572,7 +545,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
                 </p>
                 <ul className={s.includes}>
                   <li>
-                    Up to {PRICE.calls} video calls a month of {PRICE.callLength} minutes each ({PRICE.minutes} minutes) with a lawyer licensed in Costa Rica
+                    Up to {PRICE.calls} video calls a month of {PRICE.callLength} minutes each ({PRICE.minutes} minutes) with a lawyer licensed in {countryName || "your country"}
                   </li>
                   <li>A brief prepared from your profile before each call, so your minutes go to your question</li>
                   <li>A customer success manager who follows up on the next steps after every call</li>

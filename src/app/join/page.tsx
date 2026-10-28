@@ -38,12 +38,12 @@ export default function JoinPage() {
           className={s.intro}
           eyebrow="Join ILP"
           title="Become a member"
-          what={`A legal membership for Costa Rica: ${PRICE.monthly} a month plus a ${PRICE.activation} activation fee, with up to ${PRICE.calls} calls of ${PRICE.callLength} minutes a month with a lawyer licensed in Costa Rica.${
+          what={`A legal membership for Colombia, Costa Rica, Mexico, Panama, Portugal and Spain: ${PRICE.monthly} a month plus a ${PRICE.activation} activation fee, with up to ${PRICE.calls} calls of ${PRICE.callLength} minutes a month with a lawyer licensed in your country.${
             findings ? ` The ${findings} ${findings === 1 ? "date" : "dates"} from your free check go on your profile.` : ""
           }`}
           how={[
             "Tell us about you and your household.",
-            "Tell us about your situation in Costa Rica.",
+            "Choose your country and tell us about your situation there.",
             "Write the question you want to ask first.",
             "Check the plan, agree to the terms and pay.",
           ]}

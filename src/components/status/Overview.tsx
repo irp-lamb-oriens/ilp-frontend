@@ -37,7 +37,7 @@ export default function Overview() {
           "After a call, your lawyer confirms the next steps and they appear here.",
           "Press Ask my lawyer on any date you would like checked on your next call.",
         ]}
-        why="You can see at a glance where your legal matters in Costa Rica stand and whether anything is waiting for you."
+        why="You can see at a glance where your legal matters stand and whether anything is waiting for you."
         tutorialId="client.overview"
       />
     <Stagger>

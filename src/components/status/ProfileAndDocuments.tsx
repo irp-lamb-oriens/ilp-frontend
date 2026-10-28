@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Button, DateInput, ProgressBar, Select, Stagger, StaggerItem, StatusPill, TextInput, useUnsavedChanges, ErrorNotice, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import type { ProfileSection } from "@/lib/contracts";
+import { COUNTRIES, COUNTRY_ANSWERS_FIELD, isCountryCode, type ProfileSection } from "@/lib/contracts";
+import type { CountryAnswers } from "@/lib/countryQuestions";
+import { CountryQuestionFields } from "@/components/countries/CountryQuestionFields";
+import { useCountryQuestions } from "@/components/countries/useCountryQuestions";
 import { memberApi } from "./api";
 import { useMember } from "./MemberContext";
 import DocumentsPanel from "./DocumentsPanel";
@@ -60,6 +63,10 @@ export default function ProfileAndDocuments() {
       </div>
 
       <StaggerItem index={PROFILE_SECTIONS.length + 1}>
+        <CountrySituation />
+      </StaggerItem>
+
+      <StaggerItem index={PROFILE_SECTIONS.length + 2}>
         <DocumentsPanel />
       </StaggerItem>
     </div>
@@ -181,6 +188,69 @@ function SectionForm({ section }: { section: ProfileSection }) {
         {msg && (
           msg.ok ? <Notice tone="success" variant="inline" title={msg.text} /> : <ErrorNotice audience="member">{msg.text}</ErrorNotice>
         )}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * COUNTRIES: the member's situation in the country their membership covers,
+ * as that country's questions (the free check's and the profile-only ones).
+ * New answers can add dates to the member's list.
+ */
+function CountrySituation() {
+  const { home, refresh } = useMember();
+  const country = String(home.profile.legalCountry ?? "CR");
+  const name = isCountryCode(country) ? COUNTRIES[country].name : country;
+  const saved = ((home.profile as Record<string, unknown>)[COUNTRY_ANSWERS_FIELD] ?? {}) as CountryAnswers;
+  const [answers, setAnswers] = useState<CountryAnswers>(saved);
+  const { questions, error, retry } = useCountryQuestions(country);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const dirty = JSON.stringify(answers) !== JSON.stringify(saved);
+  useUnsavedChanges(dirty, `Your answers about ${name} are not saved yet. If you leave now, they will be lost.`);
+
+  async function save() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const out = await memberApi.saveProfile({ [COUNTRY_ANSWERS_FIELD]: answers });
+      await refresh();
+      const n = out.newObligations ?? 0;
+      setMsg({ ok: true, text: n ? `Saved. ${n} new ${n === 1 ? "date was" : "dates were"} added to your list on the Overview page.` : "Saved." });
+    } catch (err) {
+      setMsg({ ok: false, text: err instanceof ApiError ? err.message : "Could not save. Try again." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className={s.section} aria-labelledby="sec-country">
+      <div className={s.sectionHead}>
+        <h2 className={s.sectionTitle} id="sec-country">
+          Your situation in {name}
+        </h2>
+      </div>
+      <p className={s.why}>
+        These are the questions from our research for {name}. Your answers decide which of its dates go on your list, each one something that may require review by your lawyer.
+      </p>
+      {error ? (
+        <ErrorNotice audience="member" variant="block" title="The questions did not load" onRetry={retry}>
+          {error}
+        </ErrorNotice>
+      ) : questions === null ? (
+        <p className={s.why} aria-live="polite">Loading the questions for {name}…</p>
+      ) : (
+        <div className={s.fields}>
+          <CountryQuestionFields questions={questions} answers={answers} onChange={setAnswers} showWhy={false} idPrefix="profile" />
+        </div>
+      )}
+      <div className={s.actions}>
+        <Button onClick={save} busy={busy} disabled={!dirty || busy || questions === null} variant={dirty ? "primary" : "secondary"}>
+          Save your answers
+        </Button>
+        {msg && (msg.ok ? <Notice tone="success" variant="inline" title={msg.text} /> : <ErrorNotice audience="member">{msg.text}</ErrorNotice>)}
       </div>
     </section>
   );

@@ -76,12 +76,16 @@ export default function Obligations() {
               <li key={o.id} className={s.item}>
                 <div className={s.text}>
                   <p className={s.itemTitle}>{o.title}</p>
-                  {o.dueAt && (
+                  {o.dueAt && o.confidence !== "low" && (
                     <p className={s.due}>
+                      {o.windowStartAt && o.windowStartAt.slice(0, 10) < o.dueAt.slice(0, 10) ? `${dateShort(o.windowStartAt)} to ` : ""}
                       {dateShort(o.dueAt)} <span className={s.rel}>({relativeDue(o.dueAt)})</span>
                       {soon && !asked && <StatusPill label="Coming up" tone="warning" size="sm" className={s.pill} />}
                     </p>
                   )}
+                  {/* COUNTRIES: research with low confidence never shows a firm date. */}
+                  {o.confidence === "low" && <p className={s.due}>Ask your lawyer to confirm this date.</p>}
+                  {!o.dueAt && o.dueText && o.confidence !== "low" && <p className={s.due}>{o.dueText}</p>}
                   {done[o.id] && (
                     <p className={s.saved} role="status">
                       {done[o.id]}
