@@ -13,6 +13,7 @@ import { MemberContext } from "./MemberContext";
 import MatterSwitcher from "./MatterSwitcher";
 import { IconCard, IconChat, IconHome, IconPerson } from "./navIcons";
 import StatusRouteSkeleton from "./StatusSkeletons";
+import { setDisplayTimeZone } from "./format";
 import s from "./StatusApp.module.scss";
 
 const MATTER_KEY = "ilp_status_matter";
@@ -59,6 +60,8 @@ export default function StatusApp({ children }: { children: ReactNode }) {
   const load = useCallback(async () => {
     try {
       const h = await memberApi.home();
+      // Times on every member page follow the member's own time zone.
+      setDisplayTimeZone(h.profile?.timezone);
       setHome(h);
       setPhase("ready");
       setMatterIdState((cur) => {

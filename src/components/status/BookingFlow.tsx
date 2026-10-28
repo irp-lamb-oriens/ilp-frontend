@@ -10,7 +10,7 @@ import { memberCalls, type RecordingChoice } from "./callsApi";
 import { useMember } from "./MemberContext";
 import Link from "next/link";
 import { recordConsent } from "@/components/legal/consentApi";
-import { dateLong, dayKey, timeOfDay } from "./format";
+import { dateLong, dayKey, displayTimeZone, timeOfDay, zoneName } from "./format";
 import { SlotPickerSkeleton } from "./StatusSkeletons";
 import s from "./BookingFlow.module.scss";
 
@@ -56,7 +56,7 @@ export default function BookingFlow() {
       <div className={s.done} role="status">
         <h2 className={s.doneTitle}>Your call is booked</h2>
         <p className={s.doneBody}>
-          {dateLong(booked)} at {timeOfDay(booked)}, Costa Rica time{data?.lawyerName ? `, with ${data.lawyerName}` : ""}. Your
+          {dateLong(booked)} at {timeOfDay(booked)}, {zoneName()}{data?.lawyerName ? `, with ${data.lawyerName}` : ""}. Your
           lawyer reads your question and your profile before the call.
         </p>
         {linkPending ? (
@@ -170,7 +170,7 @@ export default function BookingFlow() {
         <h2 className={s.stepTitle} id="t-title">
           <span className={s.num} aria-hidden="true">2</span>
           <span className={s.sr}>Step 2: </span>
-          Pick a time <span className={s.tz}>(Costa Rica time)</span>
+          Pick a time <span className={s.tz}>({zoneName()})</span>
         </h2>
         {loadError && <ErrorNotice audience="member">{loadError}</ErrorNotice>}
         <Loadable
@@ -189,7 +189,7 @@ export default function BookingFlow() {
             {data && data.slots.length === 0 && (
               <Notice
                 tone="info"
-                title={data.lawyerName ? "No open times in the next two weeks" : "No lawyer is assigned to you yet"}
+                title={data.lawyerName ? "No open times in the next two weeks" : data.matching ? "We are matching you with a lawyer" : "No lawyer is assigned to you yet"}
                 terms={["partnerLawyer", "slot"]}
                 fix={{
                   steps: data.lawyerName
@@ -228,7 +228,7 @@ export default function BookingFlow() {
                         setSlot(null);
                       }}
                     >
-                      {new Date(list[0]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Costa_Rica" })}
+                      {new Date(list[0]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: displayTimeZone() })}
                     </button>
                   ))}
                 </div>

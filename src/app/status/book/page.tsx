@@ -7,10 +7,10 @@ export default function BookPage() {
       <MemberIntro
         screen="book"
         title="Book a call"
-        what="Book a 20-minute video call with your lawyer, who is licensed in Costa Rica. Calls are part of your membership."
+        what="Book a 20-minute video call with your lawyer, who is licensed in the country your membership covers. Calls are part of your membership."
         how={[
           "Write what you would like to ask.",
-          "Pick a day and a time. Times are in Costa Rica time.",
+          "Pick a day and a time. Times are shown in your own time zone, from your profile.",
           "Say whether the call may be recorded.",
           "Press Book this call. The video link comes by email.",
         ]}

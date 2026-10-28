@@ -5,7 +5,7 @@ import { Button, ErrorNotice, Loadable, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { useMember } from "./MemberContext";
 import { recordConsent } from "@/components/legal/consentApi";
-import { dateLong, dayKey, relativeDue, timeOfDay } from "./format";
+import { dateLong, dayKey, displayTimeZone, relativeDue, timeOfDay, zoneName } from "./format";
 import { joinState, memberCalls, type RecordingChoice, type UpcomingCall } from "./callsApi";
 import { SlotPickerSkeleton } from "./StatusSkeletons";
 import s from "./UpcomingCalls.module.scss";
@@ -74,7 +74,7 @@ function CallItem({ call: c }: { call: UpcomingCall }) {
         {dateLong(c.scheduledAt)}, {timeOfDay(c.scheduledAt)} <span className={s.rel}>({relativeDue(c.scheduledAt)})</span>
       </p>
       <p className={s.meta}>
-        {c.durationMin ?? 20} minutes{c.lawyerName ? ` with ${c.lawyerName}` : ""} · Costa Rica time · Google Meet
+        {c.durationMin ?? 20} minutes{c.lawyerName ? ` with ${c.lawyerName}` : ""} · {zoneName()} · Google Meet
       </p>
       {c.question && <p className={s.question}>{c.question.split("\n")[0]}</p>}
 
@@ -209,7 +209,7 @@ function ChangeTime({ call: c, onDone }: { call: UpcomingCall; onDone: () => voi
 
   return (
     <div className={s.panel} role="group" aria-label="Pick a new time">
-      <p className={s.panelTitle}>Pick a new time (Costa Rica time)</p>
+      <p className={s.panelTitle}>Pick a new time ({zoneName()})</p>
       <Loadable
         loading={!slots && !error}
         label="Loading open times"
@@ -233,7 +233,7 @@ function ChangeTime({ call: c, onDone }: { call: UpcomingCall; onDone: () => voi
                   setSlot(null);
                 }}
               >
-                {new Date(list[0]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "America/Costa_Rica" })}
+                {new Date(list[0]).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: displayTimeZone() })}
               </button>
             ))}
           </div>

@@ -77,7 +77,8 @@ export interface MemberHome {
   pastCalls: CallView[];
   obligations: Obligation[];
   completeness: { score: number; bySection: Record<ProfileSection, number>; consultationReady: boolean };
-  profile: Record<string, string | number | boolean | null>;
+  /** Profile keys; `countryAnswers` (COUNTRY_ANSWERS_FIELD) is the country answers map. */
+  profile: Record<string, string | number | boolean | null | Record<string, string | string[]>>;
   pendingQuestions: string[];
 }
 
@@ -86,6 +87,9 @@ export interface SlotsPayload {
   lawyerName: string | null;
   lengthMin?: number;
   reason?: string;
+  /** COUNTRIES: nobody licensed in the member's country yet; `reason` is the calm notice. */
+  matching?: boolean;
+  country?: string;
 }
 
 export interface MemberDocument {
@@ -145,7 +149,7 @@ export interface MemberApi {
   slots(matterId?: string): Promise<SlotsPayload>;
   book(input: { scheduledAt: string; question: string; matterId?: string }): Promise<{ capacity: Capacity }>;
   askLawyer(obligationId: string): Promise<{ addedTo: "call" | "list"; callAt: string | null }>;
-  saveProfile(values: Record<string, unknown>): Promise<{ completeness: MemberHome["completeness"] }>;
+  saveProfile(values: Record<string, unknown>): Promise<{ completeness: MemberHome["completeness"]; newObligations?: number }>;
   documents(): Promise<{ items: MemberDocument[]; categories: string[] }>;
   upload(input: { matterId?: string; category: string; fileName: string; contentType: string; dataBase64: string }): Promise<MemberDocument>;
   /** Fetch a document with the member's Bearer token and save it (AUTH). */
