@@ -1,5 +1,5 @@
 import type { Tutorial } from "../../components/tutorial/types";
-import { btn, card, click, dateIn, hidden, hide, hover, input, list, mark, meta, progress, row, say, scene, show, stack, step, text, toast, toastOn, type } from "../presets";
+import { btn, card, click, dateIn, grid, hidden, hide, hover, input, list, mark, meta, progress, row, say, scene, set, show, stack, step, text, toast, toastOn, toggle, type } from "../presets";
 
 /**
  * The free deadline check, for visitors who have not signed up. No portal
@@ -63,6 +63,32 @@ const results = stack(
   4,
 );
 
+// DEADLINES: choose what applies, then save the deadlines to a free account.
+const choose = stack(
+  [
+    text("Include the ones that apply to you", "h2"),
+    meta("Items with a date start included. Items with no fixed date start skipped."),
+    grid("1-1", [
+      card(dateIn(64), [text("Marchamo (vehicle permit)", "strong"), meta("May require review"), row([btn("Include", "primary", "inc1", "sm"), btn("Skip", "secondary", "skip1", "sm")], "start")], { id: "c1" }),
+      card("No fixed date", [text("Keep company books up to date", "strong"), meta("May require review"), row([btn("Include", "secondary", "inc2", "sm"), btn("Skip", "primary", "skip2", "sm")], "start")], { id: "c2" }),
+    ]),
+    row([meta("1 item selected", "count"), btn("Set the deadlines for each", "primary", "setall", "sm")], "between", 3, "bar"),
+    hidden(
+      stack(
+        [
+          input("Email", { id: "cemail", placeholder: "you@example.com" }),
+          toggle("I agree to the Terms and the Privacy Policy", false, "agree", "checkbox"),
+          row([btn("Save my deadlines", "primary", "save", "sm")], "start"),
+        ],
+        3,
+        "claimform",
+      ),
+    ),
+    toast("codesent", "Your deadlines are saved. Check your email for a sign-in code."),
+  ],
+  4,
+);
+
 const keep = stack(
   [
     text("Keep these dates", "h2"),
@@ -76,9 +102,9 @@ const keep = stack(
 
 export const publicCheck: Tutorial = {
   id: "public.check",
-  version: 1,
+  version: 2,
   title: "The free deadline check",
-  summary: "Pick your country, answer a few questions and see the dates that may apply to you there.",
+  summary: "Pick your country, answer a few questions, choose the dates that apply to you and save them.",
   audience: ["public"],
   autoStart: "never",
   steps: [
@@ -100,6 +126,18 @@ export const publicCheck: Tutorial = {
         say(hover("f1", [mark("f1")]), "DIMEX renewal", "The date your residency card may need renewing, worked out from the expiry date you gave.", ["dimex"]),
         say(hover("f2", [mark("f1", false), mark("f2")]), "Corporate tax return (D-101)", "A yearly tax form for your company. It is listed early, so there is plenty of time.", ["d101"]),
         say(hover("join", [mark("f2", false)]), "Join ILP", "Members talk these dates through with a lawyer licensed in their country, on a 20-minute video call."),
+      ], "wide"),
+    ),
+    step(
+      "choose",
+      "Choose what applies and save your deadlines",
+      "Include the cards that apply to you and skip the rest. Then save them to a free ILP account and set a date for each one.",
+      scene(choose, [
+        say(click("inc2", [set("inc2", { variant: "primary" }), set("skip2", { variant: "secondary" }), set("count", { text: "2 items selected" })]), "Include", "Puts this card on your list. Skip leaves it out. You can change your mind before you save."),
+        say(click("setall", [show("claimform")]), "Set the deadlines for each", "Opens a short form. Your list goes to a free ILP account, where you set the dates."),
+        say(type("cemail", "linda.pendleton@example.com"), "Email", "We send a sign-in code here. Your deadlines wait in your account."),
+        say(click("agree", [set("agree", { on: true })]), "I agree", "You accept the Terms and the Privacy Policy. News emails are a separate choice, off unless you tick it."),
+        say(click("save", [toastOn("codesent")]), "Save my deadlines", "Saves your list and emails the code. Type the code to open your deadlines."),
       ], "wide"),
     ),
     step(

@@ -21,6 +21,7 @@ import { lawyerCall } from "./lawyer/call";
 import { lawyerFinance } from "./lawyer/finance";
 import { lawyerAvailability } from "./lawyer/availability";
 import { clientOverview } from "./client/overview";
+import { clientDeadlines } from "./client/deadlines";
 import { clientProfile } from "./client/profile";
 import { clientBook } from "./client/book";
 import { clientMoney } from "./client/money";
@@ -50,6 +51,7 @@ export const LAWYER_TUTORIALS: Tutorial[] = [
 ];
 export const CLIENT_TUTORIALS: Tutorial[] = [
   clientOverview,
+  clientDeadlines,
   clientProfile,
   clientBook,
   clientMoney,
