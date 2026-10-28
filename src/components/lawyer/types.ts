@@ -20,7 +20,6 @@ export interface LawyerClient {
   notes: Array<Record<string, unknown>>;
   activityLog: Array<Record<string, unknown>>;
   quotes: Array<Record<string, unknown>>;
-  charges: Array<Record<string, unknown>>;
   statusChatThread: Array<Record<string, unknown>>;
   customFields: Record<string, unknown>;
   source: string | null;
