@@ -30,8 +30,10 @@
 }
 
 .notificationIcon {
+  display: inline-flex;
   flex-shrink: 0;
-  font-size: 1rem;
+  padding-top: 2px;
+  color: $color-navy;
 }
 
 .notificationBody {
@@ -127,6 +129,8 @@
 }
 
 .recipientRemove {
+  display: inline-flex;
+  align-items: center;
   border: none;
   background: transparent;
   color: inherit;

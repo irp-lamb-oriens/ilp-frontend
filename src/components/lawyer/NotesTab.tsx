@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./notesTab.module.scss";
-import { TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
+import { IconClose, TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
+import { IconNote } from "@/components/ui/icons";
 
 interface Collaborator {
   email: string;
@@ -208,7 +209,7 @@ export default function NotesTab({
             return (
               <div key={actionId} className={styles.notification}>
                 <span className={styles.notificationIcon} aria-hidden="true">
-                  {n.type === "client_comment" ? "💬" : "📝"}
+                  <IconNote />
                 </span>
                 <div className={styles.notificationBody}>
                   <span className={styles.notificationTitle}>
@@ -226,7 +227,7 @@ export default function NotesTab({
                   disabled={resolvingId === actionId}
                   onClick={() => resolveNotification(actionId)}
                 >
-                  {resolvingId === actionId ? "…" : "Mark read"}
+                  {resolvingId === actionId ? "Marking…" : "Mark read"}
                 </button>
               </div>
             );
@@ -267,7 +268,7 @@ export default function NotesTab({
                     onClick={() => toggleRecipient(email)}
                     aria-label={`Remove ${email}`}
                   >
-                    ×
+                    <IconClose />
                   </button>
                 </span>
               ))}
@@ -316,7 +317,7 @@ export default function NotesTab({
           <div key={noteId} className={styles.note}>
             <div className={styles.noteMeta}>
               <span className={styles.noteAuthor}>
-                {String(n.author ?? "—").split("@")[0]}
+                {String(n.author ?? "Unknown author").split("@")[0]}
               </span>
               <span className={styles.noteTime}>
                 {timeAgo(String(n.createdAt ?? ""))}

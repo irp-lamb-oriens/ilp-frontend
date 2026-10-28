@@ -13,7 +13,7 @@ export function ConsentPill({ state, size = "sm" }: { state: ConsentState; size?
 }
 
 export function SummaryPill({ status }: { status: "suggested" | "confirmed" | null }) {
-  if (status === "suggested") return <StatusPill label="Suggested — confirm" tone="info" size="sm" />;
+  if (status === "suggested") return <StatusPill label="Suggested: check it" tone="info" size="sm" />;
   if (status === "confirmed") return <StatusPill label="Summary confirmed" tone="success" size="sm" />;
   return null;
 }
