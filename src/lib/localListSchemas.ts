@@ -4,7 +4,7 @@
  * LIST_SCHEMAS in lib/listSchemas.ts, shared with the server.
  */
 
-import { defineListSchema, DOCUMENT_CATEGORY_OPTIONS, TASK_TYPE_OPTIONS, type ListOption } from "./listSchemas";
+import { defineListSchema, DOCUMENT_CATEGORY_OPTIONS, PRIVACY_KIND_OPTIONS, TASK_TYPE_OPTIONS, type ListOption } from "./listSchemas";
 
 const opts = (pairs: Array<[string, string]>): ListOption[] => pairs.map(([value, label]) => ({ value, label }));
 
@@ -136,6 +136,16 @@ export const LOCAL_SCHEMAS = {
       { key: "status", label: "Status", type: "enum", options: opts([["paid", "Paid"], ["partially_paid", "Partly paid"], ["due", "To pay"], ["accepted", "Accepted"], ["declined", "Declined"]]), quick: true },
       { key: "date", label: "Date", type: "date", sortable: true },
       { key: "amountCents", label: "Amount", type: "number", unit: "cents", sortable: true },
+    ],
+  }),
+  /** Member privacy center: the member's own requests. */
+  memberPrivacyRequests: defineListSchema({
+    id: "member-privacy-requests",
+    fields: [
+      { key: "kind", label: "Request", type: "enum", options: PRIVACY_KIND_OPTIONS, quick: true },
+      { key: "status", label: "Status", type: "enum", options: opts([["received", "Received"], ["in_review", "In review"], ["completed", "Done"], ["refused", "Refused"]]), quick: true },
+      { key: "createdAt", label: "Received", type: "date", sortable: true },
+      { key: "dueAt", label: "Answer by", type: "date", sortable: true },
     ],
   }),
 } as const;

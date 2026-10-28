@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Button, Loadable, Skeleton, StatusPill, type StatusTone, ErrorNotice } from "@/components/ui";
+import { Button, FilterBar, ListFooter, Loadable, Skeleton, StatusPill, type StatusTone, ErrorNotice } from "@/components/ui";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { ApiError } from "@/lib/api";
 import type { ConsentKind, PrivacyRequest } from "@/lib/contracts";
 import { useMember } from "@/components/status/MemberContext";
@@ -126,21 +128,7 @@ export default function PrivacyCenter({ header = true }: { header?: boolean } = 
           {null}
         </Loadable>
         {me && me.requests.length === 0 && <p className={s.text}>No requests yet.</p>}
-        {me && me.requests.length > 0 && (
-          <ul className={s.requests}>
-            {me.requests.map((r) => (
-              <li key={r.id} className={s.request}>
-                <span className={s.reqName}>{KIND_LABEL[r.kind]}</span>
-                <StatusPill label={STATUS[r.status][0]} tone={STATUS[r.status][1]} size="sm" srPrefix="Status" />
-                <span className={s.reqMeta}>
-                  Received {day(r.createdAt)}
-                  {r.status === "received" || r.status === "in_review" ? ` · answer by ${day(r.dueAt)}` : ""}
-                  {r.completedAt && r.status !== "received" ? ` · closed ${day(r.completedAt)}` : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        {me && me.requests.length > 0 && <RequestList requests={me.requests} />}
       </section>
 
       <section className={s.card} aria-labelledby="complain-title">
@@ -414,5 +402,39 @@ function DeleteAccount({ email, active, onDone }: { email: string | null; active
         <ErrorNotice audience="member">{error}</ErrorNotice>
       )}
     </section>
+  );
+}
+
+/** The member's requests, newest first; filters appear once there are more than three (FILTERS). */
+type MyRequest = PrivacyMe["requests"][number];
+
+function RequestList({ requests }: { requests: MyRequest[] }) {
+  const sl = useSchemaList<MyRequest>({
+    schema: LOCAL_SCHEMAS.memberPrivacyRequests,
+    key: "member-privacy-requests",
+    rows: requests,
+    pageSize: 10,
+    defaultSort: { key: "createdAt", dir: "desc" },
+    keyOf: (r) => r.id,
+  });
+  return (
+    <>
+      {requests.length > 3 && <FilterBar list={sl} noun="requests" searchLabel="Search your requests" placeholder="Kind of request" sortOptions="schema" views={false} />}
+      {sl.list.status === "done" && sl.list.items.length === 0 && <p className={s.text}>No request matches these filters.</p>}
+      <ul className={s.requests}>
+        {sl.list.items.map((r) => (
+          <li key={r.id} className={s.request}>
+            <span className={s.reqName}>{KIND_LABEL[r.kind]}</span>
+            <StatusPill label={STATUS[r.status][0]} tone={STATUS[r.status][1]} size="sm" srPrefix="Status" />
+            <span className={s.reqMeta}>
+              Received {day(r.createdAt)}
+              {r.status === "received" || r.status === "in_review" ? ` · answer by ${day(r.dueAt)}` : ""}
+              {r.completedAt && r.status !== "received" ? ` · closed ${day(r.completedAt)}` : ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <ListFooter list={sl.list} audience="member" auto={false} endLabel={null} />
+    </>
   );
 }
