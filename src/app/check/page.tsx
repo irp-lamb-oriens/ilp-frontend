@@ -392,7 +392,6 @@ export default function CheckPage() {
             <div className={s.demo}>
               <TutorialEmbed
                 tutorialId="public.call"
-                autoplay="off"
                 headingLevel={3}
                 caption="What a call with an ILP lawyer looks like, from booking to the next steps your team follows up."
               />

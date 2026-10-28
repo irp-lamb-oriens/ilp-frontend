@@ -603,7 +603,6 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
               <TutorialEmbed
                 tutorialId="public.member-home"
                 caption="What happens after you join: your next step, your call minutes and booking, in your ILP home."
-                autoplay="off"
                 headingLevel={3}
               />
 
