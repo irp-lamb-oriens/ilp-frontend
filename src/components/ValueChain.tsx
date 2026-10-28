@@ -22,7 +22,7 @@ const STAGES: ValueStage[] = [
     subtitle: "Calls inside your hours",
     tag: "ILP does this",
     items: [
-      "Members are mostly North Americans living in Costa Rica or owning property there",
+      "Members are mostly North Americans living in your country or owning property there",
       "Their membership includes up to three 20-minute video calls a month",
       "They book inside the weekly hours you set, matched by legal area",
     ],

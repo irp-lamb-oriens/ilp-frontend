@@ -143,7 +143,7 @@ export function parseServiceTypes(raw: string): ServiceType[] {
  * Destinations not listed here skip the slide and default to `legal`
  * (Legal advice).
  */
-export const SERVICE_SLIDE_GATE_COUNTRIES: readonly string[] = ["CR", "PA", "MX"];
+export const SERVICE_SLIDE_GATE_COUNTRIES: readonly string[] = ["CO", "CR", "MX", "PA", "PT", "ES"];
 
 /**
  * Derive the legacy `serviceCategory` string from a multi-select. Single

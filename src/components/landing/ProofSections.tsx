@@ -22,6 +22,7 @@ import s from "./landing.module.scss";
 
 const ALIGN = ["alignStart", "alignEnd", "alignCenter"] as const;
 const COUNTRY_PAGES: Record<string, string> = {
+  CO: "/colombia",
   CR: "/costa-rica",
   PA: "/panama",
   MX: "/mexico",
@@ -31,8 +32,8 @@ const COUNTRY_PAGES: Record<string, string> = {
 
 /**
  * Coverage: each country row takes the justification opposite to the row
- * above it (Gutenberg zig-zag). Costa Rica is open; the others say plainly
- * that they are not available yet.
+ * above it (Gutenberg zig-zag). All six countries are open, each linking to
+ * its country page.
  */
 export function CoverageGutenberg() {
   return (
@@ -195,7 +196,7 @@ export function FinalCta() {
           <div className={s.finalChips}>
             {COUNTRIES.map((c) =>
               c.live ? (
-                <Link key={c.code} href="/check" className={s.chip}>
+                <Link key={c.code} href={`/check?country=${c.code}`} className={s.chip}>
                   {c.name}
                 </Link>
               ) : (

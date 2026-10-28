@@ -7,12 +7,11 @@ import GutenbergList, { type GutenbergItem } from "@/components/GutenbergList";
 import { MorphStage, MorphItem, Reveal, RevealTitle } from "@/components/motion/Motion";
 import { renderGlossary } from "@/components/Term";
 import { fetchUpdates, type PublicUpdate } from "@/lib/public";
-import { openLeadForm } from "@/lib/leadEvents";
+import { useRouter } from "next/navigation";
 import { CLAIM, CHECK_CTA } from "@/components/landing/content";
+import { COUNTRIES, isCountryCode } from "@/lib/contracts";
+import { setCountryContext } from "@/lib/countryContext";
 import s from "./CountryPage.module.scss";
-
-/** Countries planned after Costa Rica (the others are not available yet). */
-const PLANNED = new Set(["PA", "MX"]);
 
 export interface CountryStory {
   heroImage: string;
@@ -35,6 +34,8 @@ interface CountryPageProps {
 
 export default function CountryPage({ country, countryCode, story, variant = "zigzag" }: CountryPageProps) {
   const [updates, setUpdates] = useState<PublicUpdate[] | null>(null);
+  const router = useRouter();
+  const info = isCountryCode(countryCode) ? COUNTRIES[countryCode] : null;
 
   useEffect(() => {
     let active = true;
@@ -46,14 +47,11 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
     };
   }, [countryCode]);
 
-  const start = () => openLeadForm({ country: countryCode, topic: `${country} obligations` });
-  // Launch order (docs/PLAN.md): Costa Rica is open; Panama and Mexico come next.
-  const availability =
-    countryCode === "CR"
-      ? null
-      : PLANNED.has(countryCode)
-        ? `ILP is open in Costa Rica now. ${country} is planned after Costa Rica.`
-        : `ILP is open in Costa Rica now. ${country} is not available yet.`;
+  // COUNTRIES: every country is open; the check starts on this country's questions.
+  const start = () => {
+    setCountryContext(countryCode);
+    router.push(`/check?country=${countryCode}`);
+  };
 
   return (
     <>
@@ -67,7 +65,6 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
               <RevealTitle as="h1" text={story.headline} className={s.headline} glossary={story.glossary} />
               <p className={s.claim}>{CLAIM}</p>
               <p className={s.sub}>{renderGlossary(story.sub, story.glossary)}</p>
-              {availability && <p className={s.sub}>{availability}</p>}
               <button type="button" className={s.primary} onClick={start}>
                 {CHECK_CTA}
               </button>
@@ -79,7 +76,7 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
           <section className={s.section}>
             <div className={s.wrap}>
               <div className={s.sectionHead}>
-                <p className={s.eyebrowDark}>{countryCode === "CR" ? `What we track in ${country}` : `Dates to know in ${country}`}</p>
+                <p className={s.eyebrowDark}>{`What we track in ${country}`}</p>
                 <RevealTitle text={`The ${country} obligations that cost people most.`} className={s.headingXl} />
               </div>
               <GutenbergList items={story.obligations} rhythm="zigzag" glossary={story.glossary} />
@@ -90,6 +87,38 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
         )}
 
         <ParallaxBand {...story.band} align={variant === "pinned" ? "left" : "right"} />
+
+        {info && (
+          <section className={s.section} aria-labelledby="country-facts">
+            <div className={s.wrap}>
+              <div className={s.sectionHead}>
+                <p className={s.eyebrowDark}>Good to know</p>
+                <RevealTitle text={`${country} at a glance`} className={s.headingXl} />
+              </div>
+              <ul className={s.updatesList} id="country-facts">
+                {[
+                  ["Currency", info.currency.name],
+                  ["Languages", info.languages.join(", ")],
+                  [info.timeZones.length > 1 ? "Time zones" : "Time zone", info.timeZones.map((z) => z.label).join("; ")],
+                  ["IDs you may deal with", info.foreignerIds.join(", ")],
+                  ["Local company forms", info.companyForms.join(", ")],
+                  ["Who licenses lawyers", info.lawyerBody.name],
+                  ["Notaries", info.notaryBody.name],
+                ].map(([label, value], i) => (
+                  <li key={label}>
+                    <Reveal className={s.update} delay={i * 0.04}>
+                      <span className={s.updateTitle}>{value}</span>
+                      <span className={s.updateCategory}>{label}</span>
+                    </Reveal>
+                  </li>
+                ))}
+              </ul>
+              <p className={s.closeHint}>
+                Every date we list for {country} comes from our research of official sources and is marked as something that may require review. Partner lawyers licensed in {country} confirm what applies to you.
+              </p>
+            </div>
+          </section>
+        )}
 
         {updates && updates.length > 0 && (
           <section className={s.section}>

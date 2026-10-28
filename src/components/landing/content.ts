@@ -1,11 +1,12 @@
 /**
  * Copy for the ILP homepage. Every word follows frontend/copy-rules.md and
  * every fact matches docs/PLAN.md (one plan: US$79.99 a month plus a US$100
- * activation, up to three 20-minute calls, 60 minutes, Costa Rica first).
+ * activation, up to three 20-minute calls, 60 minutes; Colombia, Costa Rica,
+ * Mexico, Panama, Portugal and Spain all open).
  */
 
 /** One claim shared with the country landings (CountryPage). */
-export const CLAIM = "A legal membership for North Americans abroad, open in Costa Rica first.";
+export const CLAIM = "A legal membership for North Americans abroad, open in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain.";
 export const CHECK_CTA = "Check your deadlines free";
 
 export const IMG = {
@@ -26,18 +27,18 @@ export const IMG = {
  * scroll, and tests/homepage.test.mjs checks the pieces still read the same.
  */
 export const HERO = {
-  eyebrow: "Legal membership for Costa Rica",
-  title: "Keep your legal life in Costa Rica on track.",
+  eyebrow: "Legal membership in six countries",
+  title: "Keep your legal life abroad on track.",
   /** The one supporting line under the title: the first sentence of `what`. */
-  lead: "ILP is a legal membership for North Americans in Costa Rica.",
-  why: "Living in Costa Rica or owning property there comes with legal dates and rules: residency renewals, company filings, property tax, the yearly marchamo for your car. They are written in Spanish, in a legal system you did not grow up with, and nobody reminds you when one is due.",
+  lead: "ILP is a legal membership for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain.",
+  why: "Living abroad or owning property there comes with legal dates and rules: residency renewals, company filings, property tax, yearly vehicle fees. They are written in Spanish or Portuguese, in a legal system you did not grow up with, and nobody reminds you when one is due.",
   how: [
     "Take the free deadline check. It takes about two minutes and you do not need an account.",
     "Join ILP if you want a lawyer to look at what came up.",
-    "Your legal profile is set up, and you book video calls with a lawyer licensed in Costa Rica.",
+    "Your legal profile is set up, and you book video calls with a lawyer licensed in your country.",
     "After each call, your customer success manager follows up on the next steps.",
   ],
-  what: "ILP is a legal membership for North Americans in Costa Rica. It costs US$79.99 a month plus a one-time US$100 activation fee, and includes up to three 20-minute video calls a month (60 minutes). Drafting, filings and other legal work are quoted separately, and you decide whether to go ahead.",
+  what: "ILP is a legal membership for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain. It costs US$79.99 a month plus a one-time US$100 activation fee, and includes up to three 20-minute video calls a month (60 minutes). Drafting, filings and other legal work are quoted separately, and you decide whether to go ahead.",
   labels: { why: "The problem", how: "How ILP works", what: "What you get" },
   secondary: "See how it works",
   /** Section the secondary button scrolls to (the four steps). */
@@ -47,13 +48,13 @@ export const HERO = {
 /** "The problem", phrase by phrase. Joined with spaces, the phrases are HERO.why. */
 export const PROBLEM = {
   phrases: [
-    "Living in Costa Rica or owning property there comes with legal dates and rules:",
-    "residency renewals, company filings, property tax, the yearly marchamo for your car.",
-    "They are written in Spanish, in a legal system you did not grow up with,",
+    "Living abroad or owning property there comes with legal dates and rules:",
+    "residency renewals, company filings, property tax, yearly vehicle fees.",
+    "They are written in Spanish or Portuguese, in a legal system you did not grow up with,",
     "and nobody reminds you when one is due.",
   ],
   /** Labels that light up in turn while the second phrase is read. Decorative. */
-  items: ["Residency renewals", "Company filings", "Property tax", "Marchamo"],
+  items: ["Residency renewals", "Company filings", "Property tax", "Vehicle fees"],
 };
 
 /** "What you get", block by block. Same facts and words as HERO.what. */
@@ -69,7 +70,7 @@ export const WHAT = {
 export const TRUST = [
   { value: "Free deadline check", label: "About two minutes, no account needed" },
   { value: "US$79.99 a month", label: "Plus a one-time US$100 activation fee" },
-  { value: "Up to 3 calls a month", label: "20 minutes each, with a lawyer licensed in Costa Rica" },
+  { value: "Up to 3 calls a month", label: "20 minutes each, with a lawyer licensed in your country" },
 ];
 
 /** The two photo bands. */
@@ -80,8 +81,8 @@ export const BANDS = {
     alt: "People in a meeting reviewing documents",
   },
   lawyers: {
-    title: "A lawyer licensed in Costa Rica, when you need one.",
-    body: "Each call is with a lawyer licensed in Costa Rica who has read your brief first. If your question turns into paid legal work, the lawyer quotes it in writing and you decide whether to go ahead.",
+    title: "A lawyer licensed in your country, when you need one.",
+    body: "Each call is with a lawyer licensed in the country your membership covers, who has read your brief first. If your question turns into paid legal work, the lawyer quotes it in writing and you decide whether to go ahead.",
     alt: "A tidy desk with a laptop and papers",
   },
 };
@@ -89,14 +90,14 @@ export const BANDS = {
 /** Problem section (pinned morph). */
 export const COSTS_HEAD = {
   title: "What a missed date can cost you",
-  why: "Costa Rica has yearly legal dates for residents, property owners and companies, and few of them come with a reminder.",
+  why: "Each of our six countries has yearly legal dates for residents, property owners and companies, and few of them come with a reminder.",
 };
 
 export const COSTS = [
   {
     figure: "Fines",
     title: "A date you did not know about",
-    body: "Your DIMEX residency card, your company's yearly tax, the marchamo for your car. Each has its own date, and a late one can bring a fine or extra paperwork.",
+    body: "Your residency card, your company's yearly filing, the yearly fee for your car. Each has its own date, and a late one can bring a fine or extra paperwork.",
   },
   {
     figure: "Doubt",
@@ -112,7 +113,7 @@ export const COSTS = [
 
 export const FEATURES_HEAD = {
   title: "What the membership includes",
-  why: "Your legal life in Costa Rica sits in one place, with a lawyer and a team who already know it when you ask a question.",
+  why: "Your legal life abroad sits in one place, with a lawyer and a team who already know it when you ask a question.",
 };
 
 export const FEATURES = [
@@ -121,7 +122,7 @@ export const FEATURES = [
     body: "Your residency, property, companies, vehicles and household in one record. Your answers to the free check fill in the first part, and it grows after each call.",
   },
   {
-    title: "Calls with a lawyer licensed in Costa Rica",
+    title: "Calls with a lawyer licensed in your country",
     body: "Up to 60 minutes a month, as 20-minute video calls. Your lawyer reads a brief from your profile before each call, so the time goes to your question.",
   },
   {
@@ -134,20 +135,20 @@ export const FEATURES = [
   },
   {
     title: "Reminders before your dates",
-    body: "Residency renewals, Caja payments, municipal property tax, the corporation tax and the marchamo are listed as dates that may require review. You hear about them before they are due.",
+    body: "Residency renewals, social security payments, property tax, company filings and vehicle fees are listed as dates that may require review, for your country. You hear about them before they are due.",
   },
 ];
 
 export const STEPS_HEAD = {
   title: "What this looks like in real situations",
-  why: "Three common situations in Costa Rica, and how a date or a question moves from your list to a call and then to a next step.",
+  why: "Three common situations, and how a date or a question moves from your list to a call and then to a next step.",
 };
 
 export const STEPS = [
   {
     n: "01",
     title: "A residency renewal",
-    body: "Your DIMEX card comes up for renewal in a few months, and it is on your list early. You ask about it on a call, your lawyer tells you what to gather, and your customer success manager checks in until it is done.",
+    body: "Your residency card (a DIMEX in Costa Rica, a TIE in Spain) comes up for renewal in a few months, and it is on your list early. You ask about it on a call, your lawyer tells you what to gather, and your customer success manager checks in until it is done.",
   },
   {
     n: "02",
@@ -157,26 +158,28 @@ export const STEPS = [
   {
     n: "03",
     title: "A company tax you had not heard of",
-    body: "Your S.A. owns your car and nothing else. It still has a yearly corporation tax. The free check lists it, and on a call your lawyer explains whether it applies and what to do.",
+    body: "Your company in Costa Rica or Panama owns your car and nothing else. It still has a yearly tax or fee. The free check lists it, and on a call your lawyer explains whether it applies and what to do.",
   },
 ];
 
 export const COVERAGE_HEAD = {
-  title: "Costa Rica first",
-  why: "The rules, the dates and the lawyers are local, so ILP opens one country at a time. Costa Rica is open now.",
+  title: "Six countries, open now",
+  why: "The rules, the dates and the lawyers are local. Each country has its own list of dates from our research, and lawyers licensed there.",
 };
 
+/** All six are open (contracts COUNTRIES). Notes name a few of each country's dates from docs/research. */
 export const COUNTRIES = [
-  { code: "CR", name: "Costa Rica", note: "Residency renewals, Caja (CCSS), municipal property tax, corporation tax, marchamo", status: "Open now", live: true },
-  { code: "PA", name: "Panama", note: "Corporate annual fees, registered agent duties", status: "Planned after Costa Rica", live: false },
-  { code: "MX", name: "Mexico", note: "SAT filings, temporary residency timelines", status: "Planned after Costa Rica", live: false },
-  { code: "ES", name: "Spain", note: "TIE renewals, modelo filings, IBI", status: "Not available yet", live: false },
-  { code: "PT", name: "Portugal", note: "Residence permits, IRS filings, IMI", status: "Not available yet", live: false },
+  { code: "CO", name: "Colombia", note: "Visa registration and cédula de extranjería, the resident visa traspaso, DIAN returns, predial, matrícula mercantil, SOAT", status: "Open now", live: true },
+  { code: "CR", name: "Costa Rica", note: "DIMEX renewals, Caja (CCSS), municipal property tax, corporation tax, RTBF, marchamo", status: "Open now", live: true },
+  { code: "MX", name: "Mexico", note: "INM card exchange and renewals, SAT filings, predial, fideicomiso fees, refrendo", status: "Open now", live: true },
+  { code: "PA", name: "Panama", note: "Residency cards, tasa única, resident agent records, property tax installments, décimo", status: "Open now", live: true },
+  { code: "PT", name: "Portugal", note: "AIMA permit renewals, IRS and IMI, IUC, RCBE, domestic staff contributions", status: "Open now", live: true },
+  { code: "ES", name: "Spain", note: "TIE and permit renewals, IRPF and Modelo 720, IBI, ITV, household staff", status: "Open now", live: true },
 ];
 
 export const SCENARIOS_HEAD = {
   title: "Example situations",
-  why: "ILP is just opening in Costa Rica, so these are made-up examples of common situations, not reviews from real members.",
+  why: "ILP is just opening, so these are made-up examples of common situations, not reviews from real members.",
   label: "Example",
 };
 
@@ -196,9 +199,9 @@ export const SCENARIOS = [
     tag: "Residency",
   },
   {
-    title: "A remote worker in Nosara buying a car",
-    body: "He wants the car in his own name. The lawyer explains the transfer on a call and then sends a quote for the paperwork. He accepts it, and his customer success manager keeps him posted.",
-    tag: "Vehicle",
+    title: "A retired couple in Valencia",
+    body: "Their non-lucrative residence permits come up for renewal in the spring, and they hold savings in the US. The dates sit on their home page, and they use a call to ask about the renewal window and the foreign assets declaration.",
+    tag: "Residency and tax",
   },
 ];
 
@@ -235,7 +238,7 @@ export const PLANS: Plan[] = [
     unit: "",
     activation: "No account needed",
     allowance: "A dated list of what may apply to you",
-    allowanceDetail: "About two minutes. Costa Rica only for now.",
+    allowanceDetail: "About two minutes. Colombia, Costa Rica, Mexico, Panama, Portugal or Spain.",
     features: [
       "Questions about your residency, property, companies, vehicles and staff",
       "Dates that may require review, with a short note on each",
@@ -254,7 +257,7 @@ export const PLANS: Plan[] = [
     allowance: "Up to 60 minutes a month with your lawyer",
     allowanceDetail: "Up to three 20-minute video calls. Unused minutes do not carry over.",
     features: [
-      "Video calls with a lawyer licensed in Costa Rica",
+      "Video calls with a lawyer licensed in your country",
       "A brief prepared from your profile before each call",
       "A written summary and next steps after each call, checked by your lawyer",
       "A customer success manager who follows up",
@@ -288,7 +291,7 @@ export const ADDONS = [
   },
   {
     title: "A business or several companies",
-    body: "If you run a business or hold several companies in Costa Rica, take the free check first. Your customer success manager can then tell you plainly what the membership covers.",
+    body: "If you run a business or hold several companies, take the free check first. Your customer success manager can then tell you plainly what the membership covers.",
   },
 ];
 
@@ -300,19 +303,19 @@ export const FAQ_HEAD = {
 export const FAQ = [
   {
     q: "What does ILP track for me?",
-    a: "Dates and rules that may apply to your life in Costa Rica: DIMEX residency renewals, Caja (CCSS) contributions, municipal property tax, the yearly corporation tax and beneficial-owner declaration for a company, the marchamo for your car, and duties if you employ staff. Each one is listed as something that may require review, because a lawyer confirms what applies to you.",
+    a: "Dates and rules that may apply to your life in your country: residency renewals and stay limits, tax returns, property tax, yearly company filings and beneficial-owner records, vehicle fees and inspections, and duties if you employ staff. In Costa Rica that means the DIMEX, the Caja and the marchamo; in Spain the TIE, the IRPF and the IBI; and so on for each country. Each one is listed as something that may require review, because a lawyer confirms what applies to you.",
   },
   {
     q: "How do you know which dates apply to me?",
-    a: "You answer a few questions in the free check. Your answers are matched against a list of Costa Rica rules, and the dates that may apply are shown. When you join, the same answers fill in the first part of your legal profile.",
+    a: "You answer a few questions in the free check. Your answers are matched against that country's list of rules, from our research, and the dates that may apply are shown. When you join, the same answers fill in the first part of your legal profile.",
   },
   {
     q: "What does the membership include?",
-    a: "Up to 60 minutes a month with a lawyer licensed in Costa Rica, as up to three 20-minute video calls. Before each call your lawyer reads a brief from your profile, and after it you get a written summary and next steps. A customer success manager follows up, and your profile and reminders are included. It costs US$79.99 a month plus a one-time US$100 activation fee.",
+    a: "Up to 60 minutes a month with a lawyer licensed in your country, as up to three 20-minute video calls. Before each call your lawyer reads a brief from your profile, and after it you get a written summary and next steps. A customer success manager follows up, and your profile and reminders are included. It costs US$79.99 a month plus a one-time US$100 activation fee.",
   },
   {
     q: "Is this legal advice?",
-    a: "On a call you talk with a lawyer licensed in Costa Rica, and the legal judgment is theirs. ILP organizes the relationship and the follow-up. Work such as drafting, filings or representation is scoped, quoted in writing and paid separately, and it starts only if you accept.",
+    a: "On a call you talk with a lawyer licensed in your country, and the legal judgment is theirs. ILP organizes the relationship and the follow-up. Work such as drafting, filings or representation is scoped, quoted in writing and paid separately, and it starts only if you accept.",
   },
   {
     q: "Are the calls recorded?",
@@ -324,7 +327,7 @@ export const FAQ = [
   },
   {
     q: "Which countries can I use ILP in?",
-    a: "Costa Rica, for now. Panama and Mexico are planned next. The check, the lawyers and the reminders are all for Costa Rica today.",
+    a: "Colombia, Costa Rica, Mexico, Panama, Portugal and Spain, all open now. The check, the reminders and your lawyer follow the country your membership covers. If no partner lawyer in your country is free yet, your customer success manager tells you and matches you as soon as one is.",
   },
 ];
 
@@ -362,10 +365,10 @@ export const TUTORIAL_BANDS = {
 
 export const FINAL = {
   title: "Start with the free deadline check.",
-  sub: "Answer a few questions about your life in Costa Rica and see the dates that may apply. It takes about two minutes and you do not need an account.",
+  sub: "Pick your country, answer a few questions and see the dates that may apply. It takes about two minutes and you do not need an account.",
   pick: "Pick your country",
   soon: "Not yet",
   hint: "The check is free. Membership is US$79.99 a month plus a one-time US$100 activation fee.",
 };
 
-export const FOOTER = "International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.";
+export const FOOTER = "International Legal Partner. A legal membership for North Americans living in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or owning property there.";

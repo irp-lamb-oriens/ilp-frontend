@@ -8,7 +8,7 @@ const ACTIVATION = usd(PLAN_STANDARD.activationCents);
 
 export const TERMS_TITLE = "Terms of Membership";
 
-export const TERMS_INTRO = `The short version: ILP is a membership that connects you with vetted, independent lawyers in Costa Rica. It costs ${MONTHLY} a month plus a one-time ${ACTIVATION} activation, renews every month until you cancel, and you can cancel online at any time. Legal work beyond your calls is quoted separately.`;
+export const TERMS_INTRO = `The short version: ILP is a membership that connects you with vetted, independent lawyers in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain. It costs ${MONTHLY} a month plus a one-time ${ACTIVATION} activation, renews every month until you cancel, and you can cancel online at any time. Legal work beyond your calls is quoted separately.`;
 
 export const TERMS_SECTIONS: LegalSection[] = [
   {
@@ -21,10 +21,10 @@ export const TERMS_SECTIONS: LegalSection[] = [
   {
     heading: "What ILP is, and what it is not",
     body: [
-      "ILP is a membership service. It is not a law firm and does not give legal advice. Legal advice comes from independent lawyers licensed in Costa Rica, whom ILP vets and connects you with. ILP staff and the AI assistant give general information and organize your follow-up; they do not give legal advice.",
+      "ILP is a membership service. It is not a law firm and does not give legal advice. Legal advice comes from independent lawyers licensed in the country your membership covers, whom ILP vets and connects you with. ILP staff and the AI assistant give general information and organize your follow-up; they do not give legal advice.",
       "ILP does not direct a lawyer's legal judgment. Each lawyer is responsible for the advice they give.",
       "Joining ILP does not by itself create a lawyer-client relationship with ILP. A lawyer-client relationship with a lawyer starts [counsel to confirm: when the lawyer accepts your matter, or with each membership call], under that lawyer's professional rules.",
-      "[Counsel: confirm how lawyers are paid and that the arrangement meets Costa Rica's rules on fee sharing and lawyer independence, then describe it here in one sentence.]",
+      "[Counsel: confirm how lawyers are paid and that the arrangement meets each country's rules on fee sharing and lawyer independence (Colombia, Costa Rica, Mexico, Panama, Portugal and Spain), then describe it here in one sentence.]",
     ],
   },
   {
@@ -37,7 +37,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
       "Unused minutes and calls do not roll over to the next month.",
       "Legal work such as filings, drafting or representation is not included. It is quoted separately, and nothing starts until you accept a quote.",
     ],
-    body: ["At launch the service covers Costa Rica."],
+    body: ["The service covers Colombia, Costa Rica, Mexico, Panama, Portugal and Spain. Your membership covers the country you choose when you join; your ILP team can change it. If no partner lawyer in that country can take your call yet, your ILP team tells you and matches you as soon as one can."],
   },
   {
     heading: "Who can join",

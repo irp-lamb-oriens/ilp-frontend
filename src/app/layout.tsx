@@ -10,7 +10,7 @@ import "@/styles/global.scss";
 export const metadata: Metadata = {
   title: "International Legal Partner",
   description:
-    "A legal membership for North Americans in Costa Rica: calls with a lawyer licensed in Costa Rica, a living legal profile, follow-up from your customer success manager, and a free deadline check. Panama and Mexico are planned next.",
+    "A legal membership for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain: calls with a lawyer licensed in your country, a living legal profile, follow-up from your customer success manager, and a free deadline check.",
   icons: {
     icon: "/logo.png",
   },

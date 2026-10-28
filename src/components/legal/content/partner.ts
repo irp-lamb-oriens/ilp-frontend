@@ -6,7 +6,7 @@ import type { LegalSection } from "@/components/LegalPage";
  * (server/API/providers/applyLogic.ts); an application sent with another
  * version is refused. Every point counsel has not confirmed is marked.
  */
-export const PARTNER_TERMS_VERSION = "partner-terms-2026-10-27-draft1";
+export const PARTNER_TERMS_VERSION = "partner-terms-2026-10-27-draft2";
 
 export const PARTNER_TERMS_INTRO =
   "This is a summary of how the partnership between ILP and a partner lawyer would work. It is a draft for ILP's counsel to review, not a signed agreement. Applying does not create a partnership; approval and a signed partner agreement do. [Counsel: confirm that approval plus a signed agreement is the point where the partnership starts.]";
@@ -15,14 +15,14 @@ export const PARTNER_TERMS_SECTIONS: LegalSection[] = [
   {
     heading: "Who ILP is and what partner lawyers do",
     body: [
-      "ILP is a membership service for North Americans in Costa Rica. It is not a law firm. Members pay a monthly membership that includes up to three 20-minute video calls a month with a lawyer licensed in Costa Rica.",
+      "ILP is a membership service for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain. It is not a law firm. Members pay a monthly membership that includes up to three 20-minute video calls a month with a lawyer licensed in the country their membership covers.",
       "Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal, inside the weekly hours they set. They also quote paid legal work that goes beyond a call.",
     ],
   },
   {
     heading: "Your independence",
     body: [
-      "You keep your own practice and your professional duties under the rules of the Colegio de Abogados y Abogadas de Costa Rica. ILP does not direct your legal judgment, and you are responsible for the advice you give.",
+      "You keep your own practice and your professional duties under the rules of the body that licenses you (for example the Colegio de Abogados y Abogadas de Costa Rica, the Ordem dos Advogados in Portugal or your Colegio de Abogados in Spain). ILP does not direct your legal judgment, and you are responsible for the advice you give.",
       "[Counsel: confirm when the lawyer-client relationship with a member starts (each membership call, or when the lawyer accepts a matter) and how that is explained to members.]",
     ],
   },
@@ -40,7 +40,7 @@ export const PARTNER_TERMS_SECTIONS: LegalSection[] = [
     heading: "Paid work and fees",
     body: [
       "When a member needs work beyond a call, you set the scope and your fee in a quote. Nothing starts until the member accepts.",
-      "[Counsel: confirm how lawyers are paid for membership calls and for quoted work, who contracts with the member and who invoices for legal work, and that the arrangement meets Costa Rica's rules on fee sharing, referral fees and advertising. Then describe it here.]",
+      "[Counsel: confirm how lawyers are paid for membership calls and for quoted work, who contracts with the member and who invoices for legal work, and that the arrangement meets each country's rules on fee sharing, referral fees and advertising (Colombia, Costa Rica, Mexico, Panama, Portugal and Spain). Then describe it here.]",
       "ILP collects payout details only after a lawyer is approved, inside the lawyer portal or by a secure method ILP sends. ILP never asks for bank details by email. [ILP to confirm the method.]",
     ],
   },

@@ -8,7 +8,7 @@ import s from "./pricing.module.scss";
 export const metadata: Metadata = {
   title: "Pricing | International Legal Partner",
   description:
-    "One ILP membership: US$79.99 a month plus a one-time US$100 activation fee. Up to three 20-minute calls a month with a lawyer licensed in Costa Rica. Other legal work is quoted separately.",
+    "One ILP membership: US$79.99 a month plus a one-time US$100 activation fee. Up to three 20-minute calls a month with a lawyer licensed in your country. Other legal work is quoted separately.",
 };
 
 const usd = (cents: number) => `US$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
@@ -16,7 +16,7 @@ const MONTHLY = usd(PLAN_STANDARD.monthlyCents);
 const ACTIVATION = usd(PLAN_STANDARD.activationCents);
 
 const INCLUDED = [
-  `${PLAN_STANDARD.minutesIncluded} minutes a month with a lawyer licensed in Costa Rica, across up to ${PLAN_STANDARD.callsIncluded} calls of ${PLAN_STANDARD.callLengthMin} minutes`,
+  `${PLAN_STANDARD.minutesIncluded} minutes a month with a lawyer licensed in your country, across up to ${PLAN_STANDARD.callsIncluded} calls of ${PLAN_STANDARD.callLengthMin} minutes`,
   "A brief prepared from your profile before each call, so the minutes go to your question",
   "Your customer success manager (CSM) follows up on the next steps after every call",
   "A living legal profile: residency, property, companies, vehicles and household in one place",
@@ -38,7 +38,7 @@ const FAQ = [
   },
   {
     q: "Who are the lawyers?",
-    a: "Independent lawyers licensed in Costa Rica, vetted by ILP. ILP organizes the relationship and the follow-up; the legal advice comes from the lawyer.",
+    a: "Independent lawyers licensed in the country your membership covers (Colombia, Costa Rica, Mexico, Panama, Portugal and Spain), vetted by ILP. ILP organizes the relationship and the follow-up; the legal advice comes from the lawyer.",
   },
 ];
 
@@ -91,7 +91,7 @@ export default function PricingPage() {
 
         <footer className={m.footer}>
           <div className={m.wrap}>
-            <p>International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.</p>
+            <p>International Legal Partner. A legal membership for North Americans living in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or owning property there.</p>
           </div>
         </footer>
       </main>

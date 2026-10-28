@@ -7,8 +7,8 @@ import { OPEN_LEAD_EVENT } from "@/lib/leadEvents";
 /**
  * Global lead entry point. Mounted once in the root layout; every CTA that
  * calls `openLeadForm()` now lands on the free deadline check (/check), the
- * single front door of the join funnel. The check covers Costa Rica first and
- * explains that on its first screen, so no country is passed along.
+ * single front door of the join funnel. The check asks for the country first
+ * (all six are open); country pages pass ?country= themselves.
  */
 export default function LeadModal() {
   const router = useRouter();

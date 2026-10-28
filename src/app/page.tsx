@@ -16,9 +16,9 @@ import { BANDS, FOOTER, IMG, TUTORIAL_BANDS } from "@/components/landing/content
 import s from "@/components/landing/landing.module.scss";
 
 export const metadata: Metadata = {
-  title: "International Legal Partner: legal membership for Costa Rica",
+  title: "International Legal Partner: legal membership in six countries",
   description:
-    "A legal membership for North Americans in Costa Rica: US$79.99 a month plus a US$100 activation fee, up to three 20-minute video calls a month with a lawyer licensed in Costa Rica, and a free deadline check.",
+    "A legal membership for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain: US$79.99 a month plus a US$100 activation fee, up to three 20-minute video calls a month with a lawyer licensed in your country, and a free deadline check.",
 };
 
 /**
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
  * one step at a time, #how-it-works) -> what you get (price and terms) ->
  * what a missed date can cost you -> demo: the free check -> photo band ->
  * what the membership includes -> demo: the member home -> real situations ->
- * demo: a call with your lawyer -> photo band -> Costa Rica first -> example
+ * demo: a call with your lawyer -> photo band -> six countries -> example
  * situations -> pricing -> demo: what you pay -> questions -> final call to
  * action -> footer. The three-facts strip (TrustStrip) is no longer rendered:
  * "What you get" now says the same facts.

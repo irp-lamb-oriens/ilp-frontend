@@ -8,8 +8,8 @@ const PILLARS = [
     body: "Your residency, property, companies, vehicles and household details sit in one legal profile. Your lawyer reads it before every call, so you do not have to repeat yourself.",
   },
   {
-    title: "Calls with a lawyer licensed in Costa Rica",
-    body: "Members get up to three 20-minute video calls a month (60 minutes) with an independent lawyer licensed in Costa Rica.",
+    title: "Calls with a lawyer licensed in your country",
+    body: "Members get up to three 20-minute video calls a month (60 minutes) with an independent lawyer licensed in the country their membership covers.",
   },
   {
     title: "Follow-up after every call",
@@ -29,11 +29,11 @@ export default function AboutPage() {
         <section className={`${s.wrap} ${s.section}`}>
           <div className={s.sectionHead}>
             <p className={s.eyebrow}>About us</p>
-            <RevealTitle text="Your legal life in Costa Rica, kept in one place." className={s.headingXl} />
+            <RevealTitle text="Your legal life abroad, kept in one place." className={s.headingXl} />
             <p className={s.sub}>
-              International Legal Partner (ILP) is a legal membership for North Americans who live in Costa Rica or
-              own property there. ILP keeps your legal profile, books your calls with a lawyer licensed in Costa Rica
-              and follows up on what comes next. Panama and Mexico are planned after Costa Rica.
+              International Legal Partner (ILP) is a legal membership for North Americans who live in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or
+              own property there. ILP keeps your legal profile, books your calls with a lawyer licensed in your country
+              and follows up on what comes next. All six countries are open.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function AboutPage() {
             </div>
             <div className={s.featureList}>
               <li>ILP runs the platform and keeps your legal profile, and your customer success manager follows up with you after each call.</li>
-              <li>Independent lawyers licensed in Costa Rica give the legal advice. ILP checks each lawyer&apos;s license before they take calls.</li>
+              <li>Independent lawyers licensed in each country give the legal advice. ILP checks each lawyer&apos;s license with the body that issued it before they take calls.</li>
               <li>Legal work beyond the calls, such as drafting or filings, is quoted separately. Nothing starts until you accept the quote.</li>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function AboutPage() {
 
         <footer className={s.footer}>
           <div className={s.wrap}>
-            <p>International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.</p>
+            <p>International Legal Partner. A legal membership for North Americans living in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or owning property there.</p>
           </div>
         </footer>
       </main>

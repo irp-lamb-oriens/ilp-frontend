@@ -80,7 +80,7 @@ export default function HeroChat() {
           className={s.input}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="e.g. Costa Rica, residency renewal"
+          placeholder="e.g. Spain, residency renewal"
           aria-label="Ask the legal intake assistant"
         />
         <button type="submit" className={s.send} disabled={busy || !input.trim()}>

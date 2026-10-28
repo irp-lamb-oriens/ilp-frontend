@@ -26,11 +26,11 @@ export function IntroGallery() {
         <PageIntro
           headingLevel={2}
           eyebrow="Free deadline check"
-          title="See the Costa Rica dates that may apply to you"
+          title="See the dates that may apply to you in your country"
           order="why-how-what"
           why="Residency renewals, company filings and car permits each have their own date. Knowing them early gives you time to ask a lawyer before anything is due."
           how={["Answer a few questions about your residency, property, company and car.", "See a dated list of what may require review.", "Keep the list by email, or talk it through with a lawyer as a member."]}
-          what="A free check for people living in or owning property in Costa Rica. It takes about two minutes and needs no account."
+          what="A free check for people living in or owning property in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain. It takes about two minutes and needs no account."
           actions={<ButtonLink href="/check">Start the free check</ButtonLink>}
           tutorialId="public.check"
           illustration={<TutorialEmbed tutorialId="public.check" stepIds={["results"]} showStepText={false} explainList={false} />}
@@ -42,7 +42,7 @@ export function IntroGallery() {
         <PageIntro
           headingLevel={2}
           title="Book a call"
-          what="A 20-minute video call with your lawyer, licensed in Costa Rica. Each month includes three calls, 60 minutes in all."
+          what="A 20-minute video call with your lawyer, licensed in your country. Each month includes three calls, 60 minutes in all."
           how={["Pick a day and an open time.", "Write your question so your lawyer can prepare.", "Press Book this call. The Google Meet link comes by email."]}
           why="Your lawyer reads your question and your profile before the call, so the 20 minutes go to your answer."
           tutorialId="client.book"

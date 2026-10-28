@@ -6,7 +6,7 @@ const STEPS = [
   {
     n: "1",
     title: "Take the free deadline check",
-    body: "It takes about two minutes and you do not need an account. You get a dated list of what may apply to you in Costa Rica.",
+    body: "It takes about two minutes and you do not need an account. You get a dated list of what may apply to you in your country.",
   },
   {
     n: "2",
@@ -16,7 +16,7 @@ const STEPS = [
   {
     n: "3",
     title: "Book a call with a lawyer",
-    body: "Book up to three 20-minute video calls a month with a lawyer licensed in Costa Rica. Before the call, the lawyer reads a brief built from your profile.",
+    body: "Book up to three 20-minute video calls a month with a lawyer licensed in your country. Before the call, the lawyer reads a brief built from your profile.",
   },
   {
     n: "4",
@@ -68,7 +68,7 @@ export default function HowItWorksPage() {
 
         <footer className={s.footer}>
           <div className={s.wrap}>
-            <p>International Legal Partner. A legal membership for North Americans living in Costa Rica or owning property there.</p>
+            <p>International Legal Partner. A legal membership for North Americans living in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or owning property there.</p>
           </div>
         </footer>
       </main>

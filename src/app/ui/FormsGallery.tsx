@@ -66,7 +66,7 @@ export default function FormsGallery() {
           <h3 className={s.h3}>Select and DateInput</h3>
           <Select label="Legal area" placeholder="Choose an area" options={AREAS} defaultValue="" required />
           <Select label="Legal area" options={AREAS} defaultValue="property" error="Property matters need a lawyer with a notary licence." />
-          <DateInput label="Due by" defaultValue="2026-11-14" hint="Costa Rica time." />
+          <DateInput label="Due by" defaultValue="2026-11-14" hint="In your time zone." />
           <DateInput label="Renewal date" disabled defaultValue="2027-01-31" />
         </div>
 

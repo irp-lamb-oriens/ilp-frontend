@@ -5,7 +5,7 @@
  * server refuses a consent sent with a different version).
  */
 export const LEGAL_VERSIONS = {
-  terms: "terms-2026-10-26-draft1",
+  terms: "terms-2026-10-27-draft2",
   privacy: "privacy-2026-10-26-draft1",
   recording: "recording-ai-2026-10-26-draft1",
   cookies: "cookies-2026-10-26-draft1",
@@ -27,4 +27,4 @@ export const LEGAL_DOCS: Array<{ id: LegalDocId; title: string; href: string; sh
   { id: "accessibility", title: "Accessibility statement", href: "/legal/accessibility", short: "Accessibility" },
 ];
 
-export const LEGAL_UPDATED = "October 26, 2026";
+export const LEGAL_UPDATED = "October 27, 2026";
