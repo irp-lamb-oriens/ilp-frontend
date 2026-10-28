@@ -6,6 +6,12 @@
  *   npm run copy:lint -- --strict          # exit 1 when anything is found
  *   npm run copy:lint -- src/app/page.tsx src/components/landing
  *   npm run copy:lint -- --summary         # counts only
+ *   npm run copy:lint -- --no-allowlist    # also show allowlisted findings
+ *
+ * Intentional exceptions live in scripts/copyLintAllowlist.json, each with a
+ * reason. `npm test` (tests/copyLintStrict.test.mjs) runs the strict lint over
+ * src and fails on any finding that is not allowlisted, or on an allowlist
+ * entry that no longer matches anything.
  *
  * What it reads (TypeScript parser, no type check):
  * - JSX text in every .tsx file, and JSX string attributes people read
@@ -19,7 +25,7 @@
  * Some rules (forced groups of three, sentence rhythm, the big reveal) need a
  * person; they are not checked here.
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import ts from "typescript";
@@ -211,6 +217,47 @@ export function lintSource(source, file) {
   return findings;
 }
 
+// ─── Allowlist ──────────────────────────────────────────────────────────────
+
+export const ALLOWLIST_FILE = path.join(HERE, "copyLintAllowlist.json");
+
+/**
+ * Intentional exceptions: [{ file, rule, match?, reason }]. `file` is relative
+ * to the frontend root, `match` (optional) must appear in the finding's text.
+ */
+export function loadAllowlist(file = ALLOWLIST_FILE) {
+  if (!existsSync(file)) return [];
+  const raw = JSON.parse(readFileSync(file, "utf8"));
+  return Array.isArray(raw) ? raw : raw.entries ?? [];
+}
+
+const allows = (entry, f) =>
+  entry.file === f.file.split(path.sep).join("/") && entry.rule === f.rule && (!entry.match || f.text.includes(entry.match) || f.match.includes(entry.match));
+
+/** Split findings into the ones to report and the allowlisted ones; also returns entries that matched nothing. */
+export function applyAllowlist(findings, entries) {
+  const used = new Set();
+  const kept = [];
+  const allowed = [];
+  for (const f of findings) {
+    const i = entries.findIndex((e) => allows(e, f));
+    if (i === -1) kept.push(f);
+    else {
+      used.add(i);
+      allowed.push(f);
+    }
+  }
+  return { kept, allowed, unused: entries.filter((_, i) => !used.has(i)) };
+}
+
+/** Lint every file under `targets` (default src). Returns findings with frontend-relative paths. */
+export function lintPaths(targets = ["src"]) {
+  const files = targets.flatMap((t) => collectFiles(path.resolve(ROOT, t)));
+  const all = [];
+  for (const f of files) all.push(...lintSource(readFileSync(f, "utf8"), path.relative(ROOT, f)));
+  return { files, findings: all };
+}
+
 // ─── Files ──────────────────────────────────────────────────────────────────
 
 const EXT = /\.(?:tsx?|jsx?|mjs)$/;
@@ -247,8 +294,9 @@ function main(argv) {
     }
   });
 
-  const all = [];
-  for (const f of files) all.push(...lintSource(readFileSync(f, "utf8"), path.relative(ROOT, f)));
+  const found = [];
+  for (const f of files) found.push(...lintSource(readFileSync(f, "utf8"), path.relative(ROOT, f)));
+  const { kept: all, allowed } = flags.has("--no-allowlist") ? { kept: found, allowed: [] } : applyAllowlist(found, loadAllowlist());
 
   if (json) {
     console.log(JSON.stringify(all, null, 2));
@@ -272,6 +320,7 @@ function main(argv) {
     for (const [rule, e] of [...byRule.entries()].sort((a, b) => b[1].n - a[1].n)) {
       console.log(`  rule ${String(rule).padStart(2)}  ${String(e.n).padStart(4)}  ${e.name} (${e.files.size} file${e.files.size === 1 ? "" : "s"})`);
     }
+    if (allowed.length) console.log(`  (${allowed.length} allowlisted in scripts/copyLintAllowlist.json, not counted)`);
     if (all.length && !strict) console.log("Warnings only. Run with --strict to fail on findings.");
   }
   if (strict && all.length) process.exitCode = 1;

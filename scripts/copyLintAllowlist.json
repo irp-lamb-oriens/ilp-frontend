@@ -1,0 +1,4 @@
+{
+  "about": "Intentional exceptions to the copy lint (frontend/copy-rules.md). Each entry: file (relative to frontend/), rule (copy-rules.md number), optional match (text the finding must contain) and a reason. tests/copyLintStrict.test.mjs fails on entries without a reason and on entries that no longer match anything.",
+  "entries": []
+}
