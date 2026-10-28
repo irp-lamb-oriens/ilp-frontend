@@ -1,0 +1,81 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(#{$shell-bottombar-height} + #{$space-4});
+  z-index: $z-dialog;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  width: min(28rem, calc(100vw - #{$space-8}));
+  padding: $space-2 $space-2 $space-2 $space-4;
+  font-size: 0.9375rem;
+  color: $color-ink;
+  background: $color-surface;
+  border: 1px dashed $notice-neutral;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition: transform $duration-fast $ease-out-strong, opacity $duration-fast $ease-out-strong;
+
+  @include md {
+    bottom: $space-6;
+  }
+
+  @include reduced-motion {
+    transform: translate(-50%, 0);
+    transition: opacity $duration-fade linear;
+  }
+}
+
+.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.danger {
+  border-color: $notice-danger;
+
+  .icon {
+    color: $notice-danger;
+  }
+}
+
+.success {
+  border-color: $notice-success;
+
+  .icon {
+    color: $notice-success;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.close {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: $touch-target;
+  height: $touch-target;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  @include focus-ring;
+}

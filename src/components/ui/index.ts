@@ -67,6 +67,19 @@ export { SearchInput } from "./SearchInput";
 export { ListToolbar } from "./ListToolbar";
 export type { ListToolbarProps, ListSortOption } from "./ListToolbar";
 export { ListFooter } from "./ListFooter";
+// FILTERS: schema-driven filters (lib/listSchemas.ts, lib/useSchemaList.ts).
+export { FilterBar, FieldEditor, describeFilter } from "./FilterBar";
+export type { FilterBarProps } from "./FilterBar";
+export { Popover } from "./Popover";
+export { Toast } from "./Toast";
+export type { ToastProps } from "./Toast";
+// BOARDS: the shared kanban (components/ui/board).
+export { Board, BoardSkeleton, useBoardController, initials } from "./board/Board";
+export type { AgingTone, BoardCardModel, BoardColumnDef, BoardController, BoardProps } from "./board/Board";
+export { default as MoveToMenu } from "./board/MoveToMenu";
+export { boardKeyboardReducer, keyToAction, placeCard, KB_IDLE } from "./board/boardKeyboard";
+export type { KbAction, KbColumn, KbContext, KbResult, KbState } from "./board/boardKeyboard";
+export type { PopoverProps } from "./Popover";
 export type { ListFooterProps } from "./ListFooter";
 export type { SearchInputProps } from "./SearchInput";
 export { useForm, validators } from "./useForm";
@@ -124,6 +137,12 @@ export {
   IconPlus,
   IconSuccess,
   IconWarning,
+  IconFilter,
+  IconColumns,
+  IconBookmark,
+  IconSearch,
+  IconChevronLeft,
+  IconDensity,
 } from "./icons";
 
 // Notices (NOTICES.md): every prerequisite, warning, disclaimer and banner.

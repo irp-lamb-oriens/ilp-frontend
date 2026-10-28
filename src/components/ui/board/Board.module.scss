@@ -1,0 +1,642 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+// BOARDS: one kanban look for every portal. Hairlines, one accent, flat radii,
+// motion on transform and opacity only.
+
+.root {
+  display: grid;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2 $space-4;
+}
+
+.hint {
+  margin: 0;
+  max-width: 65ch;
+  font-size: 0.8125rem;
+  color: $color-steel;
+
+  @media (hover: none) {
+    display: none;
+  }
+}
+
+.segs {
+  display: inline-grid;
+  grid-auto-flow: column;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  overflow: hidden;
+}
+
+.seg {
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+  background: $color-surface;
+  border: 0;
+  cursor: pointer;
+
+  & + & {
+    border-left: 1px solid $color-hairline;
+  }
+
+  &[aria-pressed="true"] {
+    color: $color-accent-ink;
+    background: $color-accent-soft;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: -2px;
+  }
+}
+
+.sr {
+  @include visually-hidden;
+}
+
+// ── Scroll frame with fading edges ─────────────────────────────────────────
+.frame {
+  position: relative;
+  min-width: 0;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: $space-8;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity $duration-fast $ease-out-strong;
+  }
+
+  &::before {
+    left: 0;
+    background: linear-gradient(to right, $color-canvas, rgba(255, 255, 255, 0));
+  }
+
+  &::after {
+    right: 0;
+    background: linear-gradient(to left, $color-canvas, rgba(255, 255, 255, 0));
+  }
+
+  &[data-left="1"]::before,
+  &[data-right="1"]::after {
+    opacity: 1;
+  }
+}
+
+.scroller {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(17.5rem, 1fr);
+  align-items: start;
+  gap: $space-3;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: $space-2;
+  scroll-padding-inline: $space-4;
+
+  @include below-md {
+    grid-auto-columns: 86%;
+    scroll-snap-type: x mandatory;
+  }
+}
+
+// ── Column ─────────────────────────────────────────────────────────────────
+.col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+  max-height: min(72dvh, 56rem);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 0 $space-2 $space-2;
+  background: $color-mist;
+  border: 1px solid transparent;
+  border-radius: $radius-lg;
+  scroll-snap-align: start;
+  transition: border-color $duration-fast ease;
+
+  // Drop target: dashed hairline, like a Notice.
+  &.over {
+    border: 1px dashed $color-accent;
+  }
+}
+
+.collapsed {
+  align-items: stretch;
+  min-width: 0;
+  padding: $space-2 0;
+}
+
+.scroller:has(.collapsed) {
+  grid-auto-columns: auto;
+
+  > .col:not(.collapsed) {
+    width: 17.5rem;
+
+    @include below-md {
+      width: 86vw;
+    }
+  }
+}
+
+.expand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  width: 3rem;
+  min-height: 12rem;
+  padding: $space-2 0;
+  font: inherit;
+  color: $color-navy;
+  background: none;
+  border: 0;
+  border-radius: $radius-md;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+.vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.colHead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  gap: $space-2;
+  margin: 0 (-$space-2);
+  padding: $space-3 $space-3 $space-2;
+  background: $color-mist;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.colTitle {
+  overflow: hidden;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.countPill {
+  flex: none;
+  min-width: 1.5rem;
+  padding: 0 $space-2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.375rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: $color-steel;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+}
+
+.headActions {
+  display: inline-flex;
+  margin-left: auto;
+}
+
+.iconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  position: relative;
+  transition: transform $duration-press $ease-out-strong, opacity $duration-press ease;
+  @include focus-ring;
+
+  // 44px hit area.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+  }
+
+  &[aria-pressed="true"] {
+    color: $color-accent-ink;
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  @include hover-only {
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+
+  @include reduced-motion {
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.headMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: $color-navy;
+}
+
+.limit {
+  color: $color-steel;
+}
+
+// Aging summary: segmented hairline bar.
+.aging {
+  display: flex;
+  gap: 2px;
+  min-height: 3px;
+}
+
+// Hairline segments drawn as top borders (no filled warning surfaces, NOTICES.md).
+.agingSeg {
+  flex-basis: 0;
+  min-width: 4px;
+  height: 0;
+  border-top: 3px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+}
+
+.fresh {
+  border-top-color: $color-hairline-strong;
+}
+
+.warn {
+  border-top-color: $notice-warning;
+}
+
+.overdue {
+  border-top-color: $color-error;
+}
+
+.colSearch {
+  display: block;
+}
+
+.colSearchInput {
+  width: 100%;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 0.875rem;
+  background: $color-surface;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.cards {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity $duration-fast ease;
+}
+
+.stale {
+  opacity: 0.6;
+}
+
+.empty {
+  display: grid;
+  gap: $space-1;
+  padding: $space-4 $space-3;
+  font-size: 0.875rem;
+  color: $color-steel;
+  text-align: center;
+  border: 1px dashed $color-hairline-strong;
+  border-radius: $radius-md;
+
+  p {
+    margin: 0;
+  }
+}
+
+.emptyHint {
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
+
+.dropGhost {
+  display: grid;
+  place-items: center;
+  min-height: 3.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-accent-ink;
+  border: 1px dashed $color-accent;
+  border-radius: $radius-md;
+}
+
+.more {
+  justify-self: center;
+}
+
+// ── Card ───────────────────────────────────────────────────────────────────
+.card {
+  position: relative;
+  display: grid;
+  gap: $space-2;
+  min-width: 0;
+  padding: $space-3;
+  background: $color-surface;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  touch-action: manipulation;
+  transition: transform $duration-press $ease-out-strong, opacity $duration-fast ease;
+
+  @include hover-only {
+    &:hover:not(.dragging) {
+      transform: translateY(-1px);
+    }
+  }
+
+  @include reduced-motion {
+    transition: opacity $duration-fade linear;
+
+    &:hover:not(.dragging) {
+      transform: none;
+    }
+  }
+}
+
+.root[data-density="compact"] .card {
+  gap: $space-1;
+  padding: $space-2 $space-3;
+}
+
+.selected {
+  outline: 2px solid $color-accent;
+  outline-offset: -1px;
+}
+
+.lifted {
+  outline: 2px solid $color-accent;
+  outline-offset: 2px;
+  transform: scale(1.02);
+
+  @include reduced-motion {
+    transform: none;
+  }
+}
+
+.dragging {
+  opacity: 0.35;
+}
+
+.busy {
+  opacity: 0.7;
+}
+
+.cardOpen {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: $radius-sm;
+  cursor: grab;
+  @include focus-ring;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.body {
+  display: grid;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.title {
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: $color-navy;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.root[data-density="compact"] .title,
+.body[data-density="compact"] .title {
+  -webkit-line-clamp: 1;
+}
+
+.money {
+  flex: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: $color-charcoal;
+}
+
+.subtitle {
+  overflow: hidden;
+  font-size: 0.875rem;
+  color: $color-charcoal;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.meta {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: $color-steel;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  margin-left: auto;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: $color-accent-ink;
+  background: $color-accent-soft;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+}
+
+.due {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.due_warning {
+  color: $notice-warning;
+}
+
+.due_danger {
+  font-weight: 600;
+  color: $color-error;
+}
+
+.progress {
+  display: grid;
+  gap: 2px;
+}
+
+.progressLabel {
+  font-size: 0.75rem;
+  color: $color-muted;
+}
+
+.progressBar {
+  display: block;
+  width: 100%;
+  height: 3px;
+  appearance: none;
+  border: 0;
+  border-radius: $radius-pill;
+  background: $color-hairline;
+  overflow: hidden;
+
+  &::-webkit-progress-bar {
+    background: $color-hairline;
+  }
+
+  &::-webkit-progress-value {
+    background: $color-accent;
+  }
+
+  &::-moz-progress-bar {
+    background: $color-accent;
+  }
+}
+
+.root[data-density="compact"] {
+  .subtitle,
+  .progress,
+  .due {
+    display: none;
+  }
+}
+
+.cardFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  min-width: 0;
+}
+
+// The copy that follows the pointer.
+.ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: $z-dialog;
+  pointer-events: none;
+  will-change: transform;
+
+  .card {
+    border-color: $color-accent;
+  }
+}
+
+.ghostStill {
+  opacity: 0.9;
+}
+
+.skeletonCard {
+  gap: $space-2;
+}
+
+.skeletonPills {
+  display: flex;
+  gap: $space-2;
+}
