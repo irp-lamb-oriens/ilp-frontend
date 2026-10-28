@@ -1,13 +1,15 @@
 @use "../styles/variables" as *;
 @use "../styles/mixins" as *;
 
-// Homepage hero: PageIntro (why, how, what) on the left, a photo and the
-// "included" list on the right from 1024px, stacked on phones. Light canvas,
-// hairlines, one accent (rules.md).
+// Homepage hero: one screen, left-aligned (rules.md 7: no centered hero).
+// Large title, one line, two actions. Light canvas, hairline, one accent.
 
 .hero {
   background: $color-mist;
   border-bottom: 1px solid $color-hairline;
+  min-height: 100dvh;
+  display: grid;
+  align-items: center;
   padding-block: calc(64px + #{$space-12}) $space-16;
 
   @include lg {
@@ -17,15 +19,41 @@
 
 .inner {
   @include container;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-6;
 }
 
-.intro {
-  h1 {
-    font-size: clamp(2.25rem, 5.5vw, 4rem);
-    letter-spacing: -0.035em;
-    line-height: 1.04;
-    color: $color-navy;
-  }
+.eyebrow {
+  @include eyebrow;
+  margin: 0;
+}
+
+.title {
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  color: $color-navy;
+}
+
+.lead {
+  margin: 0;
+  max-width: 40ch;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.45;
+  color: $color-steel;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+  margin-top: $space-2;
 }
 
 .primary {
@@ -42,100 +70,4 @@
   padding: $space-3 $space-6;
   min-height: $touch-target;
   text-decoration: none;
-}
-
-.art {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.photo {
-  aspect-ratio: 4 / 3;
-  border-radius: $radius-lg;
-  background-color: $color-cool-gray;
-  background-size: cover;
-  background-position: center;
-  display: none;
-
-  @include md {
-    display: block;
-  }
-}
-
-.included {
-  @include card;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-
-  @include lg {
-    margin-inline-start: -$space-12;
-    margin-top: -$space-16;
-  }
-}
-
-.includedTitle {
-  margin: 0;
-  font-size: 1.125rem;
-  color: $color-navy;
-}
-
-.valueStack {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-}
-
-.valueItem {
-  display: grid;
-  grid-template-columns: 1.5rem minmax(0, 1fr);
-  align-items: start;
-  gap: $space-3;
-  color: $color-charcoal;
-  font-size: 1rem;
-  line-height: 1.45;
-}
-
-.valueCheck {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: $color-navy;
-}
-
-.checkCircle {
-  fill: $color-accent-soft;
-  stroke: $color-accent;
-  stroke-width: 1.5;
-}
-
-.price {
-  margin: 0;
-  padding-top: $space-4;
-  border-top: 1px solid $color-hairline;
-  color: $color-steel;
-  font-size: 0.95rem;
-}
-
-.priceFigure {
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: $color-navy;
-}
-
-.pricingLink {
-  @include focus-ring;
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  min-height: $touch-target;
-  color: $color-navy;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }

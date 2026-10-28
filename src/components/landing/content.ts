@@ -18,10 +18,18 @@ export const IMG = {
     "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=2000",
 };
 
-/** Hero, Golden Circle order: why, how, what. */
+/**
+ * Hero copy, Golden Circle order: why, how, what. The homepage shows it as
+ * four scroll sections (HeroCTA, then ProblemScroll, StepsScroll and
+ * WhatYouGet in landing/HeroStory.tsx). `why` and `what` stay the full
+ * sentences; PROBLEM and WHAT below split them into the pieces revealed on
+ * scroll, and tests/homepage.test.mjs checks the pieces still read the same.
+ */
 export const HERO = {
   eyebrow: "Legal membership for Costa Rica",
   title: "Keep your legal life in Costa Rica on track.",
+  /** The one supporting line under the title: the first sentence of `what`. */
+  lead: "ILP is a legal membership for North Americans in Costa Rica.",
   why: "Living in Costa Rica or owning property there comes with legal dates and rules: residency renewals, company filings, property tax, the yearly marchamo for your car. They are written in Spanish, in a legal system you did not grow up with, and nobody reminds you when one is due.",
   how: [
     "Take the free deadline check. It takes about two minutes and you do not need an account.",
@@ -32,16 +40,29 @@ export const HERO = {
   what: "ILP is a legal membership for North Americans in Costa Rica. It costs US$79.99 a month plus a one-time US$100 activation fee, and includes up to three 20-minute video calls a month (60 minutes). Drafting, filings and other legal work are quoted separately, and you decide whether to go ahead.",
   labels: { why: "The problem", how: "How ILP works", what: "What you get" },
   secondary: "See how it works",
-  pricingLink: "See pricing",
-  includedTitle: "Included in your membership",
-  included: [
-    "Up to 3 video calls a month with a lawyer licensed in Costa Rica",
-    "A brief prepared from your profile before each call",
-    "A written summary and next steps after each call",
-    "A customer success manager who follows up",
-    "Reminders before the dates that apply to you",
+  /** Section the secondary button scrolls to (the four steps). */
+  howAnchor: "how-it-works",
+};
+
+/** "The problem", phrase by phrase. Joined with spaces, the phrases are HERO.why. */
+export const PROBLEM = {
+  phrases: [
+    "Living in Costa Rica or owning property there comes with legal dates and rules:",
+    "residency renewals, company filings, property tax, the yearly marchamo for your car.",
+    "They are written in Spanish, in a legal system you did not grow up with,",
+    "and nobody reminds you when one is due.",
   ],
-  imageAlt: "Two people at a table going through papers together",
+  /** Labels that light up in turn while the second phrase is read. Decorative. */
+  items: ["Residency renewals", "Company filings", "Property tax", "Marchamo"],
+};
+
+/** "What you get", block by block. Same facts and words as HERO.what. */
+export const WHAT = {
+  price: 79.99,
+  unit: "a month",
+  activation: "plus a one-time US$100 activation fee",
+  calls: "Includes up to three 20-minute video calls a month (60 minutes).",
+  extra: "Drafting, filings and other legal work are quoted separately, and you decide whether to go ahead.",
 };
 
 /** Facts strip under the hero. Only facts from docs/PLAN.md. */
@@ -49,14 +70,6 @@ export const TRUST = [
   { value: "Free deadline check", label: "About two minutes, no account needed" },
   { value: "US$79.99 a month", label: "Plus a one-time US$100 activation fee" },
   { value: "Up to 3 calls a month", label: "20 minutes each, with a lawyer licensed in Costa Rica" },
-];
-
-/** The member loop, drawn as a simple diagram in the features section. */
-export const LOOP = [
-  { title: "Free check", body: "A dated list of what may apply" },
-  { title: "Your profile", body: "Filled in from your answers" },
-  { title: "A call", body: "With a brief your lawyer has read" },
-  { title: "Next steps", body: "Followed up by your ILP team" },
 ];
 
 /** The two photo bands. */
@@ -98,7 +111,7 @@ export const COSTS = [
 ];
 
 export const FEATURES_HEAD = {
-  title: "What you get as a member",
+  title: "What the membership includes",
   why: "Your legal life in Costa Rica sits in one place, with a lawyer and a team who already know it when you ask a question.",
 };
 
@@ -319,7 +332,7 @@ export const FAQ = [
 export const TUTORIAL_BANDS = {
   check: {
     id: "public.check",
-    anchor: "how-it-works",
+    anchor: "free-check",
     title: "Try the free check",
     lead: "Here is the free deadline check: a few short questions, then a dated list of what may apply to you.",
     caption: "The free deadline check, from the first question to the dated list.",

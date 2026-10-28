@@ -82,27 +82,6 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .featureList li:nth-child(even) .feature { @include lg { margin-inline-start: 12%; } }
 .featureIndex { font-family: $font-mono; font-size: 0.8rem; color: $color-accent; }
 
-/* ── Member loop: a numbered flow drawn with borders ── */
-.loop {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: 1fr; gap: 0;
-  @include md { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: $space-4; }
-}
-.loopStep {
-  position: relative; display: grid; grid-template-columns: 2.25rem minmax(0, 1fr);
-  column-gap: $space-3; row-gap: $space-1; padding-block: $space-3;
-  border-bottom: 1px solid $color-hairline;
-  @include md { border: 1px solid $color-hairline; border-radius: $radius-md; padding: $space-4; background: $color-surface; }
-}
-.loopNum {
-  grid-row: span 2; width: 2.25rem; height: 2.25rem; border-radius: $radius-pill;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-family: $font-mono; font-size: 0.875rem; color: $color-navy;
-  background: $color-accent-soft; border: 1px solid $color-accent;
-}
-.loopTitle { font-weight: 700; color: $color-navy; }
-.loopBody { color: $color-steel; font-size: 0.95rem; }
-
 /* ── Tutorial bands between sections ───────────── */
 .tutorialBand { padding-block: $space-16; @include md { padding-block: $space-24; } }
 .tutorialBandTint { background: $color-mist; }

@@ -2,7 +2,7 @@
 
 import { motion, useTransform, type MotionValue } from "framer-motion";
 import { MorphStage, MorphItem, Reveal } from "@/components/motion/Motion";
-import { COSTS, COSTS_HEAD, FEATURES, FEATURES_HEAD, LOOP, STEPS, STEPS_HEAD } from "./content";
+import { COSTS, COSTS_HEAD, FEATURES, FEATURES_HEAD, STEPS, STEPS_HEAD } from "./content";
 import { SectionHead } from "./SectionHead";
 import s from "./landing.module.scss";
 
@@ -67,21 +67,16 @@ function ProgressRail({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
-/** Sticky split: the heading locks on the left while features stream past. */
+/**
+ * Sticky split: the heading locks on the left while features stream past.
+ * The four-step loop diagram that sat under the heading moved out (HERO
+ * redesign): "How ILP works" above already walks through the same steps.
+ */
 export function FeaturesSticky() {
   return (
     <section className={`${s.wrap} ${s.sticky}`}>
       <div className={s.stickyHead}>
         <SectionHead title={FEATURES_HEAD.title} why={FEATURES_HEAD.why} icon="profile" immediate />
-        <ol className={s.loop} aria-label="How membership works, step by step">
-          {LOOP.map((step, i) => (
-            <li key={step.title} className={s.loopStep}>
-              <span className={s.loopNum} aria-hidden="true">{i + 1}</span>
-              <span className={s.loopTitle}>{step.title}</span>
-              <span className={s.loopBody}>{step.body}</span>
-            </li>
-          ))}
-        </ol>
       </div>
       <ol className={s.featureList}>
         {FEATURES.map((f, i) => (
