@@ -38,8 +38,10 @@ export interface FilterBarProps<T> {
   options?: Record<string, ListOption[]>;
   /** Fields not offered as filters here (a page control already covers them). */
   hide?: string[];
-  /** Saved views. Default true. */
+  /** Saved views. Default true (false when compact). */
   views?: boolean;
+  /** Narrow panels (a member page column, an inspector tab): no saved views, no count line. */
+  compact?: boolean;
   className?: string;
 }
 
@@ -96,7 +98,8 @@ export function describeFilter(field: ListField, f: FilterValue, labelOf: (v: st
  * Everything renders from the list's schema, so any list gets it by
  * declaring its fields (lib/listSchemas.ts).
  */
-export function FilterBar<T>({ list: sl, noun, searchLabel, placeholder, children, sortOptions, hideCount, columns, options, hide, views = true, className }: FilterBarProps<T>) {
+export function FilterBar<T>({ list: sl, noun, searchLabel, placeholder, children, sortOptions, hideCount, columns, options, hide, views: viewsProp, compact, className }: FilterBarProps<T>) {
+  const views = viewsProp ?? !compact;
   const { setColumnCatalog } = sl;
   const columnsKey = columns ? columns.map((c) => `${c.key}:${c.header}`).join("|") : "";
   useEffect(() => {
@@ -137,8 +140,8 @@ export function FilterBar<T>({ list: sl, noun, searchLabel, placeholder, childre
       : sortOptions;
 
   return (
-    <div className={cx(s.bar, className)}>
-      <ListToolbar list={sl.list} noun={noun} searchLabel={searchLabel} placeholder={placeholder} sortOptions={sorts} hideCount={hideCount}>
+    <div className={cx(s.bar, compact && s.compact, className)}>
+      <ListToolbar list={sl.list} noun={noun} searchLabel={searchLabel} placeholder={placeholder} sortOptions={sorts} hideCount={hideCount ?? compact}>
         {children}
       </ListToolbar>
       {(fields.length > 0 || views || columns) && (

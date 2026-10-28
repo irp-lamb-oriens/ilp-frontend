@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { dashboardFetch, staffApi } from "@/lib/api";
 import { apiListSource } from "@/lib/listSource";
-import { useStreamedList } from "@/lib/useStreamedList";
-import { AdminsOnlyNotice, isRoleDenied } from "./staff/StaffSession";
-import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
-import { SearchInput, Pagination } from "./ListControls";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
+import { AdminsOnlyNotice, isRoleDenied, useStaff } from "./staff/StaffSession";
 import {
   RankedBarChart,
   DonutChart,
@@ -15,7 +15,7 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
-import { EmptyState, ErrorNotice, ListFooter, ListToolbar, Notice, Select, SkeletonList, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { DataTable, EmptyState, ErrorNotice, FilterBar, ListFooter, Notice, Select, SkeletonList, SkeletonRegion, StatusPill, useSkeleton, type Column } from "@/components/ui";
 import { AdminListSkeleton, AssignmentSkeleton, FinanceChartsSkeleton, SalesSkeleton } from "./AdminSkeletons";
 
 interface Provider {
@@ -43,8 +43,32 @@ interface Vendor {
 const providersSource = apiListSource<Provider>(staffApi, "/api/dashboard/providers");
 const vendorsSource = apiListSource<Vendor>(staffApi, "/api/vendors");
 
+const words = (v: unknown) => (Array.isArray(v) ? v.map(String).join(", ").replace(/_/g, " ") : "");
+/** Area and country values are stored as ids ("real_estate", "CR"); show words. */
+const prettyOptions = (o: Array<{ value: string; label: string; count?: number }> | undefined) => (o ?? []).map((x) => ({ ...x, label: x.label.replace(/_/g, " ") }));
+
 export function ProvidersList() {
-  const list = useStreamedList<Provider>(providersSource, { key: "staff-providers", pageSize: 20, sort: { key: "name", dir: "asc" }, keyOf: (p) => p.id });
+  const { email } = useStaff();
+  const sl = useSchemaList<Provider>({
+    schema: LIST_SCHEMAS.providers,
+    key: "staff-providers",
+    source: providersSource,
+    pageSize: 20,
+    defaultSort: { key: "name", dir: "asc" },
+    keyOf: (p) => p.id,
+    viewer: email,
+  });
+  const list = sl.list;
+  const columns = useMemo<Column<Provider>[]>(() => [
+    { key: "name", header: "Lawyer", render: (p) => <span className={styles.itemTitle}>{p.name ?? p.id}</span>, sortable: true, width: "wide" },
+    { key: "email", header: "Email", render: (p) => p.email ?? "No email yet" },
+    { key: "firmName", header: "Firm", render: (p) => String(p.firmName ?? ""), hideOnMobile: true },
+    { key: "legalAreas", header: "Areas", render: (p) => words(p.legalAreas) || "None set", hideOnMobile: true },
+    { key: "jurisdictions", header: "Countries", render: (p) => words(p.jurisdictions) || "None set", hideOnMobile: true },
+    { key: "active", header: "Status", render: (p) => <StatusPill size="sm" tone={p.active === false ? "neutral" : "success"} label={p.active === false ? "Inactive" : "Active"} /> },
+    { key: "createdAt", header: "Added", render: (p) => String(p.createdAt ?? "").slice(0, 10), sortable: true, hideOnMobile: true },
+  ], []);
+  const options = useMemo(() => ({ legalAreas: prettyOptions(sl.schema.fields.find((f) => f.key === "legalAreas")?.options) }), [sl.schema]);
   const sk = useSkeleton(list.initialLoading);
   if (list.initialLoading && list.error) return <ErrorNotice audience="staff" title="This section did not load" onRetry={list.refresh}>{list.error}</ErrorNotice>;
   if (sk.showSkeleton || list.initialLoading) {
@@ -54,32 +78,50 @@ export function ProvidersList() {
       </SkeletonRegion>
     );
   }
-  if (list.items.length === 0 && !list.activeQuery && list.status === "done") {
+  if (list.items.length === 0 && !list.activeQuery && sl.activeCount === 0 && list.status === "done") {
     return <EmptyState compact title="No lawyers yet" body="Lawyers appear here after they apply from the lawyers page and an admin approves them in Applications." />;
   }
 
   return (
     <div className={styles.listStack}>
-      <ListToolbar list={list} noun="lawyers" searchLabel="Search lawyers" placeholder="Name, email, area or country" />
-      <div aria-busy={list.stale || undefined} className={list.stale ? styles.stale : undefined}>
-        {list.items.map((p) => (
-          <div key={p.id} className={styles.listItem}>
-            <div>
-              <div className={styles.itemTitle}>{p.name ?? p.id}</div>
-              <div className={styles.itemSub}>
-                {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "No contact details yet"}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" />} />
+      <FilterBar list={sl} noun="lawyers" searchLabel="Search lawyers" placeholder="Name, email, area or country" options={options} columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
+      <DataTable
+        caption="Lawyer directory"
+        columns={sl.visibleColumns(columns)}
+        rows={list.items}
+        rowKey={(p) => p.id}
+        loadingMore={list.loadingMore}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
+        empty="No lawyer matches these filters."
+      />
+      <ListFooter list={list} audience="staff" />
     </div>
   );
 }
 
 export function VendorsList() {
-  const list = useStreamedList<Vendor>(vendorsSource, { key: "staff-vendors", pageSize: 20, sort: { key: "companyName", dir: "asc" }, keyOf: (v) => v.id });
+  const { email } = useStaff();
+  const sl = useSchemaList<Vendor>({
+    schema: LIST_SCHEMAS.vendors,
+    key: "staff-vendors",
+    source: vendorsSource,
+    pageSize: 20,
+    defaultSort: { key: "companyName", dir: "asc" },
+    keyOf: (v) => v.id,
+    viewer: email,
+  });
+  const list = sl.list;
+  const columns = useMemo<Column<Vendor>[]>(() => [
+    { key: "companyName", header: "Company", render: (v) => <span className={styles.itemTitle}>{v.companyName ?? v.name ?? v.id}</span>, sortable: true, width: "wide" },
+    { key: "contactName", header: "Contact", render: (v) => String(v.contactName ?? ""), hideOnMobile: true },
+    { key: "email", header: "Email", render: (v) => String(v.email ?? ""), hideOnMobile: true },
+    { key: "legalAreas", header: "Areas", render: (v) => words(v.legalAreas) || "None set", hideOnMobile: true },
+    { key: "jurisdictions", header: "Countries", render: (v) => words(v.jurisdictions) || "None set", hideOnMobile: true },
+    { key: "active", header: "Status", render: (v) => <StatusPill size="sm" tone={v.active === false ? "neutral" : "success"} label={v.active === false ? "Inactive" : "Active"} /> },
+  ], []);
+  const options = useMemo(() => ({ legalAreas: prettyOptions(sl.schema.fields.find((f) => f.key === "legalAreas")?.options) }), [sl.schema]);
   const sk = useSkeleton(list.initialLoading);
   if (list.initialLoading && list.error) return <ErrorNotice audience="staff" title="This section did not load" onRetry={list.refresh}>{list.error}</ErrorNotice>;
   if (sk.showSkeleton || list.initialLoading) {
@@ -89,24 +131,25 @@ export function VendorsList() {
       </SkeletonRegion>
     );
   }
-  if (list.items.length === 0 && !list.activeQuery && list.status === "done") {
+  if (list.items.length === 0 && !list.activeQuery && sl.activeCount === 0 && list.status === "done") {
     return <EmptyState compact title="No vendors yet" body="Outside suppliers show here once they are added. Ask an admin if one you work with is missing." />;
   }
 
   return (
     <div className={styles.listStack}>
-      <ListToolbar list={list} noun="vendors" searchLabel="Search vendors" placeholder="Company, contact or area" />
-      <div aria-busy={list.stale || undefined} className={list.stale ? styles.stale : undefined}>
-        {list.items.map((v) => (
-          <div key={v.id} className={styles.listItem}>
-            <span className={styles.itemTitle}>{v.name ?? v.companyName ?? v.id}</span>
-            <span className={v.active === false ? styles.itemInactive : styles.itemActive}>
-              {v.active === false ? "Inactive" : "Active"}
-            </span>
-          </div>
-        ))}
-      </div>
-      <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" />} />
+      <FilterBar list={sl} noun="vendors" searchLabel="Search vendors" placeholder="Company, contact or area" options={options} columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
+      <DataTable
+        caption="Vendors"
+        columns={sl.visibleColumns(columns)}
+        rows={list.items}
+        rowKey={(v) => v.id}
+        loadingMore={list.loadingMore}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
+        empty="No vendor matches these filters."
+      />
+      <ListFooter list={list} audience="staff" />
     </div>
   );
 }
@@ -283,27 +326,59 @@ export function FinanceView() {
   );
 }
 
+/** One row of the sales report (server API/finance/salesReport.ts ProjectCompletion). */
+interface SalesProject {
+  kind: "quote" | "client" | "invoice";
+  id: string;
+  label: string;
+  completedAt: string | null;
+  source: string;
+  contractValue: number;
+  collected: number;
+  outstanding: number;
+  margin: number;
+}
+
+const SALES_KIND: Record<string, string> = { quote: "Quote", client: "Client", invoice: "Invoice" };
+const amount = (n: number) => n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+
 export function SalesView() {
-  const [rows, setRows] = useState<Array<Record<string, unknown>> | null>(null);
+  const { email } = useStaff();
+  const [rows, setRows] = useState<SalesProject[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
-    dashboardFetch<{ rows?: Array<Record<string, unknown>>; sales?: Array<Record<string, unknown>> }>("/api/dashboard/sales-report")
-      .then((r) => setRows(r.rows ?? r.sales ?? []))
+    dashboardFetch<{ projects?: SalesProject[]; rows?: SalesProject[] }>("/api/dashboard/sales-report")
+      .then((r) => setRows(r.projects ?? r.rows ?? []))
       .catch((e) => {
         if (isRoleDenied(e)) setDenied(true);
         else setError(e instanceof Error ? e.message : "The sales report did not load.");
       });
   }, []);
 
-  const keys = Array.from(new Set((rows ?? []).flatMap((r) => Object.keys(r)))).slice(0, 8);
-
-  const { query, setQuery, page, setPage, pageItems, total, totalPages } =
-    usePaginatedSearch<Record<string, unknown>>(rows ?? [], {
-      searchKeys: keys,
-      pageSize: 20,
-    });
+  // FILTERS: the report's project rows, searched, filtered, sorted and paged in the browser.
+  const sl = useSchemaList<SalesProject>({
+    schema: LOCAL_SCHEMAS.salesProjects,
+    key: "staff-sales-projects",
+    rows,
+    pageSize: 20,
+    defaultSort: { key: "completedAt", dir: "desc" },
+    keyOf: (r) => `${r.kind}:${r.id}`,
+    viewer: email,
+    local: { read: (r, f) => (f.key === "complete" ? !!r.completedAt : undefined) },
+  });
+  const list = sl.list;
+  const columns = useMemo<Column<SalesProject>[]>(() => [
+    { key: "label", header: "Project", render: (r) => r.label, sortable: true, width: "wide" },
+    { key: "kind", header: "Source record", render: (r) => SALES_KIND[r.kind] ?? r.kind, hideOnMobile: true },
+    { key: "completedAt", header: "Completed", render: (r) => (r.completedAt ? r.completedAt.slice(0, 10) : <StatusPill size="sm" tone="warning" label="Not complete" />), sortable: true },
+    { key: "source", header: "Completion signal", render: (r) => r.source, hideOnMobile: true },
+    { key: "contractValue", header: "Contract value", render: (r) => amount(r.contractValue), sortable: true, align: "end" },
+    { key: "collected", header: "Collected", render: (r) => amount(r.collected), sortable: true, align: "end", hideOnMobile: true },
+    { key: "outstanding", header: "Outstanding", render: (r) => amount(r.outstanding), sortable: true, align: "end" },
+    { key: "margin", header: "Margin", render: (r) => amount(r.margin), sortable: true, align: "end", hideOnMobile: true },
+  ], []);
 
   const sk = useSkeleton(rows === null && !error && !denied);
   if (denied) return <AdminsOnlyNotice what="The sales report" />;
@@ -319,32 +394,18 @@ export function SalesView() {
 
   return (
     <div className={styles.listStack}>
-      <SearchInput value={query} onChange={setQuery} placeholder="Search sales…" resultCount={total} />
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              {keys.map((k) => (
-                <th key={k} className={styles.tableHead}>
-                  {k}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pageItems.map((r, i) => (
-              <tr key={i}>
-                {keys.map((k) => (
-                  <td key={k} className={styles.tableCell}>
-                    {r[k] == null ? "None" : String(r[k])}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <FilterBar list={sl} noun="projects" searchLabel="Search sales" placeholder="Project or completion signal" columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
+      <DataTable
+        caption="Sales by project"
+        columns={sl.visibleColumns(columns)}
+        rows={list.items}
+        rowKey={(r) => `${r.kind}:${r.id}`}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
+        empty="No project matches these filters."
+      />
+      <ListFooter list={list} audience="staff" />
     </div>
   );
 }
@@ -372,7 +433,17 @@ interface AssignmentClient {
 const assignmentSource = apiListSource<AssignmentClient>(staffApi, "/api/dashboard/assignment/queue");
 
 export function AssignmentView() {
-  const list = useStreamedList<AssignmentClient>(assignmentSource, { key: "staff-assignment", pageSize: 20, keyOf: (c) => c.id });
+  const { email } = useStaff();
+  const sl = useSchemaList<AssignmentClient>({
+    schema: LIST_SCHEMAS.assignmentQueue,
+    key: "staff-assignment",
+    source: assignmentSource,
+    pageSize: 20,
+    defaultSort: { key: "lastUpdated", dir: "desc" },
+    keyOf: (c) => c.id,
+    viewer: email,
+  });
+  const list = sl.list;
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -459,8 +530,9 @@ export function AssignmentView() {
       ))}
 
       <h3 className={styles.financeTitle}>Members without a lawyer</h3>
-      <ListToolbar list={list} noun="members" searchLabel="Search members" placeholder="Name, email or legal area" />
-      {list.items.length === 0 && list.status === "done" && !list.activeQuery && (
+      <FilterBar list={sl} noun="members" searchLabel="Search members" placeholder="Name, email or legal area" sortOptions="schema" />
+      {list.items.length === 0 && list.status === "done" && (list.activeQuery || sl.activeCount > 0) && <p className={styles.muted}>No member matches these filters.</p>}
+      {list.items.length === 0 && list.status === "done" && !list.activeQuery && sl.activeCount === 0 && (
         <EmptyState compact title="Every member has a lawyer" body="Members who join without one are listed here, oldest first." />
       )}
       <div aria-busy={list.stale || undefined} className={list.stale ? styles.stale : undefined}>
