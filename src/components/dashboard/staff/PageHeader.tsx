@@ -1,9 +1,32 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { ErrorNotice } from "@/components/ui";
+import { useIntroTitleShown } from "./ScreenIntro";
 import s from "./staff.module.scss";
 
-/** Page title row used by every /dashboard route (the shell holds no title). */
+/**
+ * Page title row used by every /dashboard route (the shell holds no title).
+ * Under a ScreenIntro the intro already shows the title, so this renders
+ * only the status line ("3 open tasks, 1 overdue") and the page actions.
+ */
 export function PageHeader({ title, sub, actions }: { title: ReactNode; sub?: ReactNode; actions?: ReactNode }) {
+  const introShown = useIntroTitleShown();
+  if (introShown) {
+    if (!sub && !actions) return null;
+    return (
+      <div className={s.statusRow}>
+        {sub ? (
+          <p className={s.status} role="status">
+            {sub}
+          </p>
+        ) : (
+          <span />
+        )}
+        {actions && <div className={s.actions}>{actions}</div>}
+      </div>
+    );
+  }
   return (
     <div className={s.head}>
       <div className={s.headText}>

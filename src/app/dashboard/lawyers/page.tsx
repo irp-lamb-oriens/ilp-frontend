@@ -1,5 +1,10 @@
 import LawyersView from "@/components/dashboard/views/LawyersView";
+import { StaffScreen } from "@/components/dashboard/staff/ScreenIntro";
 
 export default function LawyersPage() {
-  return <LawyersView />;
+  return (
+    <StaffScreen intro="lawyers">
+      <LawyersView />
+    </StaffScreen>
+  );
 }

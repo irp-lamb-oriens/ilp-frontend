@@ -5,6 +5,8 @@ import { staffApi } from "@/lib/api";
 import { PROFILE_FIELDS, PROFILE_SECTIONS, type Handoff, type ProfileSection } from "@/lib/contracts";
 import { ButtonLink, Drawer, ProgressBar, SkeletonRegion, Stagger, StaggerItem, StatusPill, Timeline, useSkeleton, type TimelineItem } from "@/components/ui";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
+import { IntroTitleContext, ScreenIntro } from "../staff/ScreenIntro";
+import { STAFF_INTROS } from "../staff/intros";
 import { dueLabel, MEMBERSHIP_LABEL, MEMBERSHIP_TONE, memberName } from "../staff/format";
 import type { MemberBundle, QueueTask, TimelineEntry } from "../staff/types";
 import { useLawyers } from "../staff/useLawyers";
@@ -147,21 +149,56 @@ export default function MemberPage({ clientId }: { clientId: string }) {
   const m = bundle.membership;
   const openTasks = bundle.tasks.filter((t) => t.status === "open");
 
+  const ready = bundle.completeness.consultationReady;
   return (
     <Stagger>
-      <PageHeader
-        title={name}
-        sub={[String(bundle.client?.email ?? ""), String(bundle.client?.persona ?? "")].filter(Boolean).join(" · ")}
-        actions={
-          <>
-            {bundle.client?.placeholder === true && <StatusPill label="Placeholder" tone="warning" />}
-            {m && <StatusPill label={MEMBERSHIP_LABEL[m.status]} tone={MEMBERSHIP_TONE[m.status]} srPrefix="Membership" />}
-            <ButtonLink href="/dashboard/members" variant="secondary">
-              All members
-            </ButtonLink>
-          </>
-        }
-      />
+      <ScreenIntro intro={STAFF_INTROS.member} title={name} storageKey="/dashboard/members/[id]" />
+      <IntroTitleContext.Provider value={true}>
+        <PageHeader
+          sub={[String(bundle.client?.email ?? ""), String(bundle.client?.persona ?? "")].filter(Boolean).join(" · ") || undefined}
+          title={name}
+          actions={
+            <>
+              {bundle.client?.placeholder === true && <StatusPill label="Placeholder" tone="warning" />}
+              <ButtonLink href="/dashboard/members" variant="secondary">
+                All members
+              </ButtonLink>
+            </>
+          }
+        />
+      </IntroTitleContext.Provider>
+
+      <dl className={s.glance} aria-label="This member at a glance">
+        <div className={s.glanceItem}>
+          <dt>Membership</dt>
+          <dd>{m ? <StatusPill size="sm" label={MEMBERSHIP_LABEL[m.status]} tone={MEMBERSHIP_TONE[m.status]} /> : "No membership"}</dd>
+        </div>
+        <div className={s.glanceItem}>
+          <dt>Profile</dt>
+          <dd>
+            <span className={s.glanceValue}>{Math.round(bundle.completeness.score * 100)}%</span>{" "}
+            <StatusPill size="sm" label={ready ? "Ready" : "Not ready"} tone={ready ? "success" : "warning"} />
+          </dd>
+        </div>
+        <div className={s.glanceItem}>
+          <dt>Minutes left</dt>
+          <dd>
+            <span className={s.glanceValue}>{bundle.minutesLeft}</span> of {m?.minutesIncluded ?? 60}
+          </dd>
+        </div>
+        <div className={s.glanceItem}>
+          <dt>Calls left</dt>
+          <dd>
+            <span className={s.glanceValue}>{bundle.callsLeft}</span> of {m?.callsIncluded ?? 3}
+          </dd>
+        </div>
+        <div className={s.glanceItem}>
+          <dt>Open tasks</dt>
+          <dd>
+            <span className={s.glanceValue}>{openTasks.length}</span>
+          </dd>
+        </div>
+      </dl>
 
       <div className={s.layout}>
         <div className={s.col}>

@@ -1,5 +1,10 @@
 import PipelineView from "@/components/dashboard/views/PipelineView";
+import { StaffScreen } from "@/components/dashboard/staff/ScreenIntro";
 
 export default function PipelinePage() {
-  return <PipelineView />;
+  return (
+    <StaffScreen intro="pipeline">
+      <PipelineView />
+    </StaffScreen>
+  );
 }

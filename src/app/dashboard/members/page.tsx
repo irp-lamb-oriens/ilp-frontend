@@ -1,10 +1,13 @@
 import { Suspense } from "react";
 import MembersList from "@/components/dashboard/members/MembersList";
+import { StaffScreen } from "@/components/dashboard/staff/ScreenIntro";
 
 export default function MembersPage() {
   return (
-    <Suspense fallback={null}>
-      <MembersList />
-    </Suspense>
+    <StaffScreen intro="members">
+      <Suspense fallback={null}>
+        <MembersList />
+      </Suspense>
+    </StaffScreen>
   );
 }

@@ -22,6 +22,23 @@
   margin-bottom: $space-6;
 }
 
+// Under a ScreenIntro: the at-a-glance status line and the page actions.
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3 $space-4;
+  margin-bottom: $space-6;
+}
+
+.status {
+  margin: 0;
+  font-weight: 600;
+  color: $color-navy;
+  max-width: 65ch;
+}
+
 .headText {
   min-width: 0;
 }
