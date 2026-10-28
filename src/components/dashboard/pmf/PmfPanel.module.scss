@@ -69,25 +69,6 @@
   }
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-
-  th,
-  td {
-    text-align: left;
-    padding: $space-2 $space-3 $space-2 0;
-    border-bottom: 1px solid $color-hairline;
-  }
-
-  th {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: $color-steel;
-  }
-}
-
 .reasons {
   list-style: none;
   margin: 0;

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { downloadFile, staffApi } from "@/lib/api";
 import { providerApi } from "@/lib/provider";
-import { Loadable, Skeleton, StatusPill, ErrorNotice } from "@/components/ui";
+import { FilterBar, ListFooter, Loadable, Skeleton, StatusPill, ErrorNotice } from "@/components/ui";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { DownloadButton } from "./DownloadButton";
 import s from "./MemberDocumentsList.module.scss";
 
@@ -76,6 +78,22 @@ export function MemberDocumentsList({
     };
   }, [api, base]);
 
+  // FILTERS: kind, matter, date, size and file name, paged in the browser.
+  const matterOf = (d: StaffDocument) => (d.matterId ? matterTitle?.(d.matterId) ?? "Matter" : "General");
+  const dl = useSchemaList<StaffDocument>({
+    schema: LOCAL_SCHEMAS.memberFiles,
+    key: `${role}-member-files-${clientId}`,
+    rows: items,
+    pageSize: 8,
+    defaultSort: { key: "uploadedAt", dir: "desc" },
+    keyOf: (d) => d.id,
+    local: { read: (d, f) => (f.key === "matter" ? matterOf(d) : undefined) },
+  });
+  const matterOptions = useMemo(
+    () => ({ matter: [...new Set((items ?? []).map((d) => (d.matterId ? matterTitle?.(d.matterId) ?? "Matter" : "General")))].map((m) => ({ value: m, label: m })) }),
+    [items, matterTitle],
+  );
+
   return (
     <section className={s.block} aria-label={title}>
       <div className={s.head}>
@@ -89,9 +107,11 @@ export function MemberDocumentsList({
         {null}
       </Loadable>
       {items && items.length === 0 && <p className={s.meta}>The member has not uploaded any documents yet.</p>}
+      {items && items.length > 3 && <FilterBar list={dl} noun="documents" searchLabel="Search documents" placeholder="File name" sortOptions="schema" options={matterOptions} compact />}
+      {items && items.length > 0 && dl.list.status === "done" && dl.list.items.length === 0 && <p className={s.meta}>No document matches these filters.</p>}
       {items && items.length > 0 && (
         <ul className={s.list}>
-          {items.map((d) => (
+          {dl.list.items.map((d) => (
             <li key={d.id} className={s.item}>
               <div className={s.main}>
                 <DownloadButton
@@ -109,6 +129,7 @@ export function MemberDocumentsList({
           ))}
         </ul>
       )}
+      {items && items.length > 0 && <ListFooter list={dl.list} audience={role} auto={false} endLabel={null} loadMoreLabel="Show more documents" />}
     </section>
   );
 }

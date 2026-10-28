@@ -1,10 +1,12 @@
 "use client";
 
 import { isQuoteAccepted } from "@/lib/quoteStatus";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PLAN_STANDARD, type CsmTask } from "@/lib/contracts";
-import { Button, DateInput, Select, StatusPill, TextInput, useUnsavedChanges } from "@/components/ui";
+import { Button, DateInput, FilterBar, ListFooter, Select, StatusPill, TextInput, useUnsavedChanges } from "@/components/ui";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { ErrorText } from "../staff/PageHeader";
 import { dueLabel, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import type { MemberBundle } from "../staff/types";
@@ -30,7 +32,20 @@ export function NextActions({
   const { lawyers, nameOf } = useLawyers();
   const openMatters = bundle.matters.filter((m) => !m.closedAt);
   const assigned = openMatters.find((m) => m.assignedProviderId)?.assignedProviderId ?? (bundle.client?.assignedProviderId as string | undefined);
-  const quotes = ((bundle.client?.quotes as Quote[] | undefined) ?? []).filter((q) => !isQuoteAccepted(q) && String(q.status) !== "cancelled");
+  const quotes = useMemo(
+    () => ((bundle.client?.quotes as Quote[] | undefined) ?? []).filter((q) => !isQuoteAccepted(q) && String(q.status) !== "cancelled"),
+    [bundle.client],
+  );
+  // FILTERS: one member's open tasks, searched, filtered, sorted and paged in the browser.
+  const tasks = useSchemaList<CsmTask>({
+    schema: LOCAL_SCHEMAS.memberTasks,
+    key: `staff-member-tasks-${clientId}`,
+    rows: openTasks,
+    pageSize: 5,
+    defaultSort: { key: "dueAt", dir: "asc" },
+    keyOf: (t) => t.id,
+    local: { read: (t, f) => (f.key === "overdue" ? Date.parse(t.dueAt) < Date.now() : undefined) },
+  });
 
   return (
     <>
@@ -40,7 +55,9 @@ export function NextActions({
           <span className={s.meta}>{openTasks.length}</span>
         </div>
         {openTasks.length === 0 && <p className={s.meta}>No open tasks for this member.</p>}
-        {openTasks.map((t) => {
+        {openTasks.length > 3 && <FilterBar list={tasks} noun="tasks" searchLabel="Search tasks" placeholder="Task title" sortOptions="schema" compact />}
+        {openTasks.length > 0 && tasks.list.status === "done" && tasks.list.items.length === 0 && <p className={s.meta}>No task matches these filters.</p>}
+        {tasks.list.items.map((t) => {
           const due = dueLabel(t.dueAt);
           return (
             <div key={t.id} className={s.taskItem}>
@@ -55,6 +72,7 @@ export function NextActions({
             </div>
           );
         })}
+        <ListFooter list={tasks.list} audience="staff" auto={false} endLabel={null} loadMoreLabel="Show more tasks" />
       </section>
 
       <BookCall clientId={clientId} bundle={bundle} defaultLawyer={assigned} lawyers={lawyers} onBooked={onChanged} />
@@ -158,7 +176,21 @@ function BookCall({
   );
 }
 
+const centsOf = (q: Quote) => (typeof q.totalMinor === "number" ? q.totalMinor : Math.round(Number(q.total ?? 0) * 100));
+
 function Quotes({ clientId, quotes, onChanged }: { clientId: string; quotes: Quote[]; onChanged: () => void }) {
+  const ql = useSchemaList<Quote>({
+    schema: LOCAL_SCHEMAS.memberQuotes,
+    key: `staff-member-quotes-${clientId}`,
+    rows: quotes,
+    pageSize: 5,
+    keyOf: quoteId,
+    local: { read: (q, f) => (f.key === "totalCents" ? centsOf(q) : f.key === "status" ? String(q.status ?? "draft") : undefined) },
+  });
+  const statusOptions = useMemo(
+    () => ({ status: [...new Set(quotes.map((q) => String(q.status ?? "draft")))].map((v) => ({ value: v, label: v.replace(/_/g, " ") })) }),
+    [quotes],
+  );
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   useUnsavedChanges(title.trim() !== "", "The new quote title is not saved yet. If you leave now, it will be lost.");
@@ -203,8 +235,10 @@ function Quotes({ clientId, quotes, onChanged }: { clientId: string; quotes: Quo
     <section className={s.block} aria-label="Quotes">
       <h2 className={s.blockTitle}>Quotes</h2>
       {quotes.length === 0 && <p className={s.meta}>No open quotes.</p>}
-      {quotes.map((q) => {
-        const cents = typeof q.totalMinor === "number" ? q.totalMinor : Math.round(Number(q.total ?? 0) * 100);
+      {quotes.length > 3 && <FilterBar list={ql} noun="quotes" searchLabel="Search quotes" placeholder="Quote title" sortOptions="schema" options={statusOptions} compact />}
+      {quotes.length > 0 && ql.list.status === "done" && ql.list.items.length === 0 && <p className={s.meta}>No quote matches these filters.</p>}
+      {ql.list.items.map((q) => {
+        const cents = centsOf(q);
         return (
           <div key={quoteId(q)} className={s.taskItem}>
             <p className={s.taskTitle}>{String(q.title ?? "Quote")}</p>
@@ -219,6 +253,7 @@ function Quotes({ clientId, quotes, onChanged }: { clientId: string; quotes: Quo
           </div>
         );
       })}
+      <ListFooter list={ql.list} audience="staff" auto={false} endLabel={null} loadMoreLabel="Show more quotes" />
       <form className={s.actions} onSubmit={draft} noValidate>
         <TextInput label="New quote title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="S.A. clean-up before sale" />
         <Button type="submit" variant="secondary" busy={busy === "new"}>

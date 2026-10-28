@@ -1,10 +1,12 @@
 "use client";
 
 import { zoneLabelOf } from "@/lib/timeZones";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { Consultation } from "@/lib/contracts";
-import { Button, DateInput, Loadable, Select, Skeleton, StatusPill, TextInput, type StatusTone } from "@/components/ui";
+import { Button, DateInput, FilterBar, ListFooter, Loadable, Select, Skeleton, StatusPill, TextInput, type StatusTone } from "@/components/ui";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { ErrorText } from "../staff/PageHeader";
 import s from "./member.module.scss";
 
@@ -54,13 +56,26 @@ export function CallsPanel({
   lawyerName: (providerId: string) => string;
   onChanged: () => void;
 }) {
-  const upcoming = calls
-    .filter((c) => c.status === "booked" || c.status === "in_progress")
-    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
-  const past = calls
-    .filter((c) => c.status !== "booked" && c.status !== "in_progress")
-    .sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))
-    .slice(0, 5);
+  const upcoming = calls.filter((c) => c.status === "booked" || c.status === "in_progress");
+  // FILTERS: every call of this member (status, date, lawyer, recording consent, question), upcoming first, five at a time.
+  const ordered = useMemo(
+    () => [
+      ...calls.filter((c) => c.status === "booked" || c.status === "in_progress").sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt)),
+      ...calls.filter((c) => c.status !== "booked" && c.status !== "in_progress").sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)),
+    ],
+    [calls],
+  );
+  const cl = useSchemaList<Consultation>({
+    schema: LIST_SCHEMAS.recordConsultations,
+    key: `staff-member-calls-${calls[0]?.clientId ?? ""}`,
+    rows: ordered,
+    pageSize: 5,
+    keyOf: (c) => c.id,
+  });
+  const lawyerOptions = useMemo(
+    () => ({ providerId: [...new Set(calls.map((c) => c.providerId))].map((id) => ({ value: id, label: lawyerName(id) })) }),
+    [calls, lawyerName],
+  );
 
   return (
     <section className={s.block} aria-label="Calls">
@@ -68,10 +83,13 @@ export function CallsPanel({
         <h2 className={s.blockTitle}>Calls</h2>
         <span className={s.meta}>{upcoming.length} upcoming</span>
       </div>
-      {upcoming.length === 0 && past.length === 0 && <p className={s.meta}>No calls yet.</p>}
-      {[...upcoming, ...past].map((c) => (
+      {calls.length === 0 && <p className={s.meta}>No calls yet.</p>}
+      {calls.length > 3 && <FilterBar list={cl} noun="calls" searchLabel="Search calls" placeholder="Question asked" sortOptions="schema" options={lawyerOptions} compact />}
+      {calls.length > 0 && cl.list.status === "done" && cl.list.items.length === 0 && <p className={s.meta}>No call matches these filters.</p>}
+      {cl.list.items.map((c) => (
         <CallItem key={c.id} call={c} lawyer={lawyerName(c.providerId)} onChanged={onChanged} />
       ))}
+      <ListFooter list={cl.list} audience="staff" auto={false} endLabel={null} loadMoreLabel="Show more calls" />
     </section>
   );
 }

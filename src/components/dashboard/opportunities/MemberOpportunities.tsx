@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Button, Drawer, Loadable, Skeleton, StatusPill } from "@/components/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Button, Drawer, FilterBar, ListFooter, Loadable, Skeleton, StatusPill } from "@/components/ui";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { ErrorText } from "../staff/PageHeader";
 import { memberName, usd } from "../staff/format";
 import type { MemberBundle } from "../staff/types";
 import { NewOpportunity } from "./NewOpportunity";
 import { OpportunityDrawer } from "./OpportunityDrawer";
-import { STAGE_LABEL, STAGE_TONE, isClosedStage, oppApi, type OpportunityRow } from "./oppApi";
+import { STAGE_LABEL, STAGE_TONE, areaLabel, isClosedStage, oppApi, type OpportunityRow } from "./oppApi";
 import s from "./opportunities.module.scss";
 
 /** Member page section: this member's opportunities, with "New opportunity". */
@@ -30,7 +32,19 @@ export function MemberOpportunities({ bundle }: { bundle: MemberBundle }) {
     load();
   }, [load]);
 
-  const sorted = [...(items ?? [])].sort((a, b) => Number(isClosedStage(a.stage)) - Number(isClosedStage(b.stage)) || b.updatedAt.localeCompare(a.updatedAt));
+  const sorted = useMemo(
+    () => (items === null ? null : [...items].sort((a, b) => Number(isClosedStage(a.stage)) - Number(isClosedStage(b.stage)) || b.updatedAt.localeCompare(a.updatedAt))),
+    [items],
+  );
+  // FILTERS: this member's opportunities, filtered and paged in the browser (open ones first).
+  const ol = useSchemaList<OpportunityRow>({
+    schema: LIST_SCHEMAS.opportunities,
+    key: `staff-member-opps-${clientId}`,
+    rows: sorted,
+    pageSize: 5,
+    keyOf: (o) => o.id,
+  });
+  const areaOptions = useMemo(() => ({ area: [...new Set((items ?? []).map((o) => o.area))].map((a) => ({ value: a, label: areaLabel(a) })) }), [items]);
 
   return (
     <section className={s.memberBlock} aria-labelledby="member-opps">
@@ -47,11 +61,16 @@ export function MemberOpportunities({ bundle }: { bundle: MemberBundle }) {
         <Loadable loading label="Loading opportunities" skeleton={<MemberOpportunitiesSkeleton />}>
           {null}
         </Loadable>
-      ) : sorted.length === 0 ? (
+      ) : (sorted ?? []).length === 0 ? (
         <p className={s.meta}>None yet. A handoff with commercial notes opens one automatically.</p>
       ) : (
+        <>
+        {(sorted ?? []).length > 3 && (
+          <FilterBar list={ol} noun="opportunities" searchLabel="Search opportunities" placeholder="Title" sortOptions="schema" options={areaOptions} hide={["memberName"]} compact />
+        )}
+        {ol.list.status === "done" && ol.list.items.length === 0 && <p className={s.meta}>No opportunity matches these filters.</p>}
         <ul className={s.memberList}>
-          {sorted.map((o) => (
+          {ol.list.items.map((o) => (
             <li key={o.id}>
               <button type="button" className={s.memberRow} onClick={() => setOpen(o)}>
                 <span className={s.memberRowTitle}>{o.title}</span>
@@ -63,6 +82,8 @@ export function MemberOpportunities({ bundle }: { bundle: MemberBundle }) {
             </li>
           ))}
         </ul>
+        <ListFooter list={ol.list} audience="staff" auto={false} endLabel={null} loadMoreLabel="Show more opportunities" />
+        </>
       )}
 
       <Drawer open={creating} onClose={() => setCreating(false)} title="New opportunity" subtitle={memberName(bundle.client, "Member")}>

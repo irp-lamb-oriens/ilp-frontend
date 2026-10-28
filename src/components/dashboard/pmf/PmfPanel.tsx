@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { FunnelStep } from "@/lib/contracts";
-import { ProgressBar, Skeleton, SkeletonRegion, SkeletonStatTile, SkeletonText, StaggerItem, StatTile, useSkeleton, ErrorNotice } from "@/components/ui";
+import { DataTable, FilterBar, ListFooter, ProgressBar, Skeleton, SkeletonRegion, SkeletonStatTile, SkeletonText, StaggerItem, StatTile, useSkeleton, ErrorNotice } from "@/components/ui";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
+import type { Column } from "@/components/ui";
 import s from "./PmfPanel.module.scss";
 
 /** Server: GET /api/analytics/pmf (server/API/analytics/funnel.ts). */
@@ -112,24 +115,7 @@ export default function PmfPanel() {
           {data.sources.length === 0 ? (
             <p className={s.muted}>No checks yet.</p>
           ) : (
-            <table className={s.table}>
-              <thead>
-                <tr>
-                  <th scope="col">Source</th>
-                  <th scope="col">Checks</th>
-                  <th scope="col">Paid</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.sources.map((r) => (
-                  <tr key={r.source}>
-                    <td>{r.source}</td>
-                    <td>{r.checks}</td>
-                    <td>{r.paid}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <SourcesTable rows={data.sources} />
           )}
         </section>
 
@@ -152,6 +138,32 @@ export default function PmfPanel() {
         </section>
       </StaggerItem>
     </div>
+  );
+}
+
+type SourceRow = PmfSummary["sources"][number];
+
+/** Where checks come from: searched, sorted and paged in the browser (FILTERS). */
+function SourcesTable({ rows }: { rows: SourceRow[] }) {
+  const sl = useSchemaList<SourceRow>({
+    schema: LOCAL_SCHEMAS.pmfSources,
+    key: "staff-pmf-sources",
+    rows,
+    pageSize: 10,
+    defaultSort: { key: "checks", dir: "desc" },
+    keyOf: (r) => r.source,
+  });
+  const columns = useMemo<Column<SourceRow>[]>(() => [
+    { key: "source", header: "Source", render: (r) => r.source, sortable: true, width: "wide" },
+    { key: "checks", header: "Checks", render: (r) => r.checks, sortable: true, align: "end" },
+    { key: "paid", header: "Paid", render: (r) => r.paid, sortable: true, align: "end" },
+  ], []);
+  return (
+    <>
+      {rows.length > 5 && <FilterBar list={sl} noun="sources" searchLabel="Search sources" placeholder="Source" compact />}
+      <DataTable caption="Where checks come from" columns={columns} rows={sl.list.items} rowKey={(r) => r.source} sort={sl.list.sort} onSortChange={sl.list.setSort} empty="No source matches these filters." />
+      <ListFooter list={sl.list} audience="staff" auto={false} endLabel={null} />
+    </>
   );
 }
 
