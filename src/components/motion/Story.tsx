@@ -21,7 +21,7 @@
  *   Scrubbed `scrub={{ progress, window }}` ties a primitive to a pinned
  *            track's progress (useSectionProgress), for the pinned stories.
  *            <Beat> wraps one step of a story and lifts it out on exit;
- *            beatParts() in story.ts gives each level its window.
+ *            beatParts() in storyMath.ts gives each level its window.
  *
  * Phones and reduced motion: <Stage> fades its content in once, with no
  * movement. All text is in the DOM from the first render; motion changes only
@@ -34,7 +34,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode, type Re
 import { motion, useReducedMotion, useScroll, useTransform, type MotionValue, type Variants } from "framer-motion";
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 import { cx } from "@/components/ui/cx";
-import { splitMark, splitPhrases, splitWindow, type BeatRange, type Window } from "./story";
+import { splitMark, splitPhrases, splitWindow, type BeatRange, type Window } from "./storyMath";
 import s from "./Story.module.scss";
 
 /* ── Layout and progress ─────────────────────────────────────── */

@@ -87,29 +87,71 @@ export const BANDS = {
   },
 };
 
-/** Problem section (pinned morph). */
+/**
+ * "What a missed date can cost you": a pinned scroll story on wide screens
+ * (CostsStory.tsx). Each cost is one beat: the eyebrow, the title, then the
+ * body brightening phrase by phrase, with a small picture beside it.
+ */
 export const COSTS_HEAD = {
   title: "What a missed date can cost you",
   why: "Each of our six countries has yearly legal dates for residents, property owners and companies, and few of them come with a reminder.",
+  /** The key phrase of the lead, underlined once it is read. */
+  mark: "few of them come with a reminder",
+  anchor: "costs",
 };
 
 export const COSTS = [
   {
-    figure: "Fines",
+    id: "fines",
+    eyebrow: "Fines",
     title: "A date you did not know about",
     body: "Your residency card, your company's yearly filing, the yearly fee for your car. Each has its own date, and a late one can bring a fine or extra paperwork.",
   },
   {
-    figure: "Doubt",
+    id: "doubt",
+    eyebrow: "Doubt",
     title: "Answers that do not agree",
     body: "A forum says one thing, a neighbor another, a lawyer a third. You pay for the same question more than once and still are not sure.",
   },
   {
-    figure: "Retelling",
+    id: "retelling",
+    eyebrow: "Retelling",
     title: "Explaining your situation again",
     body: "Each new lawyer starts from zero. You explain your residency, your house and your company again, and details get lost between conversations.",
   },
-];
+] as const;
+
+/**
+ * Labels inside the three pictures (decorative, hidden from assistive tech).
+ * Only words the beat's own body already says.
+ */
+export const COSTS_VISUALS = {
+  fines: {
+    today: "Today",
+    /** In the order they pass the today marker; the last one is missed. */
+    dates: ["Residency card", "Car fee", "Company filing"],
+    late: "Late",
+  },
+  doubt: {
+    answers: [
+      { who: "A forum", says: "Yes" },
+      { who: "A neighbor", says: "No" },
+      { who: "A lawyer", says: "It depends" },
+    ],
+  },
+  retelling: {
+    profile: "Your situation",
+    lines: ["Residency", "House", "Company"],
+    copy: "New lawyer",
+  },
+};
+
+/** After the third beat: a restatement of the lead, then the way on to the free check. */
+export const COSTS_WRAP = {
+  line: "Few of these dates come with a reminder.",
+  link: "Try the free check",
+  href: "#free-check",
+};
 
 export const FEATURES_HEAD = {
   title: "What the membership includes",

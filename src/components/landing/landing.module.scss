@@ -32,34 +32,6 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .statValue { font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 700; letter-spacing: -0.02em; color: $color-navy; }
 .statLabel { color: $color-steel; font-size: 0.875rem; }
 
-/* ── Costs: pinned morph stage ─────────────────── */
-.costs { background: $color-mist; }
-.costsIntro { padding-top: $space-16; @include md { padding-top: $space-24; } }
-.costsIntro > div { margin-bottom: 0; }
-.costsStage { padding: $space-16 $space-4; }
-.costsKicker {
-  @include eyebrow; position: absolute; top: calc(64px + #{$space-8});
-  left: 50%; transform: translateX(-50%); margin: 0; white-space: nowrap;
-}
-.costsLayer { position: relative; width: min(1200px, 100%); min-height: 60dvh; }
-.costSlot { position: absolute; inset: 0; display: grid; align-content: center; gap: $space-6; padding-inline: $space-4; }
-.costStatic { display: grid; gap: $space-6; padding: $space-8 $space-4; }
-.costFigure {
-  font-size: clamp(5rem, 19vw, 16rem); font-weight: 800; letter-spacing: -0.06em;
-  line-height: 0.85; color: transparent; -webkit-text-stroke: 1.5px $color-navy;
-}
-.costText {
-  justify-self: end; max-width: 420px; text-align: right;
-  h3 { font-size: clamp(1.5rem, 2.5vw, 2rem); margin: 0 0 $space-3; color: $color-navy; }
-  p { color: $color-steel; margin: 0 0 0 auto; }
-}
-.costTextLeft { justify-self: start; text-align: left; p { margin: 0; } }
-.rail {
-  position: absolute; bottom: $space-8; left: 50%; transform: translateX(-50%);
-  width: min(320px, 60vw); height: 2px; background: $color-cool-gray; border-radius: 2px; overflow: hidden;
-}
-.railFill { width: 100%; height: 100%; background: $color-accent; transform-origin: left; }
-
 /* ── Sticky split (features + FAQ) ─────────────── */
 .sticky {
   display: grid; grid-template-columns: 1fr; gap: $space-12; padding-block: $space-24;

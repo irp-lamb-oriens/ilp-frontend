@@ -1,4 +1,4 @@
-// Run: npm test. Scroll story math (components/motion/story.ts): beat
+// Run: npm test. Scroll story math (components/motion/storyMath.ts): beat
 // enter / hold / exit windows, the staging order of the three copy levels,
 // anchors and phrase splitting.
 import { test } from "node:test";
@@ -17,7 +17,7 @@ const {
   splitPhrases,
   splitMark,
   trackScrollY,
-} = await import("../src/components/motion/story.ts");
+} = await import("../src/components/motion/storyMath.ts");
 
 test("story: three beats share the track end to end, the last one holds", () => {
   const r = beatRanges(3);

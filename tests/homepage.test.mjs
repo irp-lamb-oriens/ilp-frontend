@@ -27,7 +27,7 @@ test("homepage hero: what you get keeps the plan facts and words", () => {
 });
 
 test("homepage: hero sections come first and in order, the steps own #how-it-works", () => {
-  const order = ["<HeroCTA", "<ProblemScroll", "<StepsScroll", "<WhatYouGet", "<CostsMorph", "TUTORIAL_BANDS.check"];
+  const order = ["<HeroCTA", "<ProblemScroll", "<StepsScroll", "<WhatYouGet", "<CostsStory", "TUTORIAL_BANDS.check"];
   const at = order.map((tag) => page.indexOf(tag));
   for (const [i, pos] of at.entries()) assert.ok(pos > 0, `page.tsx renders ${order[i]}`);
   assert.deepEqual([...at].sort((a, b) => a - b), at, "sections are in order");

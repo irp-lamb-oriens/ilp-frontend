@@ -1,0 +1,502 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// "What a missed date can cost you" (CostsStory.tsx). Pinned on wide screens
+// with motion allowed; staged blocks on tablets; stacked blocks on phones and
+// with reduced motion. The same media query decides the layout in CSS from
+// the first paint, so the switch in script after mount moves nothing.
+// Motion is transform and opacity only (rules.md 6).
+
+// Kept in step with COSTS_TRACK_VH in costsBeats.ts.
+$costs-track-vh: 320;
+$nav: 64px;
+
+@mixin pinned {
+  @media (min-width: $bp-lg) and (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
+
+.costs {
+  background: $color-mist;
+}
+
+.track {
+  position: relative;
+
+  @include pinned {
+    height: #{$costs-track-vh}vh;
+  }
+}
+
+.stage {
+  @include container;
+  padding-block: $space-16 $space-8;
+
+  @include md {
+    padding-block: $space-24 $space-12;
+  }
+
+  @include pinned {
+    position: sticky;
+    top: 0;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    padding-block: calc(#{$nav} + #{$space-8}) $space-8;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-12;
+  width: 100%;
+
+  @include pinned {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: $space-16;
+    align-items: center;
+  }
+}
+
+/* ── Head: heading, lead and rail, top left ─── */
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-6;
+  max-width: 640px;
+
+  @include pinned {
+    align-self: start;
+  }
+}
+
+.iconRow {
+  display: flex;
+}
+
+.title {
+  @include heading-xl;
+  margin: 0;
+  font-size: clamp(2.25rem, 4.2vw, 3.5rem);
+  letter-spacing: -0.035em;
+}
+
+.head .lead {
+  max-width: 44ch;
+  font-size: clamp(1.125rem, 1.5vw, 1.3rem);
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  width: 100%;
+  max-width: 420px;
+}
+
+.railCount {
+  margin: 0;
+  font-family: $font-mono;
+  font-size: 0.8rem;
+  color: $color-steel;
+}
+
+.railList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-3;
+}
+
+.railLink {
+  @include focus-ring;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding-block: $space-2;
+  border-radius: $radius-sm;
+  text-decoration: none;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: $color-steel;
+
+  &[aria-current="step"] {
+    color: $color-navy;
+    font-weight: 600;
+  }
+
+  @include hover-only {
+    &:hover {
+      color: $color-navy;
+    }
+  }
+}
+
+.railLabel {
+  display: block;
+}
+
+.railBar {
+  display: block;
+  height: 2px;
+  border-radius: 1px;
+  background: $color-cool-gray;
+  overflow: hidden;
+}
+
+.railFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: $color-accent;
+  transform-origin: left center;
+}
+
+/* ── Beats ───────────────────────────────────── */
+.beats {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+  min-width: 0;
+
+  @include pinned {
+    display: grid;
+    gap: 0;
+  }
+}
+
+.beat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-6;
+  min-width: 0;
+  scroll-margin-top: calc(#{$nav} + #{$space-4});
+
+  @include md {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: $space-12;
+    align-items: center;
+  }
+
+  @include pinned {
+    grid-area: 1 / 1;
+    grid-template-columns: minmax(0, 1fr);
+    gap: $space-8;
+    align-items: start;
+  }
+}
+
+/* Tablets: alternate the picture side from beat to beat. */
+.beatFlip .beatText {
+  @include md {
+    order: 2;
+  }
+
+  @include pinned {
+    order: 0;
+  }
+}
+
+.beatText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.beatTitle {
+  @include story-title;
+}
+
+.beatText .beatBody {
+  max-width: 52ch;
+}
+
+.beatVisual {
+  min-width: 0;
+}
+
+/* Fixed height, so pictures never move the layout. */
+.frame {
+  position: relative;
+  height: 240px;
+  overflow: hidden;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+
+  @include md {
+    height: clamp(220px, 28vh, 260px);
+  }
+}
+
+/* ── Fines ───────────────────────────────────── */
+.fines {
+  position: absolute;
+  inset: 0;
+}
+
+.today {
+  position: absolute;
+  top: $space-3;
+  bottom: $space-3;
+  left: 45%;
+  z-index: 1;
+  border-left: 1px solid $color-navy;
+}
+
+.todayLabel {
+  position: absolute;
+  top: 0;
+  left: $space-2;
+  padding-inline: $space-1;
+  background: $color-canvas;
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-navy;
+}
+
+/* Twice the frame wide; slides left with the timeline. */
+.strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+}
+
+.axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed $color-hairline-strong;
+}
+
+// Date centres, kept in step with FINES_AT in costsBeats.ts.
+.date {
+  position: absolute;
+  top: calc(50% - 2.25rem);
+  width: 15%;
+  min-height: 4.5rem;
+  margin-left: -7.5%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: $space-2;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  background: $color-surface;
+}
+
+.dateAt0 { left: 25%; }
+.dateAt1 { left: 45%; }
+.dateAt2 { left: 65%; }
+
+.dateLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: $color-navy;
+}
+
+.dateCheck {
+  display: inline-flex;
+  color: $color-success;
+}
+
+/* Calm warning outline on the missed date: tone in the border only. */
+.dateWarn {
+  position: absolute;
+  inset: -1px;
+  border: 2px solid $notice-warning;
+  border-radius: $radius-sm;
+  pointer-events: none;
+}
+
+.dateLate {
+  display: inline-block;
+  width: fit-content;
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $notice-warning;
+  transform-origin: left center;
+}
+
+/* ── Doubt ───────────────────────────────────── */
+.doubt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-3;
+}
+
+.guide {
+  position: absolute;
+  top: $space-4;
+  bottom: $space-4;
+  left: 50%;
+  border-left: 1px dashed $color-hairline-strong;
+}
+
+.bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: $space-3;
+  padding: $space-2 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  box-shadow: $shadow-card;
+}
+
+.bubbleWho {
+  font-family: $font-mono;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-steel;
+}
+
+.bubbleSays {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+/* ── Retelling ───────────────────────────────── */
+.retelling {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: center;
+  gap: $space-2;
+  padding: $space-3;
+
+  @include md {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+    gap: $space-3;
+    padding: $space-4;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+  background: $color-surface;
+}
+
+.cardProfile {
+  border-color: $color-navy;
+}
+
+.cardCopy {
+  border-style: dashed;
+  border-color: $color-hairline-strong;
+}
+
+/* Wide frames: each copy sits a step lower, handed along. */
+.copy1 {
+  @include md {
+    margin-top: $space-4;
+  }
+}
+
+.copy2 {
+  @include md {
+    margin-top: $space-8;
+  }
+}
+
+.cardLabel {
+  font-family: $font-mono;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: $color-steel;
+}
+
+.cardLines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+
+  li {
+    position: relative;
+    padding-left: $space-3;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: $color-navy;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 6px;
+      border-top: 2px solid $color-accent;
+    }
+  }
+}
+
+.lineLost {
+  display: block;
+}
+
+/* ── Wrap-up and the way on ──────────────────── */
+.wrapUp {
+  @include container;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-4 $space-8;
+  padding-block: $space-8 $space-16;
+
+  @include md {
+    padding-bottom: $space-24;
+  }
+}
+
+.wrapUp .wrapLine {
+  @include story-title;
+  max-width: none;
+  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+}
+
+.wrapLink {
+  @include button-ghost;
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  padding: $space-3 $space-6;
+  text-decoration: none;
+}

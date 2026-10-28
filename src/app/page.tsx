@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import HeroCTA from "@/components/HeroCTA";
 import ParallaxBand from "@/components/ParallaxBand";
-import { CostsMorph, FeaturesSticky, StepsPan } from "@/components/landing/StorySections";
+import { FeaturesSticky, StepsPan } from "@/components/landing/StorySections";
+import { CostsStory } from "@/components/landing/CostsStory";
 import { ProblemScroll, StepsScroll, WhatYouGet } from "@/components/landing/HeroStory";
 import { TutorialBand } from "@/components/landing/TutorialBand";
 import {
@@ -42,7 +43,7 @@ export default function HomePage() {
         <StepsScroll />
         <WhatYouGet />
 
-        <CostsMorph />
+        <CostsStory />
         <TutorialBand band={TUTORIAL_BANDS.check} />
 
         <ParallaxBand
