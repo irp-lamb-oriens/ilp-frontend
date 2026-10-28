@@ -111,10 +111,15 @@ export function useStreamedList<T>(source: ListSource<T>, opts: UseStreamedListO
   const [sort, setSortState] = useState<ListSort | undefined>(opts.sort);
 
   // Follow filter / sort / query changes the caller makes (URL params, the shell's country switcher).
+  // Keyed on content, so an inline object does not undo the filters the person picked.
   const optFilters = opts.filters;
+  const optFiltersKey = optFilters ? JSON.stringify(Object.entries(optFilters).filter(([, v]) => v).sort()) : "";
+  const optFiltersRef = useRef(optFilters);
+  optFiltersRef.current = optFilters;
   useEffect(() => {
-    if (optFilters) setFiltersState((cur) => (sameRecord(cur, optFilters) ? cur : optFilters));
-  }, [optFilters]);
+    const next = optFiltersRef.current;
+    if (next) setFiltersState((cur) => (sameRecord(cur, next) ? cur : next));
+  }, [optFiltersKey]);
   const optSortKey = opts.sort?.key;
   const optSortDir = opts.sort?.dir;
   useEffect(() => {
@@ -201,7 +206,7 @@ export function useStreamedList<T>(source: ListSource<T>, opts: UseStreamedListO
   useEffect(() => () => ctrlRef.current?.abort(), []);
 
   const setQuery = useCallback((q: string) => setQueryRaw(q), []);
-  const setFilters = useCallback((f: Record<string, string>) => setFiltersState(f), []);
+  const setFilters = useCallback((f: Record<string, string>) => setFiltersState((cur) => (sameRecord(cur, f) ? cur : f)), []);
   const setFilter = useCallback((k: string, v: string) => setFiltersState((cur) => (cur[k] === v ? cur : { ...cur, [k]: v })), []);
   const setSort = useCallback((s: ListSort) => setSortState(s), []);
   const loadMore = useCallback(() => run("append"), [run]);

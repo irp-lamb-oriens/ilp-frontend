@@ -1,0 +1,20 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.footer {
+  display: grid;
+  gap: $space-3;
+  margin-top: $space-3;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+}
+
+.end {
+  margin: 0;
+  color: $color-muted;
+  font-size: 0.875rem;
+  text-align: center;
+}

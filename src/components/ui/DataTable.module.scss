@@ -143,3 +143,19 @@
 .skEnd {
   margin-left: auto;
 }
+
+// LISTS: rows of the previous search while the new one loads. Opacity only.
+.table tbody {
+  transition: opacity $duration-fast $ease-out-strong;
+}
+
+.stale tbody {
+  opacity: 0.55;
+}
+
+// Long tables render only the rows near the viewport; these hold the rest's height.
+.spacer,
+.spacerCell {
+  padding: 0;
+  border: none;
+}
