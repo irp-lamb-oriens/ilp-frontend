@@ -1,5 +1,6 @@
 "use client";
 
+import { countryNameOf } from "@/lib/countryContext";
 import { AgingBadge, ProgressBar, StatusPill } from "@/components/ui";
 import { areaLabel, fmtDate, fmtShortDate, fmtTime, WHO_LABEL, type Brief } from "./lawyerApi";
 import { ConsentPill } from "./pills";
@@ -22,7 +23,7 @@ function dependentsText(v: unknown): string | null {
 export default function BriefPanel({ brief, showWhen = true }: { brief: Brief; showWhen?: boolean }) {
   const { who, household, residency, assets, matters, obligations, completeness, membership, consultation: c } = brief;
   const pct = Math.round(completeness.score * 100);
-  const facts = [who.age ? `${who.age}` : null, who.nationality, who.country === "CR" ? "in Costa Rica" : who.country].filter(Boolean).join(" · ");
+  const facts = [who.age ? `${who.age}` : null, who.nationality, who.country ? `in ${countryNameOf(who.country) || who.country}` : null].filter(Boolean).join(" · ");
   const householdLine = [cap(household.maritalStatus), dependentsText(household.dependents)].filter(Boolean).join(", ") || "Not given yet";
   const residencyLine = residency.status
     ? `${cap(residency.status)}${residency.expiresAt ? `, expires ${fmtDate(residency.expiresAt)}` : ""}`

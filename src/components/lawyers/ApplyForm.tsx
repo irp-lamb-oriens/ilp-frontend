@@ -20,6 +20,8 @@ import {
   type WeeklyWindowValue,
 } from "@/components/ui";
 import { API_URL } from "@/lib/api";
+import { COUNTRIES, isCountryCode } from "@/lib/contracts";
+import { COUNTRY_ZONE_OPTIONS, zoneLabelOf } from "@/lib/timeZones";
 import { LEGAL_VERSIONS } from "@/components/legal/versions";
 import { PARTNER_TERMS_VERSION } from "@/components/legal/content/partner";
 import {
@@ -36,7 +38,9 @@ import {
   hasContent,
   LANGUAGES,
   loadDraft,
+  licensingFor,
   NOTICE_OPTIONS,
+  PRACTICE_COUNTRIES,
   PROVINCES,
   saveDraft,
   STEP_IDS,
@@ -56,14 +60,14 @@ interface StepCopy {
 const STEPS: Record<StepId, StepCopy> = {
   you: {
     title: "You",
-    ask: "Your name, how to reach you, the languages you can hold a call in and where you work.",
+    ask: "The country where you are licensed, your name, how to reach you, the languages you can hold a call in and where you work.",
     why: "We use your email to open your lawyer account and to send your sign-in codes. Members are matched to lawyers who speak their language.",
-    next: "Next we ask about your practice and your carné.",
+    next: "Next we ask about your practice and your licence number.",
   },
   practice: {
     title: "Your practice",
-    ask: "Your carné number with the Colegio de Abogados y Abogadas de Costa Rica, the year you were admitted, whether you are a notary, and your firm if you have one.",
-    why: "We check your carné with the Colegio before anyone can book you. Some member work, like a property transfer, needs a notary.",
+    ask: "Your licence number with the body that licenses lawyers in your country (for example the Colegio de Abogados y Abogadas de Costa Rica carné, or the Ordem dos Advogados cédula in Portugal), the year you were admitted, whether you are a notary, and your firm if you have one.",
+    why: "We check your licence with that body before anyone can book you. Some member work, like a property transfer, needs a notary.",
     next: "Next you choose the legal areas you take.",
   },
   areas: {
@@ -92,7 +96,7 @@ const STEPS: Record<StepId, StepCopy> = {
   },
   agreements: {
     title: "Agreements",
-    ask: "Four confirmations, including permission to check your carné with the Colegio.",
+    ask: "Four confirmations, including permission to check your licence with the body that issued it.",
     why: "We need them to review the application and to keep a record of what you agreed to.",
     next: "After you send, we email you a confirmation and you can sign in to the lawyer portal. We email you again when the review is done.",
   },
@@ -267,6 +271,9 @@ export default function ApplyForm() {
   }
 
   const err = (k: string) => errors[k];
+  // COUNTRIES: the licensing body, number label and time zone follow the country of practice.
+  const lic = licensingFor(d.country);
+  const tz = d.timezone || (isCountryCode(d.country) ? COUNTRIES[d.country].defaultTimeZone : "America/Costa_Rica");
 
   return (
     <div className={s.layout}>
@@ -332,24 +339,44 @@ export default function ApplyForm() {
         <div className={s.fields}>
           {id === "you" && (
             <>
+              <div data-field="country">
+                <RadioGroup
+                  label="Where are you licensed to practise?"
+                  hint="Members are matched with lawyers licensed in the country their question is about."
+                  name="country"
+                  options={PRACTICE_COUNTRIES}
+                  value={d.country}
+                  onChange={(v) => {
+                    set("country", v);
+                    set("timezone", "");
+                    if (v !== "CR" && (PROVINCES as readonly string[]).includes(d.province)) set("province", "");
+                  }}
+                  error={err("country")}
+                  required
+                />
+              </div>
               <div data-field="name">
-                <TextInput label="Full name" hint="As it appears on your Colegio carné." autoComplete="name" value={d.name} onChange={(e) => set("name", e.target.value)} error={err("name")} required />
+                <TextInput label="Full name" hint="As it appears on your licence." autoComplete="name" value={d.name} onChange={(e) => set("name", e.target.value)} error={err("name")} required />
               </div>
               <div data-field="email">
                 <TextInput type="email" label="Email" hint="Your sign-in codes and our replies go here." autoComplete="email" value={d.email} onChange={(e) => set("email", e.target.value)} error={err("email")} required />
               </div>
               <div data-field="phone">
-                <TextInput type="tel" label="Mobile or WhatsApp" hint="With the country code, like +506 8888 1234. We call or write only about your application and your calls." autoComplete="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} error={err("phone")} required />
+                <TextInput type="tel" label="Mobile or WhatsApp" hint="With the country code, like +506 8888 1234 or +351 912 345 678. We call or write only about your application and your calls." autoComplete="tel" value={d.phone} onChange={(e) => set("phone", e.target.value)} error={err("phone")} required />
               </div>
               <div data-field="languages">
                 <ChipSelect label="Languages you can hold a call in" hint="Most members speak English. Choose every language you are comfortable advising in." options={LANGUAGES} value={d.languages} onChange={(v) => set("languages", v)} error={err("languages")} required />
               </div>
               <div className={s.pair}>
                 <div data-field="city">
-                  <TextInput label="City or town" hint="Where you usually work, like Escazú or Liberia." autoComplete="address-level2" value={d.city} onChange={(e) => set("city", e.target.value)} error={err("city")} required />
+                  <TextInput label="City or town" hint="Where you usually work, like Escazú, Medellín or Lisbon." autoComplete="address-level2" value={d.city} onChange={(e) => set("city", e.target.value)} error={err("city")} required />
                 </div>
                 <div data-field="province">
-                  <Select label="Province" value={d.province} onChange={(e) => set("province", e.target.value)} error={err("province")} required placeholder="Choose a province" options={PROVINCES.map((p) => ({ value: p, label: p }))} />
+                  {d.country === "CR" || !d.country ? (
+                    <Select label="Province" value={d.province} onChange={(e) => set("province", e.target.value)} error={err("province")} required placeholder="Choose a province" options={PROVINCES.map((p) => ({ value: p, label: p }))} />
+                  ) : (
+                    <TextInput label="State, region or department" hint="Like Antioquia, Jalisco, Andalusia or Lisboa." value={d.province} onChange={(e) => set("province", e.target.value)} error={err("province")} required />
+                  )}
                 </div>
               </div>
             </>
@@ -359,14 +386,18 @@ export default function ApplyForm() {
             <>
               <div className={s.pair}>
                 <div data-field="carne">
-                  <TextInput label="Colegio carné number" hint="Your membership number with the Colegio de Abogados y Abogadas de Costa Rica. Digits only." inputMode="numeric" value={d.carne} onChange={(e) => set("carne", e.target.value)} error={err("carne")} required />
+                  <TextInput
+                    label={d.country === "CR" || !d.country ? "Colegio carné number" : lic.numberLabel}
+                    hint={d.country === "CR" || !d.country ? "Your membership number with the Colegio de Abogados y Abogadas de Costa Rica. Digits only." : `As issued by the ${lic.body}.`}
+                    inputMode={d.country === "CR" || !d.country ? "numeric" : "text"}
+                    value={d.carne} onChange={(e) => set("carne", e.target.value)} error={err("carne")} required />
                 </div>
                 <div data-field="yearAdmitted">
                   <TextInput label="Year admitted" hint="The year you were sworn in, like 2011." inputMode="numeric" maxLength={4} value={d.yearAdmitted} onChange={(e) => set("yearAdmitted", e.target.value.replace(/\D/g, ""))} error={err("yearAdmitted")} required />
                 </div>
               </div>
               <div data-field="yearsInPractice">
-                <NumberStepper label="Years in practice" hint="Count the years you have practised law, in Costa Rica or elsewhere." value={d.yearsInPractice} onChange={(v) => set("yearsInPractice", v)} min={0} max={70} unit={["year", "years"]} error={err("yearsInPractice")} required />
+                <NumberStepper label="Years in practice" hint={`Count the years you have practised law, in ${lic.countryName} or elsewhere.`} value={d.yearsInPractice} onChange={(v) => set("yearsInPractice", v)} min={0} max={70} unit={["year", "years"]} error={err("yearsInPractice")} required />
               </div>
               <div data-field="notary">
                 <RadioGroup
@@ -433,11 +464,21 @@ export default function ApplyForm() {
           {id === "availability" && (
             <>
               <fieldset className={s.hours} data-field="weekly" aria-describedby={err("weekly") ? "weekly-hint weekly-error" : "weekly-hint"} aria-invalid={err("weekly") ? true : undefined}>
-                <legend className={s.comfortLegend}>Your usual weekly hours (Costa Rica time)</legend>
+                <legend className={s.comfortLegend}>Your usual weekly hours ({zoneLabelOf(tz)})</legend>
                 <p id="weekly-hint" className={s.hint}>Switch on the days you could take calls and set the hours. Each call is 20 minutes.</p>
                 <WeeklyHoursEditor value={d.weekly as WeeklyWindowValue[]} onChange={(v) => set("weekly", v)} defaultWindow={{ start: "09:00", end: "12:00" }} idPrefix="apply-hours" />
                 <FieldError id="weekly-error">{err("weekly")}</FieldError>
               </fieldset>
+              <div data-field="timezone">
+                <Select
+                  label="Time zone of these hours"
+                  hint="It defaults to the country where you are licensed. Members see your times in their own time zone."
+                  value={tz}
+                  onChange={(e) => set("timezone", e.target.value)}
+                  error={err("timezone")}
+                  options={COUNTRY_ZONE_OPTIONS.some((z) => z.value === tz) ? COUNTRY_ZONE_OPTIONS : [...COUNTRY_ZONE_OPTIONS, { value: tz, label: tz }]}
+                />
+              </div>
               <div data-field="callsPerWeek">
                 <NumberStepper label="Calls you could take in a week" hint="A guess is fine. You can change it later." value={d.callsPerWeek} onChange={(v) => set("callsPerWeek", v)} min={1} max={40} presets={[3, 6, 10]} unit={["call", "calls"]} error={err("callsPerWeek")} required />
               </div>
@@ -553,7 +594,7 @@ export default function ApplyForm() {
                   <dd>{d.email || "Not filled in"}</dd>
                 </div>
                 <div>
-                  <dt>Carné</dt>
+                  <dt>{lic.numberLabel}</dt>
                   <dd>{d.carne || "Not filled in"}</dd>
                 </div>
                 <div>
@@ -562,7 +603,7 @@ export default function ApplyForm() {
                 </div>
               </dl>
               <div data-field="licensedInGoodStanding">
-                <Checkbox label="I am licensed to practise law in Costa Rica and in good standing with the Colegio de Abogados y Abogadas." checked={d.licensedInGoodStanding} onChange={(e) => set("licensedInGoodStanding", e.target.checked)} error={err("licensedInGoodStanding")} required />
+                <Checkbox label={`I am licensed to practise law in ${lic.countryName} and in good standing with the ${lic.body}.`} checked={d.licensedInGoodStanding} onChange={(e) => set("licensedInGoodStanding", e.target.checked)} error={err("licensedInGoodStanding")} required />
               </div>
               <div data-field="partnerTerms">
                 <Checkbox
@@ -601,7 +642,7 @@ export default function ApplyForm() {
               </div>
               <div data-field="carneVerification">
                 <Checkbox
-                  label="ILP may check my carné with the Colegio de Abogados y Abogadas, and my notary registration if I gave a notary number."
+                  label={`ILP may check my ${lic.numberLabel.toLowerCase()} with the ${lic.body}, and my notary registration if I gave a notary number.`}
                   checked={d.carneVerification}
                   onChange={(e) => set("carneVerification", e.target.checked)}
                   error={err("carneVerification")}

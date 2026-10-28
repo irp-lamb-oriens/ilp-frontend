@@ -30,7 +30,7 @@ export interface TranscriptResult {
 
 export interface CallsApi {
   availability(): Promise<AvailabilitySettings>;
-  saveAvailability(input: Omit<AvailabilitySettings, "providerId" | "timezone" | "updatedAt" | "isDefault">): Promise<AvailabilitySettings>;
+  saveAvailability(input: Omit<AvailabilitySettings, "providerId" | "timezone" | "updatedAt" | "isDefault"> & { timezone?: string }): Promise<AvailabilitySettings>;
   noShow(consultationId: string): Promise<{ status: string }>;
   meetTranscript(consultationId: string): Promise<TranscriptResult>;
   uploadRecording(consultationId: string, file: { fileName: string; contentType: string; dataBase64: string }): Promise<TranscriptResult>;

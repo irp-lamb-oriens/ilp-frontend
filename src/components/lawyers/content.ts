@@ -9,16 +9,16 @@ export const APPLY_HREF = "/lawyers/apply";
 export const SIGN_IN_HREF = "/lawyer";
 
 export const LAWYERS_HERO = {
-  eyebrow: "For lawyers licensed in Costa Rica",
+  eyebrow: "For lawyers in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain",
   title: "Advise ILP members. We prepare each call and handle the follow-up.",
-  why: "Many North Americans live in Costa Rica or own property there, and they have legal questions about residency, property, companies and cars. Finding them, booking them and chasing them after a call takes hours that nobody pays for. ILP members pay a monthly membership that includes their calls, they write their question down before booking, and a customer success manager follows up after you speak.",
+  why: "Many North Americans live in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or own property there, and they have legal questions about residency, property, companies and cars. Finding them, booking them and chasing them after a call takes hours that nobody pays for. ILP members pay a monthly membership that includes their calls, they write their question down before booking, and a customer success manager follows up after you speak.",
   how: [
-    "Apply online. We check your carné with the Colegio de Abogados y Abogadas de Costa Rica and reply by email.",
+    "Apply online. We check your licence with the body that issued it (for example your carné with the Colegio de Abogados y Abogadas de Costa Rica, or your colegiado number in Spain) and reply by email.",
     "Set the weekly hours when members can book you, and the legal areas you take.",
     "Before each 20-minute video call, read a one-screen brief with the member's question and profile.",
     "After the call, confirm the suggested summary and next steps. ILP follows up with the member, including quotes for paid work.",
   ],
-  what: "ILP is a legal membership for North Americans in Costa Rica: US$79.99 a month, with up to three 20-minute video calls a month with a lawyer licensed in Costa Rica. Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal. Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
+  what: "ILP is a legal membership for North Americans in six countries: US$79.99 a month, with up to three 20-minute video calls a month with a lawyer licensed in the member's country. Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal. Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
   labels: { why: "Why lawyers join", how: "How it works for you", what: "What the partnership is" },
   primary: "Apply as a partner lawyer",
   secondary: "See the portal",
@@ -71,8 +71,8 @@ export const PARTNERSHIP = {
     { term: "Member calls", body: "Members book 20-minute video calls inside your hours. Their membership includes up to three calls a month." },
     { term: "Paid work", body: "If a member needs more than a call, you set the scope and your fee in a quote. The member accepts before work starts." },
     { term: "How you are paid", body: "How fees for calls and for quoted work are set, split and paid is in the partner terms. That part is pending review by ILP's counsel." },
-    { term: "Who can apply", body: "Lawyers licensed in Costa Rica and in good standing with the Colegio de Abogados y Abogadas. Most members speak English, so tell us which languages you can hold a call in." },
-    { term: "What we check", body: "Your carné with the Colegio, and your notary registration if you are a notary. We email you if something is missing." },
+    { term: "Who can apply", body: "Lawyers licensed and in good standing in Colombia (tarjeta profesional), Costa Rica (Colegio carné), Mexico (cédula profesional), Panama (idoneidad), Portugal (Ordem dos Advogados cédula) or Spain (colegiado at a Colegio de Abogados). Most members speak English, so tell us which languages you can hold a call in." },
+    { term: "What we check", body: "Your licence with the body that issued it, and your notary registration if you are a notary. We email you if something is missing." },
   ],
   termsLink: "Read the draft partner terms",
   termsHref: "/legal/partner-terms",

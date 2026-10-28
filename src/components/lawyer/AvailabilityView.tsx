@@ -10,6 +10,7 @@ import {
   IconCheck,
   Notice,
   NumberStepper,
+  Select,
   SkeletonRegion,
   StaggerItem,
   TextInput,
@@ -23,6 +24,7 @@ import {
 import { AREA_LABEL, errorText } from "./lawyerApi";
 import { callsApi, type AvailabilitySettings, type WeeklyWindow } from "./callsApi";
 import { LawyerAvailabilitySkeleton } from "./LawyerSkeletons";
+import { COUNTRY_ZONE_OPTIONS, zoneLabelOf } from "@/lib/timeZones";
 import s from "./AvailabilityView.module.scss";
 
 const SPECIALTIES = ["real_estate", "corporate", "immigration", "tax", "vehicle", "notary"];
@@ -48,6 +50,7 @@ interface Draft {
   maxPerDay: number;
   specialties: string[];
   calendarId: string;
+  timezone: string;
 }
 
 const draftFrom = (a: AvailabilitySettings): Draft => ({
@@ -57,6 +60,7 @@ const draftFrom = (a: AvailabilitySettings): Draft => ({
   maxPerDay: a.maxCallsPerDay,
   specialties: a.specialties,
   calendarId: a.calendarId ?? "",
+  timezone: a.timezone || "America/Costa_Rica",
 });
 
 /** Order-independent fingerprint, so reordering or re-adding the same hours is not a change. */
@@ -70,10 +74,11 @@ const fingerprint = (d: Draft) =>
     maxPerDay: d.maxPerDay,
     specialties: [...d.specialties].sort(),
     calendarId: d.calendarId.trim().toLowerCase(),
+    timezone: d.timezone,
   });
 
 /**
- * Lawyer availability: weekly hours in Costa Rica time, days off, notice,
+ * Lawyer availability: weekly hours in the lawyer's own time zone, days off, notice,
  * calls per day, specialties and an optional Google Calendar for busy times.
  * Booking slots for members are built from exactly these settings.
  *
@@ -176,6 +181,7 @@ export default function AvailabilityView({
         maxCallsPerDay: draft.maxPerDay,
         specialties: draft.specialties,
         calendarId: draft.calendarId.trim() || null,
+        timezone: draft.timezone,
       });
       apply(out);
       setSaved(true);
@@ -201,14 +207,23 @@ export default function AvailabilityView({
       {intro}
       <header className={s.head}>
         <h2 className={s.h}>{title}</h2>
-        <p className={s.sub}>Members book 20-minute calls inside these hours, in Costa Rica time.</p>
+        <p className={s.sub}>Members book 20-minute calls inside these hours, in {zoneLabelOf(draft.timezone)}. Each member sees the times in their own time zone.</p>
       </header>
+      <div data-field="timezone">
+        <Select
+          label={audience === "staff" ? "The lawyer's time zone" : "Your time zone"}
+          hint="The weekly hours below are in this time zone. It defaults to the time zone of the country where you are licensed."
+          value={draft.timezone}
+          onChange={(e) => patch({ timezone: e.target.value })}
+          options={COUNTRY_ZONE_OPTIONS.some((z) => z.value === draft.timezone) ? COUNTRY_ZONE_OPTIONS : [...COUNTRY_ZONE_OPTIONS, { value: draft.timezone, label: draft.timezone }]}
+        />
+      </div>
 
       {data.isDefault && (
         <Notice
           tone="info"
           title="Standard hours apply until hours are saved here"
-          terms={["availability", "slot", "costaRicaTime"]}
+          terms={["availability", "slot", "localTime"]}
           fix={{
             summary:
               audience === "staff"
@@ -216,7 +231,7 @@ export default function AvailabilityView({
                 : "You have never saved hours, so members are offered Monday to Friday, 8:00 am to 12:00 pm and 1:00 pm to 5:00 pm.",
             steps: [
               audience === "staff" ? "Ask the lawyer which days and hours they take calls, then turn on those days with the switch next to each day." : "Turn on the switch next to each day you take calls, and turn it off for the days you do not.",
-              "For each day, set the start and end time, for example 9:00 am to 12:00 pm. Press Add hours for a second window, like an afternoon. Times are Costa Rica time.",
+              "For each day, set the start and end time, for example 9:00 am to 12:00 pm. Press Add hours for a second window, like an afternoon. Times are in the time zone chosen above.",
               "Add any days off below, like holidays.",
               "Press Save hours at the bottom. This notice goes away and members see only the new times.",
             ],

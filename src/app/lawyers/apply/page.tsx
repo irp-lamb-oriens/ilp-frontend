@@ -6,7 +6,7 @@ import s from "@/components/lawyers/apply.module.scss";
 
 export const metadata: Metadata = {
   title: "Apply as a partner lawyer | ILP",
-  description: "Apply to take 20-minute video calls with ILP members as a partner lawyer licensed in Costa Rica.",
+  description: "Apply to take 20-minute video calls with ILP members as a partner lawyer licensed in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain.",
   robots: { index: true, follow: true },
 };
 

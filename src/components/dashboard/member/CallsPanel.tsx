@@ -1,5 +1,6 @@
 "use client";
 
+import { zoneLabelOf } from "@/lib/timeZones";
 import { useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { Consultation } from "@/lib/contracts";
@@ -22,6 +23,15 @@ const STATUS: Record<Consultation["status"], { label: string; tone: StatusTone }
   cancelled: { label: "Cancelled", tone: "neutral" },
 };
 
+/** Staff see call times in this device's time zone (COUNTRIES: members and lawyers are in six countries). */
+const STAFF_TZ = (() => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Costa_Rica";
+  } catch {
+    return "America/Costa_Rica";
+  }
+})();
+
 function crTime(iso: string): string {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return iso;
@@ -31,7 +41,7 @@ function crTime(iso: string): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Costa_Rica",
+    timeZone: STAFF_TZ,
   });
 }
 
@@ -118,7 +128,7 @@ function CallItem({ call: c, lawyer, onChanged }: { call: Consultation; lawyer: 
     void run(
       "reschedule",
       () => staffApi.post(`/api/dashboard/consultations/${id}/reschedule`, { scheduledAt: iso, ...(custom ? { force: true } : {}) }),
-      `Moved to ${crTime(iso)} (Costa Rica). Both sides get an email.`,
+      `Moved to ${crTime(iso)} (${zoneLabelOf(STAFF_TZ)}). Both sides get an email in their own time zone.`,
     );
   }
 
@@ -217,7 +227,7 @@ function CallItem({ call: c, lawyer, onChanged }: { call: Consultation; lawyer: 
             }
           >
             {() => (
-              <Select label={<>Open times for {lawyer} (Costa Rica time)</>} value={slot} onChange={(e) => setSlot(e.target.value)} disabled={!slots?.length || !!custom}>
+              <Select label={<>Open times for {lawyer} ({zoneLabelOf(STAFF_TZ)})</>} value={slot} onChange={(e) => setSlot(e.target.value)} disabled={!slots?.length || !!custom}>
                 <option value="">{slots?.length ? "Choose a time" : "No open times"}</option>
                 {(slots ?? []).slice(0, 60).map((t) => (
                   <option key={t} value={t}>

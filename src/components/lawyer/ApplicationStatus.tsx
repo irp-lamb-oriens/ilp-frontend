@@ -78,7 +78,7 @@ export default function ApplicationStatus({ me }: { me: LawyerMe }) {
     {
       id: "review",
       title: "Review by ILP",
-      body: "We check your carné with the Colegio and read your answers. We email you when you can take calls.",
+      body: "We check your licence with the body that issued it and read your answers. We email you when you can take calls.",
       state: { label: me.status === "changes_requested" ? "Waiting for your change" : "In review", tone: "info" },
     },
   ];

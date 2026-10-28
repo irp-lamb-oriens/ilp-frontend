@@ -4,6 +4,7 @@
  * can check it. The server repeats every check (server/API/providers/applyLogic.ts)
  * and returns the same field keys.
  */
+import { COUNTRIES, COUNTRY_CODES, isCountryCode } from "@/lib/contracts";
 
 export interface WeeklyWindow {
   day: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -54,7 +55,20 @@ export const NOTICE_OPTIONS = [
 export const BIO_MIN = 80;
 export const BIO_MAX = 800;
 
+/** COUNTRIES: the body that licenses lawyers in each country and the number to ask for. */
+export function licensingFor(country: string) {
+  const c = isCountryCode(country) ? COUNTRIES[country] : COUNTRIES.CR;
+  return { country: c.code, countryName: c.name, body: c.lawyerBody.name, numberLabel: c.lawyerBody.numberLabel, url: c.lawyerBody.url };
+}
+
+/** Countries a partner lawyer can practise in (all six). */
+export const PRACTICE_COUNTRIES = COUNTRY_CODES.map((code) => ({ value: code, label: COUNTRIES[code].name }));
+
 export interface Draft {
+  /** Country of practice (one of the six). */
+  country: string;
+  /** Time zone of the weekly hours; the country's default unless changed. */
+  timezone: string;
   name: string;
   email: string;
   phone: string;
@@ -86,6 +100,8 @@ export interface Draft {
 }
 
 export const EMPTY_DRAFT: Draft = {
+  country: "",
+  timezone: "",
   name: "",
   email: "",
   phone: "",
@@ -123,6 +139,8 @@ export type StepId = (typeof STEP_IDS)[number];
 
 /** Which step shows each field (server error keys included), so a server error opens the right step. */
 export const FIELD_STEP: Record<string, StepId> = {
+  country: "you",
+  timezone: "availability",
   name: "you",
   email: "you",
   phone: "you",
@@ -155,6 +173,9 @@ export const FIELD_STEP: Record<string, StepId> = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9 ()-]{7,24}$/;
 const CARNE_RE = /^\d{1,7}$/;
+/** Licence numbers outside Costa Rica: letters, digits and separators. */
+const LICENCE_RE = /^[A-Za-z0-9/-]{1,20}$/;
+const licence = (country: string, v: string) => (country === "CR" ? digits(v) : v.trim().replace(/\s+/g, ""));
 const digits = (v: string) => v.trim().replace(/[\s.-]/g, "");
 const toMin = (t: string) => {
   const [h, m] = t.split(":").map(Number);
@@ -165,15 +186,20 @@ const toMin = (t: string) => {
 export function validateStep(step: StepId, d: Draft, year = new Date().getFullYear()): Errors {
   const e: Errors = {};
   if (step === "you") {
-    if (d.name.trim().length < 2) e.name = "Enter your full name as it appears on your Colegio carné.";
-    if (!EMAIL_RE.test(d.email.trim())) e.email = "Enter an email address you check, like name@yourfirm.cr.";
-    if (!PHONE_RE.test(d.phone.trim())) e.phone = "Enter a mobile number with the country code, like +506 8888 1234.";
+    if (!isCountryCode(d.country)) e.country = "Choose the country where you are licensed to practise.";
+    if (d.name.trim().length < 2) e.name = "Enter your full name as it appears on your licence.";
+    if (!EMAIL_RE.test(d.email.trim())) e.email = "Enter an email address you check, like name@yourfirm.com.";
+    if (!PHONE_RE.test(d.phone.trim())) e.phone = "Enter a mobile number with the country code, like +34 612 345 678.";
     if (!d.languages.length) e.languages = "Choose at least one language you can hold a call in.";
     if (d.city.trim().length < 2) e.city = "Enter the city or town where you work.";
-    if (!(PROVINCES as readonly string[]).includes(d.province)) e.province = "Choose your province.";
+    if (d.country === "CR" || !d.country) {
+      if (!(PROVINCES as readonly string[]).includes(d.province)) e.province = "Choose your province.";
+    } else if (d.province.trim().length < 2) e.province = "Enter the state, region or department where you work.";
   }
   if (step === "practice") {
-    if (!CARNE_RE.test(digits(d.carne))) e.carne = "Enter your carné number from the Colegio de Abogados y Abogadas, digits only.";
+    if (d.country === "CR" || !d.country) {
+      if (!CARNE_RE.test(digits(d.carne))) e.carne = "Enter your carné number from the Colegio de Abogados y Abogadas, digits only.";
+    } else if (!LICENCE_RE.test(licence(d.country, d.carne))) e.carne = `Enter your ${licensingFor(d.country).numberLabel.toLowerCase()} as it appears on your licence.`;
     const y = Number(d.yearAdmitted);
     if (!Number.isInteger(y) || y < 1950 || y > year) e.yearAdmitted = `Enter the year you were admitted, between 1950 and ${year}.`;
     if (!d.notary) e.notary = "Tell us whether you are a notary public.";
@@ -207,7 +233,11 @@ export function validateStep(step: StepId, d: Draft, year = new Date().getFullYe
     if (!d.licensedInGoodStanding) e.licensedInGoodStanding = "Confirm that you are licensed and in good standing.";
     if (!d.partnerTerms) e.partnerTerms = "Read and accept the partner lawyer terms to apply.";
     if (!d.privacy) e.privacy = "Read and accept the privacy policy to apply.";
-    if (!d.carneVerification) e.carneVerification = "Allow us to check your carné with the Colegio, or we cannot review the application.";
+    if (!d.carneVerification) {
+      e.carneVerification = d.country === "CR" || !d.country
+        ? "Allow us to check your carné with the Colegio, or we cannot review the application."
+        : `Allow us to check your licence with the ${licensingFor(d.country).body}, or we cannot review the application.`;
+    }
   }
   return e;
 }
@@ -220,13 +250,15 @@ export function toRequestBody(d: Draft, versions: { partnerTerms: string; privac
     if (typeof c === "number" && c > 0) fees[f.key] = c;
   }
   return {
+    country: d.country,
+    timezone: d.timezone || (isCountryCode(d.country) ? COUNTRIES[d.country].defaultTimeZone : ""),
     name: d.name.trim(),
     email: d.email.trim().toLowerCase(),
     phone: d.phone.trim(),
     languages: d.languages,
     city: d.city.trim(),
-    province: d.province,
-    carne: digits(d.carne),
+    province: d.province.trim(),
+    carne: licence(d.country, d.carne),
     yearAdmitted: Number(d.yearAdmitted),
     notary: d.notary === "yes",
     ...(d.notary === "yes" ? { notaryCarne: digits(d.notaryCarne) } : {}),

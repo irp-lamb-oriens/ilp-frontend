@@ -97,7 +97,7 @@ export const LAWYER_INTROS: Record<LawyerScreen | "todayReview", IntroCopy> = {
   },
   availability: {
     title: "When members can book you",
-    what: "Your weekly hours, days off, notice, daily limit and the legal areas you take. All times are Costa Rica time.",
+    what: "Your weekly hours, days off, notice, daily limit and the legal areas you take, in your own time zone (the one of the country where you are licensed, unless you change it).",
     how: [
       "Turn on the days you take calls and set the hours for each one.",
       "Add days off, the minimum notice and the most calls you take in one day.",
