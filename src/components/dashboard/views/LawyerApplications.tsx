@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { Button, DataTable, Drawer, Notice, StatusPill, TextArea, type Column, type StatusTone } from "@/components/ui";
+import type { StreamedList } from "@/lib/useStreamedList";
+import { Button, DataTable, Drawer, ListFooter, ListToolbar, Notice, Select, StatusPill, TextArea, type Column, type StatusTone } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
@@ -68,7 +69,8 @@ type Action = "approve" | "request_changes" | "decline";
  * Decline (both need a note the lawyer reads). Each action is audited and
  * closes the review task.
  */
-export function LawyerApplications({ items, error, onChanged }: { items: LawyerApplication[] | null; error: string | null; onChanged: () => void }) {
+export function LawyerApplications({ list }: { list: StreamedList<LawyerApplication> }) {
+  const onChanged = list.refresh;
   const [open, setOpen] = useState<LawyerApplication | null>(null);
   const [action, setAction] = useState<Action | null>(null);
   const [note, setNote] = useState("");
@@ -76,12 +78,12 @@ export function LawyerApplications({ items, error, onChanged }: { items: LawyerA
   const [actionError, setActionError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
 
-  const columns: Column<LawyerApplication>[] = [
-    { key: "name", header: "Lawyer", render: (a) => a.name ?? a.email ?? a.id, sortValue: (a) => a.name ?? "", width: "wide" },
+  const columns = useMemo<Column<LawyerApplication>[]>(() => [
+    { key: "name", header: "Lawyer", render: (a) => a.name ?? a.email ?? a.id, sortable: true, width: "wide" },
     { key: "areas", header: "Areas", render: (a) => areas(a.legalAreas), hideOnMobile: true },
-    { key: "sent", header: "Sent", render: (a) => day(a.application?.submittedAt ?? a.createdAt), sortValue: (a) => a.application?.submittedAt ?? a.createdAt ?? "", hideOnMobile: true },
+    { key: "submittedAt", header: "Sent", render: (a) => day(a.application?.submittedAt ?? a.createdAt), sortable: true, hideOnMobile: true },
     { key: "status", header: "Status", render: (a) => <StatusPill size="sm" label={STATUS[a.status]?.label ?? a.status} tone={STATUS[a.status]?.tone ?? "neutral"} /> },
-  ];
+  ], []);
 
   function close() {
     setOpen(null);
@@ -113,7 +115,6 @@ export function LawyerApplications({ items, error, onChanged }: { items: LawyerA
     }
   }
 
-  if (error) return <ErrorText onRetry={onChanged}>{error}</ErrorText>;
   const app = open?.application ?? {};
   const fees = Object.entries(app.flatFeesCents ?? {});
   const canReview = open?.status === "pending_review" || open?.status === "changes_requested";
@@ -125,19 +126,29 @@ export function LawyerApplications({ items, error, onChanged }: { items: LawyerA
           {done}
         </Notice>
       )}
+      <ListToolbar list={list} noun="applications" placeholder="Name, email or area">
+        <Select label="Show" value={list.filters.status ?? ""} onChange={(e) => list.setFilter("status", e.target.value)}>
+          <option value="">Waiting for review</option>
+          <option value="all">All, including declined</option>
+        </Select>
+      </ListToolbar>
       <DataTable
         caption="Lawyer applications"
         columns={columns}
-        rows={items ?? []}
+        rows={list.items}
         rowKey={(a) => a.id}
-        loading={items === null}
+        loading={list.initialLoading}
+        loadingMore={list.loadingMore}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
         onRowActivate={(a) => {
           setDone(null);
           setOpen(a);
         }}
-        defaultSort={{ key: "sent", dir: "desc" }}
-        empty="No applications are waiting. New ones from the lawyers page appear here."
+        empty={list.activeQuery ? "No application matches this search." : "No applications are waiting. New ones from the lawyers page appear here."}
       />
+      <ListFooter list={list} audience="staff" />
 
       <Drawer
         open={!!open}

@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, Drawer, Notice, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
+import { useMemo, useState } from "react";
+import { Button, DataTable, Drawer, ListFooter, ListToolbar, Notice, Select, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
+import { apiListSource } from "@/lib/listSource";
+import { useStreamedList } from "@/lib/useStreamedList";
 import { ApiError, downloadFile, staffApi } from "@/lib/api";
 import { DownloadButton } from "@/components/documents/DownloadButton";
 import type { PrivacyRequest } from "@/lib/contracts";
@@ -59,43 +61,35 @@ export default function PrivacyAdmin() {
   );
 }
 
+const requestsSource = apiListSource<Row>(staffApi, "/api/dashboard/privacy/requests");
+
 function PrivacyRequests() {
-  const [rows, setRows] = useState<Row[] | null>(null);
-  const [all, setAll] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const list = useStreamedList<Row>(requestsSource, {
+    key: "staff-privacy-requests",
+    pageSize: 25,
+    filters: { status: "open" },
+    sort: { key: "dueAt", dir: "asc" },
+    keyOf: (r) => r.id,
+  });
+  const all = list.filters.status === "all";
   const [open, setOpen] = useState<Row | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const r = await staffApi.get<{ items: Row[] }>("/api/dashboard/privacy/requests", { query: { status: all ? "all" : "open" } });
-      setRows(r.items);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not load requests.");
-    }
-  }, [all]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const columns: Column<Row>[] = [
-    { key: "memberName", header: "Member", sortValue: (r) => r.memberName },
-    { key: "kind", header: "Request", render: (r) => KIND[r.kind], sortValue: (r) => r.kind },
+  const columns = useMemo<Column<Row>[]>(() => [
+    { key: "memberName", header: "Member" },
+    { key: "kind", header: "Request", render: (r) => KIND[r.kind] },
     {
       key: "status",
       header: "Status",
       render: (r) => <StatusPill label={STATUS[r.status][0]} tone={STATUS[r.status][1]} size="sm" />,
-      sortValue: (r) => r.status,
     },
-    { key: "createdAt", header: "Received", render: (r) => day(r.createdAt), sortValue: (r) => r.createdAt, hideOnMobile: true },
+    { key: "createdAt", header: "Received", render: (r) => day(r.createdAt), sortable: true, hideOnMobile: true },
     {
       key: "dueAt",
       header: "Answer by",
       render: (r) => (r.overdue ? <StatusPill label={`Overdue · ${day(r.dueAt)}`} tone="danger" size="sm" /> : day(r.dueAt)),
-      sortValue: (r) => r.dueAt,
+      sortable: true,
     },
-  ];
+  ], []);
 
   return (
     <div className={s.page}>
@@ -103,30 +97,43 @@ function PrivacyRequests() {
         title="Privacy requests"
         sub={all ? "Showing open and closed requests." : "Showing open requests."}
         actions={
-          <Button variant="ghost" size="sm" onClick={() => setAll((v) => !v)} aria-pressed={all}>
+          <Button variant="ghost" size="sm" onClick={() => list.setFilter("status", all ? "open" : "all")} aria-pressed={all}>
             {all ? "Show open only" : "Show closed too"}
           </Button>
         }
       />
-      {error && <ErrorText>{error}</ErrorText>}
+      <ListToolbar list={list} noun="requests" searchLabel="Search requests" placeholder="Reference, email or kind">
+        <Select label="Request" value={list.filters.kind ?? ""} onChange={(e) => list.setFilter("kind", e.target.value)}>
+          <option value="">All kinds</option>
+          {Object.entries(KIND).map(([k, label]) => (
+            <option key={k} value={k}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </ListToolbar>
       <DataTable
         caption="Privacy requests"
         columns={columns}
-        rows={rows ?? []}
-        loading={rows === null}
+        rows={list.items}
+        loading={list.initialLoading}
+        loadingMore={list.loadingMore}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
         rowKey={(r) => r.id}
         onRowActivate={setOpen}
         selectedKey={open?.id ?? null}
-        defaultSort={{ key: "dueAt", dir: "asc" }}
-        empty={<Muted>No open privacy requests.</Muted>}
+        empty={<Muted>{list.activeQuery || list.filters.kind ? "No request matches these filters." : all ? "No privacy requests yet." : "No open privacy requests."}</Muted>}
       />
+      <ListFooter list={list} audience="staff" />
       {open && (
         <RequestDrawer
           row={open}
           onClose={() => setOpen(null)}
           onChanged={async () => {
             setOpen(null);
-            await load();
+            list.refresh();
           }}
         />
       )}

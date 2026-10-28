@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PROFILE_FIELDS, PROFILE_SECTIONS, type Handoff, type ProfileSection } from "@/lib/contracts";
-import { ButtonLink, Drawer, ProgressBar, SkeletonRegion, Stagger, StaggerItem, StatusPill, Timeline, useSkeleton, type TimelineItem } from "@/components/ui";
+import { ButtonLink, Drawer, ListFooter, ProgressBar, SearchInput, SkeletonRegion, SkeletonTimeline, Stagger, StaggerItem, StatusPill, Timeline, useSkeleton, type TimelineItem } from "@/components/ui";
+import { apiListSource } from "@/lib/listSource";
+import { useStreamedList } from "@/lib/useStreamedList";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { IntroTitleContext, ScreenIntro } from "../staff/ScreenIntro";
 import { STAFF_INTROS } from "../staff/intros";
@@ -70,29 +72,40 @@ function show(v: unknown): string {
 /** Full-page member record: profile left, one timeline centre, next actions right. */
 export default function MemberPage({ clientId }: { clientId: string }) {
   const [bundle, setBundle] = useState<MemberBundle | null>(null);
-  const [timeline, setTimeline] = useState<TimelineEntry[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [kind, setKind] = useState<Kind | "all">("all");
+  // Timeline: newest first, a page at a time, filtered and searched on the server.
+  const timelineSource = useMemo(
+    () => apiListSource<TimelineEntry>(staffApi, `/api/dashboard/staff/members/${encodeURIComponent(clientId)}/timeline`),
+    [clientId],
+  );
+  const timeline = useStreamedList<TimelineEntry>(timelineSource, {
+    key: `staff-timeline-${clientId}`,
+    pageSize: 30,
+    sort: { key: "at", dir: "desc" },
+    keyOf: (e) => e.id,
+  });
+  const kind = (timeline.filters.kind || "all") as Kind | "all";
+  const setKind = (k: Kind | "all") => timeline.setFilter("kind", k === "all" ? "" : k);
+  const refreshTimeline = timeline.refresh;
   const [handoff, setHandoff] = useState<Handoff | null>(null);
   const [task, setTask] = useState<QueueTask | null>(null);
   const { nameOf } = useLawyers();
   const { showSkeleton, skeletonVisible } = useSkeleton(!bundle && !error);
 
-  const load = useCallback(() => {
-    Promise.all([
-      staffApi.get<MemberBundle>(`/api/staff/members/${encodeURIComponent(clientId)}`),
-      staffApi.get<{ items: TimelineEntry[] }>(`/api/dashboard/staff/members/${encodeURIComponent(clientId)}/timeline`),
-    ])
-      .then(([b, t]) => {
-        setBundle(b);
-        setTimeline(t.items);
-      })
+  const loadBundle = useCallback(() => {
+    staffApi
+      .get<MemberBundle>(`/api/staff/members/${encodeURIComponent(clientId)}`)
+      .then(setBundle)
       .catch((e) => setError(e instanceof Error ? e.message : "This member could not be loaded."));
   }, [clientId]);
+  const load = useCallback(() => {
+    loadBundle();
+    refreshTimeline();
+  }, [loadBundle, refreshTimeline]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    loadBundle();
+  }, [loadBundle]);
 
   // ?handoff=<id> opens the handoff review straight away.
   useEffect(() => {
@@ -107,8 +120,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
     return { ...((c.clientFields as Record<string, unknown>) ?? {}), ...c } as Record<string, unknown>;
   }, [bundle]);
 
-  const items: TimelineItem[] = (timeline ?? [])
-    .filter((e) => kind === "all" || e.kind === kind)
+  const items: TimelineItem[] = timeline.items
     .map((e) => {
       const h = e.kind === "handoff" ? bundle?.handoffs.find((x) => x.id === e.ref) : undefined;
       return {
@@ -262,7 +274,15 @@ export default function MemberPage({ clientId }: { clientId: string }) {
                 </button>
               ))}
             </div>
-            <Timeline items={items} emptyLabel="Nothing recorded for this filter yet." />
+            <SearchInput label="Search the timeline" hideLabel value={timeline.query} onValueChange={timeline.setQuery} placeholder="Search the timeline" />
+            {timeline.initialLoading ? (
+              <SkeletonTimeline />
+            ) : (
+              <div aria-busy={timeline.stale || undefined} className={timeline.stale ? s.stale : undefined}>
+                <Timeline items={items} emptyLabel={timeline.activeQuery ? "Nothing in the timeline matches this search." : "Nothing recorded for this filter yet."} />
+              </div>
+            )}
+            <ListFooter list={timeline} audience="staff" auto={false} loadMoreLabel="Show older events" endLabel={null} skeleton={<SkeletonTimeline />} />
           </StaggerItem>
         </div>
 

@@ -1,17 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { OpportunityStage } from "@/lib/contracts";
+import { staffApi } from "@/lib/api";
+import { apiListSource } from "@/lib/listSource";
+import { useListUrl, useListUrlWrite } from "@/lib/useListUrl";
+import { useStreamedList } from "@/lib/useStreamedList";
 import {
   Button,
   Checkbox,
   DataTable,
   EmptyState,
+  ListFooter,
+  ListToolbar,
   Loadable,
-  SearchInput,
   Select,
   StatTile,
-  StaggerItem,
   StatusPill,
   Tabs,
   type Column,
@@ -19,7 +23,7 @@ import {
 import { useStaff } from "../staff/StaffSession";
 import { ErrorText, PageHeader, TabNote } from "../staff/PageHeader";
 import { dueLabel, pct, shortDate, usd } from "../staff/format";
-import { OpportunitiesBoard } from "./OpportunitiesBoard";
+import { type ColumnUpdate, OpportunitiesBoard } from "./OpportunitiesBoard";
 import { OpportunityDrawer } from "./OpportunityDrawer";
 import {
   STAGES,
@@ -31,59 +35,79 @@ import {
   type OpportunityRow,
   type OpportunitySummary,
 } from "./oppApi";
-import { OpportunityBoardSkeleton, OpportunitySummarySkeleton } from "./OpportunitiesSkeleton";
+import { OpportunitySummarySkeleton } from "./OpportunitiesSkeleton";
 import s from "./opportunities.module.scss";
 
-/** Staff Opportunities: summary strip, filters, board by stage and a list view, one drawer. */
+const FILTER_KEYS = ["owner", "area", "stage", "open"];
+const listSource = apiListSource<OpportunityRow>(staffApi, "/api/dashboard/opportunities");
+
+/**
+ * Staff Opportunities: summary strip, filters, board by stage (each column
+ * pages on its own) and a server-sorted list view, one drawer. Search,
+ * filters and sort live in the URL.
+ */
 export default function OpportunitiesView() {
   const { role, isAdmin } = useStaff();
-  const [owner, setOwner] = useState(role === "csm" ? "me" : "all");
-  const [area, setArea] = useState("");
-  const [stage, setStage] = useState("");
-  const [q, setQ] = useState("");
-  const [openOnly, setOpenOnly] = useState(false);
-  const [items, setItems] = useState<OpportunityRow[] | null>(null);
-  const [owners, setOwners] = useState<string[]>([]);
-  const [areas, setAreas] = useState<string[]>([]);
+  const defaults = useMemo(() => ({ filters: { owner: role === "csm" ? "me" : "all" }, sort: { key: "due", dir: "asc" as const } }), [role]);
+  const url = useListUrl(FILTER_KEYS, defaults);
+  const list = useStreamedList<OpportunityRow>(listSource, {
+    key: "staff-opps-list",
+    pageSize: 25,
+    initialQuery: url.init.q,
+    filters: url.init.filters,
+    sort: url.init.sort,
+    keyOf: (o) => o.id,
+  });
+  useListUrlWrite(url, { q: list.activeQuery, filters: list.filters, sort: list.sort }, FILTER_KEYS, defaults);
+  const owner = list.filters.owner || "all";
+  const area = list.filters.area ?? "";
+  const stage = list.filters.stage ?? "";
+  const openOnly = list.filters.open === "1";
+  // The list's owner filter: "all" means no filter on the server.
+  const ownerParam = owner === "all" ? "" : owner;
+
   const [summary, setSummary] = useState<OpportunitySummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<{ row: OpportunityRow; stage?: OpportunityStage } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
   const [backfill, setBackfill] = useState<string | null>(null);
+  const [version, setVersion] = useState(0);
+  const columns = useRef(new Map<OpportunityStage, ColumnUpdate>());
+  const register = useCallback((st: OpportunityStage, update: ColumnUpdate | null) => {
+    if (update) columns.current.set(st, update);
+    else columns.current.delete(st);
+  }, []);
 
-  const load = useCallback(() => {
-    const f = { owner: owner === "all" ? undefined : owner, area: area || undefined };
-    Promise.all([oppApi.list(f), oppApi.summary(f)])
-      .then(([l, sm]) => {
-        setItems(l.items);
-        setOwners(l.owners);
-        setAreas(l.areas);
+  const loadSummary = useCallback(() => {
+    oppApi
+      .summary({ owner: ownerParam || undefined, area: area || undefined })
+      .then((sm) => {
         setSummary(sm);
         setError(null);
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Opportunities could not be loaded."));
-  }, [owner, area]);
+  }, [ownerParam, area]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    loadSummary();
+  }, [loadSummary]);
 
-  const visible = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return (items ?? []).filter((o) => {
-      if (needle && !`${o.title} ${o.memberName} ${o.area} ${o.ownerEmail ?? ""}`.toLowerCase().includes(needle)) return false;
-      return true;
-    });
-  }, [items, q]);
+  const owners = (list.meta.owners as string[] | undefined) ?? [];
+  const areas = (list.meta.areas as string[] | undefined) ?? [];
 
-  const listRows = visible.filter((o) => (!stage || o.stage === stage) && (!openOnly || !isClosedStage(o.stage)));
-
-  function replace(row: OpportunityRow) {
-    setItems((prev) => (prev ? prev.map((x) => (x.id === row.id ? row : x)) : prev));
+  /** A card changed: put it in its stage's column, out of the others, and refresh the list row. */
+  const replace = useCallback((row: OpportunityRow) => {
+    for (const [st, update] of columns.current) {
+      update((items) => {
+        const rest = items.filter((x) => x.id !== row.id);
+        return st === row.stage ? [row, ...rest] : rest;
+      });
+    }
+    list.update((items) => items.map((x) => (x.id === row.id ? row : x)));
     setOpen((cur) => (cur && cur.row.id === row.id ? { row } : cur));
-    oppApi.summary({ owner: owner === "all" ? undefined : owner, area: area || undefined }).then(setSummary).catch(() => undefined);
-  }
+    loadSummary();
+  }, [list, loadSummary]);
 
   async function move(o: OpportunityRow, to: OpportunityStage) {
     setMoveError(null);
@@ -101,27 +125,22 @@ export default function OpportunitiesView() {
     }
   }
 
-  const columns: Column<OpportunityRow>[] = [
-    { key: "title", header: "Opportunity", width: "wide", sortValue: (o) => o.title, render: (o) => <strong>{o.title}</strong> },
-    { key: "member", header: "Member", sortValue: (o) => o.memberName, render: (o) => o.memberName },
+  const tableColumns = useMemo<Column<OpportunityRow>[]>(() => [
+    { key: "title", header: "Opportunity", width: "wide", sortable: true, render: (o) => <strong>{o.title}</strong> },
+    { key: "member", header: "Member", render: (o) => o.memberName },
+    { key: "stage", header: "Stage", render: (o) => <StatusPill size="sm" label={STAGE_LABEL[o.stage]} tone={STAGE_TONE[o.stage]} /> },
+    { key: "valueCents", header: "Legal fees", align: "end", sortable: true, render: (o) => (o.valueCents != null ? usd(o.valueCents, true) : "Not priced") },
+    { key: "area", header: "Area", hideOnMobile: true, render: (o) => areaLabel(o.area) },
     {
-      key: "stage",
-      header: "Stage",
-      sortValue: (o) => STAGES.findIndex((x) => x.id === o.stage),
-      render: (o) => <StatusPill size="sm" label={STAGE_LABEL[o.stage]} tone={STAGE_TONE[o.stage]} />,
-    },
-    { key: "value", header: "Legal fees", align: "end", sortValue: (o) => o.valueCents ?? -1, render: (o) => (o.valueCents != null ? usd(o.valueCents, true) : "Not priced") },
-    { key: "area", header: "Area", hideOnMobile: true, sortValue: (o) => o.area, render: (o) => areaLabel(o.area) },
-    {
-      key: "next",
+      key: "due",
       header: "Next action",
       hideOnMobile: true,
-      sortValue: (o) => o.nextAction?.dueAt ?? "9999",
+      sortable: true,
       render: (o) => (o.nextAction ? `${o.nextAction.what}${o.nextAction.dueAt ? ` · ${dueLabel(o.nextAction.dueAt).text}` : ""}` : "None set"),
     },
-    { key: "owner", header: "Owner", hideOnMobile: true, sortValue: (o) => o.ownerEmail ?? "", render: (o) => o.ownerEmail ?? "Unassigned" },
-    { key: "updated", header: "Updated", hideOnMobile: true, sortValue: (o) => o.updatedAt, render: (o) => shortDate(o.updatedAt) },
-  ];
+    { key: "owner", header: "Owner", hideOnMobile: true, render: (o) => o.ownerEmail ?? "Unassigned" },
+    { key: "updatedAt", header: "Updated", hideOnMobile: true, sortable: true, render: (o) => shortDate(o.updatedAt) },
+  ], []);
 
   const ownerOptions = [
     { value: "me", label: "Mine" },
@@ -129,6 +148,7 @@ export default function OpportunitiesView() {
     ...owners.map((e) => ({ value: e, label: e })),
   ];
   const areaChoices = [{ value: "", label: "All areas" }, ...areas.map((a) => ({ value: a, label: areaLabel(a) }))];
+  const nothingYet = summary !== null && summary.open.count === 0 && STAGES.every((st) => summary.byStage[st.id].count === 0);
 
   const empty = (
     <EmptyState
@@ -145,7 +165,9 @@ export default function OpportunitiesView() {
               try {
                 const r = await oppApi.backfill();
                 setBackfill(r.created ? `${r.created} opportunities created from past handoffs.` : "No past handoff needed one.");
-                load();
+                setVersion((v) => v + 1);
+                list.refresh();
+                loadSummary();
               } catch (e) {
                 setBackfill(e instanceof Error ? e.message : "Could not import.");
               }
@@ -169,17 +191,12 @@ export default function OpportunitiesView() {
         {() => summary && <SummaryStrip summary={summary} />}
       </Loadable>
 
-      <div className={s.filters} role="search" aria-label="Filter opportunities">
-        <SearchInput className={s.search} label="Search" value={q} onValueChange={setQ} placeholder="Title, member or owner" />
-        <Select label="Owner" value={owner} onChange={(e) => setOwner(e.target.value)} options={ownerOptions} />
-        <Select label="Area" value={area} onChange={(e) => setArea(e.target.value)} options={areaChoices} />
-      </div>
+      <ListToolbar list={list} noun="opportunities" placeholder="Title, member or owner" hideCount>
+        <Select label="Owner" value={owner} onChange={(e) => list.setFilter("owner", e.target.value)} options={ownerOptions} />
+        <Select label="Area" value={area} onChange={(e) => list.setFilter("area", e.target.value)} options={areaChoices} />
+      </ListToolbar>
 
-      {error && (
-        <StaggerItem>
-          <ErrorText>{error}</ErrorText>
-        </StaggerItem>
-      )}
+      {error && <ErrorText>{error}</ErrorText>}
       {moveError && <ErrorText>{moveError}</ErrorText>}
       {backfill && (
         <p className={s.meta} role="status">
@@ -195,16 +212,22 @@ export default function OpportunitiesView() {
             label: "Board",
             content: (
               <>
-                <TabNote>Each column is a stage, from first mention on the left to won or lost on the right. Drag a card when the situation changes, or click it to open the details.</TabNote>
-                <Loadable loading={items === null && !error} label="Loading opportunities" skeleton={<OpportunityBoardSkeleton />}>
-                  {() =>
-                    items === null ? null : items.length === 0 ? (
-                      <StaggerItem>{empty}</StaggerItem>
-                    ) : (
-                      <OpportunitiesBoard items={visible} busyId={busyId} onOpen={(o) => setOpen({ row: o })} onMove={move} />
-                    )
-                  }
-                </Loadable>
+                <TabNote>Each column is a stage, from first mention on the left to won or lost on the right. Move a card when the situation changes, or click it to open the details. Each column loads more cards as you ask for them.</TabNote>
+                {nothingYet && !list.activeQuery ? (
+                  empty
+                ) : (
+                  <OpportunitiesBoard
+                    q={list.activeQuery}
+                    owner={ownerParam}
+                    area={area}
+                    summary={summary}
+                    busyId={busyId}
+                    onOpen={(o) => setOpen({ row: o })}
+                    onMove={move}
+                    register={register}
+                    version={version}
+                  />
+                )}
               </>
             ),
           },
@@ -218,22 +241,26 @@ export default function OpportunitiesView() {
                   <Select
                     label="Stage"
                     value={stage}
-                    onChange={(e) => setStage(e.target.value)}
+                    onChange={(e) => list.setFilter("stage", e.target.value)}
                     options={[{ value: "", label: "All stages" }, ...STAGES.map((x) => ({ value: x.id, label: x.label }))]}
                   />
-                  <Checkbox label="Open only" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} />
+                  <Checkbox label="Open only" checked={openOnly} onChange={(e) => list.setFilter("open", e.target.checked ? "1" : "")} />
                 </div>
                 <DataTable
                   caption="Opportunities"
-                  columns={columns}
-                  rows={listRows}
+                  columns={tableColumns}
+                  rows={list.items}
                   rowKey={(o) => o.id}
-                  loading={items === null && !error}
-                  defaultSort={{ key: "next", dir: "asc" }}
+                  loading={list.initialLoading}
+                  loadingMore={list.loadingMore}
+                  stale={list.stale}
+                  sort={list.sort}
+                  onSortChange={list.setSort}
                   selectedKey={open?.row.id ?? null}
                   onRowActivate={(o) => setOpen({ row: o })}
-                  empty={items && items.length === 0 ? empty : "No opportunity matches these filters."}
+                  empty={nothingYet ? empty : "No opportunity matches these filters."}
                 />
+                <ListFooter list={list} audience="staff" />
               </div>
             ),
           },

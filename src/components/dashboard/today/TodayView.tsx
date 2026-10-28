@@ -3,13 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { staffApi } from "@/lib/api";
+import { apiListSource } from "@/lib/listSource";
+import { useStreamedList } from "@/lib/useStreamedList";
 import type { CsmTask } from "@/lib/contracts";
-import { AgingBadge, Checkbox, EmptyState, Loadable, Notice, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
+import { AgingBadge, Checkbox, EmptyState, ListFooter, ListToolbar, Loadable, Notice, Skeleton, SkeletonList, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText, SectionHead } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { dueLabel, pct, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
-import { isLawyerApplicationTask, type AttentionItem, type QueueResponse, type QueueTask, type StaffSummary } from "../staff/types";
+import { isLawyerApplicationTask, type AttentionItem, type QueueTask, type StaffSummary } from "../staff/types";
 import { TaskDrawer } from "./TaskDrawer";
 import { QueueSkeleton, RailSkeleton, TodayKpisSkeleton } from "./TodaySkeleton";
 import s from "./today.module.scss";
@@ -18,6 +20,14 @@ const usdFmt = (v: number) => usd(Math.round(v));
 const pctFmt = (v: number) => pct(Math.round(v * 10) / 10);
 
 type Scope = "me" | "all";
+
+/** My queue, streamed a page at a time (open csm_tasks by due date, with member names). */
+const queueSource = apiListSource<QueueTask>(staffApi, "/api/dashboard/staff/queue");
+interface QueueCounts {
+  open: number;
+  overdue: number;
+  dueToday: number;
+}
 
 /** Per-viewer convenience: remember the "Exclude placeholder data" choice. */
 const EXCLUDE_KEY = "ilp_staff_exclude_placeholder";
@@ -44,7 +54,6 @@ export default function TodayView() {
   const staff = useStaff();
   const [scope, setScope] = useState<Scope>("me");
   const [summary, setSummary] = useState<StaffSummary | null>(null);
-  const [queue, setQueue] = useState<QueueResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<QueueTask | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -58,20 +67,23 @@ export default function TodayView() {
       .catch((e) => setError(e instanceof Error ? e.message : "Today could not be loaded."));
   }, [exclude]);
 
-  const loadQueue = useCallback((sc: Scope) => {
-    staffApi
-      .get<QueueResponse>("/api/dashboard/staff/queue", { query: exclude ? { owner: sc, excludePlaceholder: "1" } : { owner: sc } })
-      .then(setQueue)
-      .catch((e) => setError(e instanceof Error ? e.message : "Your queue could not be loaded."));
-  }, [exclude]);
+  const queue = useStreamedList<QueueTask>(queueSource, {
+    key: "staff-queue",
+    pageSize: 25,
+    filters: { owner: scope, excludePlaceholder: exclude ? "1" : "" },
+    keyOf: (t) => t.id,
+  });
+  const { setFilter } = queue;
+  useEffect(() => setFilter("owner", scope), [scope, setFilter]);
+  useEffect(() => setFilter("excludePlaceholder", exclude ? "1" : ""), [exclude, setFilter]);
+  // Counts come with the first page; tasks closed here since then come off them.
+  const [closedHere, setClosedHere] = useState(0);
+  const counts = queue.meta.counts as QueueCounts | undefined;
+  useEffect(() => setClosedHere(0), [counts]);
 
   useEffect(() => {
     loadSummary();
   }, [loadSummary]);
-
-  useEffect(() => {
-    loadQueue(scope);
-  }, [scope, loadQueue]);
 
   function toggleExclude(v: boolean) {
     setExclude(v);
@@ -79,26 +91,29 @@ export default function TodayView() {
   }
 
   function onClosed(t: CsmTask) {
-    setQueue((q) => (q ? { ...q, tasks: q.tasks.filter((x) => x.id !== t.id), counts: { ...q.counts, open: q.counts.open - 1 } } : q));
+    queue.update((items) => items.filter((x) => x.id !== t.id));
+    setClosedHere((n) => n + 1);
     setNotice(`Closed: ${t.title}`);
     setOpen(null);
     loadSummary();
   }
 
   const k = summary?.kpis;
-  const tasks = queue?.tasks ?? [];
-  const overdue = tasks.filter((t) => t.overdue).length;
+  const tasks = queue.items;
+  const openCount = counts ? Math.max(0, counts.open - closedHere) : null;
+  const overdue = counts?.overdue ?? tasks.filter((t) => t.overdue).length;
+  const queueReady = !queue.initialLoading;
 
   return (
     <>
       <PageHeader
         title="Today"
         sub={
-          queue ? (
-            tasks.length === 0 ? (
+          queueReady && openCount !== null ? (
+            openCount === 0 ? (
               "Your queue is clear."
             ) : (
-              `${tasks.length} open task${tasks.length === 1 ? "" : "s"}${overdue ? `, ${overdue} overdue` : ""}.`
+              `${openCount} open task${openCount === 1 ? "" : "s"}${overdue ? `, ${overdue} overdue` : ""}.`
             )
           ) : (
             <Skeleton shape="line" size="sm" width="25" />
@@ -224,8 +239,9 @@ export default function TodayView() {
           {notice && (
             <Notice tone="success" variant="inline" title={notice} />
           )}
-          <Loadable loading={!queue && !error} label="Loading your tasks" skeleton={<QueueSkeleton />}>
-            {queue && tasks.length === 0 && (
+          <ListToolbar list={queue} noun="tasks" searchLabel="Search tasks" placeholder="Task title or type" />
+          <Loadable loading={queue.initialLoading && !queue.error} label="Loading your tasks" skeleton={<QueueSkeleton />}>
+            {queueReady && tasks.length === 0 && !queue.activeQuery && (
               <StaggerItem>
                 <EmptyState
                   title="Nothing in your queue"
@@ -233,9 +249,14 @@ export default function TodayView() {
                 />
               </StaggerItem>
             )}
+            {queueReady && tasks.length === 0 && !!queue.activeQuery && (
+              <StaggerItem>
+                <EmptyState compact title="No task matches" body="Try another word, or clear the search." />
+              </StaggerItem>
+            )}
             {tasks.length > 0 && (
               <Stagger>
-                <ul className={s.taskList}>
+                <ul className={s.taskList} aria-busy={queue.stale || undefined}>
                   {tasks.map((t, i) => {
                     const due = dueLabel(t.dueAt);
                     return (
@@ -270,6 +291,7 @@ export default function TodayView() {
               </Stagger>
             )}
           </Loadable>
+          <ListFooter list={queue} audience="staff" skeleton={<SkeletonList rows={2} variant="spaced" />} endLabel={tasks.length > 8 ? "End of the queue." : null} />
         </section>
 
         <aside className={s.rail} aria-label="Needs attention" data-tour="staff-attention">
@@ -330,7 +352,7 @@ export default function TodayView() {
         </aside>
       </div>
 
-      <TaskDrawer task={open} onClose={() => setOpen(null)} onClosed={onClosed} onChanged={() => { loadSummary(); loadQueue(scope); }} />
+      <TaskDrawer task={open} onClose={() => setOpen(null)} onClosed={onClosed} onChanged={() => { loadSummary(); queue.refresh(); }} />
     </>
   );
 }

@@ -1,14 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import { DataTable, EmptyState, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
+import { apiListSource } from "@/lib/listSource";
+import { useListUrl, useListUrlWrite } from "@/lib/useListUrl";
+import { useStreamedList } from "@/lib/useStreamedList";
+import { DataTable, EmptyState, ListFooter, ListToolbar, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
 import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
 import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
 import { useLawyers } from "../staff/useLawyers";
-import { PageHeader, ErrorText, TabNote } from "../staff/PageHeader";
+import { PageHeader, TabNote } from "../staff/PageHeader";
 import type { LawyerCapacity } from "../staff/types";
 import { LawyerApplications, type LawyerApplication } from "./LawyerApplications";
 import s from "./views.module.scss";
@@ -19,28 +22,29 @@ import s from "./views.module.scss";
  * waiting for Approve, Request changes or Decline. /dashboard/lawyers#applications
  * opens that tab (the review task links there).
  */
-export default function LawyersView() {
-  const [apps, setApps] = useState<LawyerApplication[] | null>(null);
-  const [appsError, setAppsError] = useState<string | null>(null);
-  const [tab, setTab] = useState("capacity");
+const appsSource = apiListSource<LawyerApplication>(staffApi, "/api/dashboard/providers/applications");
+const capacitySource = apiListSource<LawyerCapacity>(staffApi, "/api/dashboard/staff/lawyers");
+const CAPACITY_FILTERS = ["area"];
+const CAPACITY_DEFAULTS = { sort: { key: "openMatters", dir: "desc" as const } };
 
-  const loadApps = useCallback(() => {
-    setAppsError(null);
-    staffApi
-      .get<{ items: LawyerApplication[] }>("/api/dashboard/providers/applications")
-      .then((r) => setApps(r.items ?? []))
-      .catch((e) => setAppsError(e instanceof Error ? e.message : "Applications could not be loaded."));
-  }, []);
+export default function LawyersView() {
+  const [tab, setTab] = useState("capacity");
+  const apps = useStreamedList<LawyerApplication>(appsSource, {
+    key: "staff-applications",
+    pageSize: 25,
+    sort: { key: "submittedAt", dir: "desc" },
+    keyOf: (a) => a.id,
+  });
 
   useEffect(() => {
-    loadApps();
     if (typeof window !== "undefined" && window.location.hash === "#applications") setTab("applications");
-  }, [loadApps]);
+  }, []);
 
-  const waiting = apps?.filter((a) => a.status === "pending_review").length ?? 0;
+  // Pending reviews among the rows loaded (a lower bound when more pages are waiting).
+  const waiting = apps.items.filter((a) => a.status === "pending_review").length;
   const tabs: TabItem[] = [
     { id: "capacity", label: "Capacity", content: () => <Capacity /> },
-    { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications items={apps} error={appsError} onChanged={loadApps} /> },
+    { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications list={apps} /> },
     { id: "hours", label: "Hours", content: () => <Hours /> },
     {
       id: "assignment",
@@ -77,37 +81,38 @@ export default function LawyersView() {
 }
 
 function Capacity() {
-  const [data, setData] = useState<{ items: LawyerCapacity[]; unassignedMatters: number } | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const url = useListUrl(CAPACITY_FILTERS, CAPACITY_DEFAULTS);
+  const list = useStreamedList<LawyerCapacity>(capacitySource, {
+    key: "staff-capacity",
+    pageSize: 25,
+    initialQuery: url.init.q,
+    filters: url.init.filters,
+    sort: url.init.sort,
+    keyOf: (l) => l.id,
+  });
+  useListUrlWrite(url, { q: list.activeQuery, filters: list.filters, sort: list.sort }, CAPACITY_FILTERS, CAPACITY_DEFAULTS);
+  const unassignedMatters = Number(list.meta.unassignedMatters ?? 0);
 
-  useEffect(() => {
-    staffApi
-      .get<{ items: LawyerCapacity[]; unassignedMatters: number }>("/api/dashboard/staff/lawyers")
-      .then(setData)
-      .catch((e) => setError(e instanceof Error ? e.message : "Capacity could not be loaded."));
-  }, []);
-
-  const columns: Column<LawyerCapacity>[] = [
-    { key: "name", header: "Lawyer", render: (l) => l.name, sortValue: (l) => l.name, width: "wide" },
+  const columns = useMemo<Column<LawyerCapacity>[]>(() => [
+    { key: "name", header: "Lawyer", render: (l) => l.name, sortable: true, width: "wide" },
     { key: "areas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "None set", hideOnMobile: true },
-    { key: "open", header: "Open matters", render: (l) => l.openMatters, sortValue: (l) => l.openMatters, align: "end" },
+    { key: "openMatters", header: "Open matters", render: (l) => l.openMatters, sortable: true, align: "end" },
     {
-      key: "aging",
+      key: "agingMatters",
       header: "14+ days in stage",
       render: (l) => (l.agingMatters > 0 ? <StatusPill size="sm" tone="warning" label={`${l.agingMatters} aging`} /> : "None"),
-      sortValue: (l) => l.agingMatters,
+      sortable: true,
     },
-    { key: "calls", header: "Calls next 7 days", render: (l) => l.callsNext7d, sortValue: (l) => l.callsNext7d, align: "end" },
-  ];
+    { key: "callsNext7d", header: "Calls next 7 days", render: (l) => l.callsNext7d, sortable: true, align: "end" },
+  ], []);
 
-  if (error) return <ErrorText>{error}</ErrorText>;
   return (
     <div className={s.stack}>
       <TabNote>How busy each partner lawyer is. Aging counts their matters that have stayed 14 days or more in one stage. Give new members to someone with room.</TabNote>
-      {data && data.unassignedMatters > 0 && (
+      {unassignedMatters > 0 && (
         <Notice
           tone="warning"
-          title={`${data.unassignedMatters} open matter${data.unassignedMatters === 1 ? "" : "s"} without a lawyer`}
+          title={`${unassignedMatters} open matter${unassignedMatters === 1 ? "" : "s"} without a lawyer`}
           terms={["matter", "partnerLawyer"]}
           fix={{
             summary: "Members without a lawyer cannot book a call, so assign them first.",
@@ -124,15 +129,20 @@ function Capacity() {
           These members are waiting for a lawyer and cannot book a call yet.
         </Notice>
       )}
+      <ListToolbar list={list} noun="lawyers" placeholder="Name, email or legal area" />
       <DataTable
         caption="Lawyer capacity"
         columns={columns}
-        rows={data?.items ?? []}
+        rows={list.items}
         rowKey={(l) => l.id}
-        loading={data === null}
-        defaultSort={{ key: "open", dir: "desc" }}
-        empty="No active lawyers."
+        loading={list.initialLoading}
+        loadingMore={list.loadingMore}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
+        empty={list.activeQuery ? "No lawyer matches this search." : "No active lawyers."}
       />
+      <ListFooter list={list} audience="staff" />
     </div>
   );
 }

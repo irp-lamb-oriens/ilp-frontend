@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { staffApi } from "@/lib/api";
+import { apiListSource } from "@/lib/listSource";
+import { useListUrl, useListUrlWrite } from "@/lib/useListUrl";
+import { useStreamedList } from "@/lib/useStreamedList";
 import { COUNTRY_LIST, countryNameOf, useCountryContext } from "@/lib/countryContext";
 import type { Matter } from "@/lib/contracts";
-import { AgingBadge, Button, DataTable, ProgressBar, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
+import { AgingBadge, Button, DataTable, ListFooter, ListToolbar, ProgressBar, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
 import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
-import { PageHeader, ErrorText, SectionHead, TabNote } from "../staff/PageHeader";
+import { PageHeader, SectionHead, TabNote } from "../staff/PageHeader";
 import { dueLabel } from "../staff/format";
 import { useLawyers } from "../staff/useLawyers";
 import s from "./views.module.scss";
@@ -52,72 +55,72 @@ export default function PipelineView() {
   );
 }
 
+const MATTER_FILTERS = ["stage"];
+const MATTER_DEFAULTS = { sort: { key: "stageEnteredAt", dir: "asc" as const } };
+/** Open matters, streamed a page at a time and filtered on the server. */
+const mattersSource = apiListSource<Matter>(staffApi, "/api/staff/matters", { open: "1" });
+
 function MattersTable() {
   const router = useRouter();
-  const [matters, setMatters] = useState<Matter[] | null>(null);
   const [stages, setStages] = useState<StageDef[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [stage, setStage] = useState("");
   // COUNTRIES: the shell's country switcher and this filter share one value ("" = all six).
   const [country, setCountry] = useCountryContext();
   const { nameOf } = useLawyers();
+  const url = useListUrl(MATTER_FILTERS, MATTER_DEFAULTS);
+  const list = useStreamedList<Matter>(mattersSource, {
+    key: "staff-matters",
+    pageSize: 25,
+    initialQuery: url.init.q,
+    filters: { ...url.init.filters, country },
+    sort: url.init.sort,
+    keyOf: (m) => m.id,
+  });
+  const { setFilter } = list;
+  useEffect(() => setFilter("country", country), [country, setFilter]);
+  useListUrlWrite(url, { q: list.activeQuery, filters: list.filters, sort: list.sort }, MATTER_FILTERS, MATTER_DEFAULTS);
+  const stage = list.filters.stage ?? "";
+  const setStage = (v: string) => list.setFilter("stage", v);
 
   useEffect(() => {
-    Promise.all([
-      staffApi.get<{ items: Matter[] }>("/api/staff/matters"),
-      staffApi.get<{ stages: StageDef[] }>("/api/dashboard/stage-config").catch(() => ({ stages: [] as StageDef[] })),
-    ])
-      .then(([m, st]) => {
-        setMatters(m.items.filter((x) => !x.closedAt));
-        setStages([...st.stages].sort((a, b) => a.order - b.order));
-      })
-      .catch((e) => setError(e instanceof Error ? e.message : "Matters could not be loaded."));
+    staffApi
+      .get<{ stages: StageDef[] }>("/api/dashboard/stage-config")
+      .catch(() => ({ stages: [] as StageDef[] }))
+      .then((st) => setStages([...st.stages].sort((a, b) => a.order - b.order)));
   }, []);
 
   const label = useMemo(() => new Map(stages.map((x) => [x.id, x.label])), [stages]);
   const sla = useMemo(() => new Map(stages.map((x) => [x.id, x.slaDays])), [stages]);
-  const inCountry = useMemo(() => (matters ?? []).filter((m) => !country || (m.country ?? "CR") === country), [matters, country]);
-  const counts = useMemo(() => {
-    const c = new Map<string, number>();
-    for (const m of inCountry) c.set(m.stage, (c.get(m.stage) ?? 0) + 1);
-    return c;
-  }, [inCountry]);
+  // Counts for the whole country come with the first page (they do not follow the stage filter or search).
+  const byStage = useMemo(() => new Map(Object.entries((list.meta.byStage as Record<string, number> | undefined) ?? {})), [list.meta.byStage]);
+  const total = Number(list.meta.openTotal ?? 0);
+  const late = Number(list.meta.late ?? 0);
 
-  const rows = inCountry.filter((m) => !stage || m.stage === stage);
-  const columns: Column<Matter>[] = [
-    { key: "title", header: "Matter", render: (m) => m.title, sortValue: (m) => m.title, width: "wide" },
-    { key: "stage", header: "Stage", render: (m) => <StatusPill size="sm" label={label.get(m.stage) ?? m.stage.replace(/_/g, " ")} />, sortValue: (m) => m.stage },
+  const columns = useMemo<Column<Matter>[]>(() => [
+    { key: "title", header: "Matter", render: (m) => m.title, sortable: true, width: "wide" },
+    { key: "stage", header: "Stage", render: (m) => <StatusPill size="sm" label={label.get(m.stage) ?? m.stage.replace(/_/g, " ")} /> },
     {
-      key: "aging",
+      key: "stageEnteredAt",
       header: "In stage",
       render: (m) => {
         const days = sla.get(m.stage);
         return <AgingBadge since={m.stageEnteredAt} warnAfterDays={days ? Math.max(1, Math.floor(days / 2)) : 7} overdueAfterDays={days ?? 14} />;
       },
-      sortValue: (m) => m.stageEnteredAt,
+      sortable: true,
     },
-    { key: "area", header: "Area", render: (m) => m.area, sortValue: (m) => m.area, hideOnMobile: true },
-    { key: "country", header: "Country", render: (m) => countryNameOf(m.country ?? "CR"), sortValue: (m) => countryNameOf(m.country ?? "CR"), hideOnMobile: true },
+    { key: "area", header: "Area", render: (m) => m.area, hideOnMobile: true },
+    { key: "country", header: "Country", render: (m) => countryNameOf(m.country ?? "CR"), hideOnMobile: true },
     {
       key: "next",
       header: "Next step",
       render: (m) => (m.nextStep ? `${m.nextStep.what} · ${dueLabel(m.nextStep.dueAt).text}` : "None set"),
       hideOnMobile: true,
     },
-    { key: "lawyer", header: "Lawyer", render: (m) => nameOf(m.assignedProviderId), sortValue: (m) => nameOf(m.assignedProviderId), hideOnMobile: true },
-  ];
-
-  if (error) return <ErrorText>{error}</ErrorText>;
-
-  const total = inCountry.length;
-  const late = inCountry.filter((m) => {
-    const days = sla.get(m.stage) ?? 14;
-    return Date.now() - Date.parse(m.stageEnteredAt) > days * 86400000;
-  }).length;
+    { key: "lawyer", header: "Lawyer", render: (m) => nameOf(m.assignedProviderId), hideOnMobile: true },
+  ], [label, sla, nameOf]);
 
   return (
     <div>
-      {matters !== null && total > 0 && (
+      {total > 0 && (
         <section className={s.stageStrip} aria-labelledby="by-stage-title">
           <SectionHead
             id="by-stage-title"
@@ -126,24 +129,24 @@ function MattersTable() {
             sub={`${total} open matter${total === 1 ? "" : "s"}${late ? `, ${late} past the stage time limit` : ", none past the stage time limit"}. Click a stage to show only its matters.`}
           />
           <ul className={s.stageBars}>
-            {[...counts.keys()]
+            {[...byStage.keys()]
               .sort((a, b) => (stages.findIndex((x) => x.id === a) + 1 || 999) - (stages.findIndex((x) => x.id === b) + 1 || 999))
               .map((id) => (
                 <li key={id}>
                   <button type="button" className={s.stageBar} aria-pressed={stage === id} onClick={() => setStage(stage === id ? "" : id)}>
-                    <ProgressBar label={label.get(id) ?? id.replace(/_/g, " ")} value={counts.get(id) ?? 0} max={total} valueText={String(counts.get(id) ?? 0)} />
+                    <ProgressBar label={label.get(id) ?? id.replace(/_/g, " ")} value={byStage.get(id) ?? 0} max={total} valueText={String(byStage.get(id) ?? 0)} />
                   </button>
                 </li>
               ))}
           </ul>
         </section>
       )}
-      <div className={s.bar}>
+      <ListToolbar list={list} noun="matters" searchLabel="Search matters" placeholder="Title, area or question">
         <Select label="Stage" value={stage} onChange={(e) => setStage(e.target.value)}>
-          <option value="">All stages ({inCountry.length})</option>
-          {[...counts.keys()].map((id) => (
+          <option value="">All stages{total ? ` (${total})` : ""}</option>
+          {[...byStage.keys()].map((id) => (
             <option key={id} value={id}>
-              {label.get(id) ?? id} ({counts.get(id)})
+              {label.get(id) ?? id} ({byStage.get(id)})
             </option>
           ))}
         </Select>
@@ -155,17 +158,21 @@ function MattersTable() {
             </option>
           ))}
         </Select>
-      </div>
+      </ListToolbar>
       <DataTable
         caption="Open matters"
         columns={columns}
-        rows={rows}
+        rows={list.items}
         rowKey={(m) => m.id}
-        loading={matters === null}
-        defaultSort={{ key: "aging", dir: "asc" }}
+        loading={list.initialLoading}
+        loadingMore={list.loadingMore}
+        stale={list.stale}
+        sort={list.sort}
+        onSortChange={list.setSort}
         onRowActivate={(m) => router.push(`/dashboard/members/${encodeURIComponent(m.clientId)}`)}
-        empty="No open matters."
+        empty={list.activeQuery ? "No open matter matches this search." : "No open matters."}
       />
+      <ListFooter list={list} audience="staff" />
     </div>
   );
 }

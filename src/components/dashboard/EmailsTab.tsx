@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Button, Drawer, Loadable, Skeleton, ErrorNotice } from "@/components/ui";
+import { useState } from "react";
+import { Button, Drawer, ListFooter, ListToolbar, Loadable, Skeleton, SkeletonList, ErrorNotice } from "@/components/ui";
 import s from "./crm.module.scss";
-import { dashboardFetch } from "@/lib/api";
-import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
-import { SearchInput, Pagination } from "./ListControls";
+import { dashboardFetch, staffApi } from "@/lib/api";
+import { apiListSource } from "@/lib/listSource";
+import { useStreamedList } from "@/lib/useStreamedList";
 
 interface EmailQueueItem {
   id: string;
@@ -27,24 +27,15 @@ interface SentEmail extends EmailQueueItem {
  * R5.2 — emails tab. Lists the pending email queue, supports send-now /
  * cancel, and previews a sent email via GET /api/dashboard/sent-emails/:id.
  */
+const pendingSource = apiListSource<EmailQueueItem>(staffApi, "/api/dashboard/pending-emails");
+
 export default function EmailsTab() {
-  const [pending, setPending] = useState<EmailQueueItem[] | null>(null);
+  const list = useStreamedList<EmailQueueItem>(pendingSource, { key: "staff-pending-emails", pageSize: 20, keyOf: (e) => e.id });
   const [busy, setBusy] = useState<string | null>(null);
   const [preview, setPreview] = useState<SentEmail | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await dashboardFetch<{ pending: EmailQueueItem[] }>("/api/dashboard/pending-emails");
-      setPending(res.pending ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "The email queue did not load.");
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  /** A queued email left the queue (sent or cancelled): take it off the list. */
+  const drop = (id: string) => list.update((items) => items.filter((e) => e.id !== id));
 
   async function cancel(id: string) {
     if (!window.confirm("Cancel this queued email?")) return;
@@ -52,7 +43,7 @@ export default function EmailsTab() {
     setError(null);
     try {
       await dashboardFetch(`/api/dashboard/email-queue/${id}/cancel`, { method: "POST" });
-      await load();
+      drop(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Cancel failed.");
     } finally {
@@ -65,7 +56,7 @@ export default function EmailsTab() {
     setError(null);
     try {
       await dashboardFetch(`/api/dashboard/email-queue/${id}/send-now`, { method: "POST" });
-      await load();
+      drop(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Send failed.");
     } finally {
@@ -83,34 +74,22 @@ export default function EmailsTab() {
     }
   }
 
-  const {
-    query,
-    setQuery,
-    page,
-    setPage,
-    pageItems,
-    total,
-    totalPages,
-  } = usePaginatedSearch<EmailQueueItem>(pending ?? [], {
-    searchKeys: ["to", "subject", "emailType", "status"],
-    pageSize: 20,
-  });
 
   return (
     <div className={s.stack}>
       {error && (
         <ErrorNotice audience="staff">{error}</ErrorNotice>
       )}
-      <Loadable loading={pending === null && !error} label="Loading the email queue" skeleton={<EmailQueueSkeleton />}>
+      <Loadable loading={list.initialLoading && !list.error} label="Loading the email queue" skeleton={<EmailQueueSkeleton />}>
         {null}
       </Loadable>
-      {pending !== null && pending.length === 0 && <p className={s.meta}>No emails are waiting to go out.</p>}
+      {list.status === "done" && list.items.length === 0 && !list.activeQuery && <p className={s.meta}>No emails are waiting to go out.</p>}
 
-      {pending !== null && pending.length > 0 && (
-        <SearchInput value={query} onChange={setQuery} placeholder="Search emails…" resultCount={total} />
+      {!list.initialLoading && (list.items.length > 0 || !!list.activeQuery) && (
+        <ListToolbar list={list} noun="emails" searchLabel="Search emails" placeholder="Recipient, subject or type" />
       )}
 
-      {pageItems.map((e) => (
+      {list.items.map((e) => (
         <div key={e.id} className={s.item}>
           <div className={s.itemText}>
             <div className={s.itemTitle}>{e.subject ?? "(no subject)"}</div>
@@ -132,7 +111,7 @@ export default function EmailsTab() {
         </div>
       ))}
 
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" />} />
 
       <Drawer
         open={!!preview}

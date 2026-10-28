@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { dashboardFetch } from "@/lib/api";
+import { dashboardFetch, staffApi } from "@/lib/api";
+import { apiListSource } from "@/lib/listSource";
+import { useStreamedList } from "@/lib/useStreamedList";
 import { AdminsOnlyNotice, isRoleDenied } from "./staff/StaffSession";
 import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
 import { SearchInput, Pagination } from "./ListControls";
@@ -13,7 +15,7 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
-import { EmptyState, ErrorNotice, Notice, Select, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { EmptyState, ErrorNotice, ListFooter, ListToolbar, Notice, Select, SkeletonList, SkeletonRegion, useSkeleton } from "@/components/ui";
 import { AdminListSkeleton, AssignmentSkeleton, FinanceChartsSkeleton, SalesSkeleton } from "./AdminSkeletons";
 
 interface Provider {
@@ -28,6 +30,7 @@ interface Provider {
 interface Vendor {
   id: string;
   name?: string | null;
+  companyName?: string | null;
   active?: boolean;
   [key: string]: unknown;
 }
@@ -37,90 +40,73 @@ interface Vendor {
  * assignment). Each is mounted on its own /dashboard route by W6; they fetch
  * only when their route or tab is first opened.
  */
+const providersSource = apiListSource<Provider>(staffApi, "/api/dashboard/providers");
+const vendorsSource = apiListSource<Vendor>(staffApi, "/api/vendors");
+
 export function ProvidersList() {
-  const [rows, setRows] = useState<Provider[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    dashboardFetch<{ providers: Provider[] }>("/api/dashboard/providers")
-      .then((r) => setRows(r.providers ?? []))
-      .catch((e) => setError(e instanceof Error ? e.message : "The lawyer list did not load."));
-  }, []);
-
-  const { query, setQuery, page, setPage, pageItems, total, totalPages } =
-    usePaginatedSearch<Provider>(rows ?? [], {
-      searchKeys: ["name", "email", "legalAreas", "jurisdictions"],
-      pageSize: 20,
-    });
-
-  const sk = useSkeleton(rows === null && !error);
-  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
-  if (sk.showSkeleton || rows === null) {
+  const list = useStreamedList<Provider>(providersSource, { key: "staff-providers", pageSize: 20, sort: { key: "name", dir: "asc" }, keyOf: (p) => p.id });
+  const sk = useSkeleton(list.initialLoading);
+  if (list.initialLoading && list.error) return <ErrorNotice audience="staff" title="This section did not load" onRetry={list.refresh}>{list.error}</ErrorNotice>;
+  if (sk.showSkeleton || list.initialLoading) {
     return (
       <SkeletonRegion label="Loading lawyers" visible={sk.skeletonVisible}>
         <AdminListSkeleton />
       </SkeletonRegion>
     );
   }
-  if (rows.length === 0) return <EmptyState compact title="No lawyers yet" body="Lawyers appear here after they apply from the lawyers page and an admin approves them in Applications." />;
+  if (list.items.length === 0 && !list.activeQuery && list.status === "done") {
+    return <EmptyState compact title="No lawyers yet" body="Lawyers appear here after they apply from the lawyers page and an admin approves them in Applications." />;
+  }
 
   return (
     <div className={styles.listStack}>
-      <SearchInput value={query} onChange={setQuery} placeholder="Search lawyers" resultCount={total} />
-      {pageItems.map((p) => (
-        <div key={p.id} className={styles.listItem}>
-          <div>
-            <div className={styles.itemTitle}>{p.name ?? p.id}</div>
-            <div className={styles.itemSub}>
-              {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "No contact details yet"}
+      <ListToolbar list={list} noun="lawyers" searchLabel="Search lawyers" placeholder="Name, email, area or country" />
+      <div aria-busy={list.stale || undefined} className={list.stale ? styles.stale : undefined}>
+        {list.items.map((p) => (
+          <div key={p.id} className={styles.listItem}>
+            <div>
+              <div className={styles.itemTitle}>{p.name ?? p.id}</div>
+              <div className={styles.itemSub}>
+                {[p.email, (p.legalAreas ?? []).join(", "), (p.jurisdictions ?? []).join(", ")].filter(Boolean).join(" · ") || "No contact details yet"}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        ))}
+      </div>
+      <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" />} />
     </div>
   );
 }
 
 export function VendorsList() {
-  const [rows, setRows] = useState<Vendor[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    dashboardFetch<{ vendors: Vendor[] }>("/api/vendors")
-      .then((r) => setRows(r.vendors ?? []))
-      .catch((e) => setError(e instanceof Error ? e.message : "The vendor list did not load."));
-  }, []);
-
-  const { query, setQuery, page, setPage, pageItems, total, totalPages } =
-    usePaginatedSearch<Vendor>(rows ?? [], {
-      searchKeys: ["name", "id"],
-      pageSize: 20,
-    });
-
-  const sk = useSkeleton(rows === null && !error);
-  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
-  if (sk.showSkeleton || rows === null) {
+  const list = useStreamedList<Vendor>(vendorsSource, { key: "staff-vendors", pageSize: 20, sort: { key: "companyName", dir: "asc" }, keyOf: (v) => v.id });
+  const sk = useSkeleton(list.initialLoading);
+  if (list.initialLoading && list.error) return <ErrorNotice audience="staff" title="This section did not load" onRetry={list.refresh}>{list.error}</ErrorNotice>;
+  if (sk.showSkeleton || list.initialLoading) {
     return (
       <SkeletonRegion label="Loading vendors" visible={sk.skeletonVisible}>
         <AdminListSkeleton sub={false} trail />
       </SkeletonRegion>
     );
   }
-  if (rows.length === 0) return <EmptyState compact title="No vendors yet" body="Outside suppliers show here once they are added. Ask an admin if one you work with is missing." />;
+  if (list.items.length === 0 && !list.activeQuery && list.status === "done") {
+    return <EmptyState compact title="No vendors yet" body="Outside suppliers show here once they are added. Ask an admin if one you work with is missing." />;
+  }
 
   return (
     <div className={styles.listStack}>
-      <SearchInput value={query} onChange={setQuery} placeholder="Search vendors…" resultCount={total} />
-      {pageItems.map((v) => (
-        <div key={v.id} className={styles.listItem}>
-          <span className={styles.itemTitle}>{v.name ?? v.id}</span>
-          <span className={v.active === false ? styles.itemInactive : styles.itemActive}>
-            {v.active === false ? "Inactive" : "Active"}
-          </span>
-        </div>
-      ))}
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <ListToolbar list={list} noun="vendors" searchLabel="Search vendors" placeholder="Company, contact or area" />
+      <div aria-busy={list.stale || undefined} className={list.stale ? styles.stale : undefined}>
+        {list.items.map((v) => (
+          <div key={v.id} className={styles.listItem}>
+            <span className={styles.itemTitle}>{v.name ?? v.companyName ?? v.id}</span>
+            <span className={v.active === false ? styles.itemInactive : styles.itemActive}>
+              {v.active === false ? "Inactive" : "Active"}
+            </span>
+          </div>
+        ))}
+      </div>
+      <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" />} />
     </div>
   );
 }
@@ -383,39 +369,30 @@ interface AssignmentClient {
   stage: string;
 }
 
-interface AssignmentQueue {
-  unassigned: AssignmentClient[];
-  providers: AssignmentProvider[];
-  unassignedCount: number;
-}
+const assignmentSource = apiListSource<AssignmentClient>(staffApi, "/api/dashboard/assignment/queue");
 
 export function AssignmentView() {
-  const [queue, setQueue] = useState<AssignmentQueue | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const list = useStreamedList<AssignmentClient>(assignmentSource, { key: "staff-assignment", pageSize: 20, keyOf: (c) => c.id });
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-
-  const load = () => {
-    dashboardFetch<AssignmentQueue>("/api/dashboard/assignment/queue")
-      .then(setQueue)
-      .catch((e) => setError(e instanceof Error ? e.message : "The assignment queue did not load."));
-  };
-
-  useEffect(load, []);
+  const providers = (list.meta.providers as AssignmentProvider[] | undefined) ?? [];
+  const unassignedCount = Number(list.meta.unassignedCount ?? list.items.length);
 
   async function assign(clientId: string, providerId: string) {
     setBusy(true);
-    setError(null);
+    setActionError(null);
     setNotice(null);
     try {
       await dashboardFetch(`/api/dashboard/clients/${clientId}/assign`, {
         method: "POST",
         body: JSON.stringify({ providerId }),
       });
-      setNotice(`Assigned ${clientId} to ${providerId}.`);
-      load();
+      const who = providers.find((p) => p.id === providerId);
+      setNotice(`Assigned ${clientId} to ${who?.name ?? who?.email ?? providerId}.`);
+      list.update((items) => items.filter((c) => c.id !== clientId));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Assignment failed.");
+      setActionError(e instanceof Error ? e.message : "Assignment failed.");
     } finally {
       setBusy(false);
     }
@@ -423,7 +400,7 @@ export function AssignmentView() {
 
   async function autoAssign() {
     setBusy(true);
-    setError(null);
+    setActionError(null);
     setNotice(null);
     try {
       const res = await dashboardFetch<{ assigned: number }>(
@@ -431,17 +408,17 @@ export function AssignmentView() {
         { method: "POST", body: JSON.stringify({}) },
       );
       setNotice(`Auto-assigned ${res.assigned} clients by score.`);
-      load();
+      list.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Auto-assignment failed.");
+      setActionError(e instanceof Error ? e.message : "Auto-assignment failed.");
     } finally {
       setBusy(false);
     }
   }
 
-  const sk = useSkeleton(queue === null && !error);
-  if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
-  if (sk.showSkeleton || queue === null) {
+  const sk = useSkeleton(list.initialLoading);
+  if (list.initialLoading && list.error) return <ErrorNotice audience="staff" title="This section did not load" onRetry={list.refresh}>{list.error}</ErrorNotice>;
+  if (sk.showSkeleton || list.initialLoading) {
     return (
       <SkeletonRegion label="Loading the assignment queue" visible={sk.skeletonVisible}>
         <AssignmentSkeleton />
@@ -452,21 +429,22 @@ export function AssignmentView() {
   return (
     <div className={styles.listStack}>
       <div className={styles.assignmentBar}>
-        <span className={styles.muted}>{queue.unassignedCount === 1 ? "1 member without a lawyer" : `${queue.unassignedCount} members without a lawyer`}</span>
+        <span className={styles.muted}>{unassignedCount === 1 ? "1 member without a lawyer" : `${unassignedCount} members without a lawyer`}</span>
         <button
           type="button"
           className={styles.assignBtn}
           onClick={autoAssign}
-          disabled={busy || queue.unassignedCount === 0}
+          disabled={busy || unassignedCount === 0}
         >
           {busy ? "Assigning…" : "Auto-assign by score"}
         </button>
       </div>
 
       {notice && <Notice tone="success" variant="inline" title={notice} />}
+      {actionError && <ErrorNotice audience="staff">{actionError}</ErrorNotice>}
 
       <h3 className={styles.financeTitle}>Lawyers by match score</h3>
-      {queue.providers.map((p) => (
+      {providers.map((p) => (
         <div key={p.id} className={styles.listItem}>
           <div>
             <div className={styles.itemTitle}>
@@ -481,40 +459,44 @@ export function AssignmentView() {
       ))}
 
       <h3 className={styles.financeTitle}>Members without a lawyer</h3>
-      {queue.unassigned.length === 0 && (
+      <ListToolbar list={list} noun="members" searchLabel="Search members" placeholder="Name, email or legal area" />
+      {list.items.length === 0 && list.status === "done" && !list.activeQuery && (
         <EmptyState compact title="Every member has a lawyer" body="Members who join without one are listed here, oldest first." />
       )}
-      {queue.unassigned.map((c) => (
-        <div key={c.id} className={styles.listItem}>
-          <div>
-            <div className={styles.itemTitle}>
-              {[c.name, c.surname].filter(Boolean).join(" ") || c.email}
+      <div aria-busy={list.stale || undefined} className={list.stale ? styles.stale : undefined}>
+        {list.items.map((c) => (
+          <div key={c.id} className={styles.listItem}>
+            <div>
+              <div className={styles.itemTitle}>
+                {[c.name, c.surname].filter(Boolean).join(" ") || c.email}
+              </div>
+              <div className={styles.itemSub}>
+                {c.legalArea ?? "Legal area not set"}
+                {c.jurisdiction ? ` · ${c.jurisdiction}` : ""}
+              </div>
             </div>
-            <div className={styles.itemSub}>
-              {c.legalArea ?? "Legal area not set"}
-              {c.jurisdiction ? ` · ${c.jurisdiction}` : ""}
-            </div>
-          </div>
-          <Select
-            label={`Assign ${[c.name, c.surname].filter(Boolean).join(" ") || c.email} to a lawyer`}
-            hideLabel
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) assign(c.id, e.target.value);
-            }}
-            disabled={busy}
-          >
-            <option value="" disabled>
-              Assign to…
-            </option>
-            {queue.providers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name ?? p.email ?? p.id} ({p.score.toFixed(1)})
+            <Select
+              label={`Assign ${[c.name, c.surname].filter(Boolean).join(" ") || c.email} to a lawyer`}
+              hideLabel
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) assign(c.id, e.target.value);
+              }}
+              disabled={busy}
+            >
+              <option value="" disabled>
+                Assign to…
               </option>
-            ))}
-          </Select>
-        </div>
-      ))}
+              {providers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name ?? p.email ?? p.id} ({p.score.toFixed(1)})
+                </option>
+              ))}
+            </Select>
+          </div>
+        ))}
+      </div>
+      <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" />} />
     </div>
   );
 }

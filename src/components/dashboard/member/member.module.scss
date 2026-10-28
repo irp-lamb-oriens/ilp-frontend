@@ -326,3 +326,9 @@
 .skCard {
   padding: $space-4;
 }
+
+// LISTS: timeline rows of the previous search while the new one loads.
+.stale {
+  opacity: 0.55;
+  transition: opacity $duration-fast $ease-out-strong;
+}

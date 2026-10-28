@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 
 export interface LawyerOption {
@@ -46,6 +46,8 @@ export function useLawyers(): { lawyers: LawyerOption[]; loaded: boolean; nameOf
       live = false;
     };
   }, []);
-  const nameOf = (id?: string | null) => (id ? lawyers.find((l) => l.id === id)?.name ?? "Assigned lawyer" : "Unassigned");
+  // Stable while the list is unchanged, so tables can memoize their columns on it.
+  const byId = useMemo(() => new Map(lawyers.map((l) => [l.id, l.name])), [lawyers]);
+  const nameOf = useCallback((id?: string | null) => (id ? byId.get(id) ?? "Assigned lawyer" : "Unassigned"), [byId]);
   return { lawyers, loaded, nameOf };
 }

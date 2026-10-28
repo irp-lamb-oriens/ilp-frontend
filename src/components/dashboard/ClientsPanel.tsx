@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { dashboardFetch } from "@/lib/api";
-import { usePaginatedSearch } from "@/lib/usePaginatedSearch";
-import { SearchInput, Pagination } from "./ListControls";
-import { Skeleton, SkeletonRegion, Tabs, useSkeleton, type TabItem, ErrorNotice } from "@/components/ui";
+import { useState } from "react";
+import { staffApi } from "@/lib/api";
+import { apiListSource } from "@/lib/listSource";
+import { useStreamedList } from "@/lib/useStreamedList";
+import { ListFooter, ListToolbar, Select, Skeleton, SkeletonList, SkeletonRegion, Tabs, useSkeleton, type TabItem, ErrorNotice } from "@/components/ui";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -38,42 +38,23 @@ export interface ClientSummary {
  * renders a selectable list plus a tabbed detail view (overview / notes /
  * activity / actions / lily / emails).
  */
+const clientsSource = apiListSource<ClientSummary>(staffApi, "/api/dashboard/clients");
+
 export default function ClientsPanel() {
-  const [clients, setClients] = useState<ClientSummary[] | null>(null);
   const [selected, setSelected] = useState<ClientSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await dashboardFetch<{ clients: ClientSummary[] }>("/api/dashboard/clients");
-      setClients(res.clients ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "The member list did not load.");
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const stageLabel = (id: string) => id.replace(/_/g, " ");
-
-  const {
-    query,
-    setQuery,
-    page,
-    setPage,
-    pageItems,
-    total,
-    totalPages,
-  } = usePaginatedSearch<ClientSummary>(clients ?? [], {
-    searchKeys: ["name", "surname", "email", "stage", "jurisdiction", "legalArea"],
+  const list = useStreamedList<ClientSummary>(clientsSource, {
+    key: "staff-crm-clients",
     pageSize: 20,
+    sort: { key: "lastUpdated", dir: "desc" },
+    keyOf: (c) => c.id,
   });
+  const stageLabels = (list.meta.stageLabels as Record<string, string> | undefined) ?? {};
+  const stageIds = (list.meta.stages as string[] | undefined) ?? [];
+  const stageLabel = (id: string) => stageLabels[id] ?? id.replace(/_/g, " ");
 
-  const sk = useSkeleton(clients === null && !error);
-  if (error) return <ErrorNotice audience="staff">{error}</ErrorNotice>;
-  if (sk.showSkeleton || clients === null) {
+  const sk = useSkeleton(list.initialLoading);
+  if (list.initialLoading && list.error) return <ErrorNotice audience="staff" onRetry={list.refresh}>{list.error}</ErrorNotice>;
+  if (sk.showSkeleton || list.initialLoading) {
     return (
       <SkeletonRegion label="Loading clients" visible={sk.skeletonVisible}>
         <ClientsPanelSkeleton />
@@ -145,14 +126,20 @@ export default function ClientsPanel() {
   return (
     <section className={styles.section}>
       <div className={styles.listPane}>
-        <h2 className={styles.listTitle}>Clients ({total})</h2>
-        <SearchInput
-          value={query}
-          onChange={setQuery}
-          placeholder="Search clients…"
-          resultCount={total}
-        />
-        {pageItems.map((cl) => (
+        <h2 className={styles.listTitle}>Clients{list.total !== null ? ` (${list.total})` : ""}</h2>
+        <ListToolbar list={list} noun="clients" searchLabel="Search clients" placeholder="Name, email, area or stage">
+          {stageIds.length > 0 && (
+            <Select label="Stage" value={list.filters.stage ?? ""} onChange={(e) => list.setFilter("stage", e.target.value)}>
+              <option value="">All stages</option>
+              {stageIds.map((id) => (
+                <option key={id} value={id}>
+                  {stageLabel(id)}
+                </option>
+              ))}
+            </Select>
+          )}
+        </ListToolbar>
+        {list.items.map((cl) => (
           <button
             key={cl.id}
             type="button"
@@ -170,8 +157,8 @@ export default function ClientsPanel() {
             </div>
           </button>
         ))}
-        {pageItems.length === 0 && <p className={styles.empty}>No clients yet.</p>}
-        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        {list.items.length === 0 && list.status === "done" && <p className={styles.empty}>{list.activeQuery ? "No client matches this search." : "No clients yet."}</p>}
+        <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" compact />} />
       </div>
 
       <div className={styles.detailPane}>

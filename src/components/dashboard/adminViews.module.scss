@@ -161,3 +161,9 @@
   font-weight: 600;
 }
 
+
+// LISTS: rows of the previous search while the new one loads.
+.stale {
+  opacity: 0.55;
+  transition: opacity $duration-fast $ease-out-strong;
+}
