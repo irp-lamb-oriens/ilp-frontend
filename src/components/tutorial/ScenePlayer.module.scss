@@ -8,6 +8,16 @@
   min-width: 0;
 }
 
+// The embed's demo screen: focusable so its keys work while it has focus.
+.focusable {
+  @include focus-ring;
+  border-radius: $radius-md;
+
+  &:focus-visible {
+    outline-offset: 4px;
+  }
+}
+
 // Positioning context for the box and the caption layer above it.
 .frame {
   position: relative;
@@ -32,7 +42,7 @@
   user-select: none;
   border-width: 1rem;
   border-color: transparent;
-  box-shadow: 0 0 0 1px #0001;
+  box-shadow: 0 0 0 1px $color-hairline;
 }
 
 .desktop {
@@ -148,74 +158,26 @@
   font-weight: 700;
 }
 
+// Reduced motion without the list: what each number on the frame marks.
 .legend {
   display: flex;
   flex-direction: column;
   gap: $space-1;
-  margin: 0;
-  padding: 0;
-  list-style: none;
   font-size: 0.875rem;
+  line-height: 1.5;
   color: $color-charcoal;
+}
 
-  li {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-  }
+.legendItem {
+  display: block;
 }
 
 .legendNum {
-  display: inline-grid;
-  flex: none;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: $color-navy;
-  color: $color-on-navy;
-  font-size: 0.7rem;
+  display: inline-block;
+  min-width: 1.5rem;
+  color: $color-navy;
   font-weight: 700;
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: $space-1;
-}
-
-.position {
-  margin-right: auto;
-  font-size: 0.8125rem;
-  color: $color-steel;
-}
-
-.control {
-  @include focus-ring;
-  min-height: $touch-target;
-  padding: 0 $space-3;
-  border: none;
-  border-radius: $radius-pill;
-  background: transparent;
-  color: $color-steel;
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:disabled {
-    color: $color-muted;
-    cursor: default;
-  }
-
-  @include hover-only {
-    &:hover:not(:disabled) {
-      background: $color-mist;
-      color: $color-navy;
-    }
-  }
+  font-variant-numeric: tabular-nums;
 }
 
 // ─── Captions ───────────────────────────────────────────────────────────────
@@ -237,8 +199,15 @@
   max-width: 100%;
 }
 
+// The bubble: bold name, then the explanation, then a quiet "What's this?".
+// A small pointer on the side facing the target (--arrow-x / --arrow-y are
+// set by the player from the target's centre).
 .cap {
-  padding: $space-2 $space-3;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-3 $space-4;
   border-radius: $radius-md;
   background: $color-navy;
   color: $color-on-navy;
@@ -250,6 +219,40 @@
     opacity $duration-fast $ease-out-strong,
     transform $duration-fast $ease-out-strong;
   pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    display: none;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    transform: rotate(45deg);
+  }
+}
+
+.capPos[data-side="below"] .cap::before {
+  display: block;
+  top: -5px;
+  left: calc(var(--arrow-x, 50%) - 5px);
+}
+
+.capPos[data-side="above"] .cap::before {
+  display: block;
+  bottom: -5px;
+  left: calc(var(--arrow-x, 50%) - 5px);
+}
+
+.capPos[data-side="right"] .cap::before {
+  display: block;
+  top: calc(var(--arrow-y, 50%) - 5px);
+  left: -5px;
+}
+
+.capPos[data-side="left"] .cap::before {
+  display: block;
+  top: calc(var(--arrow-y, 50%) - 5px);
+  right: -5px;
 }
 
 .capOn {
@@ -260,10 +263,15 @@
 
 // Docked under the scene: a calm bar instead of a floating callout.
 .capDocked {
+  border: 1px solid $color-hairline;
   border-left: 3px solid $color-accent;
   border-radius: $radius-sm;
   background: $color-mist;
   color: $color-charcoal;
+
+  &::before {
+    content: none;
+  }
 
   .capName {
     color: $color-navy;
@@ -278,31 +286,65 @@
   }
 }
 
-.capText {
+.capName {
   margin: 0;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-.capName {
-  font-weight: 700;
+.capText {
+  margin: 0;
+  max-width: 60ch;
 }
 
 .capTerms {
   margin-top: $space-1;
 }
 
+// Quiet inline button: small, no fill, a fine underline and a chevron. The
+// ::after grows the hit area toward 44px without changing the layout.
 .capMore {
   @include focus-ring;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
   min-height: 1.75rem;
-  padding: 0;
-  border: none;
+  margin-left: -$space-1;
+  padding: 0 $space-1;
+  border: 0;
+  border-radius: $radius-sm;
   background: transparent;
-  color: $color-accent;
+  color: inherit;
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  opacity: 0.88;
   cursor: pointer;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -8px -4px;
+  }
+
+  @include hover-only {
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.chev {
+  flex: none;
+  transition: transform $duration-fast $ease-out-strong;
+}
+
+.chevOpen {
+  transform: rotate(180deg);
 }
 
 .capDl {
@@ -332,60 +374,98 @@
   margin-inline: auto;
 }
 
+.sr {
+  @include visually-hidden;
+}
+
 // ─── What happens here ──────────────────────────────────────────────────────
 
+// Same disclosure as the Notice's "How to fix it": label, count, chevron.
 .explain {
   border-top: 1px solid $color-hairline;
-  padding-top: $space-2;
 }
 
-.explainSummary {
+.explainToggle {
   @include focus-ring;
-  min-height: $touch-target;
   display: flex;
   align-items: center;
+  gap: $space-2;
+  width: 100%;
+  min-height: $touch-target;
+  padding: 0 $space-1;
+  border: 0;
+  background: transparent;
   color: $color-navy;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: left;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+
+  .chev {
+    margin-left: auto;
+  }
+
+  @include hover-only {
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
 }
 
-.explainTitle {
-  margin: 0 0 $space-2;
-  color: $color-navy;
-  font-size: 0.875rem;
-  font-weight: 700;
+.explainCount {
+  color: $color-steel;
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.explainPanel {
+  padding-bottom: $space-2;
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 .explainList {
   display: flex;
   flex-direction: column;
-  gap: $space-2;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: $space-1;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: $color-charcoal;
 }
 
 .explainItem {
-  display: flex;
-  align-items: flex-start;
-  gap: $space-2;
-  padding: $space-1;
-  border-radius: $radius-sm;
+  display: block;
+  padding: $space-2 $space-3 $space-2 $space-2;
+  border-left: 2px solid transparent;
+  border-radius: 0 $radius-sm $radius-sm 0;
+  transition:
+    background-color $duration-fast ease,
+    border-color $duration-fast ease;
 }
 
+// The action on screen while the demo plays or is paused.
 .explainOn {
+  border-left-color: $color-accent;
   background: $color-accent-soft;
 }
 
-.explainText {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-  min-width: 0;
+.explainLine {
+  margin: 0;
+  max-width: 65ch;
+}
+
+.explainNum {
+  display: inline-block;
+  min-width: 1.5rem;
+  color: $color-navy;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .explainName {
@@ -393,10 +473,24 @@
 }
 
 .explainTerm {
+  margin: $space-1 0 0 1.5rem;
+  max-width: 65ch;
   color: $color-steel;
   font-size: 0.8125rem;
 }
 
 .explainWord {
   font-weight: 700;
+}
+
+@include reduced-motion {
+  .cap {
+    transform: none;
+    transition: opacity $duration-fast ease;
+  }
+
+  .chev,
+  .explainItem {
+    transition: none;
+  }
 }
