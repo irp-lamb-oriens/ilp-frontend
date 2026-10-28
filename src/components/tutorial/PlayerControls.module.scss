@@ -239,7 +239,6 @@ $tip-gap: 6px;
 // once faded so they leave the tab order and hit testing), so nothing else in
 // the bar moves on hover, focus or touch.
 .compact .extra {
-  opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition:
