@@ -1,0 +1,26 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Member screens use the compact PageIntro at member reading size: the
+// dashboard version sets text at 15px, members read at 17px or more
+// (W4 brief: 18px base). The doubled class beats `.compact .text`.
+.wrap {
+  margin-bottom: $space-6;
+  max-width: 72rem;
+}
+
+.intro.intro {
+  p,
+  li {
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+
+  button {
+    font-size: 1rem;
+  }
+
+  @include below-md {
+    padding: $space-3 $space-4;
+  }
+}

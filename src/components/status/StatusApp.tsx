@@ -11,6 +11,7 @@ import { projectIdToEmail } from "@/lib/status";
 import { memberApi, type MemberHome } from "./api";
 import { MemberContext } from "./MemberContext";
 import MatterSwitcher from "./MatterSwitcher";
+import { IconCard, IconChat, IconHome, IconPerson } from "./navIcons";
 import StatusRouteSkeleton from "./StatusSkeletons";
 import s from "./StatusApp.module.scss";
 
@@ -20,18 +21,14 @@ export /** User menu: the member's data rights page, then the legal pages (the p
 const MEMBER_MENU_LINKS: MenuLink[] = [{ href: "/status/privacy", label: "Your data and privacy" }, ...LEGAL_MENU_LINKS];
 
 const CLIENT_NAV: NavItem[] = [
-  { href: "/status", label: "Overview", icon: "◧", match: "exact" },
-  { href: "/status/profile", label: "Profile", icon: "◔" },
-  { href: "/status/money", label: "Money", icon: "$" },
-  { href: "/status/messages", label: "Messages", icon: "◫" },
+  { href: "/status", label: "Overview", icon: <IconHome />, match: "exact" },
+  { href: "/status/profile", label: "Profile", icon: <IconPerson /> },
+  { href: "/status/money", label: "Money", icon: <IconCard /> },
+  { href: "/status/messages", label: "Messages", icon: <IconChat /> },
 ];
 
-const TITLES: Array<[RegExp, string]> = [
-  [/^\/status\/profile/, "Profile and documents"],
-  [/^\/status\/money/, "Money"],
-  [/^\/status\/messages/, "Messages"],
-  [/^\/status\/book/, "Book a call"],
-];
+// T6: each member screen opens with its own PageIntro (the page h1), so the
+// shell shows no title above it. The matter switcher still shows there.
 
 type Phase = "loading" | "signedOut" | "ready" | "error";
 
@@ -101,8 +98,6 @@ export default function StatusApp({ children }: { children: ReactNode }) {
     };
   }, [home, load, matterId, setMatterId, welcome]);
 
-  const title = TITLES.find(([re]) => re.test(pathname))?.[1];
-
   const shell = (ctx: typeof value, body: ReactNode) => {
     // Matter-scoped screens only: Overview and booking.
     const showSwitcher = !!ctx && ctx.home.matters.length > 1 && (pathname === "/status" || pathname.startsWith("/status/book"));
@@ -111,7 +106,6 @@ export default function StatusApp({ children }: { children: ReactNode }) {
         <RoleShell
           role="client"
           nav={CLIENT_NAV}
-          title={title}
           actions={showSwitcher ? <MatterSwitcher /> : undefined}
           user={ctx ? { name: ctx.home.member.name, email: ctx.home.member.email ?? "", title: "ILP member" } : null}
           onLogout={() => {

@@ -14,7 +14,7 @@ export default function WelcomeBanner() {
   return (
     <Notice
       tone="success"
-      headingLevel={1}
+      headingLevel={2}
       title="Your membership is active"
       terms={["membership", "profile", "consultationReady"]}
       fix={{
