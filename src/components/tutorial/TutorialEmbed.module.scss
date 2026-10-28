@@ -79,39 +79,6 @@
   cursor: pointer;
 }
 
-.nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-2;
-}
-
-.navBtn {
-  @include press;
-  @include focus-ring;
-  min-height: $touch-target;
-  padding: 0 $space-4;
-  border: 1px solid $color-hairline-strong;
-  border-radius: $radius-pill;
-  background: $color-canvas;
-  color: $color-navy;
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:disabled {
-    color: $color-muted;
-    border-color: $color-hairline;
-    cursor: default;
-  }
-
-  @include hover-only {
-    &:not(:disabled):hover {
-      background: $color-mist;
-    }
-  }
-}
-
 .placeholder {
   aspect-ratio: 960 / 540;
   border-radius: $radius-md;
@@ -125,6 +92,9 @@
   color: $color-steel;
 }
 
+// Screen-reader hints never end up in copied text.
 .sr {
   @include visually-hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }

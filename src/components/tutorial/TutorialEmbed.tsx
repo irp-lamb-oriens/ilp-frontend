@@ -19,14 +19,23 @@
  *   has its own gate and player, so one in view never starts another. "off"
  *   waits for the viewer to press Play (then the same in-view rule applies).
  * - Steps play once each and move on to the next; the last one plays once and
- *   rests on its end state with Replay and Start over. No endless loop. A
- *   pause the viewer chose is kept.
+ *   rests on its end state with a prominent Replay, and the step navigation
+ *   offers Start over. No endless loop. A pause the viewer chose is kept; a
+ *   hold because the demo left the screen shows nothing extra.
+ * - Controls: a compact bar under the scene (play / pause, the action
+ *   scrubber, replay); previous / next action appear on hover, on focus, or
+ *   after "More controls" on touch screens. Under it, StepNav: previous /
+ *   next step and labelled step segments that jump to a step.
+ * - Keys, while focus is inside the embed (never page-wide): ← / → step
+ *   between actions while paused, else between steps; Enter on the demo
+ *   screen goes to the next step.
  * - Reduced motion: the ScenePlayer shows each step's end state with
  *   numbered markers and the written explanations; nothing moves or advances.
  */
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { cx } from "../ui/cx";
 import { useTutorialOptional } from "./context";
+import { StepNav } from "./PlayerControls";
 import { ScenePlayer } from "./ScenePlayer";
 import type { Tutorial } from "./types";
 import { useReducedMotion } from "./useReducedMotion";
@@ -169,13 +178,39 @@ export function TutorialEmbed({
     setIdx((i) => (i < steps.length - 1 ? i + 1 : i));
   }, [steps.length]);
 
+  const go = useCallback((i: number) => setIdx(Math.max(0, Math.min(steps.length - 1, i))), [steps.length]);
+
+  // Keys only while focus is inside this embed. The player takes ← / → first
+  // while paused (actions); what it leaves moves between steps.
+  const onKey = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || !many) return;
+    const el = e.target as HTMLElement | null;
+    if (el?.closest?.("input, textarea, select, [role='radiogroup']")) return;
+    if (e.key === "ArrowRight" && !last) {
+      e.preventDefault();
+      go(idx + 1);
+    } else if (e.key === "ArrowLeft" && idx > 0) {
+      e.preventDefault();
+      go(idx - 1);
+    } else if (e.key === "Enter" && el?.dataset.demoScreen !== undefined) {
+      e.preventDefault();
+      go(last ? 0 : idx + 1);
+    }
+  };
+
   if (failed) return null;
 
   const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
   const active = started && inView;
 
   return (
-    <figure ref={rootRef} className={cx(s.embed, className)} aria-labelledby={caption ? `${uid}-cap` : undefined} aria-label={caption ? undefined : tut?.title ?? "Demo"}>
+    <figure
+      ref={rootRef}
+      className={cx(s.embed, className)}
+      aria-labelledby={caption ? `${uid}-cap` : undefined}
+      aria-label={caption ? undefined : tut?.title ?? "Demo"}
+      onKeyDown={onKey}
+    >
       {step ? (
         <>
           {showStepText && (
@@ -197,7 +232,15 @@ export function TutorialEmbed({
               active={active}
               onEnded={many ? onEnded : undefined}
               explainList={explainList}
+              controls="compact"
+              step={many ? { index: idx, count: steps.length } : undefined}
+              finale={last}
+              label={`Demo screen: ${step.title}`}
+              describedBy={`${uid}-keys`}
             />
+            <span id={`${uid}-keys`} className={s.sr}>
+              {many ? "Left and right arrow keys move between actions while paused, otherwise between steps. Enter goes to the next step." : "Left and right arrow keys move between actions while paused."}
+            </span>
             {!started && !reduced && (
               <div className={s.cover}>
                 <button type="button" className={s.play} onClick={() => setStarted(true)}>
@@ -210,19 +253,15 @@ export function TutorialEmbed({
             )}
           </div>
           {many && (
-            <div className={s.nav}>
-              <button type="button" className={s.navBtn} onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0}>
-                Previous step
-              </button>
-              <button type="button" className={s.navBtn} onClick={() => setIdx((i) => Math.min(steps.length - 1, i + 1))} disabled={last}>
-                Next step
-              </button>
-              {last && (
-                <button type="button" className={s.navBtn} onClick={() => setIdx(0)}>
-                  Start over
-                </button>
-              )}
-            </div>
+            <StepNav
+              index={idx}
+              count={steps.length}
+              titles={steps.map((x) => x.title)}
+              onPrev={() => go(idx - 1)}
+              onNext={() => go(last ? 0 : idx + 1)}
+              onGo={go}
+              lastLabel="Start over"
+            />
           )}
         </>
       ) : (
