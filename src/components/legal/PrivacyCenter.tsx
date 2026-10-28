@@ -29,8 +29,11 @@ const STATUS: Record<PrivacyRequest["status"], [string, StatusTone]> = {
 const day = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
 
-/** /status/privacy: download, consents, correction, objection, deletion (P6). */
-export default function PrivacyCenter() {
+/**
+ * /status/privacy: download, consents, correction, objection, deletion (P6).
+ * `header={false}` when the page puts its own intro (and h1) above it.
+ */
+export default function PrivacyCenter({ header = true }: { header?: boolean } = {}) {
   const { home } = useMember();
   const [me, setMe] = useState<PrivacyMe | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -65,13 +68,15 @@ export default function PrivacyCenter() {
 
   return (
     <div className={s.page}>
-      <header className={s.head}>
-        <h1 className={s.h1}>Your data and privacy</h1>
-        <p className={s.lead}>
-          See and download what ILP keeps about you, change your choices, and ask us to correct or delete it. Read
-          the <Link href="/privacy">Privacy Policy</Link> for the details.
-        </p>
-      </header>
+      {header && (
+        <header className={s.head}>
+          <h1 className={s.h1}>Your data and privacy</h1>
+          <p className={s.lead}>
+            See and download what ILP keeps about you, change your choices, and ask us to correct or delete it. Read
+            the <Link href="/privacy">Privacy Policy</Link> for the details.
+          </p>
+        </header>
+      )}
 
       <section className={s.card} aria-labelledby="dl-title" data-tour="client-privacy-rights">
         <h2 id="dl-title" className={s.title}>Download my data</h2>

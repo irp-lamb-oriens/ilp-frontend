@@ -101,7 +101,7 @@ function PrivacyRequests() {
     <div className={s.page}>
       <PageHeader
         title="Privacy requests"
-        sub="Access, correction, objection and deletion requests from members, with their legal answer date."
+        sub={all ? "Showing open and closed requests." : "Showing open requests."}
         actions={
           <Button variant="ghost" size="sm" onClick={() => setAll((v) => !v)} aria-pressed={all}>
             {all ? "Show open only" : "Show closed too"}
