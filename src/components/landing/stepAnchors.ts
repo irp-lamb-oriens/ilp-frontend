@@ -6,6 +6,7 @@
  * step N is clearly active. Stacked (phones, reduced motion) the id sits on
  * the step block itself. Plain math, so tests/homepage.test.mjs can check it.
  */
+import { revealAt, zigzag, zigzagDrift, type Side, type Window } from "@/components/motion/storyMath";
 import { HERO } from "./content";
 
 export const STEP_COUNT = HERO.how.length;
@@ -55,3 +56,41 @@ export function parseStepHash(hash: string): number | null {
   const n = Number(m[1]);
   return n >= 1 && n <= STEP_COUNT ? n - 1 : null;
 }
+
+/* Example screens of the pinned steps. Step i owns progress [i/N, (i+1)/N].
+ * Its screen fades out and finishes moving STEP_SCREEN_GAP before that
+ * window ends, and the next screen starts STEP_SCREEN_GAP after it, so two
+ * screens are never on stage together. Step 1 is shown from the start, step 4
+ * holds to the end. */
+export const STEP_SCREEN_GAP = 0.015;
+export const STEP_SCREEN_FADE = 0.035;
+
+/** Enter and exit windows of step i's screen (null: none). */
+export function stepScreenWindows(i: number): { enter: Window | null; exit: Window | null } {
+  const a = i / STEP_COUNT;
+  const b = (i + 1) / STEP_COUNT;
+  const g = STEP_SCREEN_GAP;
+  const f = STEP_SCREEN_FADE;
+  return {
+    enter: i === 0 ? null : [a + g, a + g + f],
+    exit: i === STEP_COUNT - 1 ? null : [b - g - f, b - g],
+  };
+}
+
+/** Progress through step i's screen: enter 0..1, exit 0..1 (0 when it has none). */
+export function stepScreenPhase(p: number, i: number): { enter: number; exit: number } {
+  const { enter, exit } = stepScreenWindows(i);
+  return { enter: enter ? revealAt(p, enter) : 1, exit: exit ? revealAt(p, exit) : 0 };
+}
+
+/** Opacity of step i's screen at progress p: 0 off stage, 1 while its step is read. */
+export function stepScreenOpacity(p: number, i: number): number {
+  const { enter, exit } = stepScreenPhase(p, i);
+  return Math.min(enter, 1 - exit);
+}
+
+/** The side each step's screen slides in from, alternating (a Z down the steps). */
+export const STEP_SCREEN_SIDES: Side[] = zigzag(STEP_COUNT).map((z) => z.visual);
+
+/** Enter and exit drift (px) of step i's screen. */
+export const stepScreenDrift = (i: number) => zigzagDrift(STEP_SCREEN_SIDES[i], "top", 32);

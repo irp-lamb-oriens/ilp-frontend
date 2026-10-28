@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
 import CountUp from "@/components/motion/CountUp";
@@ -11,17 +11,29 @@ import { MockScene } from "@/components/tutorial/mock/MockScene";
 import { EMPTY_OVERRIDES } from "@/components/tutorial/sceneUtils";
 import { cx } from "@/components/ui/cx";
 import { HERO_SCREENS, HERO_SCREEN_SIZE, screenRoot, type HeroScreen } from "./heroScreens";
-import { STEPS_TRACK_VH, activeStep, parseStepHash, stepAnchorId, stepScrollY } from "./stepAnchors";
+import {
+  STEPS_TRACK_VH,
+  activeStep,
+  parseStepHash,
+  stepAnchorId,
+  stepScreenDrift,
+  stepScreenOpacity,
+  stepScreenPhase,
+  stepScrollY,
+} from "./stepAnchors";
+import { easeEnter, easeExit, revealAt, type Window } from "@/components/motion/storyMath";
 import { scrollPageTo } from "@/components/SmoothScroll";
 import s from "./HeroStory.module.scss";
 
 /**
  * The hero story after the first screen: the problem, how ILP works and what
  * you get, one section each. On wide screens with motion allowed the first
- * two pin (MorphStage) and reveal their text as you scroll. On phones and with
+ * two pin (MorphStage) and reveal their text word by word, from opacity 0 to 1,
+ * as you scroll. On phones and with
  * reduced motion they are plain stacked blocks that fade in once. Each step of
  * "How ILP works" has an example screen (heroScreens.ts): beside the pinned
- * list on wide screens, under the step text when stacked. All text is
+ * list on wide screens (one at a time, sliding in from alternating sides, with
+ * an empty gap between two), under the step text when stacked. All text is
  * in the DOM from the first render; motion only changes opacity and transform.
  * Each step row is a link to #how-it-works-step-N (stepAnchors.ts) that
  * scrolls to where that step is shown, in both layouts.
@@ -51,44 +63,30 @@ function useSimpleLayoutState(): [simple: boolean, settled: boolean] {
 
 const useSimpleLayout = () => useSimpleLayoutState()[0];
 
-/** Dim to full opacity over [from, to] of the stage progress. */
-function Scrub({
-  progress,
-  from,
-  to,
-  floor = 0.16,
-  className,
-  children,
-}: {
-  progress: MotionValue<number>;
-  from: number;
-  to: number;
-  floor?: number;
-  className?: string;
-  children: ReactNode;
-}) {
-  const opacity = useTransform(progress, [from, to], [floor, 1]);
-  return (
-    <motion.span className={className} style={{ opacity }}>
-      {children}
-    </motion.span>
-  );
-}
-
 /* ── The problem ─────────────────────────────────────────────── */
 
-/** Progress window in which phrase i brightens. */
+/** Progress window in which the words of phrase i appear, from opacity 0 to 1. */
 const phraseWindow = (i: number): [number, number] => [0.04 + i * 0.2, 0.18 + i * 0.2];
 
-/** One label of the problem row: a hairline chip whose accent fill fades in. */
+/** Phrase windows for RevealText: words of phrase i appear in window i. */
+const PHRASE_WINDOWS: Window[] = PROBLEM.phrases.map((_, i) => phraseWindow(i));
+
+/**
+ * One label of the problem row: appears from opacity 0 (rising half a line)
+ * while its words are read in the second phrase, then its accent fill fades in.
+ */
 function ProblemChip({ progress, index, label }: { progress: MotionValue<number>; index: number; label: string }) {
   const [a] = phraseWindow(1);
-  const lit = useTransform(progress, [a + index * 0.04, a + 0.04 + index * 0.04], [0, 1]);
+  const shown: Window = [a + index * 0.035, a + 0.035 + index * 0.035];
+  const lit: Window = [shown[1], shown[1] + 0.03];
+  const opacity = useTransform(progress, (v) => revealAt(v, shown));
+  const y = useTransform(progress, (v) => `${(1 - easeEnter(revealAt(v, shown))) * 0.5}em`);
+  const fill = useTransform(progress, (v) => revealAt(v, lit));
   return (
-    <li className={s.chip}>
-      <motion.span className={s.chipFill} style={{ opacity: lit }} />
+    <motion.li className={s.chip} style={{ opacity, y }}>
+      <motion.span className={s.chipFill} style={{ opacity: fill }} />
       <span className={s.chipLabel}>{label}</span>
-    </li>
+    </motion.li>
   );
 }
 
@@ -124,19 +122,14 @@ export function ProblemScroll() {
         {(progress) => (
           <div className={s.problemInner}>
             {heading}
-            <p className={s.problemText}>
-              {PROBLEM.phrases.map((phrase, i) => {
-                const [from, to] = phraseWindow(i);
-                return (
-                  <span key={phrase}>
-                    <Scrub progress={progress} from={from} to={to} floor={i === 0 ? 0.3 : 0.16}>
-                      {phrase}
-                    </Scrub>
-                    {i < PROBLEM.phrases.length - 1 ? " " : null}
-                  </span>
-                );
-              })}
-            </p>
+            <RevealText
+              text={HERO.why}
+              parts={PROBLEM.phrases}
+              windows={PHRASE_WINDOWS}
+              scrub={{ progress, window: [PHRASE_WINDOWS[0][0], PHRASE_WINDOWS[PHRASE_WINDOWS.length - 1][1]] }}
+              bare
+              className={s.problemText}
+            />
             <ul className={s.chips} aria-hidden="true">
               {PROBLEM.items.map((label, i) => (
                 <ProblemChip key={label} progress={progress} index={i} label={label} />
@@ -296,13 +289,22 @@ function ScreenCaption() {
   );
 }
 
+/**
+ * Step i's example screen: slides in from its side (alternating, a Z down the
+ * steps) only after the previous screen has gone, holds while its step is
+ * read, then fades to 0 drifting toward its corner. Hidden at opacity 0.
+ */
 function VisualLayer({ progress, index }: { progress: MotionValue<number>; index: number }) {
-  const { input, output } = stepStops(index);
-  const opacity = useTransform(progress, input, output.map((o) => (o === 1 ? 1 : 0)));
-  const y = useTransform(progress, input, output.map((o) => (o === 1 ? 0 : 16)));
-  const scale = useTransform(progress, input, output.map((o) => (o === 1 ? 1 : 0.98)));
+  const drift = stepScreenDrift(index);
+  const opacity = useTransform(progress, (v) => stepScreenOpacity(v, index));
+  const x = useTransform(progress, (v) => {
+    const { enter, exit } = stepScreenPhase(v, index);
+    return (1 - easeEnter(enter)) * drift.enter.x + easeExit(exit) * drift.exit.x;
+  });
+  const y = useTransform(progress, (v) => easeExit(stepScreenPhase(v, index).exit) * drift.exit.y);
+  const visibility = useTransform(opacity, (o) => (o > 0 ? "visible" : "hidden"));
   return (
-    <motion.div className={s.visualLayer} style={{ opacity, y, scale }}>
+    <motion.div className={s.visualLayer} style={{ opacity, x, y, visibility }}>
       <ScreenFrame screen={HERO_SCREENS[index]} />
     </motion.div>
   );
