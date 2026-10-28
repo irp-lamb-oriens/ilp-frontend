@@ -14,6 +14,9 @@ const { collectIds, missingRefs, endState, describeScene, markers, captionsOf, f
 );
 const { ALL_TUTORIALS, TUTORIAL_ROUTES, CLIENT_TUTORIALS } = await import("../src/tutorials/index.ts");
 const { GLOSSARY, TERM_KEYS, findTerms } = await import("../src/tutorials/glossary.ts");
+const { PUBLIC_TUTORIALS } = await import("../src/tutorials/public/index.ts");
+/** Portal and public tutorials: every content check applies to both. */
+const EVERY_TUTORIAL = [...ALL_TUTORIALS, ...PUBLIC_TUTORIALS];
 
 const t = (id, route, extra = {}) => ({ id, version: 1, title: id, route, steps: [], ...extra });
 
@@ -208,7 +211,7 @@ test("every portal screen has a tutorial for its role", () => {
 
 test("every tutorial has 3–6 steps with copy, unique ids, and cursor targets that exist", () => {
   const ids = new Set();
-  for (const tut of ALL_TUTORIALS) {
+  for (const tut of EVERY_TUTORIAL) {
     assert.ok(!ids.has(tut.id), `duplicate ${tut.id}`);
     ids.add(tut.id);
     assert.ok(Number.isInteger(tut.version) && tut.version >= 1, `${tut.id} version`);
@@ -245,7 +248,7 @@ test("every step target has a matching data-tour attribute on a live page", asyn
     }
   };
   walk(root);
-  for (const tut of ALL_TUTORIALS) {
+  for (const tut of EVERY_TUTORIAL) {
     for (const st of tut.steps) {
       if (st.target) assert.ok(found.has(st.target), `${tut.id} › ${st.id}: no element has data-tour="${st.target}"`);
     }
@@ -359,7 +362,7 @@ const NEEDS_GLOSSARY = { sync: /\bsync/i, mrr: /\bMRR\b/, sla: /\bSLA\b/, nps: /
 
 test("every cursor action has a plain caption of at most 40 words", () => {
   let n = 0;
-  for (const tut of ALL_TUTORIALS) {
+  for (const tut of EVERY_TUTORIAL) {
     for (const st of tut.steps) {
       for (const op of st.scene.script ?? []) {
         const where = `${tut.id} › ${st.id} › ${op.op} ${typeof op.to === "string" ? op.to : ""}`;
@@ -377,7 +380,7 @@ test("every cursor action has a plain caption of at most 40 words", () => {
 });
 
 test("every step plays in under 25 seconds", () => {
-  for (const tut of ALL_TUTORIALS) {
+  for (const tut of EVERY_TUTORIAL) {
     for (const st of tut.steps) {
       const end = computeTimeline(st.scene.script).end;
       assert.ok(end <= 25_000, `${tut.id} › ${st.id} plays for ${(end / 1000).toFixed(1)} s`);
@@ -386,7 +389,7 @@ test("every step plays in under 25 seconds", () => {
 });
 
 test("captions and step copy read easily: short sentences, no banned words, jargon glossaried", () => {
-  for (const tut of ALL_TUTORIALS) {
+  for (const tut of EVERY_TUTORIAL) {
     const glossaried = new Set();
     for (const st of tut.steps) {
       const where = `${tut.id} › ${st.id}`;
@@ -408,7 +411,7 @@ test("captions and step copy read easily: short sentences, no banned words, jarg
 
 test("member tutorials stay calm: no alarming words", () => {
   const ALARM = /\b(risk|danger|penalt(y|ies)|fined|urgent|warning|overdue|fail(ed|ure)?|must act|immediately)\b/i;
-  for (const tut of CLIENT_TUTORIALS) {
+  for (const tut of [...CLIENT_TUTORIALS, ...PUBLIC_TUTORIALS]) {
     for (const st of tut.steps) {
       const copy = [st.title, st.body, ...(st.scene.script ?? []).map((o) => o.explain ?? "")].join(" ");
       assert.ok(!ALARM.test(copy), `${tut.id} › ${st.id}: “${copy.match(ALARM)?.[0]}”`);
@@ -448,4 +451,20 @@ test("glossary: words are found in captions, longest match wins", () => {
   assert.deepEqual(findTerms("16 days in stage, past the SLA."), ["daysInStage", "sla"]);
   assert.deepEqual(findTerms("Your DIMEX and the marchamo."), ["dimex", "marchamo"]);
   assert.deepEqual(findTerms("Nothing here."), []);
+});
+
+// ─── Public tutorials ───────────────────────────────────────────────────────
+
+test("public tutorials need no role or route and never auto-start", () => {
+  assert.ok(PUBLIC_TUTORIALS.length >= 1);
+  const reg = createRegistry([...ALL_TUTORIALS, ...PUBLIC_TUTORIALS]);
+  for (const tut of PUBLIC_TUTORIALS) {
+    assert.ok(tut.id.startsWith("public."), `${tut.id} id starts with public.`);
+    assert.deepEqual(tut.audience, ["public"], `${tut.id} audience`);
+    assert.equal(tut.route, undefined, `${tut.id} has no route`);
+    assert.equal(tut.autoStart, "never", `${tut.id} never auto-starts`);
+    assert.equal(reg.get(tut.id), tut);
+    for (const role of ["staff", "lawyer", "client"]) assert.ok(!reg.forRole(role).includes(tut), `${tut.id} stays out of the ${role} list`);
+  }
+  assert.ok(!ALL_TUTORIALS.some((t) => t.audience?.includes("public")), "portal list has no public tutorial");
 });

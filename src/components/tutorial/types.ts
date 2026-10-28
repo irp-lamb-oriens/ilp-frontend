@@ -9,6 +9,13 @@
 
 export type TutorialRole = "staff" | "lawyer" | "client";
 
+/**
+ * Who a tutorial is for. "public" tutorials need no sign-in and no route:
+ * marketing pages play them inline with <TutorialEmbed> or open them from a
+ * PageIntro's "Watch how it works".
+ */
+export type TutorialAudience = TutorialRole | "public";
+
 export interface Tutorial {
   /** Stable id, e.g. "staff.today". Used as the storage key. */
   id: string;
@@ -17,7 +24,7 @@ export interface Tutorial {
   title: string;
   /** One line for the Tutorials list and the gallery. */
   summary?: string;
-  audience?: TutorialRole[];
+  audience?: TutorialAudience[];
   /**
    * Route the tutorial belongs to. Strings match the whole path and accept
    * Next-style dynamic segments ("/dashboard/members/[id]").

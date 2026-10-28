@@ -63,6 +63,14 @@ export interface ScenePlayerProps {
   captions?: boolean;
   /** Show the "What happens here" list under the scene. Default true. */
   explainList?: boolean;
+  /**
+   * False holds the demo: it waits to start, or pauses where it is and picks
+   * up there when it turns true again (TutorialEmbed: off screen). A pause
+   * the viewer chose is never undone by this. Default true.
+   */
+  active?: boolean;
+  /** Called once the demo has played its loops and rests on its end state. */
+  onEnded?: () => void;
 }
 
 interface Pt {
@@ -74,7 +82,18 @@ type Mode = "playing" | "paused" | "ended";
 
 const tr = (p: Pt) => `translate(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px)`;
 
-export function ScenePlayer({ scene, loops = 3, forceStatic = false, className, keys = false, newTerms, captions = true, explainList = true }: ScenePlayerProps) {
+export function ScenePlayer({
+  scene,
+  loops = 3,
+  forceStatic = false,
+  className,
+  keys = false,
+  newTerms,
+  captions = true,
+  explainList = true,
+  active = true,
+  onEnded,
+}: ScenePlayerProps) {
   const reducedPref = useReducedMotion();
   const reduced = reducedPref || forceStatic;
   const [W, H] = SCENE_SIZE[scene.aspect];
@@ -95,6 +114,12 @@ export function ScenePlayer({ scene, loops = 3, forceStatic = false, className, 
   const startRef = useRef(0);
   /** The running demo's cancel flag, so Pause stops it before React cleans up. */
   const tokenRef = useRef<{ cancelled: boolean }>({ cancelled: true });
+  /** The demo has run at least once (an inactive player that never started just waits). */
+  const startedRef = useRef(false);
+  /** Paused by `active` turning false, not by the viewer. */
+  const autoPausedRef = useRef(false);
+  const onEndedRef = useRef(onEnded);
+  onEndedRef.current = onEnded;
   const termsId = useId();
   const [overrides, setOverrides] = useState<Overrides>(EMPTY_OVERRIDES);
   const [mode, setMode] = useState<Mode>("playing");
@@ -134,6 +159,8 @@ export function ScenePlayer({ scene, loops = 3, forceStatic = false, className, 
   // A new scene starts playing from the top.
   useEffect(() => {
     startRef.current = 0;
+    startedRef.current = false;
+    autoPausedRef.current = false;
     atRef.current = -1;
     setAt(-1);
     setCap(null);
@@ -181,11 +208,12 @@ export function ScenePlayer({ scene, loops = 3, forceStatic = false, className, 
 
   // The animated demo.
   useEffect(() => {
-    if (reduced || mode !== "playing" || !hasScript) return;
+    if (reduced || mode !== "playing" || !hasScript || !active) return;
     const box = boxRef.current;
     const stage = stageRef.current;
     const cursor = cursorRef.current;
     if (!box || !stage || !cursor) return;
+    startedRef.current = true;
     const boxEl: HTMLElement = box;
     const stageEl: HTMLElement = stage;
     const token = { cancelled: false };
@@ -429,7 +457,7 @@ export function ScenePlayer({ scene, loops = 3, forceStatic = false, className, 
       running.forEach((a) => a.cancel());
       running.clear();
     };
-  }, [reduced, mode, runKey, hasScript, timeline, scene, script, loops, captions, W, H]);
+  }, [reduced, mode, runKey, hasScript, timeline, scene, script, loops, captions, W, H, active]);
 
   // Paused: the frame right after op `at`, with its caption held.
   useLayoutEffect(() => {
@@ -529,6 +557,31 @@ export function ScenePlayer({ scene, loops = 3, forceStatic = false, className, 
     setMode("playing");
     setRunKey((k) => k + 1);
   };
+
+  // `active` (TutorialEmbed: in view or not). Off: hold where the demo is.
+  // On again: resume from there, unless the viewer paused it.
+  const controlsRef = useRef({ pause, resume });
+  controlsRef.current = { pause, resume };
+  useEffect(() => {
+    if (reduced || !hasScript) return;
+    if (!active) {
+      if (mode === "playing" && startedRef.current) {
+        autoPausedRef.current = true;
+        controlsRef.current.pause();
+      }
+      return;
+    }
+    if (autoPausedRef.current) {
+      autoPausedRef.current = false;
+      if (mode === "paused") controlsRef.current.resume();
+    }
+    // mode is read, not watched: only a change of `active` should act here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, reduced, hasScript]);
+
+  useEffect(() => {
+    if (mode === "ended") onEndedRef.current?.();
+  }, [mode]);
 
   // ← / → step between actions while paused (capture, so the modal's step keys wait).
   useEffect(() => {

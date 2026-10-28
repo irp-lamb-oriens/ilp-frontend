@@ -1,0 +1,130 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Inline tutorial card: hairline border, flat radius, no glass, no heavy
+// shadow (rules.md). The scene keeps its own frame inside.
+
+.embed {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-canvas;
+  box-shadow: $shadow-card;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.count {
+  @include eyebrow;
+  margin: 0;
+  color: $color-steel;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.body {
+  margin: 0;
+  max-width: 65ch;
+  line-height: 1.6;
+  color: $color-charcoal;
+}
+
+.stage {
+  position: relative;
+  min-width: 0;
+}
+
+// Before Play (autoplay "off"): a plain cover over the first frame.
+.cover {
+  position: absolute;
+  inset: 0;
+  bottom: auto;
+  aspect-ratio: 960 / 540;
+  display: grid;
+  place-items: center;
+  border-radius: $radius-md;
+  background: rgba($color-canvas, 0.72);
+}
+
+.play {
+  @include button-primary;
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: $space-2 $space-6;
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.navBtn {
+  @include press;
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0 $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-navy;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    color: $color-muted;
+    border-color: $color-hairline;
+    cursor: default;
+  }
+
+  @include hover-only {
+    &:not(:disabled):hover {
+      background: $color-mist;
+    }
+  }
+}
+
+.placeholder {
+  aspect-ratio: 960 / 540;
+  border-radius: $radius-md;
+  background: $color-skeleton;
+}
+
+.caption {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: $color-steel;
+}
+
+.sr {
+  @include visually-hidden;
+}

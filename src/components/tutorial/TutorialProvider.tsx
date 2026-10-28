@@ -50,12 +50,17 @@ export interface TutorialProviderProps {
   tutorials?: Tutorial[];
   /** Or loaded on first use, so pages without tutorials do not ship the configs. */
   load?: () => Promise<Tutorial[]>;
+  /**
+   * Public (marketing) tutorials, loaded on their own so pages without a
+   * session never download the portal configs. Works with no sign-in.
+   */
+  loadPublic?: () => Promise<Tutorial[]>;
   /** Server mirror of the seen state. Default: none. */
   sync?: TutorialSync;
   children: ReactNode;
 }
 
-export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, children }: TutorialProviderProps) {
+export function TutorialProvider({ tutorials, load, loadPublic, sync = noopTutorialSync, children }: TutorialProviderProps) {
   const [registry, setRegistry] = useState<TutorialRegistry | null>(() => (tutorials ? createRegistry(tutorials) : null));
   const loading = useRef<Promise<TutorialRegistry> | null>(null);
   const storeRef = useRef<TutorialStore | null>(null);
@@ -111,10 +116,31 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
     return loading.current;
   }, [registry, load]);
 
+  const publicLoading = useRef<Promise<Map<string, Tutorial>> | null>(null);
+  const loadTutorial = useCallback<TutorialApi["loadTutorial"]>(
+    async (id) => {
+      const known = registry?.get(id);
+      if (known) return known;
+      if (loadPublic) {
+        if (!publicLoading.current) {
+          publicLoading.current = loadPublic()
+            .then((list) => new Map(list.map((t) => [t.id, t] as const)))
+            .catch(() => {
+              publicLoading.current = null;
+              return new Map<string, Tutorial>();
+            });
+        }
+        const pub = (await publicLoading.current).get(id);
+        if (pub) return pub;
+      }
+      return (await ensureLoaded()).get(id);
+    },
+    [registry, loadPublic, ensureLoaded],
+  );
+
   const start = useCallback<TutorialApi["start"]>(
     async (id, opts = {}) => {
-      const r = await ensureLoaded();
-      const t = r.get(id);
+      const t = await loadTutorial(id);
       if (!t || t.steps.length === 0) return false;
       const byId = opts.stepId ? t.steps.findIndex((x) => x.id === opts.stepId) : -1;
       const want = byId >= 0 ? byId : opts.step ?? 0;
@@ -123,7 +149,7 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
       setActive({ tutorial: t, step: Math.max(0, Math.min(t.steps.length - 1, want)), auto: !!opts.auto });
       return true;
     },
-    [ensureLoaded],
+    [loadTutorial],
   );
 
   const startScene = useCallback<TutorialApi["startScene"]>((scene, title, body = "") => {
@@ -186,6 +212,7 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
       autoStartEnabled: store().read().autoStart,
       setAutoStartEnabled: (on) => store().setAutoStart(on),
       ensureLoaded,
+      loadTutorial,
       openList: (role) => {
         void ensureLoaded().then(() => setListRole(role));
       },
@@ -198,7 +225,7 @@ export function TutorialProvider({ tutorials, load, sync = noopTutorialSync, chi
     }),
     // rev: re-read the store after every change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [registry, active, start, startScene, goTo, close, ensureLoaded, store, rev],
+    [registry, active, start, startScene, goTo, close, ensureLoaded, loadTutorial, store, rev],
   );
 
   return (

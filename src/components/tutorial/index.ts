@@ -7,6 +7,8 @@ export type { TutorialProviderProps } from "./TutorialProvider";
 export { TutorialModal } from "./TutorialModal";
 export { TutorialList } from "./TutorialList";
 export { ScenePlayer, SCENE_SIZE } from "./ScenePlayer";
+export { TutorialEmbed } from "./TutorialEmbed";
+export type { TutorialEmbedProps, EmbedAutoplay } from "./TutorialEmbed";
 export { MockScene } from "./mock/MockScene";
 export { TourSpotlight } from "./TourSpotlight";
 export { HelpButton } from "./HelpButton";

@@ -37,6 +37,12 @@ export interface TutorialApi {
   reset(id?: string): void;
   autoStartEnabled: boolean;
   setAutoStartEnabled(on: boolean): void;
+  /**
+   * One tutorial by id, loading as little as possible: public tutorials come
+   * from the small public bundle, so a marketing page never downloads the
+   * portal configs. Undefined when the id is unknown.
+   */
+  loadTutorial(id: string): Promise<Tutorial | undefined>;
   /** Make sure the configs are loaded (HelpButton, auto-start). */
   ensureLoaded(): Promise<TutorialRegistry>;
   /** Open the "Tutorials" list for a role (user menu). */
