@@ -24,6 +24,7 @@ import ScheduleGallery from "./ScheduleGallery";
 import GuardGallery from "./GuardGallery";
 import LoadingGallery from "./LoadingGallery";
 import TutorialsGallery from "./TutorialsGallery";
+import PlayerGallery from "./PlayerGallery";
 import NoticeGallery from "./NoticeGallery";
 import { BoardGallery, FilterGallery } from "./BoardGallery";
 import { EmbedGallery, IntroGallery } from "./IntroGallery";
@@ -51,6 +52,7 @@ const SECTIONS = [
   ["shell", "RoleShell"],
   ["login", "PortalLogin"],
   ["tutorials", "Tutorials"],
+  ["player", "Player controls"],
   ["intro", "PageIntro"],
   ["embed", "TutorialEmbed"],
 ] as const;
@@ -463,6 +465,11 @@ export default function UiGallery() {
       <section id="tutorials" className={s.section}>
         <h2 className={s.h2}>Tutorials</h2>
         <TutorialsGallery />
+      </section>
+
+      <section id="player" className={s.section}>
+        <h2 className={s.h2}>Player controls</h2>
+        <PlayerGallery />
       </section>
 
       <section id="intro" className={s.section}>
