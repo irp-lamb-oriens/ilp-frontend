@@ -8,16 +8,22 @@ import { usePopover } from "./usePopover";
 import s from "./RoleShell.module.scss";
 
 export interface CountrySwitcherProps {
+  /** A country code, or "" for all countries (only with `allowAll`). */
   value?: string;
   countries?: Country[];
   onChange?: (code: string) => void;
+  /** Staff: offer "All countries" first. */
+  allowAll?: boolean;
 }
 
-/** Country switcher stub: Costa Rica active, the rest listed as coming soon. */
-export function CountrySwitcher({ value = "CR", countries = COUNTRIES, onChange }: CountrySwitcherProps) {
+/** Country switcher: all six countries are open and selectable. */
+export function CountrySwitcher({ value = "", countries = COUNTRIES, onChange, allowAll = false }: CountrySwitcherProps) {
   const menuId = useId();
   const { open, toggle, close, rootRef, triggerRef } = usePopover();
-  const current = countries.find((c) => c.code === value) ?? countries[0];
+  const current = countries.find((c) => c.code === value);
+  const options: Country[] = allowAll ? [{ code: "", name: "All countries", available: true }, ...countries] : countries;
+  const label = current?.name ?? (allowAll ? "All countries" : countries[0]?.name ?? "");
+  const selected = current?.code ?? (allowAll ? "" : countries[0]?.code);
 
   return (
     <div className={s.popRoot} ref={rootRef}>
@@ -31,17 +37,16 @@ export function CountrySwitcher({ value = "CR", countries = COUNTRIES, onChange 
         onClick={toggle}
       >
         <span className={s.srOnly}>Country: </span>
-        {current.name}
+        {label}
         <span className={s.caret} aria-hidden="true">▾</span>
       </button>
       <div id={menuId} role="menu" className={cx(s.menu, s.menuRight, open && s.menuOpen)} aria-hidden={!open}>
-        {countries.map((c) => (
+        {options.map((c) => (
           <button
-            key={c.code}
+            key={c.code || "all"}
             type="button"
             role="menuitemradio"
-            aria-checked={c.code === current.code}
-            disabled={!c.available}
+            aria-checked={c.code === selected}
             className={s.menuItem}
             onClick={() => {
               onChange?.(c.code);
@@ -49,7 +54,7 @@ export function CountrySwitcher({ value = "CR", countries = COUNTRIES, onChange 
             }}
           >
             <span>{c.name}</span>
-            <span className={s.menuMeta}>{c.available ? (c.code === current.code ? "Active" : "") : "Coming soon"}</span>
+            <span className={s.menuMeta}>{c.code === selected ? "Selected" : ""}</span>
           </button>
         ))}
       </div>

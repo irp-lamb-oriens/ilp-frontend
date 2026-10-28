@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { staffApi } from "@/lib/api";
 import { COUNTRIES } from "@/components/shell";
+import { useCountryContext } from "@/lib/countryContext";
 import { Button, DataTable, ProgressBar, SearchInput, Select, Skeleton, StatusPill, StaggerItem, type Column } from "@/components/ui";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
@@ -26,7 +27,8 @@ export default function MembersList() {
   const [status, setStatus] = useState(params.get("status") ?? "");
   const [csm, setCsm] = useState(params.get("csm") ?? (staff.role === "csm" ? staff.email : ""));
   const [ready, setReady] = useState(params.get("ready") ?? "");
-  const [country, setCountry] = useState("CR");
+  // COUNTRIES: "" is all six countries; the shell's country switcher sets the same value.
+  const [country, setCountry] = useCountryContext();
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" }>({ key: "name", dir: "asc" });
   const [page, setPage] = useState(1);
   const [data, setData] = useState<MembersPage | null>(null);
@@ -156,10 +158,10 @@ export default function MembersList() {
           <option value="not_ready">Not ready</option>
         </Select>
         <Select label="Country" value={country} onChange={(e) => reset(setCountry)(e.target.value)}>
+          <option value="">All countries</option>
           {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code} disabled={!c.available}>
+            <option key={c.code} value={c.code}>
               {c.name}
-              {c.available ? "" : " (coming soon)"}
             </option>
           ))}
         </Select>

@@ -13,6 +13,7 @@ import {
   IconNavToday,
 } from "./navIcons";
 import type { Country, MenuLink, NavItem, ShellRole } from "./types";
+import { COUNTRIES as CONTRACT_COUNTRIES, COUNTRY_CODES } from "@/lib/contracts";
 
 /**
  * Default navigation per role, from docs/PLAN.md and the overhaul plan.
@@ -59,12 +60,8 @@ export const SEARCH_PLACEHOLDER: Record<ShellRole, string> = {
   staff: "Search members, matters, lawyers",
 };
 
-/** Launch order: Costa Rica live, Panama and Mexico next (plan scope). */
-export const COUNTRIES: Country[] = [
-  { code: "CR", name: "Costa Rica", available: true },
-  { code: "PA", name: "Panama", available: false },
-  { code: "MX", name: "Mexico", available: false },
-];
+/** All six countries are open (contracts COUNTRIES, docs/workstreams/COUNTRIES.md). */
+export const COUNTRIES: Country[] = COUNTRY_CODES.map((code) => ({ code, name: CONTRACT_COUNTRIES[code].name, available: true }));
 
 /** Legal pages every signed-in shell links to from the user menu (P6/P7). */
 export const LEGAL_MENU_LINKS: MenuLink[] = [

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { staffApi } from "@/lib/api";
+import { COUNTRY_LIST, countryNameOf, useCountryContext } from "@/lib/countryContext";
 import type { Matter } from "@/lib/contracts";
 import { AgingBadge, Button, DataTable, ProgressBar, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
 import ClientsPanel from "@/components/dashboard/ClientsPanel";
@@ -57,6 +58,8 @@ function MattersTable() {
   const [stages, setStages] = useState<StageDef[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState("");
+  // COUNTRIES: the shell's country switcher and this filter share one value ("" = all six).
+  const [country, setCountry] = useCountryContext();
   const { nameOf } = useLawyers();
 
   useEffect(() => {
@@ -73,13 +76,14 @@ function MattersTable() {
 
   const label = useMemo(() => new Map(stages.map((x) => [x.id, x.label])), [stages]);
   const sla = useMemo(() => new Map(stages.map((x) => [x.id, x.slaDays])), [stages]);
+  const inCountry = useMemo(() => (matters ?? []).filter((m) => !country || (m.country ?? "CR") === country), [matters, country]);
   const counts = useMemo(() => {
     const c = new Map<string, number>();
-    for (const m of matters ?? []) c.set(m.stage, (c.get(m.stage) ?? 0) + 1);
+    for (const m of inCountry) c.set(m.stage, (c.get(m.stage) ?? 0) + 1);
     return c;
-  }, [matters]);
+  }, [inCountry]);
 
-  const rows = (matters ?? []).filter((m) => !stage || m.stage === stage);
+  const rows = inCountry.filter((m) => !stage || m.stage === stage);
   const columns: Column<Matter>[] = [
     { key: "title", header: "Matter", render: (m) => m.title, sortValue: (m) => m.title, width: "wide" },
     { key: "stage", header: "Stage", render: (m) => <StatusPill size="sm" label={label.get(m.stage) ?? m.stage.replace(/_/g, " ")} />, sortValue: (m) => m.stage },
@@ -93,6 +97,7 @@ function MattersTable() {
       sortValue: (m) => m.stageEnteredAt,
     },
     { key: "area", header: "Area", render: (m) => m.area, sortValue: (m) => m.area, hideOnMobile: true },
+    { key: "country", header: "Country", render: (m) => countryNameOf(m.country ?? "CR"), sortValue: (m) => countryNameOf(m.country ?? "CR"), hideOnMobile: true },
     {
       key: "next",
       header: "Next step",
@@ -104,8 +109,8 @@ function MattersTable() {
 
   if (error) return <ErrorText>{error}</ErrorText>;
 
-  const total = matters?.length ?? 0;
-  const late = (matters ?? []).filter((m) => {
+  const total = inCountry.length;
+  const late = inCountry.filter((m) => {
     const days = sla.get(m.stage) ?? 14;
     return Date.now() - Date.parse(m.stageEnteredAt) > days * 86400000;
   }).length;
@@ -135,10 +140,18 @@ function MattersTable() {
       )}
       <div className={s.bar}>
         <Select label="Stage" value={stage} onChange={(e) => setStage(e.target.value)}>
-          <option value="">All stages ({matters?.length ?? 0})</option>
+          <option value="">All stages ({inCountry.length})</option>
           {[...counts.keys()].map((id) => (
             <option key={id} value={id}>
               {label.get(id) ?? id} ({counts.get(id)})
+            </option>
+          ))}
+        </Select>
+        <Select label="Country" value={country} onChange={(e) => setCountry(e.target.value)}>
+          <option value="">All countries</option>
+          {COUNTRY_LIST.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.name}
             </option>
           ))}
         </Select>

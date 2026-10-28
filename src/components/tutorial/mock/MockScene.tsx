@@ -106,7 +106,7 @@ function Node({ node }: { node: MockNode }): ReactNode {
             <div className={s.topbar}>
               {n.search ? <span className={s.search}>{n.search}</span> : <span />}
               <span className={s.topActions}>
-                {n.role !== "client" && <span className={s.country}>Costa Rica</span>}
+                {n.role !== "client" && <span className={s.country}>{n.role === "staff" ? "All countries" : "Costa Rica"}</span>}
                 <span className={s.help} data-mock-id="help">
                   ?
                 </span>

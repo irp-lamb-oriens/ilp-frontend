@@ -10,6 +10,7 @@ import { HelpButton } from "../tutorial/HelpButton";
 import { useTutorialAutoStart } from "../tutorial/autostart";
 import { useTutorialOptional } from "../tutorial/context";
 import { CountrySwitcher } from "./CountrySwitcher";
+import { useCountryContext } from "@/lib/countryContext";
 import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 import { DEFAULT_NAV, ROLE_LABEL, SEARCH_PLACEHOLDER } from "./navConfig";
@@ -76,7 +77,7 @@ export function RoleShell({
   onSearch,
   searchPlaceholder,
   bell,
-  country = "CR",
+  country,
   onCountryChange,
   showCountry = true,
   homeHref,
@@ -84,6 +85,8 @@ export function RoleShell({
   children,
 }: RoleShellProps) {
   const pathname = usePathname();
+  // COUNTRIES: without a controlled value the switcher drives the shared country context.
+  const [ctxCountry, setCtxCountry] = useCountryContext();
   const items = nav ?? DEFAULT_NAV[role];
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -209,7 +212,7 @@ export function RoleShell({
           <div className={s.topActions}>
             {showCountry && (
               <div className={s.countrySlot}>
-                <CountrySwitcher value={country} onChange={onCountryChange} />
+                <CountrySwitcher value={country ?? ctxCountry} onChange={onCountryChange ?? setCtxCountry} allowAll={role === "staff"} />
               </div>
             )}
             <HelpButton role={role} />
@@ -287,7 +290,7 @@ export function RoleShell({
             })}
             {showCountry && (
               <div className={s.moreCountry}>
-                <CountrySwitcher value={country} onChange={onCountryChange} />
+                <CountrySwitcher value={country ?? ctxCountry} onChange={onCountryChange ?? setCtxCountry} allowAll={role === "staff"} />
               </div>
             )}
           </nav>
