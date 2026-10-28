@@ -79,3 +79,19 @@
   cursor: pointer;
   @include focus-ring;
 }
+
+// An action beside the message (Undo).
+.action {
+  @include touch-target;
+  @include focus-ring;
+  @include press;
+  flex: none;
+  padding: 0 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-navy;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

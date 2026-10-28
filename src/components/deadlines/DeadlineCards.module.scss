@@ -1,0 +1,481 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// DEADLINES: deadline cards. Gallery grid on desktop, one swipeable row per
+// area on phones, one card at a time in "Review one by one".
+
+.root {
+  display: grid;
+  gap: $space-8;
+  min-width: 0;
+}
+
+.head {
+  display: grid;
+  gap: $space-3;
+
+  @include md {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+
+.intro {
+  margin: 0;
+  color: $color-steel;
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
+.modes {
+  display: inline-flex;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  padding: 2px;
+  justify-self: start;
+}
+
+.mode {
+  @include touch-target;
+  @include focus-ring;
+  border: 0;
+  background: transparent;
+  border-radius: $radius-pill;
+  padding: 0 $space-4;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: $color-steel;
+  cursor: pointer;
+  transition: opacity $duration-fast $ease-out-strong;
+}
+
+.modeOn {
+  background: $color-accent-soft;
+  color: $color-navy;
+  font-weight: 600;
+}
+
+// ── Area ──
+
+.area {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.areaHead {
+  display: grid;
+  gap: $space-2;
+
+  @include md {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+}
+
+.areaTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  margin: 0;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.areaIcon {
+  color: $color-navy;
+  flex: none;
+}
+
+.areaCount {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: $color-steel;
+  letter-spacing: 0;
+}
+
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+// Phones: a swipeable row (the page itself never scrolls sideways).
+// Desktop: a gallery grid.
+.track {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 $space-2;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 86%;
+  column-gap: $space-3;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include md {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: $space-4;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding: 0;
+  }
+}
+
+.slide {
+  scroll-snap-align: start;
+  display: grid;
+  min-width: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  @include md {
+    display: none;
+  }
+}
+
+.nav {
+  @include touch-target;
+  @include focus-ring;
+  @include press;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-navy;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.dots {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+// The visible dot is small; the button around it is a 24px target inside the 44px row.
+.dot {
+  @include focus-ring;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+
+  &::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: $radius-pill;
+    border: 1px solid $color-steel;
+    background: $color-canvas;
+    transition: transform $duration-fast $ease-out-strong;
+  }
+}
+
+.dotIncluded::before {
+  background: $color-accent;
+  border-color: $color-accent;
+}
+
+.dotOn::before {
+  transform: scale(1.35);
+  border-color: $color-navy;
+}
+
+.position {
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $color-steel;
+  white-space: nowrap;
+}
+
+// ── Card ──
+
+.card {
+  @include focus-ring;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  height: 100%;
+  padding: $space-4;
+  background: $color-canvas;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong;
+
+  &:active {
+    transform: scale(0.985);
+  }
+
+  @include md {
+    padding: $space-6 $space-4 $space-4;
+  }
+
+  @include reduced-motion {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.cardOn {
+  border-color: $color-accent;
+  background: $color-accent-soft;
+}
+
+// Low confidence: the dashed line of a Notice, the date is never shown as firm.
+.cardLow {
+  border-style: dashed;
+  border-color: $notice-warning;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: $radius-md;
+  border: 1px solid $color-hairline;
+  background: $color-canvas;
+  color: $color-navy;
+}
+
+.date {
+  font-weight: 600;
+  color: $color-navy;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.dateNone {
+  font-weight: 400;
+  color: $color-steel;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  color: $color-charcoal;
+  letter-spacing: -0.005em;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.meaningWrap {
+  display: grid;
+  gap: $space-2;
+}
+
+// Phones: "What this usually means" opens on tap. Desktop: always shown.
+.more {
+  @include focus-ring;
+  justify-self: start;
+  min-height: $touch-target;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: $color-navy;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  @include md {
+    display: none;
+  }
+}
+
+.meaning {
+  display: none;
+  margin: 0;
+  color: $color-charcoal;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+
+  &[data-open] {
+    display: block;
+  }
+
+  @include md {
+    display: block;
+  }
+}
+
+.meaningLabel {
+  font-weight: 600;
+  color: $color-navy;
+
+  @include below-md {
+    @include visually-hidden;
+  }
+}
+
+.when {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: $color-charcoal;
+}
+
+.whenLabel {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.authority {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: $color-steel;
+  line-height: 1.5;
+}
+
+.choice {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-2;
+  padding-top: $space-2;
+}
+
+.choiceBtn {
+  @include touch-target;
+  @include focus-ring;
+  @include press;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-navy;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.choiceInclude {
+  background: $color-accent;
+  border-color: $color-accent;
+  color: $color-accent-ink;
+}
+
+.choiceSkip {
+  border-color: $color-navy;
+}
+
+.sr {
+  @include visually-hidden;
+}
+
+// ── Review one by one ──
+
+.steps {
+  display: grid;
+  gap: $space-4;
+  max-width: 34rem;
+}
+
+.stepStage {
+  min-height: 20rem;
+  display: grid;
+}
+
+.stepButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  justify-content: flex-end;
+}
+
+.stepDone {
+  display: grid;
+  gap: $space-4;
+  align-content: start;
+  padding: $space-6 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+}
+
+.stepDoneTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  color: $color-navy;
+  line-height: 1.4;
+}
+
+// ── Selection bar ──
+
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: $z-sticky;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-3 0;
+  background: $color-canvas;
+  border-top: 1px solid $color-hairline;
+}
+
+// Inside the member app: above the phone tab bar.
+.barShell {
+  @include below-md {
+    bottom: $shell-bottombar-height;
+  }
+}
+
+.count {
+  margin: 0;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.barActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}

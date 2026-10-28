@@ -13,6 +13,8 @@ export interface ToastProps {
   onDismiss: () => void;
   /** Auto-hide after this many ms. Default 6000; 0 keeps it. */
   duration?: number;
+  /** One action beside the message, e.g. Undo (DEADLINES: removing a deadline). */
+  action?: { label: string; onClick: () => void };
 }
 
 /**
@@ -20,7 +22,7 @@ export interface ToastProps {
  * a move that failed). Dashed hairline like a Notice, no fill. Slides with
  * transform and fades with opacity; reduced motion only fades.
  */
-export function Toast({ message, tone = "neutral", onDismiss, duration = 6000 }: ToastProps) {
+export function Toast({ message, tone = "neutral", onDismiss, duration = 6000, action }: ToastProps) {
   const [shown, setShown] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -41,6 +43,11 @@ export function Toast({ message, tone = "neutral", onDismiss, duration = 6000 }:
     <div className={cx(s.toast, s[tone], visible && s.visible)} role={tone === "danger" ? "alert" : "status"} onTransitionEnd={() => !visible && setShown(null)}>
       <span className={s.icon} aria-hidden="true">{tone === "danger" ? <IconDanger /> : tone === "success" ? <IconSuccess /> : null}</span>
       <span className={s.text}>{shown}</span>
+      {action && (
+        <button type="button" className={s.action} onClick={action.onClick}>
+          {action.label}
+        </button>
+      )}
       <button type="button" className={s.close} onClick={onDismiss} aria-label="Dismiss">
         <IconClose />
       </button>
