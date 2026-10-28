@@ -44,9 +44,11 @@ export interface PortalLoginProps {
   autoSend?: boolean;
   /** Shown between the title and the form. */
   lead?: ReactNode;
+  /** DEADLINES: "code" opens on the code step for initialEmail (the code was already sent, e.g. by the free check). */
+  initialStep?: Step;
 }
 
-type Step = "email" | "code";
+export type Step = "email" | "code";
 
 function describe(err: unknown, step: Step): string {
   if (err instanceof ApiError) {
@@ -68,17 +70,18 @@ function describe(err: unknown, step: Step): string {
  * soon) and a 30-second resend cooldown. On success the session token from
  * verify-otp is stored for the role (ilp_<role>_token, see lib/api.ts).
  */
-export default function PortalLogin({ role, onSuccess, title, sub, initialEmail = "", brand, autoSend = false, lead }: PortalLoginProps) {
+export default function PortalLogin({ role, onSuccess, title, sub, initialEmail = "", brand, autoSend = false, lead, initialStep = "email" }: PortalLoginProps) {
   const api = useRef(createApiClient(role)).current;
   const base = ENDPOINTS[role];
-  const [step, setStep] = useState<Step>("email");
+  const startOnCode = initialStep === "code" && /^\S+@\S+\.\S+$/.test(initialEmail.trim());
+  const [step, setStep] = useState<Step>(startOnCode ? "code" : "email");
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [cooldown, setCooldown] = useState(0);
+  const [cooldown, setCooldown] = useState(startOnCode ? RESEND_COOLDOWN_S : 0);
   const [locked, setLocked] = useState(false);
   const codeRef = useRef<HTMLInputElement>(null);
   const autoSent = useRef(false);

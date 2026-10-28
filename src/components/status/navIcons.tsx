@@ -54,3 +54,12 @@ export const IconVideo = (p: IconProps) => (
     <path d="M10.5 7l4-2v6l-4-2" />
   </Svg>
 );
+
+/** Deadlines: a calendar with a check. */
+export const IconDeadlines = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+    <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
+    <path d="M6 10l1.5 1.5L10 9" />
+  </Svg>
+);

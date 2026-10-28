@@ -1,0 +1,232 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// DEADLINES: /status/deadlines and the "Add more deadlines" drawer.
+
+.page {
+  display: grid;
+  gap: $space-6;
+  min-width: 0;
+}
+
+.toolbar {
+  display: grid;
+  gap: $space-3;
+
+  @include md {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+}
+
+.freeNote {
+  margin: 0;
+  color: $color-steel;
+  line-height: 1.6;
+
+  a {
+    color: $color-navy;
+  }
+}
+
+.groups {
+  display: grid;
+  gap: $space-8;
+}
+
+.group {
+  display: grid;
+  gap: $space-3;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: baseline;
+  gap: $space-2;
+  margin: 0;
+  font-size: 1.25rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.groupCount {
+  font-family: $font-mono;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: $color-steel;
+}
+
+.groupHelp {
+  margin: 0;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-3;
+}
+
+.item {
+  @include card;
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.itemHead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: $space-3;
+  align-items: start;
+
+  @include md {
+    grid-template-columns: auto 1fr auto;
+  }
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-md;
+  border: 1px solid $color-hairline;
+  color: $color-navy;
+}
+
+.when {
+  min-width: 0;
+}
+
+.date {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.dateNone {
+  margin: 0;
+  font-size: 1.125rem;
+  color: $color-steel;
+}
+
+.rel {
+  font-weight: 400;
+  color: $color-steel;
+  font-size: 0.9375rem;
+}
+
+.meta {
+  margin: $space-1 0 0;
+  font-size: 0.875rem;
+  color: $color-steel;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  grid-column: 1 / -1;
+
+  @include md {
+    grid-column: auto;
+    justify-content: flex-end;
+  }
+
+  &:empty {
+    display: none;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: $color-charcoal;
+}
+
+.review {
+  justify-self: start;
+}
+
+.details {
+  border-top: 1px solid $color-hairline;
+  padding-top: $space-2;
+}
+
+.summary {
+  @include focus-ring;
+  min-height: $touch-target;
+  display: flex;
+  align-items: center;
+  color: $color-navy;
+  cursor: pointer;
+}
+
+.meaning {
+  margin: 0 0 $space-2;
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
+.label {
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.authority {
+  margin: 0;
+  font-size: 0.875rem;
+  color: $color-steel;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.dateForm {
+  display: grid;
+  gap: $space-3;
+  max-width: 34rem;
+}
+
+.remind {
+  justify-self: start;
+}
+
+.saved {
+  margin: 0;
+  color: $color-success;
+}
+
+// ── Picker drawer ──
+
+.picker {
+  display: grid;
+  gap: $space-6;
+}
+
+.pickerFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $space-2;
+}
+
+.pickerCount {
+  margin-right: auto;
+  font-weight: 600;
+  color: $color-navy;
+}

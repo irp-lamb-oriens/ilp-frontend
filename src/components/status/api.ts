@@ -10,7 +10,7 @@
 
 import { downloadFile } from "@/lib/api";
 import { clientApi } from "@/lib/status";
-import type { Membership, Obligation, ProfileSection } from "@/lib/contracts";
+import type { AccountType, Membership, Obligation, ProfileSection } from "@/lib/contracts";
 import { mockMemberApi } from "@/lib/mocks/w4";
 import { apiListSource, memoryListSource, type ListSource } from "@/lib/listSource";
 
@@ -81,7 +81,12 @@ export interface MemberHome {
   /** Profile keys; `countryAnswers` (COUNTRY_ANSWERS_FIELD) is the country answers map. */
   profile: Record<string, string | number | boolean | null | Record<string, string | string[]>>;
   pendingQuestions: string[];
+  /** DEADLINES: "free" when the person saved deadlines from the free check and has no membership. Absent on older servers (member). */
+  account?: { type: AccountType };
 }
+
+/** DEADLINES: a free account sees Overview, Deadlines, Profile and Privacy; the rest shows a join notice. */
+export const isFreeAccount = (home: Pick<MemberHome, "account"> | null | undefined) => home?.account?.type === "free";
 
 export interface SlotsPayload {
   slots: string[];

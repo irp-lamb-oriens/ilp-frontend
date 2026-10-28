@@ -424,6 +424,7 @@ export default function StatusRouteSkeleton({ pathname }: { pathname: string }) 
 
 /** Route prefix to MemberIntro `screen` key, most specific first. */
 const SCREENS: Array<[string, string]> = [
+  ["/status/deadlines", "deadlines"],
   ["/status/profile", "profile"],
   ["/status/money/cancel", "cancel"],
   ["/status/money", "money"],
@@ -434,6 +435,7 @@ const SCREENS: Array<[string, string]> = [
 ];
 
 function routeBody(pathname: string) {
+  if (pathname.startsWith("/status/deadlines")) return <ObligationsSkeleton items={5} />;
   if (pathname.startsWith("/status/profile")) return <ProfileSkeleton />;
   if (pathname.startsWith("/status/money/cancel")) return <CancelSkeleton />;
   if (pathname.startsWith("/status/money")) {

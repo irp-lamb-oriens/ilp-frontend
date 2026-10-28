@@ -8,10 +8,11 @@ import PortalLogin from "@/components/auth/PortalLogin";
 import { Button, SkeletonRegion, useSkeleton, Notice } from "@/components/ui";
 import { ApiError, getRoleToken } from "@/lib/api";
 import { projectIdToEmail } from "@/lib/status";
-import { memberApi, type MemberHome } from "./api";
+import { isFreeAccount, memberApi, type MemberHome } from "./api";
+import { loadPendingDeadlines, type PendingDeadlines } from "@/lib/deadlines";
 import { MemberContext } from "./MemberContext";
 import MatterSwitcher from "./MatterSwitcher";
-import { IconCard, IconChat, IconHome, IconPerson } from "./navIcons";
+import { IconCard, IconChat, IconDeadlines, IconHome, IconPerson } from "./navIcons";
 import StatusRouteSkeleton from "./StatusSkeletons";
 import { setDisplayTimeZone } from "./format";
 import s from "./StatusApp.module.scss";
@@ -23,10 +24,14 @@ const MEMBER_MENU_LINKS: MenuLink[] = [{ href: "/status/privacy", label: "Your d
 
 const CLIENT_NAV: NavItem[] = [
   { href: "/status", label: "Overview", icon: <IconHome />, match: "exact" },
+  { href: "/status/deadlines", label: "Deadlines", icon: <IconDeadlines /> },
   { href: "/status/profile", label: "Profile", icon: <IconPerson /> },
   { href: "/status/money", label: "Money", icon: <IconCard /> },
   { href: "/status/messages", label: "Messages", icon: <IconChat /> },
 ];
+
+/** DEADLINES: a free account (deadlines saved from the free check) has no Money or Messages yet. */
+const FREE_NAV: NavItem[] = CLIENT_NAV.filter((n) => n.href !== "/status/money" && n.href !== "/status/messages");
 
 // T6: each member screen opens with its own PageIntro (the page h1), so the
 // shell shows no title above it. The matter switcher still shows there.
@@ -55,6 +60,8 @@ export default function StatusApp({ children }: { children: ReactNode }) {
   // With a stored token, show the shell and the page skeleton straight away
   // (read after mount so server render and hydration agree).
   const [hasToken, setHasToken] = useState(false);
+  // DEADLINES: deadlines just saved from the free check (sessionStorage, this tab only).
+  const [pending, setPending] = useState<PendingDeadlines | null>(null);
   const boot = useSkeleton(phase === "loading" && hasToken);
 
   const load = useCallback(async () => {
@@ -77,6 +84,7 @@ export default function StatusApp({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setHasToken(!!getRoleToken("client"));
+    setPending(loadPendingDeadlines());
     void load();
   }, [load]);
 
@@ -108,9 +116,9 @@ export default function StatusApp({ children }: { children: ReactNode }) {
       <MemberContext.Provider value={ctx}>
         <RoleShell
           role="client"
-          nav={CLIENT_NAV}
+          nav={ctx && isFreeAccount(ctx.home) ? FREE_NAV : CLIENT_NAV}
           actions={showSwitcher ? <MatterSwitcher /> : undefined}
-          user={ctx ? { name: ctx.home.member.name, email: ctx.home.member.email ?? "", title: "ILP member" } : null}
+          user={ctx ? { name: ctx.home.member.name, email: ctx.home.member.email ?? "", title: isFreeAccount(ctx.home) ? "Free ILP account" : "ILP member" } : null}
           onLogout={() => {
             void memberApi.logout().then(() => {
               setHome(null);
@@ -144,6 +152,30 @@ export default function StatusApp({ children }: { children: ReactNode }) {
           Opening your ILP home…
         </p>
       </div>
+    );
+  }
+
+  if (phase === "signedOut" && pending) {
+    // DEADLINES: straight from the free check. The code is already on its way (POST /api/leads/claim).
+    const n = pending.count;
+    return (
+      <PortalLogin
+        role="client"
+        initialEmail={pending.email}
+        initialStep="code"
+        lead={
+          <Notice tone="success" title={`Your ${n} ${n === 1 ? "deadline is" : "deadlines are"} saved`}>
+            We sent a sign-in code to {pending.email}. Type it below to open your deadlines and set a date for each one. The code can take a minute to arrive; check your spam folder too.
+          </Notice>
+        }
+        title="Sign in to set your deadlines"
+        onSuccess={() => {
+          setHasToken(true);
+          setPhase("loading");
+          if (!pathname.startsWith("/status/deadlines")) router.replace("/status/deadlines");
+          void load();
+        }}
+      />
     );
   }
 
