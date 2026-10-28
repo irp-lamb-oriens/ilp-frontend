@@ -1,6 +1,6 @@
 "use client";
 
-import { PageIntroSkeleton, Skeleton, SkeletonBoard, SkeletonCard, SkeletonList, SkeletonStatStrip, SkeletonTable, SkeletonText } from "@/components/ui";
+import { BoardSkeleton, PageIntroSkeleton, Skeleton, SkeletonCard, SkeletonList, SkeletonStatStrip, SkeletonTable, SkeletonText } from "@/components/ui";
 import today from "./TodayView.module.scss";
 import board from "./BoardView.module.scss";
 import clients from "./ClientsView.module.scss";
@@ -51,7 +51,7 @@ export function LawyerTodaySkeleton() {
 
 /** Stage columns with cards, in the board's own grid. */
 export function BoardColumnsSkeleton() {
-  return <SkeletonBoard className={board.board} columnClassName={board.col} cards={[3, 2, 2, 1]} />;
+  return <BoardSkeleton columns={4} cards={3} />;
 }
 
 /** Toolbar plus columns (gate). */
