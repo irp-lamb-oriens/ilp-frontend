@@ -11,6 +11,7 @@
 import { ApiError, providerApi } from "@/lib/provider";
 import type { ConsentState, ConsultationStatus, LegalNextStep } from "@/lib/contracts";
 import { w5Mock } from "@/lib/mocks/w5";
+import { apiListSource, memoryListSource, type ListSource } from "@/lib/listSource";
 import type { LawyerClient } from "./types";
 
 export type { LegalNextStep, ConsentState };
@@ -234,6 +235,64 @@ const realApi: LawyerApi = {
 export const USING_MOCKS = process.env.NEXT_PUBLIC_W5_MOCKS === "1";
 
 export const lawyerApi: LawyerApi = USING_MOCKS ? w5Mock : realApi;
+
+// ── LISTS: paged, streamed sources (docs/workstreams/LISTS.md) ─────────────
+
+/** Meta the board's first page carries: stage order and labels, cards per stage, areas. */
+export interface BoardMeta {
+  stages?: string[];
+  stageLabels?: Array<{ id: string; label: string }>;
+  counts?: Record<string, number>;
+  areas?: string[];
+  total?: number;
+}
+
+/** Same shape for the offline mocks: pages the mock board in memory. */
+function mockBoardSource(): ListSource<BoardCard> {
+  return async (req, cb) => {
+    const d = await w5Mock.board();
+    return memoryListSource(async () => d.cards, {
+      search: (c) => [c.clientName, c.title, c.area],
+      filters: { stage: (c, v) => c.stage === v, area: (c, v) => c.area === v },
+      sorts: { stageEnteredAt: (c) => c.stageEnteredAt, title: (c) => c.title },
+      meta: (rows) => {
+        const counts: Record<string, number> = {};
+        for (const c of rows) if (!req.filters.area || c.area === req.filters.area) counts[c.stage] = (counts[c.stage] ?? 0) + 1;
+        return { stages: d.stages, stageLabels: d.stageLabels, counts, areas: [...new Set(rows.map((c) => c.area))].sort(), total: rows.length };
+      },
+    })(req, cb);
+  };
+}
+
+/** Matters (board cards): one column with ?stage=, or all of them. */
+export const boardSource: ListSource<BoardCard> = USING_MOCKS ? mockBoardSource() : apiListSource<BoardCard>(providerApi, "/api/provider/board");
+
+export interface FinanceMeta {
+  currency?: string;
+  totals?: FinanceData["totals"];
+  byMatter?: FinanceData["byMatter"];
+  counts?: { paid: number; pending: number };
+}
+
+function mockPaymentsSource(): ListSource<FinancePayment> {
+  return async (req, cb) => {
+    const d = await w5Mock.finance();
+    return memoryListSource(async () => d.payments, {
+      search: (p) => [p.clientName, p.matterTitle, p.quoteTitle, p.note],
+      filters: { paid: (p, v) => (v === "1" ? p.paid : v === "0" ? !p.paid : true) },
+      sorts: { date: (p) => p.date ?? "", amount: (p) => p.amount },
+      meta: (rows) => ({
+        currency: d.currency,
+        totals: d.totals,
+        byMatter: d.byMatter,
+        counts: { paid: rows.filter((p) => p.paid).length, pending: rows.filter((p) => !p.paid).length },
+      }),
+    })(req, cb);
+  };
+}
+
+/** The lawyer's payouts, newest first; totals and the per-matter rollup ride in the meta. */
+export const paymentsSource: ListSource<FinancePayment> = USING_MOCKS ? mockPaymentsSource() : apiListSource<FinancePayment>(providerApi, "/api/provider/finance");
 
 export function errorText(err: unknown, fallback = "Something went wrong. Try again."): string {
   return err instanceof Error && err.message ? err.message : fallback;
