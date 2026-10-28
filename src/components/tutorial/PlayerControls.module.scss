@@ -1,8 +1,8 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
-// Tutorial player controls (rules.md): one accent, flat radii, hairline
-// borders, no shadow, motion on transform and opacity only, 44px targets.
+// Tutorial player controls (rules.md): one accent, flat radii, no border on
+// the bar (focus rings stay on each button), no shadow, motion on transform and opacity only, 44px targets.
 // Control bars are left out of text selection so their labels never run into
 // copied page text.
 
@@ -26,8 +26,8 @@ $tip-gap: 6px;
   align-items: center;
   gap: 0 $space-2;
   padding: 0 $space-1;
-  border: 1px solid $color-hairline;
-  border-radius: $radius-md;
+  border: 0;
+  outline: 0;
   background: $color-canvas;
   user-select: none;
   -webkit-user-select: none;
@@ -233,19 +233,36 @@ $tip-gap: 6px;
 }
 
 // Compact bar (the embed): previous / next action wait for hover, focus or
-// "More controls". The toggle is for touch screens only.
+// "More controls". The toggle is for touch screens only. They keep their
+// place in the layout at all times and only fade (opacity, then visibility
+// once faded so they leave the tab order and hit testing), so nothing else in
+// the bar moves on hover, focus or touch.
 .compact .extra {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity $duration-fade $ease-out-strong,
+    visibility 0s linear $duration-fade,
+    transform $duration-press $ease-out-strong,
+    background-color $duration-press ease,
+    color $duration-press ease;
 }
 
 .compact:focus-within .extra,
 .compact.moreOpen .extra {
-  display: inline-grid;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 @include hover-only {
   .compact:hover .extra {
-    display: inline-grid;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
   }
 
   .moreBtn {
@@ -462,6 +479,7 @@ $tip-gap: 6px;
 
 @include reduced-motion {
   .icon,
+  .compact .extra,
   .text,
   .stepBtn,
   .track,

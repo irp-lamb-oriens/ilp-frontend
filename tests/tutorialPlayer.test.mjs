@@ -173,3 +173,17 @@ test("player markup: no control text runs together when copied", () => {
   const player = readFileSync(new URL("../src/components/tutorial/ScenePlayer.tsx", import.meta.url), "utf8");
   assert.ok(!/<details/.test(player), "the list is a real disclosure, not a closed <details> whose hidden items copy as empty numbers");
 });
+
+test("player controls: previous / next never leave the layout", () => {
+  const css = readFileSync(new URL("../src/components/tutorial/PlayerControls.module.scss", import.meta.url), "utf8");
+  const tsx = readFileSync(new URL("../src/components/tutorial/PlayerControls.tsx", import.meta.url), "utf8");
+  const bar = css.match(/\n\.bar \{[^}]*/)[0];
+  assert.match(bar, /border:\s*0/, "the controls bar has no border");
+  const extra = [...css.matchAll(/\.extra\s*\{([^}]*)\}/g)].map((m) => m[1]).join("\n");
+  assert.ok(extra, "compact extras are styled");
+  assert.ok(!/display\s*:|width\s*:|margin/.test(extra), "compact extras hide by fading, never display / width / margin");
+  assert.match(extra, /opacity:\s*0/);
+  assert.match(css, /\.compact:focus-within \.extra/, "keyboard focus reveals them");
+  assert.match(tsx, /label="Previous action"/);
+  assert.match(tsx, /label="Next action"/);
+});
