@@ -505,3 +505,28 @@ test("homepage: every tutorial band plays a homepage tutorial, in order, and the
     assert.ok(b.lead.length > 0 && b.caption.length > 0, `${key} has a lead-in and a caption`);
   }
 });
+
+test("lawyers landing tutorials: public, 3 to 6 steps, captions, valid targets, rendered in page order", async () => {
+  const { LAWYERS_TUTORIAL_IDS } = await import("../src/tutorials/public/index.ts");
+  const { LAWYER_BANDS } = await import("../src/components/lawyers/content.ts");
+  const { readFileSync } = await import("node:fs");
+  const byId = new Map(PUBLIC_TUTORIALS.map((t) => [t.id, t]));
+  assert.equal(LAWYERS_TUTORIAL_IDS.length, 3);
+  for (const id of LAWYERS_TUTORIAL_IDS) {
+    const tut = byId.get(id);
+    assert.ok(tut, `${id} is registered in PUBLIC_TUTORIALS`);
+    assert.ok(tut.steps.length >= 3 && tut.steps.length <= 6, `${id} has ${tut.steps.length} steps`);
+    for (const st of tut.steps) {
+      assert.deepEqual(missingRefs(st.scene), [], `${id} › ${st.id}: every cursor target exists`);
+      assert.ok((st.scene.script ?? []).some((op) => op.explain), `${id} › ${st.id} has at least one caption`);
+    }
+  }
+  assert.deepEqual(Object.values(LAWYER_BANDS).map((b) => b.id), [...LAWYERS_TUTORIAL_IDS]);
+  const page = readFileSync(new URL("../src/components/lawyers/LawyersLanding.tsx", import.meta.url), "utf8");
+  let last = -1;
+  for (const key of Object.keys(LAWYER_BANDS)) {
+    const at = page.indexOf(`LAWYER_BANDS.${key}}`);
+    assert.ok(at > last, `LawyersLanding renders the ${key} band, in order`);
+    last = at;
+  }
+});
