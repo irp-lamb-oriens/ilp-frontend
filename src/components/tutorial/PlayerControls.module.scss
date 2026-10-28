@@ -95,6 +95,7 @@ $tip-gap: 6px;
       opacity 150ms $ease-out-strong,
       transform 150ms $ease-out-strong;
     pointer-events: none;
+    border: none;
   }
 
   [data-tip-align="start"]::after {
