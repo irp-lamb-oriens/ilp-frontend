@@ -58,3 +58,53 @@ test("homepage steps: each step has an example screen with its placeholder conte
   assert.ok(hero.includes("Example screen"), "screens are labelled as examples");
   assert.ok(/aria-hidden="true" inert/.test(hero), "screens are hidden from assistive tech and inert");
 });
+
+test("homepage steps: step links point at one marker per step, in each layout", async () => {
+  const { STEP_COUNT, STEPS_TRACK_VH, stepAnchorId, stepProgress, activeStep, parseStepHash } = await import(
+    "../src/components/landing/stepAnchors.ts"
+  );
+  assert.equal(STEP_COUNT, 4);
+  const ids = HERO.how.map((_, i) => stepAnchorId(i));
+  assert.deepEqual(ids, ["how-it-works-step-1", "how-it-works-step-2", "how-it-works-step-3", "how-it-works-step-4"]);
+  assert.ok(!ids.includes(HERO.howAnchor), "step ids do not clash with #how-it-works");
+  for (const [i, id] of ids.entries()) {
+    assert.equal(parseStepHash(`#${id}`), i, `#${id} parses to step ${i + 1}`);
+    assert.equal(activeStep(stepProgress(i)), i, `step ${i + 1}'s target is inside its own window`);
+  }
+  assert.equal(stepProgress(0), 0, "step 1 lands where #how-it-works does");
+  for (const bad of ["#how-it-works", "#how-it-works-step-0", "#how-it-works-step-5", "#how-it-works-step-x", ""]) {
+    assert.equal(parseStepHash(bad), null, `"${bad}" is not a step`);
+  }
+
+  const hero = readFileSync(new URL("../src/components/landing/HeroStory.tsx", import.meta.url), "utf8");
+  const steps = hero.slice(hero.indexOf("export function StepsScroll"), hero.indexOf("/* ── What you get"));
+  const [stacked, pinned] = steps.split("\n  return (\n    <section");
+  assert.ok(stacked && pinned, "StepsScroll has a stacked and a pinned branch");
+  const idUses = (src) => (src.match(/id=\{stepAnchorId\(i\)\}/g) ?? []).length;
+  assert.equal(idUses(stacked), 1, "stacked layout: ids on the step blocks, once");
+  assert.ok(/<li key=\{text\} id=\{stepAnchorId\(i\)\}/.test(stacked), "stacked ids sit on the step li");
+  assert.equal(idUses(pinned), 1, "pinned layout: ids on the markers, once");
+  assert.ok(/<span key=\{text\} id=\{stepAnchorId\(i\)\} className=\{s\.stepAnchor\}/.test(pinned), "pinned ids sit on markers");
+  assert.equal((hero.match(/id=\{stepAnchorId\(/g) ?? []).length, 2, "no other element carries a step id");
+  assert.ok(hero.includes("href={`#${id}`}") && hero.includes("const id = stepAnchorId(index);"), "rows link to #how-it-works-step-N");
+  assert.ok(hero.includes('aria-current={current ? "step" : undefined}'), "the active row is marked");
+  assert.ok(hero.includes("focus({ preventScroll: true })"), "focus moves without a second scroll");
+  assert.ok(hero.includes("heightVh={STEPS_TRACK_VH}"), "the track height comes from stepAnchors.ts");
+
+  const scss = readFileSync(new URL("../src/components/landing/HeroStory.module.scss", import.meta.url), "utf8");
+  assert.ok(scss.includes(`$steps-track-vh: ${STEPS_TRACK_VH};`), "scss track height matches");
+  const list = /\$step-anchor-progress: ([^;]+);/.exec(scss)?.[1].split(",").map(Number);
+  assert.deepEqual(list, ids.map((_, i) => stepProgress(i)), "scss marker offsets match stepProgress");
+  assert.ok(/\.stepLink \{[^}]*min-height: 44px/.test(scss), "rows are at least 44px tall");
+});
+
+test("homepage steps: stepScrollY lands step N inside its window", async () => {
+  const { stepScrollY, activeStep, STEP_COUNT } = await import("../src/components/landing/stepAnchors.ts");
+  const m = { trackTop: 1800, trackHeight: 2400, viewport: 1000 };
+  assert.deepEqual([0, 1, 2, 3].map((i) => stepScrollY(m, i)), [1800, 2238, 2588, 2938]);
+  for (let i = 0; i < STEP_COUNT; i++) {
+    const p = (stepScrollY(m, i) - m.trackTop) / (m.trackHeight - m.viewport);
+    assert.equal(activeStep(p), i);
+  }
+  assert.equal(stepScrollY({ trackTop: 500, trackHeight: 600, viewport: 900 }, 3), 500, "no scroll range: track top");
+});

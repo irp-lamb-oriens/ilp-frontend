@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
 import CountUp from "@/components/motion/CountUp";
@@ -10,6 +10,8 @@ import { MockScene } from "@/components/tutorial/mock/MockScene";
 import { EMPTY_OVERRIDES } from "@/components/tutorial/sceneUtils";
 import { cx } from "@/components/ui/cx";
 import { HERO_SCREENS, HERO_SCREEN_SIZE, screenRoot, type HeroScreen } from "./heroScreens";
+import { STEPS_TRACK_VH, activeStep, parseStepHash, stepAnchorId, stepScrollY } from "./stepAnchors";
+import { scrollPageTo } from "@/components/SmoothScroll";
 import s from "./HeroStory.module.scss";
 
 /**
@@ -20,6 +22,8 @@ import s from "./HeroStory.module.scss";
  * "How ILP works" has an example screen (heroScreens.ts): beside the pinned
  * list on wide screens, under the step text when stacked. All text is
  * in the DOM from the first render; motion only changes opacity and transform.
+ * Each step row is a link to #how-it-works-step-N (stepAnchors.ts) that
+ * scrolls to where that step is shown, in both layouts.
  */
 
 const SIMPLE_QUERY = "(max-width: 767px), (prefers-reduced-motion: reduce)";
@@ -30,17 +34,21 @@ const SIMPLE_QUERY = "(max-width: 767px), (prefers-reduced-motion: reduce)";
  * the pinned layout after mount (these sections sit below the first screen,
  * so the switch happens out of view).
  */
-function useSimpleLayout() {
+function useSimpleLayoutState(): [simple: boolean, settled: boolean] {
   const [simple, setSimple] = useState(true);
+  const [settled, setSettled] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia(SIMPLE_QUERY);
     const update = () => setSimple(mq.matches);
     update();
+    setSettled(true);
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
-  return simple;
+  return [simple, settled];
 }
+
+const useSimpleLayout = () => useSimpleLayoutState()[0];
 
 /** Dim to full opacity over [from, to] of the stage progress. */
 function Scrub({
@@ -144,15 +152,48 @@ export function ProblemScroll() {
 
 const STEP_COUNT = HERO.how.length;
 
-/** The step text: one visible number (decorative), the <ol> gives the order. */
-function StepBody({ index, text }: { index: number; text: string }) {
+/** Scroll to step i (0-based); smooth unless asked not to. */
+type GoToStep = (i: number, opts: { smooth: boolean; focus: boolean }) => void;
+
+/**
+ * One step row: a link to #how-it-works-step-N over the whole row. A plain
+ * click scrolls there in script (so the pinned track lands on the step, not
+ * on the marker's native jump fighting smooth scroll); modified clicks keep
+ * the browser's own behaviour (new tab, copy link).
+ */
+function StepLink({
+  index,
+  text,
+  current,
+  goTo,
+  linkRef,
+}: {
+  index: number;
+  text: string;
+  current?: boolean;
+  goTo: GoToStep;
+  linkRef: (el: HTMLAnchorElement | null) => void;
+}) {
+  const id = stepAnchorId(index);
+  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    history.replaceState(history.state, "", `#${id}`);
+    goTo(index, { smooth: true, focus: true });
+  };
   return (
-    <>
+    <a
+      ref={linkRef}
+      href={`#${id}`}
+      className={s.stepLink}
+      aria-current={current ? "step" : undefined}
+      onClick={onClick}
+    >
       <span className={s.stepNum} aria-hidden="true">
         {index + 1}
       </span>
       <span className={s.stepText}>{text}</span>
-    </>
+    </a>
   );
 }
 
@@ -166,13 +207,27 @@ function stepStops(i: number): { input: number[]; output: number[] } {
   return { input: [a - 0.02, a + 0.04, b - 0.04, b + 0.02], output: [dim, 1, 1, dim] };
 }
 
-function PinnedStep({ progress, index, text }: { progress: MotionValue<number>; index: number; text: string }) {
+function PinnedStep({
+  progress,
+  index,
+  text,
+  current,
+  goTo,
+  linkRef,
+}: {
+  progress: MotionValue<number>;
+  index: number;
+  text: string;
+  current: boolean;
+  goTo: GoToStep;
+  linkRef: (el: HTMLAnchorElement | null) => void;
+}) {
   const { input, output } = stepStops(index);
   const opacity = useTransform(progress, input, output);
   const x = useTransform(progress, input, output.map((o) => (o === 1 ? 0 : -6)));
   return (
     <motion.li className={s.step} style={{ opacity, x }}>
-      <StepBody index={index} text={text} />
+      <StepLink index={index} text={text} current={current} goTo={goTo} linkRef={linkRef} />
     </motion.li>
   );
 }
@@ -252,10 +307,18 @@ function VisualLayer({ progress, index }: { progress: MotionValue<number>; index
   );
 }
 
-function PinnedSteps({ progress }: { progress: MotionValue<number> }) {
-  const [current, setCurrent] = useState(0);
+function PinnedSteps({
+  progress,
+  goTo,
+  linkRef,
+}: {
+  progress: MotionValue<number>;
+  goTo: GoToStep;
+  linkRef: (i: number) => (el: HTMLAnchorElement | null) => void;
+}) {
+  const [current, setCurrent] = useState(() => activeStep(progress.get()));
   useMotionValueEvent(progress, "change", (v) => {
-    const next = Math.min(STEP_COUNT - 1, Math.max(0, Math.floor(v * STEP_COUNT)));
+    const next = activeStep(v);
     setCurrent((prev) => (prev === next ? prev : next));
   });
 
@@ -275,7 +338,15 @@ function PinnedSteps({ progress }: { progress: MotionValue<number> }) {
         </div>
         <ol className={s.stepList}>
           {HERO.how.map((text, i) => (
-            <PinnedStep key={text} progress={progress} index={i} text={text} />
+            <PinnedStep
+              key={text}
+              progress={progress}
+              index={i}
+              text={text}
+              current={i === current}
+              goTo={goTo}
+              linkRef={linkRef(i)}
+            />
           ))}
         </ol>
       </div>
@@ -291,12 +362,85 @@ function PinnedSteps({ progress }: { progress: MotionValue<number> }) {
   );
 }
 
+/**
+ * Scrolling to a step. Pinned: the offset where the track's progress makes
+ * step i active (stepScrollY, the same math as the markers). Stacked: the step
+ * block's top less its scroll-margin-top (the fixed nav). The li is measured,
+ * not the Reveal inside it, so its entrance transform does not skew the
+ * offset. Then focus the step's link without scrolling again.
+ */
+function useStepNavigation(simple: boolean, settled: boolean) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const links = useRef<(HTMLAnchorElement | null)[]>([]);
+  const linkRef = useCallback(
+    (i: number) => (el: HTMLAnchorElement | null) => {
+      links.current[i] = el;
+    },
+    [],
+  );
+
+  const goTo = useCallback<GoToStep>(
+    (i, { smooth, focus }) => {
+      const section = sectionRef.current;
+      if (!section) return;
+      let y: number;
+      if (simple) {
+        const block = document.getElementById(stepAnchorId(i));
+        if (!block) return;
+        const margin = parseFloat(getComputedStyle(block).scrollMarginTop) || 0;
+        y = Math.round(block.getBoundingClientRect().top + window.scrollY - margin);
+      } else {
+        const r = section.getBoundingClientRect();
+        y = stepScrollY(
+          { trackTop: r.top + window.scrollY, trackHeight: section.offsetHeight, viewport: window.innerHeight },
+          i,
+        );
+      }
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      scrollPageTo(Math.max(0, y), smooth && !reduce);
+      if (focus) links.current[i]?.focus({ preventScroll: true });
+    },
+    [simple],
+  );
+
+  /* Deep links. The server render is the stacked layout, so the browser's own
+   * jump to #how-it-works-step-N lands on a stacked block; once the layout has
+   * switched (settled) and painted, jump again to the real offset, once.
+   * Later hash changes (a link elsewhere on the page) scroll smoothly. */
+  const landed = useRef(false);
+  useEffect(() => {
+    if (!settled) return;
+    let raf = 0;
+    if (!landed.current) {
+      landed.current = true;
+      const i = parseStepHash(window.location.hash);
+      if (i !== null) {
+        raf = requestAnimationFrame(() => {
+          raf = requestAnimationFrame(() => goTo(i, { smooth: false, focus: false }));
+        });
+      }
+    }
+    const onHash = () => {
+      const i = parseStepHash(window.location.hash);
+      if (i !== null) goTo(i, { smooth: true, focus: true });
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("hashchange", onHash);
+    };
+  }, [settled, goTo]);
+
+  return { sectionRef, goTo, linkRef };
+}
+
 export function StepsScroll() {
-  const simple = useSimpleLayout();
+  const [simple, settled] = useSimpleLayoutState();
+  const { sectionRef, goTo, linkRef } = useStepNavigation(simple, settled);
 
   if (simple) {
     return (
-      <section id={HERO.howAnchor} className={s.steps} aria-label={HERO.labels.how}>
+      <section ref={sectionRef} id={HERO.howAnchor} className={s.steps} aria-label={HERO.labels.how}>
         <div className={s.stepsInner}>
           <div className={s.stepsCol}>
             <Reveal>
@@ -304,9 +448,9 @@ export function StepsScroll() {
             </Reveal>
             <ol className={s.stepList}>
               {HERO.how.map((text, i) => (
-                <li key={text} className={s.stepPlain}>
-                  <Reveal className={s.stepGrid} delay={i * 0.06}>
-                    <StepBody index={i} text={text} />
+                <li key={text} id={stepAnchorId(i)} className={s.stepPlain}>
+                  <Reveal delay={i * 0.06}>
+                    <StepLink index={i} text={text} goTo={goTo} linkRef={linkRef(i)} />
                   </Reveal>
                   <Reveal className={s.stepScreen} delay={0.1}>
                     <ScreenCaption />
@@ -322,9 +466,16 @@ export function StepsScroll() {
   }
 
   return (
-    <section id={HERO.howAnchor} className={s.steps} aria-label={HERO.labels.how}>
-      <MorphStage heightVh={240} className={s.stage}>
-        {(progress) => <PinnedSteps progress={progress} />}
+    <section ref={sectionRef} id={HERO.howAnchor} className={s.steps} aria-label={HERO.labels.how}>
+      {/* Zero-height link targets at the scroll offsets where each step is
+          shown (top: $step-anchor-progress in the scss). Not focusable. */}
+      <div className={s.stepAnchors} aria-hidden="true">
+        {HERO.how.map((text, i) => (
+          <span key={text} id={stepAnchorId(i)} className={s.stepAnchor} />
+        ))}
+      </div>
+      <MorphStage heightVh={STEPS_TRACK_VH} className={s.stage}>
+        {(progress) => <PinnedSteps progress={progress} goTo={goTo} linkRef={linkRef} />}
       </MorphStage>
     </section>
   );
