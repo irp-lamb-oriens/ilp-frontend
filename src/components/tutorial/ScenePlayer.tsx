@@ -148,6 +148,9 @@ export function ScenePlayer({
     const fit = () => {
       stage.style.setProperty("--scene-k", String(box.clientWidth / W));
       setNarrow(box.clientWidth > 0 && box.clientWidth < DOCK_BELOW);
+      // Not started yet (waiting to come into view): the cursor rests where the demo starts it.
+      const cursor = cursorRef.current;
+      if (cursor && !startedRef.current) cursor.style.transform = tr({ x: START.x * box.clientWidth, y: START.y * box.clientHeight });
     };
     fit();
     if (typeof ResizeObserver === "undefined") return;
@@ -565,7 +568,10 @@ export function ScenePlayer({
   useEffect(() => {
     if (reduced || !hasScript) return;
     if (!active) {
-      if (mode === "playing" && startedRef.current) {
+      // Still in the lead-in (no action shown yet): the run has stopped and
+      // starts again from the top when `active` returns. Otherwise hold the
+      // current action.
+      if (mode === "playing" && startedRef.current && atRef.current >= 0) {
         autoPausedRef.current = true;
         controlsRef.current.pause();
       }

@@ -19,7 +19,9 @@ export { createRegistry, matchTutorial, routeMatches, routeToRegExp, normalizePa
 export type { TutorialRegistry } from "./registry";
 export { createTutorialStore, noopTutorialSync, STORAGE_KEY, MAX_SKIPS } from "./storage";
 export type { TutorialStore, TutorialSync, TutorialState, TutorialRecord, StorageLike } from "./storage";
-export { computeTimeline, typedAt, readingTime, wordCount, TIMING } from "./timeline";
+export { computeTimeline, typedAt, readingTime, wordCount, segmentAt, TIMING } from "./timeline";
+export { createViewGate, shouldPlay, visibleShare, PLAY_ENTER, PLAY_LEAVE } from "./viewport";
+export type { ViewGate } from "./viewport";
 export type { Timeline, Segment } from "./timeline";
 export {
   collectIds,

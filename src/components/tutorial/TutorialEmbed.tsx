@@ -7,15 +7,20 @@
  *
  *   <TutorialEmbed tutorialId="public.check" stepIds={["answer", "results"]} caption="The free check, start to finish." />
  *
- * - Content loads lazily: nothing is fetched until the card comes near the
- *   viewport. With a TutorialProvider it uses the provider's loader (public
- *   tutorials come from their own small bundle); without one it loads the
- *   public tutorials directly.
- * - autoplay "in-view" (default) plays while at least a third of the card is
- *   on screen and pauses where it is when it leaves. "off" waits for the
- *   viewer to press Play.
- * - Steps play once each and move on to the next; the last one rests on its
- *   end state with Replay. A pause the viewer chose is kept.
+ * - Content loads lazily: nothing is fetched until the card is within about
+ *   one viewport of the screen. With a TutorialProvider it uses the
+ *   provider's loader (public tutorials come from their own small bundle);
+ *   without one it loads the public tutorials directly. Loading never starts
+ *   playback: until the scene is in view it shows its first frame, cursor at
+ *   rest.
+ * - autoplay "in-view" (default) starts at step 1, action 1 once 40% of the
+ *   scene is on screen, pauses where it is below 15% or when the browser tab
+ *   is hidden, and resumes from the same action (viewport.ts). Every embed
+ *   has its own gate and player, so one in view never starts another. "off"
+ *   waits for the viewer to press Play (then the same in-view rule applies).
+ * - Steps play once each and move on to the next; the last one plays once and
+ *   rests on its end state with Replay and Start over. No endless loop. A
+ *   pause the viewer chose is kept.
  * - Reduced motion: the ScenePlayer shows each step's end state with
  *   numbered markers and the written explanations; nothing moves or advances.
  */
@@ -25,6 +30,7 @@ import { useTutorialOptional } from "./context";
 import { ScenePlayer } from "./ScenePlayer";
 import type { Tutorial } from "./types";
 import { useReducedMotion } from "./useReducedMotion";
+import { createViewGate, PRELOAD_MARGIN, VIEW_THRESHOLDS, visibleShare } from "./viewport";
 import s from "./TutorialEmbed.module.scss";
 
 export type EmbedAutoplay = "in-view" | "off";
@@ -50,11 +56,6 @@ export interface TutorialEmbedProps {
   className?: string;
 }
 
-/** Share of the card that must be on screen to play. */
-const PLAY_RATIO = 0.35;
-/** Start loading this far before the card scrolls into view. */
-const PRELOAD_MARGIN = "400px 0px";
-
 const loadPublicDirect = (id: string) => import("../../tutorials/public").then((m) => m.PUBLIC_TUTORIALS.find((t) => t.id === id));
 
 export function TutorialEmbed({
@@ -79,16 +80,17 @@ export function TutorialEmbed({
   const [failed, setFailed] = useState(false);
   const [idx, setIdx] = useState(0);
   const [started, setStarted] = useState(autoplay === "in-view");
-  const inViewRef = useRef(false);
-  inViewRef.current = inView;
+  /** The scene box: what must be on screen to play (set once the tutorial has loaded). */
+  const [stageEl, setStageEl] = useState<HTMLDivElement | null>(null);
+  /** This embed's own play gate (no state shared with other embeds). */
+  const gateRef = useRef(createViewGate());
 
-  // Near the viewport: load. In view: play.
+  // Within about a viewport of the screen: load. Nothing plays yet.
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
       setNear(true);
-      setInView(true);
       return;
     }
     const nearObs = new IntersectionObserver(
@@ -100,16 +102,37 @@ export function TutorialEmbed({
       },
       { rootMargin: PRELOAD_MARGIN },
     );
-    const viewObs = new IntersectionObserver((entries) => {
-      for (const e of entries) setInView(e.isIntersecting && e.intersectionRatio >= PLAY_RATIO);
-    }, { threshold: [0, PLAY_RATIO, 0.6, 1] });
     nearObs.observe(el);
-    viewObs.observe(el);
-    return () => {
-      nearObs.disconnect();
-      viewObs.disconnect();
-    };
+    return () => nearObs.disconnect();
   }, []);
+
+  // The scene in view (40% to start, under 15% to pause) and the tab visible: play.
+  useEffect(() => {
+    if (!stageEl) return;
+    const gate = gateRef.current;
+    const docVisible = () => typeof document === "undefined" || document.visibilityState !== "hidden";
+    const apply = (share: number) => setInView(gate.update(share, docVisible()));
+    const onVisibility = () => apply(gate.share);
+    document.addEventListener("visibilitychange", onVisibility);
+    if (typeof IntersectionObserver === "undefined") {
+      apply(1);
+      return () => document.removeEventListener("visibilitychange", onVisibility);
+    }
+    const viewObs = new IntersectionObserver(
+      (entries) => {
+        const e = entries[entries.length - 1];
+        if (!e) return;
+        const vh = e.rootBounds?.height ?? window.innerHeight;
+        apply(e.isIntersecting ? visibleShare(e.intersectionRect.height, e.boundingClientRect.height, vh) : 0);
+      },
+      { threshold: VIEW_THRESHOLDS },
+    );
+    viewObs.observe(stageEl);
+    return () => {
+      viewObs.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [stageEl]);
 
   useEffect(() => {
     if (given) {
@@ -140,8 +163,9 @@ export function TutorialEmbed({
   const many = steps.length > 1;
   const last = idx >= steps.length - 1;
 
+  // A step only ends while it plays (in view), so the next one starts here;
+  // were the card to leave at that instant, the next step just waits on its first frame.
   const onEnded = useCallback(() => {
-    if (!inViewRef.current) return;
     setIdx((i) => (i < steps.length - 1 ? i + 1 : i));
   }, [steps.length]);
 
@@ -165,11 +189,11 @@ export function TutorialEmbed({
               <p className={s.body}>{step.body}</p>
             </div>
           )}
-          <div className={s.stage}>
+          <div ref={setStageEl} className={s.stage}>
             <ScenePlayer
               key={`${tut?.id}:${step.id}`}
               scene={step.scene}
-              loops={many && !last ? 1 : 2}
+              loops={1}
               active={active}
               onEnded={many ? onEnded : undefined}
               explainList={explainList}

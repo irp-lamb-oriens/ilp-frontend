@@ -136,3 +136,11 @@ export function typedAt(text: string, elapsed: number): string {
   const n = Math.floor((elapsed - TIMING.typeLead) / TIMING.typeChar) + 1;
   return text.slice(0, Math.max(0, Math.min(text.length, n)));
 }
+
+/** Index of the op playing `elapsed` ms into one loop: -1 during the lead-in, the last op's index after the end. */
+export function segmentAt(timeline: Timeline, elapsed: number): number {
+  const { segments } = timeline;
+  if (!segments.length || elapsed < segments[0].start) return -1;
+  for (const seg of segments) if (elapsed < seg.end) return seg.index;
+  return segments[segments.length - 1].index;
+}
