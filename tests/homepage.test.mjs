@@ -7,7 +7,8 @@ import { readFileSync } from "node:fs";
 
 register("./tsResolve.mjs", import.meta.url);
 
-const { HERO, PROBLEM, WHAT, TUTORIAL_BANDS } = await import("../src/components/landing/content.ts");
+const content = await import("../src/components/landing/content.ts");
+const { HERO, PROBLEM, WHAT, TUTORIAL_BANDS } = content;
 const page = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8");
 
 test("homepage hero: the problem phrases join back into the full sentence", () => {
@@ -107,4 +108,126 @@ test("homepage steps: stepScrollY lands step N inside its window", async () => {
     assert.equal(activeStep(p), i);
   }
   assert.equal(stepScrollY({ trackTop: 500, trackHeight: 600, viewport: 900 }, 3), 500, "no scroll range: track top");
+});
+
+test("homepage: every section in order, two pinned stories", () => {
+  const order = [
+    "<HeroCTA",
+    "<ProblemScroll",
+    "<StepsScroll",
+    "<WhatYouGet",
+    "<CostsStory",
+    "TUTORIAL_BANDS.check",
+    "BANDS.clarity",
+    "<FeaturesSticky",
+    "TUTORIAL_BANDS.home",
+    "<SituationsList",
+    "TUTORIAL_BANDS.call",
+    "BANDS.lawyers",
+    "<CoverageGutenberg",
+    "<QuotesWall",
+    "<Pricing",
+    "TUTORIAL_BANDS.pricing",
+    "<FaqSplit",
+    "<FinalCta",
+  ];
+  const at = order.map((tag) => page.indexOf(tag));
+  for (const [i, pos] of at.entries()) assert.ok(pos > 0, `page.tsx renders ${order[i]}`);
+  assert.deepEqual([...at].sort((a, b) => a - b), at, "sections are in order");
+  assert.ok(!page.includes("<CostsMorph") && !page.includes("<StepsPan"), "the old morph and pan are gone");
+  const sections = readFileSync(new URL("../src/components/landing/StorySections.tsx", import.meta.url), "utf8");
+  assert.ok(!sections.includes("MorphStage"), "real situations is not pinned");
+});
+
+test("homepage costs story: three beats with their exact eyebrow, title and body", () => {
+  const { COSTS, COSTS_HEAD, COSTS_WRAP, COSTS_VISUALS } = content;
+  assert.equal(COSTS_HEAD.title, "What a missed date can cost you");
+  assert.equal(
+    COSTS_HEAD.why,
+    "Each of our six countries has yearly legal dates for residents, property owners and companies, and few of them come with a reminder.",
+  );
+  assert.deepEqual(
+    COSTS.map((c) => [c.eyebrow, c.title, c.body]),
+    [
+      [
+        "Fines",
+        "A date you did not know about",
+        "Your residency card, your company's yearly filing, the yearly fee for your car. Each has its own date, and a late one can bring a fine or extra paperwork.",
+      ],
+      [
+        "Doubt",
+        "Answers that do not agree",
+        "A forum says one thing, a neighbor another, a lawyer a third. You pay for the same question more than once and still are not sure.",
+      ],
+      [
+        "Retelling",
+        "Explaining your situation again",
+        "Each new lawyer starts from zero. You explain your residency, your house and your company again, and details get lost between conversations.",
+      ],
+    ],
+  );
+  assert.equal(COSTS_WRAP.link, TUTORIAL_BANDS.check.title, "the wrap-up leads to the free check band");
+  assert.equal(COSTS_WRAP.href, `#${TUTORIAL_BANDS.check.anchor}`);
+  assert.equal(COSTS_VISUALS.fines.dates.length, 3);
+  assert.equal(COSTS_VISUALS.doubt.answers.length, 3);
+  assert.deepEqual(COSTS_VISUALS.retelling.lines, ["Residency", "House", "Company"]);
+
+  const src = readFileSync(new URL("../src/components/landing/CostsStory.tsx", import.meta.url), "utf8");
+  assert.ok(src.includes('as="h2"') && src.includes('id="costs-title"'), "one h2 for the section");
+  assert.ok((src.match(/as="h3"/g) ?? []).length === 2, "an h3 per beat, in the pinned and the staged beat");
+  assert.ok(src.includes("<Eyebrow scrub=") && src.includes("<Eyebrow>{cost.eyebrow}</Eyebrow>"), "eyebrows in both layouts");
+  assert.ok(src.includes('aria-current={pinned && i === current ? "step" : undefined}'), "the current rail link is marked");
+  assert.ok(src.includes('className={s.frame} aria-hidden="true"'), "pictures are hidden from assistive tech");
+});
+
+test("homepage costs story: rail anchors, track height and the today strip", async () => {
+  const { COSTS } = content;
+  const m = await import("../src/components/landing/costsBeats.ts");
+  const { activeBeat, beatPhase } = await import("../src/components/motion/storyMath.ts");
+  const ids = COSTS.map((_, i) => m.costAnchorId(i));
+  assert.deepEqual(ids, ["costs-fines", "costs-doubt", "costs-retelling"]);
+  for (const [i, id] of ids.entries()) {
+    assert.equal(m.parseCostHash(`#${id}`), i);
+    const p = m.costAnchorProgress(i);
+    assert.equal(activeBeat(p, m.COSTS_RANGES), i, `#${id} lands on beat ${i + 1}`);
+    assert.equal(beatPhase(p, m.COSTS_RANGES[i]).phase, "hold");
+  }
+  for (const bad of ["#costs", "#costs-x", "", "#how-it-works"]) assert.equal(m.parseCostHash(bad), null);
+  const anchors = Object.values(TUTORIAL_BANDS).map((b) => b.anchor);
+  for (const id of ["costs", ...ids]) assert.ok(!anchors.includes(id), `${id} is unique on the page`);
+
+  const scss = readFileSync(new URL("../src/components/landing/CostsStory.module.scss", import.meta.url), "utf8");
+  assert.ok(scss.includes(`$costs-track-vh: ${m.COSTS_TRACK_VH};`), "scss track height matches");
+  const lefts = [...scss.matchAll(/\.dateAt(\d) \{ left: (\d+)%; \}/g)].map((x) => Number(x[2]) / 100);
+  assert.deepEqual(lefts, m.FINES_AT, "date positions match FINES_AT");
+  const crossings = m.FINES_AT.map((_, i) => m.finesCross(i));
+  assert.ok(crossings.every((t, i) => t > 0 && t < 1 && (i === 0 || t > crossings[i - 1])), "each date passes today in turn");
+
+  const src = readFileSync(new URL("../src/components/landing/CostsStory.tsx", import.meta.url), "utf8");
+  assert.ok(src.includes("href={`#${costAnchorId(i)}`}"), "rail links point at the beats");
+  assert.ok(src.includes("id={costAnchorId(index)}"), "each beat carries its id");
+});
+
+test("homepage: every key phrase sits inside one phrase of its line", async () => {
+  const { splitPhrases } = await import("../src/components/motion/storyMath.ts");
+  const c = content;
+  const pairs = [
+    [c.COSTS_HEAD.why, c.COSTS_HEAD.mark],
+    [c.FEATURES_HEAD.why, c.FEATURES_HEAD.mark],
+    [c.STEPS_HEAD.why, c.STEPS_HEAD.mark],
+    [c.COVERAGE_HEAD.why, c.COVERAGE_HEAD.mark],
+    [c.SCENARIOS_HEAD.why, c.SCENARIOS_HEAD.mark],
+    [c.PRICING_HEAD.why, c.PRICING_HEAD.mark],
+    [c.FAQ_HEAD.why, c.FAQ_HEAD.mark],
+    [c.FINAL.sub, c.FINAL.mark],
+    [c.BANDS.clarity.body, c.BANDS.clarity.mark],
+    [c.BANDS.lawyers.body, c.BANDS.lawyers.mark],
+    ...Object.values(TUTORIAL_BANDS).map((b) => [b.lead, b.mark]),
+    ...c.FEATURES.filter((f) => f.mark).map((f) => [f.body, f.mark]),
+  ];
+  for (const [text, mark] of pairs) {
+    assert.ok(mark, `"${text.slice(0, 40)}..." has a key phrase`);
+    assert.equal(splitPhrases(text).filter((p) => p.includes(mark)).length, 1, `"${mark}" sits in one phrase`);
+  }
+  assert.ok(c.FEATURES.some((f) => f.mark === "may require review"), "reminders underline may require review");
 });
