@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { Loadable, SkeletonStatStrip, StatTile } from "@/components/ui";
 import { FinanceView } from "@/components/dashboard/AdminViews";
-import { PageHeader } from "../staff/PageHeader";
+import { PageHeader, SectionHead } from "../staff/PageHeader";
 import { usd } from "../staff/format";
 import type { StaffSummary } from "../staff/types";
 import s from "./views.module.scss";
@@ -23,8 +23,13 @@ export default function FinanceHome() {
 
   return (
     <>
-      <PageHeader title="Finance" sub="Membership revenue is ILP's. Legal fees (GMV) belong to the work lawyers do and are reported apart." />
+      <PageHeader title="Finance" sub="Membership revenue is ILP's. Legal fees (GMV) pay for the lawyers' work and are reported apart." />
       <div className={s.stack}>
+        <div>
+        <SectionHead
+          title="Membership revenue and legal fees"
+          sub="The first three figures are ILP's own income from memberships. The last is legal fees from accepted quotes, which is never added to it."
+        />
         <Loadable loading={!k && !failed} label="Loading revenue figures" skeleton={<SkeletonStatStrip className={s.tiles} small={3} />}>
         {() => k && (
           <div className={s.tiles} data-tour="staff-finance-kpis">
@@ -35,7 +40,14 @@ export default function FinanceHome() {
           </div>
         )}
         </Loadable>
-        <FinanceView />
+        </div>
+        <div>
+          <SectionHead
+            title="Quote finance"
+            sub="Prices sent for extra legal work: what came in, what the lawyers were paid and what ILP kept, by month, route, service, lawyer and stage."
+          />
+          <FinanceView />
+        </div>
       </div>
     </>
   );

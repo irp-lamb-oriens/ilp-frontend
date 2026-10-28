@@ -35,7 +35,7 @@ function page() {
         "Quote finance",
         [
           grid("1-1-1", [stat("Revenue", "US$6,870"), stat("Margin", "US$1,374", { id: "q_margin" }), stat("Win rate", "58.3%", { hint: "7 won", id: "q_win" })]),
-          text("Revenue vs cost vs margin", "h3"),
+          text("Revenue, cost and margin", "h3"),
           table(
             ["Provider", "Revenue", "Cost", "Margin"],
             [

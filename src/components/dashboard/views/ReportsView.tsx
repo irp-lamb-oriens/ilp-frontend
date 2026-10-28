@@ -7,7 +7,7 @@ import { SimpleBarChart, PALETTE } from "@/components/dashboard/charts";
 import { SalesView } from "@/components/dashboard/AdminViews";
 import PmfPanel from "@/components/dashboard/pmf/PmfPanel";
 import { AdminsOnlyNotice, isRoleDenied, useStaff } from "../staff/StaffSession";
-import { PageHeader, ErrorText, Muted } from "../staff/PageHeader";
+import { PageHeader, ErrorText, Muted, TabNote } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
 interface FunnelMetrics {
@@ -29,6 +29,18 @@ interface DashboardMetrics {
   stageRatings: { perStage: Array<{ stage: string; label: string; average: number; count: number }> };
   activity: { calls: { total: number }; quotes: { total: number; accepted: number } };
 }
+
+/** One line at the top of each report tab: what it counts. */
+const TAB_NOTES: Record<string, string> = {
+  pmf: "People from the free check to paid member and on to month 3, plus call ratings and the monthly recommend question (NPS). Look for the step where most people stop.",
+  funnel: "The older acquisition funnel: profiles, template downloads, alerts sent and consultations booked.",
+  pipeline: "How many clients are in each stage of the client CRM today.",
+  satisfaction: "The average rating members gave each stage, out of 5.",
+  activity: "Calls completed, quotes sent and accepted, AI use with its cost, and emails waiting to go out.",
+  sources: "Where clients came from, the largest source first.",
+  jurisdictions: "Where each client's matter is, the largest first.",
+  sales: "Sales from accepted quotes. Only admins see this tab.",
+};
 
 /**
  * The pre-W6 analytics tabs (funnel, satisfaction, activity, sources,
@@ -175,6 +187,15 @@ export default function ReportsView() {
     },
   ];
   if (isAdmin) tabs.push({ id: "sales", label: "Sales report", content: () => <SalesView /> });
+  const withNotes: TabItem[] = tabs.map((t) => ({
+    ...t,
+    content: () => (
+      <>
+        {TAB_NOTES[t.id] && <TabNote>{TAB_NOTES[t.id]}</TabNote>}
+        {typeof t.content === "function" ? t.content() : t.content}
+      </>
+    ),
+  }));
 
   return (
     <>
@@ -183,7 +204,7 @@ export default function ReportsView() {
         sub={isAdmin ? "Acquisition funnel, pipeline and the sales report. Membership KPIs are on Today." : "Acquisition funnel and pipeline. Membership KPIs are on Today."}
       />
       {error && <ErrorText>{error}</ErrorText>}
-      {denied ? <AdminsOnlyNotice what="Reports" /> : <Tabs tabs={tabs} label="Reports" />}
+      {denied ? <AdminsOnlyNotice what="Reports" /> : <Tabs tabs={withNotes} label="Reports" />}
     </>
   );
 }

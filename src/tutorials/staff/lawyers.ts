@@ -52,7 +52,7 @@ const hours = stack(
 
 const assignment = stack(
   [
-    row([h3("Unassigned clients"), btn("Auto-assign by score", "secondary", "auto", "sm")], "between"),
+    row([h3("Members without a lawyer"), btn("Auto-assign by score", "secondary", "auto", "sm")], "between"),
     list(
       [
         { id: "u1", avatar: "auto", title: M.dmitri, meta: "Immigration · joined 4 days ago", pill: p("4 days") },
@@ -83,7 +83,7 @@ function page() {
 
 export const staffLawyers: Tutorial = {
   id: "staff.lawyers",
-  version: 2,
+  version: 3,
   title: "Lawyers",
   summary: "How busy each partner lawyer is, their hours, and who gets new members.",
   audience: ["staff"],

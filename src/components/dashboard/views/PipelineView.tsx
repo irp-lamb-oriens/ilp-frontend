@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { staffApi } from "@/lib/api";
 import type { Matter } from "@/lib/contracts";
-import { AgingBadge, Button, DataTable, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
+import { AgingBadge, Button, DataTable, ProgressBar, Select, StatusPill, Tabs, type Column, type TabItem } from "@/components/ui";
 import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
-import { PageHeader, ErrorText } from "../staff/PageHeader";
+import { PageHeader, ErrorText, SectionHead, TabNote } from "../staff/PageHeader";
 import { dueLabel } from "../staff/format";
 import { useLawyers } from "../staff/useLawyers";
 import s from "./views.module.scss";
@@ -24,13 +24,21 @@ export default function PipelineView() {
   const [showImport, setShowImport] = useState(false);
   const tabs: TabItem[] = [
     { id: "matters", label: "Matters", content: () => <MattersTable /> },
-    { id: "crm", label: "Client CRM", content: () => <ClientsPanel /> },
+    {
+      id: "crm",
+      label: "Client CRM",
+      content: () => (
+        <>
+          <TabNote>The older client records, kept for their stage actions, notes, Lily and emails. New work starts from Members and Matters.</TabNote>
+          <ClientsPanel />
+        </>
+      ),
+    },
   ];
   return (
     <>
       <PageHeader
         title="Pipeline"
-        sub="Open matters by stage and time in stage. The client CRM keeps stage actions, Lily and emails."
         actions={
           <Button variant="secondary" onClick={() => setShowImport(true)}>
             Import clients
@@ -96,8 +104,35 @@ function MattersTable() {
 
   if (error) return <ErrorText>{error}</ErrorText>;
 
+  const total = matters?.length ?? 0;
+  const late = (matters ?? []).filter((m) => {
+    const days = sla.get(m.stage) ?? 14;
+    return Date.now() - Date.parse(m.stageEnteredAt) > days * 86400000;
+  }).length;
+
   return (
     <div>
+      {matters !== null && total > 0 && (
+        <section className={s.stageStrip} aria-labelledby="by-stage-title">
+          <SectionHead
+            id="by-stage-title"
+            level={3}
+            title="Open matters by stage"
+            sub={`${total} open matter${total === 1 ? "" : "s"}${late ? `, ${late} past the stage time limit` : ", none past the stage time limit"}. Click a stage to show only its matters.`}
+          />
+          <ul className={s.stageBars}>
+            {[...counts.keys()]
+              .sort((a, b) => (stages.findIndex((x) => x.id === a) + 1 || 999) - (stages.findIndex((x) => x.id === b) + 1 || 999))
+              .map((id) => (
+                <li key={id}>
+                  <button type="button" className={s.stageBar} aria-pressed={stage === id} onClick={() => setStage(stage === id ? "" : id)}>
+                    <ProgressBar label={label.get(id) ?? id.replace(/_/g, " ")} value={counts.get(id) ?? 0} max={total} valueText={String(counts.get(id) ?? 0)} />
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
       <div className={s.bar}>
         <Select label="Stage" value={stage} onChange={(e) => setStage(e.target.value)}>
           <option value="">All stages ({matters?.length ?? 0})</option>

@@ -6,7 +6,7 @@ import { staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
 import { AgingBadge, Checkbox, EmptyState, Loadable, Notice, Skeleton, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
-import { PageHeader, ErrorText } from "../staff/PageHeader";
+import { PageHeader, ErrorText, SectionHead } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { dueLabel, pct, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import { isLawyerApplicationTask, type AttentionItem, type QueueResponse, type QueueTask, type StaffSummary } from "../staff/types";
@@ -134,10 +134,15 @@ export default function TodayView() {
         </Notice>
       )}
 
+      <SectionHead
+        id="kpis-title"
+        title="How the business is doing"
+        sub="The figures the team checks every morning. The line under each one gives its target or how it is counted."
+      />
       <Loadable loading={!summary && !error} label="Loading key figures" skeleton={<TodayKpisSkeleton />}>
         {() => (
           <Stagger>
-            <section className={s.kpis} aria-label="Key figures" data-tour="staff-kpis">
+            <section className={s.kpis} aria-labelledby="kpis-title" data-tour="staff-kpis">
               <StaggerItem index={0}>
                 <StatTile
                   size="lg"
@@ -191,9 +196,16 @@ export default function TodayView() {
       <div className={s.grid}>
         <section className={s.queue} aria-labelledby="queue-title" data-tour="staff-queue">
           <div className={s.queueHead}>
-            <h2 id="queue-title" className={s.h2}>
-              {scope === "me" ? "My queue" : "Team queue"}
-            </h2>
+            <div>
+              <h2 id="queue-title" className={s.h2}>
+                {scope === "me" ? "My queue" : "Team queue"}
+              </h2>
+              <p className={s.lede}>
+                {scope === "me"
+                  ? "Tasks given to you, most urgent first. Click one to open it."
+                  : "Every open task on the team, with its owner. Help out when a colleague is away."}
+              </p>
+            </div>
             {staff.role !== "csm" || scope === "all" ? (
               <div className={s.toggle} role="group" aria-label="Whose tasks">
                 <button type="button" className={s.toggleBtn} aria-pressed={scope === "me"} onClick={() => setScope("me")}>
@@ -261,7 +273,10 @@ export default function TodayView() {
         </section>
 
         <aside className={s.rail} aria-label="Needs attention" data-tour="staff-attention">
-          <h2 className={s.h2}>Needs attention</h2>
+          <div>
+            <h2 className={s.h2}>Needs attention</h2>
+            <p className={s.lede}>Members whose case may stall if nobody acts. Click a name to open their page.</p>
+          </div>
           <Loadable loading={!summary && !error} label="Loading items that need attention" skeleton={<RailSkeleton />}>
             {() =>
               summary && (

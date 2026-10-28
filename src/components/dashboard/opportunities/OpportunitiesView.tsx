@@ -17,7 +17,7 @@ import {
   type Column,
 } from "@/components/ui";
 import { useStaff } from "../staff/StaffSession";
-import { ErrorText, PageHeader } from "../staff/PageHeader";
+import { ErrorText, PageHeader, TabNote } from "../staff/PageHeader";
 import { dueLabel, pct, shortDate, usd } from "../staff/format";
 import { OpportunitiesBoard } from "./OpportunitiesBoard";
 import { OpportunityDrawer } from "./OpportunityDrawer";
@@ -160,7 +160,10 @@ export default function OpportunitiesView() {
 
   return (
     <>
-      <PageHeader title="Opportunities" sub="Paid legal work beyond the membership, from first mention to won or lost. Values are legal fees (GMV), shown to staff only." />
+      <PageHeader
+        title="Opportunities"
+        sub={summary ? `${summary.open.count} open, worth ${usd(summary.open.valueCents, true)} in legal fees (GMV). Only staff see these values.` : undefined}
+      />
 
       <Loadable loading={!summary && !error} label="Loading the pipeline summary" skeleton={<OpportunitySummarySkeleton />}>
         {() => summary && <SummaryStrip summary={summary} />}
@@ -191,15 +194,18 @@ export default function OpportunitiesView() {
             id: "board",
             label: "Board",
             content: (
-              <Loadable loading={items === null && !error} label="Loading opportunities" skeleton={<OpportunityBoardSkeleton />}>
-                {() =>
-                  items === null ? null : items.length === 0 ? (
-                    <StaggerItem>{empty}</StaggerItem>
-                  ) : (
-                    <OpportunitiesBoard items={visible} busyId={busyId} onOpen={(o) => setOpen({ row: o })} onMove={move} />
-                  )
-                }
-              </Loadable>
+              <>
+                <TabNote>Each column is a stage, from first mention on the left to won or lost on the right. Drag a card when the situation changes, or click it to open the details.</TabNote>
+                <Loadable loading={items === null && !error} label="Loading opportunities" skeleton={<OpportunityBoardSkeleton />}>
+                  {() =>
+                    items === null ? null : items.length === 0 ? (
+                      <StaggerItem>{empty}</StaggerItem>
+                    ) : (
+                      <OpportunitiesBoard items={visible} busyId={busyId} onOpen={(o) => setOpen({ row: o })} onMove={move} />
+                    )
+                  }
+                </Loadable>
+              </>
             ),
           },
           {
@@ -207,6 +213,7 @@ export default function OpportunitiesView() {
             label: "List",
             content: (
               <div className={s.listWrap}>
+                <TabNote>The same opportunities as a table. Sort by next action to see what is due first.</TabNote>
                 <div className={s.listFilters}>
                   <Select
                     label="Stage"

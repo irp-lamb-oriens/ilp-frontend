@@ -5,19 +5,37 @@ import { staffApi } from "@/lib/api";
 import { Button, Skeleton, SkeletonRegion, Tabs, TextInput, useSkeleton, type TabItem } from "@/components/ui";
 import { VendorsList } from "@/components/dashboard/AdminViews";
 import EmailsTab from "@/components/dashboard/EmailsTab";
-import { PageHeader, ErrorText } from "../staff/PageHeader";
+import { PageHeader, ErrorText, TabNote } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
 /** Admin settings: pipeline stages, email queue, vendors. */
 export default function SettingsView() {
   const tabs: TabItem[] = [
     { id: "stages", label: "Stages", content: () => <StageConfig /> },
-    { id: "emails", label: "Email queue", content: () => <EmailsTab /> },
-    { id: "vendors", label: "Vendors", content: () => <VendorsList /> },
+    {
+      id: "emails",
+      label: "Email queue",
+      content: () => (
+        <>
+          <TabNote>Emails the system has written, such as booking confirmations, while they wait to go out. Open one to read it before it is sent.</TabNote>
+          <EmailsTab />
+        </>
+      ),
+    },
+    {
+      id: "vendors",
+      label: "Vendors",
+      content: () => (
+        <>
+          <TabNote>Outside suppliers ILP works with, and whether each one is active. Search by name.</TabNote>
+          <VendorsList />
+        </>
+      ),
+    },
   ];
   return (
     <>
-      <PageHeader title="Settings" sub="Changes here apply to every member and lawyer." />
+      <PageHeader title="Settings" sub="Changes here apply to every member and lawyer at once." />
       <Tabs tabs={tabs} label="Settings" />
     </>
   );
@@ -78,9 +96,9 @@ function StageConfig() {
 
   return (
     <div className={s.stack}>
-      <p className={s.note}>
-        The client label is what members see on their timeline. SLA days drive the aging badges on Pipeline and the Needs-attention rail.
-      </p>
+      <TabNote>
+        Each matter moves through these stages in order. The staff label is the name the team sees. SLA days is the time limit for the stage: after it, the matter is flagged on Pipeline and under Needs attention on Today.
+      </TabNote>
       {error && <ErrorText>{error}</ErrorText>}
       {saved && (
         <p className={s.ok} role="status">

@@ -8,7 +8,7 @@ import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/
 import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
 import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
 import { useLawyers } from "../staff/useLawyers";
-import { PageHeader, ErrorText } from "../staff/PageHeader";
+import { PageHeader, ErrorText, TabNote } from "../staff/PageHeader";
 import type { LawyerCapacity } from "../staff/types";
 import { LawyerApplications, type LawyerApplication } from "./LawyerApplications";
 import s from "./views.module.scss";
@@ -42,12 +42,30 @@ export default function LawyersView() {
     { id: "capacity", label: "Capacity", content: () => <Capacity /> },
     { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications items={apps} error={appsError} onChanged={loadApps} /> },
     { id: "hours", label: "Hours", content: () => <Hours /> },
-    { id: "assignment", label: "Assignment", content: () => <AssignmentView /> },
-    { id: "directory", label: "Directory", content: () => <ProvidersList /> },
+    {
+      id: "assignment",
+      label: "Assignment",
+      content: () => (
+        <>
+          <TabNote>Members who do not have a lawyer yet, oldest first. Pick a lawyer with room in Capacity, then press Assign.</TabNote>
+          <AssignmentView />
+        </>
+      ),
+    },
+    {
+      id: "directory",
+      label: "Directory",
+      content: () => (
+        <>
+          <TabNote>Every lawyer on file, with email, legal areas and where they practise. Search by name, email or area.</TabNote>
+          <ProvidersList />
+        </>
+      ),
+    },
   ];
   return (
     <>
-      <PageHeader title="Lawyers" sub="Who has room for the next member, who is carrying aging matters, and who has applied to join." />
+      <PageHeader title="Lawyers" />
       {waiting > 0 && tab !== "applications" && (
         <Notice tone="info" title={`${waiting} lawyer application${waiting === 1 ? "" : "s"} waiting for review`} actions={<button type="button" className={s.linkButton} onClick={() => setTab("applications")}>Open applications</button>}>
           Members cannot book these lawyers until someone approves them.
@@ -85,6 +103,7 @@ function Capacity() {
   if (error) return <ErrorText>{error}</ErrorText>;
   return (
     <div className={s.stack}>
+      <TabNote>How busy each partner lawyer is. Aging counts their matters that have stayed 14 days or more in one stage. Give new members to someone with room.</TabNote>
       {data && data.unassignedMatters > 0 && (
         <Notice
           tone="warning"
@@ -143,6 +162,7 @@ function Hours() {
   if (!lawyers.length) return <EmptyState compact title="No active lawyers" body="Add a lawyer in the Directory tab, then set their hours here." />;
   return (
     <div className={s.stack}>
+      <TabNote>Pick a lawyer to change the weekly hours members can book, their days off and their call limits. Save before you switch lawyer.</TabNote>
       <Select
         label="Lawyer"
         value={id}

@@ -109,7 +109,7 @@ export default function ClientsPanel() {
           label: "Notes",
           content: (
             <div className={styles.list}>
-              {notes.length === 0 && <p className={styles.empty}>No notes.</p>}
+              {notes.length === 0 && <p className={styles.empty}>No notes yet.</p>}
               {notes.map((n, i) => (
                 <div key={i} className={styles.listCard}>
                   <div className={styles.listCardBody}>{String(n.text ?? "")}</div>
@@ -126,7 +126,7 @@ export default function ClientsPanel() {
           label: "Activity",
           content: (
             <div className={styles.list}>
-              {activity.length === 0 && <p className={styles.empty}>No activity.</p>}
+              {activity.length === 0 && <p className={styles.empty}>No activity recorded yet.</p>}
               {activity.map((a, i) => (
                 <div key={i} className={styles.activityRow}>
                   <span className={styles.activityTime}>{String(a.timestamp ?? "").slice(0, 19)}</span>
@@ -176,7 +176,7 @@ export default function ClientsPanel() {
 
       <div className={styles.detailPane}>
         {!c ? (
-          <p className={styles.empty}>Select a client to see details.</p>
+          <p className={styles.empty}>Pick a client from the list to see their details.</p>
         ) : (
           <>
             <div className={styles.detailHead}>

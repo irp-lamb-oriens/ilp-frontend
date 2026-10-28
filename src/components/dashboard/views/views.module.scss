@@ -153,3 +153,46 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
+
+// Pipeline: open matters by stage, one bar per stage (click to filter).
+.stageStrip {
+  margin-bottom: $space-6;
+}
+
+.stageBars {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: $space-6;
+  }
+
+  @include lg {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.stageBar {
+  @include focus-ring;
+  display: block;
+  width: 100%;
+  min-height: $touch-target;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    border-color: $color-accent;
+    background: $color-accent-soft;
+  }
+}

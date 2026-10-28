@@ -72,3 +72,46 @@
 .sr {
   @include visually-hidden;
 }
+
+// Block heading: what the block is, then one line on what to do with it.
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $space-2 $space-4;
+  margin-bottom: $space-3;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: $color-navy;
+}
+
+.sectionSub {
+  margin: $space-1 0 0;
+  font-size: 0.875rem;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+// One line at the top of a tab.
+.tabNote {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-2;
+  margin: 0 0 $space-4;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $color-steel;
+  max-width: 72ch;
+}
+
+.tabNoteIcon {
+  flex: none;
+  margin-top: 0.125rem;
+  color: $color-navy;
+}

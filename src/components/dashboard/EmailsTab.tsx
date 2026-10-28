@@ -104,7 +104,7 @@ export default function EmailsTab() {
       <Loadable loading={pending === null && !error} label="Loading the email queue" skeleton={<EmailQueueSkeleton />}>
         {null}
       </Loadable>
-      {pending !== null && pending.length === 0 && <p className={s.meta}>No pending emails.</p>}
+      {pending !== null && pending.length === 0 && <p className={s.meta}>No emails are waiting to go out.</p>}
 
       {pending !== null && pending.length > 0 && (
         <SearchInput value={query} onChange={setQuery} placeholder="Search emails…" resultCount={total} />

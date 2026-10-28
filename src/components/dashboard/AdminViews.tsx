@@ -13,7 +13,7 @@ import {
   PALETTE,
 } from "@/components/dashboard/charts";
 import styles from "./adminViews.module.scss";
-import { ErrorNotice, Notice, Select, SkeletonRegion, useSkeleton } from "@/components/ui";
+import { EmptyState, ErrorNotice, Notice, Select, SkeletonRegion, useSkeleton } from "@/components/ui";
 import { AdminListSkeleton, AssignmentSkeleton, FinanceChartsSkeleton, SalesSkeleton } from "./AdminSkeletons";
 
 interface Provider {
@@ -62,7 +62,7 @@ export function ProvidersList() {
       </SkeletonRegion>
     );
   }
-  if (rows.length === 0) return <p className={styles.muted}>No providers yet.</p>;
+  if (rows.length === 0) return <EmptyState compact title="No lawyers yet" body="Lawyers appear here after they apply from the lawyers page and an admin approves them in Applications." />;
 
   return (
     <div className={styles.listStack}>
@@ -107,7 +107,7 @@ export function VendorsList() {
       </SkeletonRegion>
     );
   }
-  if (rows.length === 0) return <p className={styles.muted}>No vendors yet.</p>;
+  if (rows.length === 0) return <EmptyState compact title="No vendors yet" body="Outside suppliers show here once they are added. Ask an admin if one you work with is missing." />;
 
   return (
     <div className={styles.listStack}>
@@ -222,7 +222,7 @@ export function FinanceView() {
 
       <div className={styles.financeGrid}>
         <div className={styles.financeCard}>
-          <h3 className={styles.financeTitle}>Revenue vs cost vs margin</h3>
+          <h3 className={styles.financeTitle}>Revenue, cost and margin</h3>
           <GroupedBarChart
             data={totalsData}
             series={[
@@ -277,7 +277,7 @@ export function FinanceView() {
 
       <div className={styles.financeGrid}>
         <div className={styles.financeCard}>
-          <h3 className={styles.financeTitle}>Revenue by provider</h3>
+          <h3 className={styles.financeTitle}>Revenue by lawyer</h3>
           <RankedBarChart data={providerData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No provider data yet." />
         </div>
         <div className={styles.financeCard}>
@@ -329,7 +329,7 @@ export function SalesView() {
       </SkeletonRegion>
     );
   }
-  if (rows.length === 0) return <p className={styles.muted}>No sales data.</p>;
+  if (rows.length === 0) return <EmptyState compact title="No sales yet" body="Sales show here once members accept quotes for legal work." />;
 
   return (
     <div className={styles.listStack}>
@@ -452,7 +452,7 @@ export function AssignmentView() {
   return (
     <div className={styles.listStack}>
       <div className={styles.assignmentBar}>
-        <span className={styles.muted}>{queue.unassignedCount} unassigned clients</span>
+        <span className={styles.muted}>{queue.unassignedCount === 1 ? "1 member without a lawyer" : `${queue.unassignedCount} members without a lawyer`}</span>
         <button
           type="button"
           className={styles.assignBtn}
@@ -465,7 +465,7 @@ export function AssignmentView() {
 
       {notice && <Notice tone="success" variant="inline" title={notice} />}
 
-      <h3 className={styles.financeTitle}>Lawyers (by score)</h3>
+      <h3 className={styles.financeTitle}>Lawyers by match score</h3>
       {queue.providers.map((p) => (
         <div key={p.id} className={styles.listItem}>
           <div>
@@ -480,9 +480,9 @@ export function AssignmentView() {
         </div>
       ))}
 
-      <h3 className={styles.financeTitle}>Unassigned clients</h3>
+      <h3 className={styles.financeTitle}>Members without a lawyer</h3>
       {queue.unassigned.length === 0 && (
-        <p className={styles.muted}>No unassigned clients.</p>
+        <EmptyState compact title="Every member has a lawyer" body="Members who join without one are listed here, oldest first." />
       )}
       {queue.unassigned.map((c) => (
         <div key={c.id} className={styles.listItem}>
