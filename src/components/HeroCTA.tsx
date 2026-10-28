@@ -10,7 +10,6 @@ import {
 import { RevealTitle, Reveal, EASE_OUT_EXPO } from "@/components/motion/Motion";
 import Link from "next/link";
 import { CLAIM, CHECK_CTA } from "@/components/landing/content";
-import HeroChat from "@/components/HeroChat";
 import styles from "./HeroCTA.module.scss";
 
 const HERO_IMAGE =
@@ -126,9 +125,6 @@ export default function HeroCTA() {
           <Link href="/pricing" className={styles.secondary}>
             See what is included
           </Link>
-          <div className={styles.chatSlot}>
-            <HeroChat />
-          </div>
         </Reveal>
       </motion.div>
     </section>
