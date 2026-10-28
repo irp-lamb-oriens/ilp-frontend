@@ -12,8 +12,14 @@
   align-items: center;
   min-height: $touch-target;
   color: $color-navy;
+  gap: $space-1;
   text-decoration: none;
   @include focus-ring;
+}
+
+// The chevron from the shared icon set, turned to point left.
+.backIcon {
+  transform: rotate(90deg);
 }
 
 .head {

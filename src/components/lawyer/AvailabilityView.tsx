@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Button,
   ChipSelect,
@@ -19,6 +19,7 @@ import {
   useSkeleton,
   validateWindows,
 } from "@/components/ui";
+import { IconChevronDown } from "@/components/ui/icons";
 import { AREA_LABEL, errorText } from "./lawyerApi";
 import { callsApi, type AvailabilitySettings, type WeeklyWindow } from "./callsApi";
 import { LawyerAvailabilitySkeleton } from "./LawyerSkeletons";
@@ -88,6 +89,7 @@ export default function AvailabilityView({
   onDirtyChange,
   unsavedMessage = "Your hours have changes that are not saved yet. If you leave now, they will be lost.",
   audience = "lawyer",
+  intro,
 }: {
   adapter?: AvailabilityAdapter;
   title?: string;
@@ -97,6 +99,8 @@ export default function AvailabilityView({
   unsavedMessage?: string;
   /** Who is editing: the lawyer (own hours) or staff (a lawyer's hours). Sets the notice wording. */
   audience?: "lawyer" | "staff";
+  /** Page intro shown under the breadcrumb (the lawyer route passes LawyerIntro). */
+  intro?: ReactNode;
 } = {}) {
   const [data, setData] = useState<AvailabilitySettings | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -189,9 +193,12 @@ export default function AvailabilityView({
     <StaggerItem className={s.page}>
       {showBack && (
         <nav aria-label="Breadcrumb">
-          <Link href="/lawyer" className={s.back}>← Today</Link>
+          <Link href="/lawyer" className={s.back}>
+            <IconChevronDown className={s.backIcon} /> Back to Today
+          </Link>
         </nav>
       )}
+      {intro}
       <header className={s.head}>
         <h2 className={s.h}>{title}</h2>
         <p className={s.sub}>Members book 20-minute calls inside these hours, in Costa Rica time.</p>

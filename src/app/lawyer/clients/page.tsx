@@ -1,10 +1,14 @@
 import { Suspense } from "react";
 import ClientsView from "@/components/lawyer/ClientsView";
+import LawyerIntro from "@/components/lawyer/LawyerIntro";
 
 export default function LawyerClientsPage() {
   return (
-    <Suspense>
-      <ClientsView />
-    </Suspense>
+    <>
+      <LawyerIntro screen="clients" />
+      <Suspense>
+        <ClientsView />
+      </Suspense>
+    </>
   );
 }

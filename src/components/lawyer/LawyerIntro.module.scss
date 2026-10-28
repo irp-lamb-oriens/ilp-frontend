@@ -1,0 +1,11 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Space between the compact intro and the screen under it.
+.intro {
+  margin-bottom: $space-6;
+
+  @include below-md {
+    margin-bottom: $space-4;
+  }
+}

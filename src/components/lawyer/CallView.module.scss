@@ -15,11 +15,20 @@
 }
 
 .back {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  min-height: $touch-target;
   color: $color-navy;
   text-decoration: none;
   font-size: 0.875rem;
   padding: $space-1 0;
   @include focus-ring;
+}
+
+// The chevron from the shared icon set, turned to point left.
+.backIcon {
+  transform: rotate(90deg);
 }
 
 // Two columns that each fit the viewport; the brief never needs to scroll on

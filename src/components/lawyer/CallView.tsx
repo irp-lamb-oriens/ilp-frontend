@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { SkeletonRegion, Stagger, StaggerItem, useSkeleton, ErrorNotice } from "@/components/ui";
 import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
+import { IconChevronDown } from "@/components/ui/icons";
 import BriefPanel from "./BriefPanel";
 import CallPanel from "./CallPanel";
+import LawyerIntro from "./LawyerIntro";
 import { errorText, lawyerApi, type Brief } from "./lawyerApi";
 import { LawyerCallSkeleton } from "./LawyerSkeletons";
 import s from "./CallView.module.scss";
@@ -48,8 +50,11 @@ export default function CallView({ consultationId }: { consultationId: string })
     <Stagger>
     <div className={s.page}>
       <nav className={s.crumbs} aria-label="Breadcrumb">
-        <Link href="/lawyer" className={s.back}>← Today</Link>
+        <Link href="/lawyer" className={s.back}>
+          <IconChevronDown className={s.backIcon} /> Back to Today
+        </Link>
       </nav>
+      <LawyerIntro screen="call" />
       <div className={s.cols}>
         <div className={s.briefCol} data-tour="lawyer-call-brief">
           <StaggerItem index={0}>
