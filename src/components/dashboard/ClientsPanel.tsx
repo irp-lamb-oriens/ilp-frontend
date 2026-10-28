@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { apiListSource } from "@/lib/listSource";
-import { useStreamedList } from "@/lib/useStreamedList";
-import { ListFooter, ListToolbar, Select, Skeleton, SkeletonList, SkeletonRegion, Tabs, useSkeleton, type TabItem, ErrorNotice } from "@/components/ui";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
+import { FilterBar, ListFooter, Skeleton, SkeletonList, SkeletonRegion, Tabs, useSkeleton, type TabItem, ErrorNotice } from "@/components/ui";
 import ClientActions from "./ClientActions";
 import CrmLilyTab from "./CrmLilyTab";
 import EmailsTab from "./EmailsTab";
@@ -42,15 +43,19 @@ const clientsSource = apiListSource<ClientSummary>(staffApi, "/api/dashboard/cli
 
 export default function ClientsPanel() {
   const [selected, setSelected] = useState<ClientSummary | null>(null);
-  const list = useStreamedList<ClientSummary>(clientsSource, {
+  const sl = useSchemaList<ClientSummary>({
+    schema: LIST_SCHEMAS.crmClients,
     key: "staff-crm-clients",
+    source: clientsSource,
     pageSize: 20,
-    sort: { key: "lastUpdated", dir: "desc" },
+    defaultSort: { key: "lastUpdated", dir: "desc" },
     keyOf: (c) => c.id,
   });
-  const stageLabels = (list.meta.stageLabels as Record<string, string> | undefined) ?? {};
-  const stageIds = (list.meta.stages as string[] | undefined) ?? [];
+  const list = sl.list;
+  const stageLabels = useMemo(() => (list.meta.stageLabels as Record<string, string> | undefined) ?? {}, [list.meta.stageLabels]);
+  const stageIds = useMemo(() => (list.meta.stages as string[] | undefined) ?? [], [list.meta.stages]);
   const stageLabel = (id: string) => stageLabels[id] ?? id.replace(/_/g, " ");
+  const filterOptions = useMemo(() => ({ stage: stageIds.map((id) => ({ value: id, label: stageLabels[id] ?? id.replace(/_/g, " ") })) }), [stageIds, stageLabels]);
 
   const sk = useSkeleton(list.initialLoading);
   if (list.initialLoading && list.error) return <ErrorNotice audience="staff" onRetry={list.refresh}>{list.error}</ErrorNotice>;
@@ -127,18 +132,7 @@ export default function ClientsPanel() {
     <section className={styles.section}>
       <div className={styles.listPane}>
         <h2 className={styles.listTitle}>Clients{list.total !== null ? ` (${list.total})` : ""}</h2>
-        <ListToolbar list={list} noun="clients" searchLabel="Search clients" placeholder="Name, email, area or stage">
-          {stageIds.length > 0 && (
-            <Select label="Stage" value={list.filters.stage ?? ""} onChange={(e) => list.setFilter("stage", e.target.value)}>
-              <option value="">All stages</option>
-              {stageIds.map((id) => (
-                <option key={id} value={id}>
-                  {stageLabel(id)}
-                </option>
-              ))}
-            </Select>
-          )}
-        </ListToolbar>
+        <FilterBar list={sl} noun="clients" searchLabel="Search clients" placeholder="Name, email, area or stage" sortOptions="schema" options={filterOptions} compact />
         {list.items.map((cl) => (
           <button
             key={cl.id}
@@ -157,7 +151,7 @@ export default function ClientsPanel() {
             </div>
           </button>
         ))}
-        {list.items.length === 0 && list.status === "done" && <p className={styles.empty}>{list.activeQuery ? "No client matches this search." : "No clients yet."}</p>}
+        {list.items.length === 0 && list.status === "done" && <p className={styles.empty}>{list.activeQuery || sl.activeCount ? "No client matches these filters." : "No clients yet."}</p>}
         <ListFooter list={list} audience="staff" skeleton={<SkeletonList rows={2} variant="plain" compact />} />
       </div>
 

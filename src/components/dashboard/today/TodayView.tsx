@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { staffApi } from "@/lib/api";
 import { apiListSource } from "@/lib/listSource";
-import { useStreamedList } from "@/lib/useStreamedList";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import type { CsmTask } from "@/lib/contracts";
-import { AgingBadge, Checkbox, EmptyState, ListFooter, ListToolbar, Loadable, Notice, Skeleton, SkeletonList, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
+import { AgingBadge, Checkbox, EmptyState, FilterBar, ListFooter, Loadable, Notice, Skeleton, SkeletonList, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText, SectionHead } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
@@ -67,15 +68,19 @@ export default function TodayView() {
       .catch((e) => setError(e instanceof Error ? e.message : "Today could not be loaded."));
   }, [exclude]);
 
-  const queue = useStreamedList<QueueTask>(queueSource, {
+  // FILTERS: the queue's own toggles (whose tasks, placeholder data) are base params; the schema adds type, due date, overdue, owner.
+  const baseFilters = useMemo(() => ({ owner: scope, excludePlaceholder: exclude ? "1" : "" }), [scope, exclude]);
+  const sl = useSchemaList<QueueTask>({
+    schema: LIST_SCHEMAS.staffQueue,
     key: "staff-queue",
+    source: queueSource,
     pageSize: 25,
-    filters: { owner: scope, excludePlaceholder: exclude ? "1" : "" },
+    baseFilters,
+    defaultSort: { key: "dueAt", dir: "asc" },
     keyOf: (t) => t.id,
+    viewer: staff.email,
   });
-  const { setFilter } = queue;
-  useEffect(() => setFilter("owner", scope), [scope, setFilter]);
-  useEffect(() => setFilter("excludePlaceholder", exclude ? "1" : ""), [exclude, setFilter]);
+  const queue = sl.list;
   // Counts come with the first page; tasks closed here since then come off them.
   const [closedHere, setClosedHere] = useState(0);
   const counts = queue.meta.counts as QueueCounts | undefined;
@@ -239,9 +244,9 @@ export default function TodayView() {
           {notice && (
             <Notice tone="success" variant="inline" title={notice} />
           )}
-          <ListToolbar list={queue} noun="tasks" searchLabel="Search tasks" placeholder="Task title or type" />
+          <FilterBar list={sl} noun="tasks" searchLabel="Search tasks" placeholder="Task title or type" sortOptions="schema" hide={scope === "me" ? ["placeholder", "ownerEmail"] : ["placeholder"]} />
           <Loadable loading={queue.initialLoading && !queue.error} label="Loading your tasks" skeleton={<QueueSkeleton />}>
-            {queueReady && tasks.length === 0 && !queue.activeQuery && (
+            {queueReady && tasks.length === 0 && !queue.activeQuery && sl.activeCount === 0 && (
               <StaggerItem>
                 <EmptyState
                   title="Nothing in your queue"
@@ -249,9 +254,9 @@ export default function TodayView() {
                 />
               </StaggerItem>
             )}
-            {queueReady && tasks.length === 0 && !!queue.activeQuery && (
+            {queueReady && tasks.length === 0 && (!!queue.activeQuery || sl.activeCount > 0) && (
               <StaggerItem>
-                <EmptyState compact title="No task matches" body="Try another word, or clear the search." />
+                <EmptyState compact title="No task matches" body="Try another word, or clear the search and filters." />
               </StaggerItem>
             )}
             {tasks.length > 0 && (

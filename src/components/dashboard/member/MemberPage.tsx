@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { PROFILE_FIELDS, PROFILE_SECTIONS, type Handoff, type ProfileSection } from "@/lib/contracts";
-import { ButtonLink, Drawer, ListFooter, ProgressBar, SearchInput, SkeletonRegion, SkeletonTimeline, Stagger, StaggerItem, StatusPill, Timeline, useSkeleton, type TimelineItem } from "@/components/ui";
+import { ButtonLink, Drawer, FilterBar, ListFooter, ProgressBar, SkeletonRegion, SkeletonTimeline, Stagger, StaggerItem, StatusPill, Timeline, useSkeleton, type TimelineItem } from "@/components/ui";
 import { apiListSource } from "@/lib/listSource";
-import { useStreamedList } from "@/lib/useStreamedList";
+import { LIST_SCHEMAS, TIMELINE_KIND_OPTIONS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
+import { useStaff } from "../staff/StaffSession";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { IntroTitleContext, ScreenIntro } from "../staff/ScreenIntro";
 import { STAFF_INTROS } from "../staff/intros";
@@ -49,17 +51,6 @@ const FIELD_LABEL: Record<string, string> = {
   ownsVehicle: "Owns a vehicle",
 };
 
-type Kind = TimelineEntry["kind"];
-const KINDS: Array<{ id: Kind | "all"; label: string }> = [
-  { id: "all", label: "Everything" },
-  { id: "consultation", label: "Calls" },
-  { id: "handoff", label: "Handoffs" },
-  { id: "task", label: "Tasks" },
-  { id: "quote", label: "Quotes" },
-  { id: "note", label: "Notes" },
-  { id: "audit", label: "Audit" },
-];
-
 function show(v: unknown): string {
   if (v === true) return "Yes";
   if (v === false) return "No";
@@ -78,14 +69,18 @@ export default function MemberPage({ clientId }: { clientId: string }) {
     () => apiListSource<TimelineEntry>(staffApi, `/api/dashboard/staff/members/${encodeURIComponent(clientId)}/timeline`),
     [clientId],
   );
-  const timeline = useStreamedList<TimelineEntry>(timelineSource, {
+  const staff = useStaff();
+  // FILTERS: kind, date, author and search from the timeline's schema.
+  const tl = useSchemaList<TimelineEntry>({
+    schema: LIST_SCHEMAS.staffTimeline,
     key: `staff-timeline-${clientId}`,
+    source: timelineSource,
     pageSize: 30,
-    sort: { key: "at", dir: "desc" },
+    defaultSort: { key: "at", dir: "desc" },
     keyOf: (e) => e.id,
+    viewer: staff.email,
   });
-  const kind = (timeline.filters.kind || "all") as Kind | "all";
-  const setKind = (k: Kind | "all") => timeline.setFilter("kind", k === "all" ? "" : k);
+  const timeline = tl.list;
   const refreshTimeline = timeline.refresh;
   const [handoff, setHandoff] = useState<Handoff | null>(null);
   const [task, setTask] = useState<QueueTask | null>(null);
@@ -136,7 +131,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
           e.title
         ),
         body: e.body,
-        meta: <StatusPill size="sm" label={KINDS.find((k) => k.id === e.kind)?.label ?? e.kind} />,
+        meta: <StatusPill size="sm" label={TIMELINE_KIND_OPTIONS.find((k) => k.value === e.kind)?.label ?? e.kind} />,
       };
     });
 
@@ -267,19 +262,12 @@ export default function MemberPage({ clientId }: { clientId: string }) {
           )}
           <StaggerItem as="section" index={2} className={s.block} aria-label="Timeline" data-tour="staff-member-timeline">
             <h2 className={s.blockTitle}>Timeline</h2>
-            <div className={s.timelineFilter} role="group" aria-label="Filter timeline">
-              {KINDS.map((k) => (
-                <button key={k.id} type="button" className={s.chip} aria-pressed={kind === k.id} onClick={() => setKind(k.id)}>
-                  {k.label}
-                </button>
-              ))}
-            </div>
-            <SearchInput label="Search the timeline" hideLabel value={timeline.query} onValueChange={timeline.setQuery} placeholder="Search the timeline" />
+            <FilterBar list={tl} noun="events" searchLabel="Search the timeline" placeholder="Search the timeline" sortOptions="schema" views={false} hideCount />
             {timeline.initialLoading ? (
               <SkeletonTimeline />
             ) : (
               <div aria-busy={timeline.stale || undefined} className={timeline.stale ? s.stale : undefined}>
-                <Timeline items={items} emptyLabel={timeline.activeQuery ? "Nothing in the timeline matches this search." : "Nothing recorded for this filter yet."} />
+                <Timeline items={items} emptyLabel={timeline.activeQuery || tl.activeCount ? "Nothing in the timeline matches these filters." : "Nothing recorded yet."} />
               </div>
             )}
             <ListFooter list={timeline} audience="staff" auto={false} loadMoreLabel="Show older events" endLabel={null} skeleton={<SkeletonTimeline />} />

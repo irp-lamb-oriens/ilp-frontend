@@ -3,12 +3,11 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { staffApi } from "@/lib/api";
-import { COUNTRIES } from "@/components/shell";
 import { useCountryContext } from "@/lib/countryContext";
+import { LIST_SCHEMAS, type FilterState } from "@/lib/listSchemas";
 import { apiListSource } from "@/lib/listSource";
-import { useListUrl, useListUrlWrite } from "@/lib/useListUrl";
-import { useStreamedList } from "@/lib/useStreamedList";
-import { DataTable, ListFooter, ListToolbar, ProgressBar, Select, Skeleton, StatusPill, type Column } from "@/components/ui";
+import { useSchemaListWithUrl } from "@/lib/useSchemaList";
+import { DataTable, FilterBar, ListFooter, ProgressBar, Skeleton, StatusPill, type Column } from "@/components/ui";
 import { PageHeader } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { MEMBERSHIP_LABEL, MEMBERSHIP_TONE, shortDate } from "../staff/format";
@@ -17,7 +16,6 @@ import s from "./members.module.scss";
 
 const PAGE_SIZE = 25;
 type SortKey = "name" | "joined" | "completeness" | "renewal";
-const FILTER_KEYS = ["status", "csm", "ready"];
 const DEFAULT_SORT = { key: "name", dir: "asc" as const };
 
 /** Members come from the server a page at a time, streamed (helper/listing.ts on the API). */
@@ -31,23 +29,41 @@ const membersSource = apiListSource<MemberRow>(staffApi, "/api/dashboard/staff/m
 export default function MembersList() {
   const router = useRouter();
   const staff = useStaff();
-  const defaults = useMemo(() => ({ filters: { csm: staff.role === "csm" ? staff.email : "" }, sort: DEFAULT_SORT }), [staff.role, staff.email]);
-  const url = useListUrl(FILTER_KEYS, defaults);
+  // A CSM opens on their own members; staff and admins on everyone.
+  const defaultFilters = useMemo<FilterState | undefined>(() => (staff.role === "csm" ? { csmEmail: { op: "eq", value: staff.email } } : undefined), [staff.role, staff.email]);
   // COUNTRIES: "" is all six countries; the shell's country switcher sets the same value.
   const [country, setCountry] = useCountryContext();
-  const list = useStreamedList<MemberRow>(membersSource, {
+  const baseFilters = useMemo(() => ({ country }), [country]);
+  const sl = useSchemaListWithUrl<MemberRow>({
+    schema: LIST_SCHEMAS.staffMembers,
     key: "staff-members",
+    source: membersSource,
     pageSize: PAGE_SIZE,
-    initialQuery: url.init.q,
-    filters: { ...url.init.filters, country },
-    sort: url.init.sort,
+    baseFilters,
+    defaultFilters,
+    defaultSort: DEFAULT_SORT,
     keyOf: (r) => r.clientId,
+    viewer: staff.email,
   });
-  const { setFilter } = list;
-  useEffect(() => setFilter("country", country), [country, setFilter]);
-  useListUrlWrite(url, { q: list.activeQuery, filters: list.filters, sort: list.sort }, FILTER_KEYS, defaults);
+  const list = sl.list;
+  // A country picked in the filters moves the shell's switcher too.
+  const pickedCountry = list.filters.country ?? "";
+  useEffect(() => {
+    if (pickedCountry !== country) setCountry(pickedCountry);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedCountry]);
 
-  const csms = (list.meta.csms as string[] | undefined) ?? [];
+  const csms = useMemo(() => (list.meta.csms as string[] | undefined) ?? [], [list.meta.csms]);
+  const filterOptions = useMemo(
+    () => ({
+      csmEmail: [
+        ...(staff.email ? [{ value: staff.email, label: "Me" }] : []),
+        ...csms.filter((c) => c !== staff.email).map((c) => ({ value: c, label: c })),
+        { value: "__none", label: "No CSM" },
+      ],
+    }),
+    [csms, staff.email],
+  );
   const sort = list.sort ?? DEFAULT_SORT;
 
   const sortBtn = (key: SortKey, label: string) => (
@@ -82,6 +98,7 @@ export default function MembersList() {
         </span>
       ),
     },
+    { key: "email", header: "Email", render: (r) => r.email, hideOnMobile: true },
     { key: "status", header: "Membership", render: (r) => <StatusPill size="sm" label={MEMBERSHIP_LABEL[r.status]} tone={MEMBERSHIP_TONE[r.status]} /> },
     {
       key: "profile",
@@ -96,7 +113,9 @@ export default function MembersList() {
     },
     { key: "usage", header: "Minutes used", render: (r) => `${r.minutesUsed} of ${r.minutesIncluded}`, hideOnMobile: true, align: "end" },
     { key: "renewal", header: "Renews", render: (r) => (r.status === "cancelled" ? "Does not renew" : shortDate(r.periodEnd)), hideOnMobile: true },
-    { key: "csm", header: "CSM", render: (r) => r.csmEmail?.split("@")[0] ?? "Unassigned", hideOnMobile: true },
+    { key: "csmEmail", header: "CSM", render: (r) => r.csmEmail?.split("@")[0] ?? "Unassigned", hideOnMobile: true },
+    { key: "country", header: "Country", render: (r) => r.country, hideOnMobile: true },
+    { key: "activatedAt", header: "Joined", render: (r) => shortDate(r.activatedAt), hideOnMobile: true },
     { key: "tasks", header: "Open tasks", render: (r) => r.openTasks || "None", align: "end", hideOnMobile: true },
   ], []);
 
@@ -107,38 +126,7 @@ export default function MembersList() {
         sub={list.initialLoading ? <Skeleton shape="line" size="sm" width="25" /> : list.total !== null ? `${list.total} member${list.total === 1 ? "" : "s"} match.` : "Members matching your filters."}
       />
       <div data-tour="staff-members-filters">
-        <ListToolbar list={list} noun="members" placeholder="Name or email">
-          <Select label="Membership" value={list.filters.status ?? ""} onChange={(e) => list.setFilter("status", e.target.value)}>
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending payment</option>
-            <option value="past_due">Past due</option>
-            <option value="cancelled">Cancelled</option>
-          </Select>
-          <Select label="CSM" value={list.filters.csm ?? ""} onChange={(e) => list.setFilter("csm", e.target.value)}>
-            <option value="">Everyone</option>
-            {staff.email && !csms.includes(staff.email) && <option value={staff.email}>Me</option>}
-            {csms.map((c) => (
-              <option key={c} value={c}>
-                {c === staff.email ? "Me" : c}
-              </option>
-            ))}
-            <option value="none">No CSM</option>
-          </Select>
-          <Select label="Readiness" value={list.filters.ready ?? ""} onChange={(e) => list.setFilter("ready", e.target.value)}>
-            <option value="">All</option>
-            <option value="ready">Consultation-ready</option>
-            <option value="not_ready">Not ready</option>
-          </Select>
-          <Select label="Country" value={country} onChange={(e) => setCountry(e.target.value)}>
-            <option value="">All countries</option>
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        </ListToolbar>
+        <FilterBar list={sl} noun="members" placeholder="Name or email" options={filterOptions} columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
       </div>
 
       <div className={s.sortRow} role="group" aria-label="Sort members">
@@ -151,7 +139,7 @@ export default function MembersList() {
 
       <DataTable
         caption="Members"
-        columns={columns}
+        columns={sl.visibleColumns(columns)}
         rows={list.items}
         rowKey={(r) => r.clientId}
         loading={list.initialLoading}
@@ -159,7 +147,7 @@ export default function MembersList() {
         stale={list.stale}
         skeletonRows={8}
         onRowActivate={(r) => router.push(`/dashboard/members/${encodeURIComponent(r.clientId)}`)}
-        empty="No member matches these filters."
+        empty={sl.activeCount || list.activeQuery ? "No member matches these filters." : "No members yet."}
       />
       <ListFooter list={list} audience="staff" />
     </>

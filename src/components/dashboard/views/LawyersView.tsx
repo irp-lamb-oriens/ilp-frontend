@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { apiListSource } from "@/lib/listSource";
-import { useListUrl, useListUrlWrite } from "@/lib/useListUrl";
-import { useStreamedList } from "@/lib/useStreamedList";
-import { DataTable, EmptyState, ListFooter, ListToolbar, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useStaff } from "../staff/StaffSession";
+import { useSchemaList, useSchemaListWithUrl } from "@/lib/useSchemaList";
+import { DataTable, EmptyState, FilterBar, ListFooter, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
 import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
@@ -24,17 +25,24 @@ import s from "./views.module.scss";
  */
 const appsSource = apiListSource<LawyerApplication>(staffApi, "/api/dashboard/providers/applications");
 const capacitySource = apiListSource<LawyerCapacity>(staffApi, "/api/dashboard/staff/lawyers");
-const CAPACITY_FILTERS = ["area"];
-const CAPACITY_DEFAULTS = { sort: { key: "openMatters", dir: "desc" as const } };
+const CAPACITY_SORT = { key: "openMatters", dir: "desc" as const };
+const APPS_SORT = { key: "submittedAt", dir: "desc" as const };
+/** Area values are stored with underscores ("real_estate"); show them as words. */
+const prettyOptions = (o: Array<{ value: string; label: string; count?: number }> | undefined) => (o ?? []).map((x) => ({ ...x, label: x.label.replace(/_/g, " ") }));
 
 export default function LawyersView() {
   const [tab, setTab] = useState("capacity");
-  const apps = useStreamedList<LawyerApplication>(appsSource, {
+  const { email } = useStaff();
+  const appsList = useSchemaList<LawyerApplication>({
+    schema: LIST_SCHEMAS.lawyerApplications,
     key: "staff-applications",
+    source: appsSource,
     pageSize: 25,
-    sort: { key: "submittedAt", dir: "desc" },
+    defaultSort: APPS_SORT,
     keyOf: (a) => a.id,
+    viewer: email,
   });
+  const apps = appsList.list;
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#applications") setTab("applications");
@@ -44,7 +52,7 @@ export default function LawyersView() {
   const waiting = apps.items.filter((a) => a.status === "pending_review").length;
   const tabs: TabItem[] = [
     { id: "capacity", label: "Capacity", content: () => <Capacity /> },
-    { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications list={apps} /> },
+    { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications sl={appsList} /> },
     { id: "hours", label: "Hours", content: () => <Hours /> },
     {
       id: "assignment",
@@ -81,21 +89,24 @@ export default function LawyersView() {
 }
 
 function Capacity() {
-  const url = useListUrl(CAPACITY_FILTERS, CAPACITY_DEFAULTS);
-  const list = useStreamedList<LawyerCapacity>(capacitySource, {
+  const { email } = useStaff();
+  const sl = useSchemaListWithUrl<LawyerCapacity>({
+    schema: LIST_SCHEMAS.staffLawyers,
     key: "staff-capacity",
+    source: capacitySource,
     pageSize: 25,
-    initialQuery: url.init.q,
-    filters: url.init.filters,
-    sort: url.init.sort,
+    defaultSort: CAPACITY_SORT,
     keyOf: (l) => l.id,
+    viewer: email,
   });
-  useListUrlWrite(url, { q: list.activeQuery, filters: list.filters, sort: list.sort }, CAPACITY_FILTERS, CAPACITY_DEFAULTS);
+  const list = sl.list;
+  const areaOptions = useMemo(() => ({ legalAreas: prettyOptions(sl.schema.fields.find((f) => f.key === "legalAreas")?.options) }), [sl.schema]);
   const unassignedMatters = Number(list.meta.unassignedMatters ?? 0);
 
   const columns = useMemo<Column<LawyerCapacity>[]>(() => [
     { key: "name", header: "Lawyer", render: (l) => l.name, sortable: true, width: "wide" },
-    { key: "areas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "None set", hideOnMobile: true },
+    { key: "email", header: "Email", render: (l) => l.email, hideOnMobile: true },
+    { key: "legalAreas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "None set", hideOnMobile: true },
     { key: "openMatters", header: "Open matters", render: (l) => l.openMatters, sortable: true, align: "end" },
     {
       key: "agingMatters",
@@ -129,10 +140,10 @@ function Capacity() {
           These members are waiting for a lawyer and cannot book a call yet.
         </Notice>
       )}
-      <ListToolbar list={list} noun="lawyers" placeholder="Name, email or legal area" />
+      <FilterBar list={sl} noun="lawyers" placeholder="Name, email or legal area" options={areaOptions} columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
       <DataTable
         caption="Lawyer capacity"
-        columns={columns}
+        columns={sl.visibleColumns(columns)}
         rows={list.items}
         rowKey={(l) => l.id}
         loading={list.initialLoading}
@@ -140,7 +151,7 @@ function Capacity() {
         stale={list.stale}
         sort={list.sort}
         onSortChange={list.setSort}
-        empty={list.activeQuery ? "No lawyer matches this search." : "No active lawyers."}
+        empty={list.activeQuery || sl.activeCount ? "No lawyer matches these filters." : "No active lawyers."}
       />
       <ListFooter list={list} audience="staff" />
     </div>

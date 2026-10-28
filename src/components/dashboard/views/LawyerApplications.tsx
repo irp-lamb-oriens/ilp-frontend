@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
-import type { StreamedList } from "@/lib/useStreamedList";
-import { Button, DataTable, Drawer, ListFooter, ListToolbar, Notice, Select, StatusPill, TextArea, type Column, type StatusTone } from "@/components/ui";
+import type { SchemaList } from "@/lib/useSchemaList";
+import { Button, DataTable, Drawer, FilterBar, ListFooter, Notice, Select, StatusPill, TextArea, type Column, type StatusTone } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import s from "./views.module.scss";
 
@@ -69,7 +69,8 @@ type Action = "approve" | "request_changes" | "decline";
  * Decline (both need a note the lawyer reads). Each action is audited and
  * closes the review task.
  */
-export function LawyerApplications({ list }: { list: StreamedList<LawyerApplication> }) {
+export function LawyerApplications({ sl }: { sl: SchemaList<LawyerApplication> }) {
+  const list = sl.list;
   const onChanged = list.refresh;
   const [open, setOpen] = useState<LawyerApplication | null>(null);
   const [action, setAction] = useState<Action | null>(null);
@@ -126,15 +127,15 @@ export function LawyerApplications({ list }: { list: StreamedList<LawyerApplicat
           {done}
         </Notice>
       )}
-      <ListToolbar list={list} noun="applications" placeholder="Name, email or area">
+      <FilterBar list={sl} noun="applications" placeholder="Name, email or area" columns={columns.map((c) => ({ key: c.key, header: c.header }))}>
         <Select label="Show" value={list.filters.status ?? ""} onChange={(e) => list.setFilter("status", e.target.value)}>
           <option value="">Waiting for review</option>
           <option value="all">All, including declined</option>
         </Select>
-      </ListToolbar>
+      </FilterBar>
       <DataTable
         caption="Lawyer applications"
-        columns={columns}
+        columns={sl.visibleColumns(columns)}
         rows={list.items}
         rowKey={(a) => a.id}
         loading={list.initialLoading}
@@ -146,7 +147,7 @@ export function LawyerApplications({ list }: { list: StreamedList<LawyerApplicat
           setDone(null);
           setOpen(a);
         }}
-        empty={list.activeQuery ? "No application matches this search." : "No applications are waiting. New ones from the lawyers page appear here."}
+        empty={list.activeQuery || sl.activeCount ? "No application matches these filters." : "No applications are waiting. New ones from the lawyers page appear here."}
       />
       <ListFooter list={list} audience="staff" />
 

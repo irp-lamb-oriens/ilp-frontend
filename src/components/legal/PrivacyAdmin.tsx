@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Button, DataTable, Drawer, ListFooter, ListToolbar, Notice, Select, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
+import { useEffect, useMemo, useState } from "react";
+import { Button, DataTable, Drawer, FilterBar, ListFooter, Notice, StatusPill, useUnsavedChanges, type Column, type StatusTone } from "@/components/ui";
 import { apiListSource } from "@/lib/listSource";
-import { useStreamedList } from "@/lib/useStreamedList";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { ApiError, downloadFile, staffApi } from "@/lib/api";
 import { DownloadButton } from "@/components/documents/DownloadButton";
 import type { PrivacyRequest } from "@/lib/contracts";
 import { ErrorText, Muted, PageHeader } from "@/components/dashboard/staff/PageHeader";
-import { AdminOnly } from "@/components/dashboard/staff/StaffSession";
+import { AdminOnly, useStaff } from "@/components/dashboard/staff/StaffSession";
 import s from "./PrivacyAdmin.module.scss";
 
 type Row = PrivacyRequest & { memberName: string; overdue: boolean; staffNote?: string };
@@ -64,18 +66,30 @@ export default function PrivacyAdmin() {
 const requestsSource = apiListSource<Row>(staffApi, "/api/dashboard/privacy/requests");
 
 function PrivacyRequests() {
-  const list = useStreamedList<Row>(requestsSource, {
+  const { email } = useStaff();
+  const sl = useSchemaList<Row>({
+    schema: LIST_SCHEMAS.privacyRequests,
     key: "staff-privacy-requests",
+    source: requestsSource,
     pageSize: 25,
-    filters: { status: "open" },
-    sort: { key: "dueAt", dir: "asc" },
+    baseFilters: { status: "open" },
+    defaultSort: { key: "dueAt", dir: "asc" },
     keyOf: (r) => r.id,
+    viewer: email,
   });
+  const list = sl.list;
   const all = list.filters.status === "all";
+  // Picking a status in the filters means closed requests may be wanted too.
+  const statusPicked = !!sl.filterState.status;
+  const { setFilter } = list;
+  useEffect(() => {
+    if (statusPicked) setFilter("status", "all");
+  }, [statusPicked, setFilter]);
   const [open, setOpen] = useState<Row | null>(null);
 
   const columns = useMemo<Column<Row>[]>(() => [
     { key: "memberName", header: "Member" },
+    { key: "email", header: "Email", render: (r) => r.email, hideOnMobile: true },
     { key: "kind", header: "Request", render: (r) => KIND[r.kind] },
     {
       key: "status",
@@ -102,19 +116,10 @@ function PrivacyRequests() {
           </Button>
         }
       />
-      <ListToolbar list={list} noun="requests" searchLabel="Search requests" placeholder="Reference, email or kind">
-        <Select label="Request" value={list.filters.kind ?? ""} onChange={(e) => list.setFilter("kind", e.target.value)}>
-          <option value="">All kinds</option>
-          {Object.entries(KIND).map(([k, label]) => (
-            <option key={k} value={k}>
-              {label}
-            </option>
-          ))}
-        </Select>
-      </ListToolbar>
+      <FilterBar list={sl} noun="requests" searchLabel="Search requests" placeholder="Reference, email or kind" columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
       <DataTable
         caption="Privacy requests"
-        columns={columns}
+        columns={sl.visibleColumns(columns)}
         rows={list.items}
         loading={list.initialLoading}
         loadingMore={list.loadingMore}
@@ -124,7 +129,7 @@ function PrivacyRequests() {
         rowKey={(r) => r.id}
         onRowActivate={setOpen}
         selectedKey={open?.id ?? null}
-        empty={<Muted>{list.activeQuery || list.filters.kind ? "No request matches these filters." : all ? "No privacy requests yet." : "No open privacy requests."}</Muted>}
+        empty={<Muted>{list.activeQuery || sl.activeCount ? "No request matches these filters." : all ? "No privacy requests yet." : "No open privacy requests."}</Muted>}
       />
       <ListFooter list={list} audience="staff" />
       {open && (
@@ -344,29 +349,33 @@ function RequestDrawer({ row, onClose, onChanged }: { row: Row; onClose: () => v
 }
 
 function PlanTable({ lines }: { lines: PlanLine[] }) {
+  // FILTERS: the deletion matrix, searched and filtered by action (it lists every collection).
+  const sl = useSchemaList<PlanLine>({
+    schema: LOCAL_SCHEMAS.privacyPlan,
+    key: "staff-privacy-plan",
+    rows: lines,
+    pageSize: 50,
+    keyOf: (l) => l.collection,
+  });
+  const columns = useMemo<Column<PlanLine>[]>(() => [
+    { key: "collection", header: "Collection", render: (l) => <span title={l.why}>{l.collection}</span>, sortable: true, width: "wide" },
+    { key: "action", header: "Action", render: (l) => ACTION[l.action] },
+    { key: "count", header: "Records", render: (l) => (l.action === "keep" ? "kept" : l.count), sortable: true, align: "end" },
+    { key: "why", header: "Why", render: (l) => l.why, hideOnMobile: true },
+  ], []);
   return (
-    <table className={s.table}>
-      <caption className={s.caption}>Deletion matrix</caption>
-      <thead>
-        <tr>
-          <th scope="col">Collection</th>
-          <th scope="col">Action</th>
-          <th scope="col" className={s.num}>
-            Records
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {lines.map((l) => (
-          <tr key={l.collection}>
-            <th scope="row" title={l.why}>
-              {l.collection}
-            </th>
-            <td>{ACTION[l.action]}</td>
-            <td className={s.num}>{l.action === "keep" ? "kept" : l.count}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className={s.planTable}>
+      <FilterBar list={sl} noun="collections" searchLabel="Search the deletion matrix" placeholder="Collection or reason" compact columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
+      <DataTable
+        caption="Deletion matrix"
+        columns={sl.visibleColumns(columns)}
+        rows={sl.list.items}
+        rowKey={(l) => l.collection}
+        sort={sl.list.sort}
+        onSortChange={sl.list.setSort}
+        empty="No collection matches these filters."
+      />
+      <ListFooter list={sl.list} audience="staff" auto={false} endLabel={null} />
+    </div>
   );
 }

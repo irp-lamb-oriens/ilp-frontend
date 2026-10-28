@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Drawer, ListFooter, ListToolbar, Loadable, Skeleton, SkeletonList, ErrorNotice } from "@/components/ui";
+import { Button, Drawer, FilterBar, ListFooter, Loadable, Skeleton, SkeletonList, ErrorNotice } from "@/components/ui";
 import s from "./crm.module.scss";
 import { dashboardFetch, staffApi } from "@/lib/api";
 import { apiListSource } from "@/lib/listSource";
-import { useStreamedList } from "@/lib/useStreamedList";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 
 interface EmailQueueItem {
   id: string;
@@ -30,7 +31,15 @@ interface SentEmail extends EmailQueueItem {
 const pendingSource = apiListSource<EmailQueueItem>(staffApi, "/api/dashboard/pending-emails");
 
 export default function EmailsTab() {
-  const list = useStreamedList<EmailQueueItem>(pendingSource, { key: "staff-pending-emails", pageSize: 20, keyOf: (e) => e.id });
+  const sl = useSchemaList<EmailQueueItem>({
+    schema: LIST_SCHEMAS.emailQueue,
+    key: "staff-pending-emails",
+    source: pendingSource,
+    pageSize: 20,
+    defaultSort: { key: "scheduledFor", dir: "asc" },
+    keyOf: (e) => e.id,
+  });
+  const list = sl.list;
   const [busy, setBusy] = useState<string | null>(null);
   const [preview, setPreview] = useState<SentEmail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -83,10 +92,10 @@ export default function EmailsTab() {
       <Loadable loading={list.initialLoading && !list.error} label="Loading the email queue" skeleton={<EmailQueueSkeleton />}>
         {null}
       </Loadable>
-      {list.status === "done" && list.items.length === 0 && !list.activeQuery && <p className={s.meta}>No emails are waiting to go out.</p>}
+      {list.status === "done" && list.items.length === 0 && !list.activeQuery && sl.activeCount === 0 && <p className={s.meta}>No emails are waiting to go out.</p>}
 
-      {!list.initialLoading && (list.items.length > 0 || !!list.activeQuery) && (
-        <ListToolbar list={list} noun="emails" searchLabel="Search emails" placeholder="Recipient, subject or type" />
+      {!list.initialLoading && (list.items.length > 0 || !!list.activeQuery || sl.activeCount > 0) && (
+        <FilterBar list={sl} noun="emails" searchLabel="Search emails" placeholder="Recipient, subject or type" sortOptions="schema" />
       )}
 
       {list.items.map((e) => (

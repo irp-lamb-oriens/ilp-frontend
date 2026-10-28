@@ -117,39 +117,8 @@
   line-height: 1.5;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-
-  th,
-  td {
-    text-align: left;
-    padding: $space-2;
-    border-bottom: 1px solid $color-hairline;
-  }
-
-  thead th {
-    color: $color-steel;
-    font-weight: 600;
-  }
-
-  tbody th {
-    font-family: $font-mono;
-    font-weight: 400;
-    color: $color-navy;
-  }
-}
-
-.num {
-  text-align: right !important;
-}
-
-.caption {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+.planTable {
+  display: grid;
+  gap: $space-2;
+  min-width: 0;
 }
