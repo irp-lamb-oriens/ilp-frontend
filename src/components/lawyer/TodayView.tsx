@@ -7,6 +7,7 @@ import { areaLabel, dayWindow, errorText, fmtShortDate, fmtTime, lawyerApi, type
 import { useLawyer } from "./LawyerContext";
 import { ConsentPill, SummaryPill } from "./pills";
 import JoinCall from "./JoinCall";
+import ApplicationStatus from "./ApplicationStatus";
 import { CallsSkeleton, UpcomingSkeleton } from "./LawyerSkeletons";
 import s from "./TodayView.module.scss";
 
@@ -46,6 +47,7 @@ export default function TodayView() {
   return (
     <div className={s.page}>
       <section className={s.main} aria-labelledby="today-h" data-tour="lawyer-today-calls">
+        <ApplicationStatus me={me} />
         <header className={s.head}>
           <h2 id="today-h" className={s.h}>
             {today === null ? "Today" : today.length === 0 ? `No calls today${first ? `, ${first}` : ""}` : `${today.length} ${today.length === 1 ? "call" : "calls"} today`}

@@ -1,0 +1,73 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  margin-bottom: $space-6;
+}
+
+.card {
+  @include card;
+  padding: $space-4;
+
+  @include md {
+    padding: $space-6;
+  }
+}
+
+.h {
+  @include heading-lg;
+  margin: 0 0 $space-4;
+  font-size: 1.25rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $space-3;
+  align-items: start;
+  padding-block: $space-3;
+  border-top: 1px solid $color-hairline;
+
+  &:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+.itemMain {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.itemBody {
+  color: $color-steel;
+  line-height: 1.5;
+}
+
+.itemLink {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: $touch-target;
+  color: $color-navy;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

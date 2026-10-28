@@ -26,6 +26,8 @@ interface AuthShellProps {
   onSecondary?: () => void;
   secondaryVisible?: boolean;
   brand?: BrandProps;
+  /** Content between the title and the form, e.g. a Notice about why the person is here. */
+  lead?: ReactNode;
 }
 
 /** Steps shown under any sign-in failure (wrong code, expired code, too many tries, no connection). */
@@ -59,6 +61,7 @@ export default function AuthShell({
   onSecondary,
   secondaryVisible = false,
   brand,
+  lead,
 }: AuthShellProps) {
   return (
     <main className={styles.auth}>
@@ -81,6 +84,8 @@ export default function AuthShell({
         )}
 
         {!brand && <h1 className={styles.title}>{title}</h1>}
+
+        {lead}
 
         <form className={styles.form} onSubmit={onSubmit}>
           {sub && <p className={styles.sub}>{sub}</p>}

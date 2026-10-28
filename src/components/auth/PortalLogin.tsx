@@ -40,6 +40,10 @@ export interface PortalLoginProps {
   sub?: ReactNode;
   initialEmail?: string;
   brand?: { src: string; name: string; sub: string };
+  /** Send the code to initialEmail as soon as the form mounts (e.g. right after a lawyer applies). */
+  autoSend?: boolean;
+  /** Shown between the title and the form. */
+  lead?: ReactNode;
 }
 
 type Step = "email" | "code";
@@ -64,7 +68,7 @@ function describe(err: unknown, step: Step): string {
  * soon) and a 30-second resend cooldown. On success the session token from
  * verify-otp is stored for the role (ilp_<role>_token, see lib/api.ts).
  */
-export default function PortalLogin({ role, onSuccess, title, sub, initialEmail = "", brand }: PortalLoginProps) {
+export default function PortalLogin({ role, onSuccess, title, sub, initialEmail = "", brand, autoSend = false, lead }: PortalLoginProps) {
   const api = useRef(createApiClient(role)).current;
   const base = ENDPOINTS[role];
   const [step, setStep] = useState<Step>("email");
@@ -77,6 +81,7 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
   const [cooldown, setCooldown] = useState(0);
   const [locked, setLocked] = useState(false);
   const codeRef = useRef<HTMLInputElement>(null);
+  const autoSent = useRef(false);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -87,6 +92,14 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
   useEffect(() => {
     if (step === "code") codeRef.current?.focus();
   }, [step]);
+
+  // Once per mount: send the code to the email handed over by the page.
+  useEffect(() => {
+    if (!autoSend || autoSent.current || !/^\S+@\S+\.\S+$/.test(initialEmail.trim())) return;
+    autoSent.current = true;
+    void sendCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoSend, initialEmail]);
 
   function bodyFor(extra: Record<string, string> = {}) {
     const clean = email.trim().toLowerCase();
@@ -184,6 +197,7 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
         setLocked(false);
       }}
       brand={brand}
+      lead={lead}
     >
       {step === "email" ? (
         <AuthField

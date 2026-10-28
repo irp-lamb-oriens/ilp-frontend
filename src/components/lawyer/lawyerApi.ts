@@ -21,6 +21,14 @@ export interface LawyerMe {
   name: string | null;
   legalAreas: string[];
   jurisdictions: string[];
+  /** T2: application state. Lawyers created before applications have "active". */
+  status?: "pending_review" | "changes_requested" | "active" | "declined" | "inactive";
+  /** False while the application is in review (members cannot book). */
+  canTakeCalls?: boolean;
+  /** Staff note when the status is changes_requested. */
+  reviewNote?: string | null;
+  submittedAt?: string | null;
+  hasBio?: boolean;
 }
 
 export interface TodayItem {
@@ -262,8 +270,8 @@ export const areaLabel = (a: string | null | undefined) => (a ? AREA_LABEL[a] ??
 export const fmtTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 export const fmtDate = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No date";
 export const fmtShortDate = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "No date";
 export const money = (v: number, currency = "USD") =>
   new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(v);
