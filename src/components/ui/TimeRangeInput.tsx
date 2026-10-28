@@ -21,7 +21,7 @@ export interface TimeRangeInputProps {
   label: ReactNode;
   hideLabel?: boolean;
   hint?: ReactNode;
-  /** Error from outside (e.g. "Overlaps 9:00 AM – 12:00 PM"); wins over the built-in check. */
+  /** Error from outside (e.g. "Overlaps 9:00 AM to 12:00 PM"); wins over the built-in check. */
   error?: ReactNode;
   required?: boolean;
   /** Length of one call; the hint counts how many fit. Default 20. */
@@ -46,7 +46,7 @@ export interface TimeRangeInputProps {
 }
 
 /**
- * From–until pair as one segmented control: "8:30 AM – 12:00 PM".
+ * From–until pair as one segmented control: "8:30 AM to 12:00 PM".
  * Checks that the end is after the start and that the range fits at least
  * one call, and shows how many calls it yields. Both halves are TimeFields,
  * so arrow keys, type-ahead and the time list all work.
@@ -107,7 +107,7 @@ export function TimeRangeInput({
             name={name ? `${name}Start` : undefined}
             disabled={disabled}
           />
-          <span className={s.sep} aria-hidden="true">–</span>
+          <span className={s.sep} aria-hidden="true">to</span>
           <TimeField
             id={`${ids.id}-end`}
             appearance="bare"

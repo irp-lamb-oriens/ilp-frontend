@@ -168,7 +168,7 @@ export function validateWindows(windows: readonly DayWindow[], minMinutes = 20):
     if (e) out.set(i, e);
   });
   for (const [i, j] of findOverlaps(windows)) {
-    if (!out.has(i)) out.set(i, `Overlaps ${formatRange12(windows[j].start, windows[j].end, " – ")}. Move or remove one of them.`);
+    if (!out.has(i)) out.set(i, `Overlaps ${formatRange12(windows[j].start, windows[j].end)}. Move or remove one of them.`);
   }
   return out;
 }

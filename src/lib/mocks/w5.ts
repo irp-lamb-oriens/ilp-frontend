@@ -140,7 +140,7 @@ const MEMBERS: MockMember[] = [
 ];
 
 const HAYES_TRANSCRIPT = `Adriana: Thanks for joining, Robert. I have your file open: the Tamarindo house is held by your S.A., and you asked about good standing.
-Robert: Right. I bought the company with the house in 2019 and I honestly don't know what has been filed since.
+Robert: Right. I bought the company with the house in 2019 and I don't know what has been filed since.
 Adriana: The registry shows the S.A. active, but the corporation tax for 2025 is not showing as paid, and the beneficial ownership declaration was due in April.
 Robert: So we're behind?
 Adriana: On those two, likely yes. Both can be brought current. I need the legal books and the last tax receipt you have to confirm.

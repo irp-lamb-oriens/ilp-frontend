@@ -90,7 +90,7 @@ test("findOverlaps ignores touching windows and other days", () => {
   assert.deepEqual([...o.keys()].sort(), [0, 1, 3]);
   assert.equal(o.get(3), 0);
   const v = validateWindows(bad);
-  assert.match(v.get(3), /Overlaps 8:30 AM – 12:00 PM/);
+  assert.match(v.get(3), /Overlaps 8:30 AM to 12:00 PM/);
   assert.equal(v.has(2), false);
 });
 

@@ -12,7 +12,7 @@ const SAMPLE: Record<NoticeTone, { title: string; body: string }> = {
   success: { title: "Your membership is active", body: "60 of 60 minutes and 3 of 3 calls are ready this month." },
   warning: { title: "Your last payment did not go through", body: "Your access continues until November 3 while you update your card." },
   danger: { title: "Calls are paused", body: "Your membership is paused because the last payment did not go through." },
-  neutral: { title: "Draft — pending review by ILP's counsel", body: "This text is a working draft and may change before ILP opens to members." },
+  neutral: { title: "Draft: pending review by ILP's counsel", body: "This text is a working draft and may change before ILP opens to members." },
 };
 
 const FIX: Record<NoticeTone, NoticeFix> = {

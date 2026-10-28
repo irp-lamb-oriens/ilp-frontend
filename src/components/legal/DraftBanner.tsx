@@ -10,7 +10,7 @@ export default function DraftBanner({ version }: { version: string }) {
     <Notice
       tone="neutral"
       variant="banner"
-      title="Draft — pending review by ILP's counsel"
+      title="Draft: pending review by ILP's counsel"
       terms={["counsel"]}
       fix={{
         steps: [

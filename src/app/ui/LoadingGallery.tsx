@@ -107,7 +107,7 @@ export default function LoadingGallery() {
             ))}
           </div>
           <div className={s.shapeCol}>
-            <span className={s.label}>circle xs–xl</span>
+            <span className={s.label}>circle xs to xl</span>
             <div className={s.shapeRow}>
               {SIZES.map((size) => (
                 <Skeleton key={size} shape="circle" size={size} />

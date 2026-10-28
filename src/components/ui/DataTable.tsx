@@ -142,9 +142,7 @@ export function DataTable<T>({
                   {c.sortValue ? (
                     <button type="button" className={s.sortBtn} onClick={() => toggleSort(c.key)}>
                       {c.header}
-                      <span className={cx(s.sortIcon, active && s.sortActive)} aria-hidden="true">
-                        {active ? (sort!.dir === "asc" ? "↑" : "↓") : "↕"}
-                      </span>
+                      <SortIcon className={cx(s.sortIcon, active && s.sortActive)} dir={active ? sort!.dir : null} />
                     </button>
                   ) : (
                     c.header
@@ -268,3 +266,13 @@ export function SkeletonTable({ columns, rows = 5, className }: SkeletonTablePro
 }
 
 export default DataTable;
+
+/** Sort marker: one arrow for the active direction, a double arrow when the column is not sorted. */
+function SortIcon({ dir, className }: { dir: "asc" | "desc" | null; className?: string }) {
+  const d = dir === "asc" ? "M6 9.5V2.5M3.5 5L6 2.5 8.5 5" : dir === "desc" ? "M6 2.5v7M3.5 7L6 9.5 8.5 7" : "M4 4.5L6 2.5l2 2M4 7.5l2 2 2-2";
+  return (
+    <svg className={className} width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d={d} />
+    </svg>
+  );
+}
