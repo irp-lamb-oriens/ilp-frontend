@@ -36,3 +36,25 @@ test("homepage: hero sections come first and in order, the steps own #how-it-wor
   assert.ok(!anchors.includes(HERO.howAnchor), "no tutorial band reuses the steps anchor");
   assert.equal(new Set(anchors).size, anchors.length, "band anchors are unique");
 });
+
+test("homepage steps: each step has an example screen with its placeholder content", async () => {
+  const { HERO_SCREENS, screenRoot, screenText } = await import("../src/components/landing/heroScreens.ts");
+  assert.equal(HERO_SCREENS.length, HERO.how.length, "one screen per step");
+  const textOf = (i, compact) => screenText(screenRoot(HERO_SCREENS[i], compact)).join("\n");
+  const expect = [
+    ["Do you own property in Costa Rica?", "may require review", "Annual corporation tax may require review"],
+    ["US$79.99", "US$100", "20-minute", "quoted separately", "Join ILP"],
+    ["86% complete", "Join on Google Meet", "Book your first call", "20 minutes with Lic. Andrea Vargas"],
+    ["Sofía Campos · ILP team", "confirmed after your call", "Your team will confirm", "You · by"],
+  ];
+  for (const [i, words] of expect.entries()) {
+    for (const compact of [false, true]) {
+      const all = textOf(i, compact);
+      for (const w of words) assert.ok(all.includes(w), `step ${i + 1} (${compact ? "compact" : "wide"}) screen shows "${w}"`);
+      assert.ok(!/[–—]/.test(all), `step ${i + 1} screen has no dashes`);
+    }
+  }
+  const hero = readFileSync(new URL("../src/components/landing/HeroStory.tsx", import.meta.url), "utf8");
+  assert.ok(hero.includes("Example screen"), "screens are labelled as examples");
+  assert.ok(/aria-hidden="true" inert/.test(hero), "screens are hidden from assistive tech and inert");
+});
