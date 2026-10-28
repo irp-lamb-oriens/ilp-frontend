@@ -1,19 +1,24 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
 import CountUp from "@/components/motion/CountUp";
 import { MorphStage, Reveal } from "@/components/motion/Motion";
 import { CHECK_CTA, HERO, PROBLEM, WHAT } from "./content";
-import { LandingIcon, type LandingIconName } from "./SectionHead";
+import { MockScene } from "@/components/tutorial/mock/MockScene";
+import { EMPTY_OVERRIDES } from "@/components/tutorial/sceneUtils";
+import { cx } from "@/components/ui/cx";
+import { HERO_SCREENS, HERO_SCREEN_SIZE, screenRoot, type HeroScreen } from "./heroScreens";
 import s from "./HeroStory.module.scss";
 
 /**
  * The hero story after the first screen: the problem, how ILP works and what
  * you get, one section each. On wide screens with motion allowed the first
  * two pin (MorphStage) and reveal their text as you scroll. On phones and with
- * reduced motion they are plain stacked blocks that fade in once. All text is
+ * reduced motion they are plain stacked blocks that fade in once. Each step of
+ * "How ILP works" has an example screen (heroScreens.ts): beside the pinned
+ * list on wide screens, under the step text when stacked. All text is
  * in the DOM from the first render; motion only changes opacity and transform.
  */
 
@@ -137,7 +142,6 @@ export function ProblemScroll() {
 
 /* ── How ILP works ───────────────────────────────────────────── */
 
-const STEP_ICONS: LandingIconName[] = ["calendar", "price", "profile", "path"];
 const STEP_COUNT = HERO.how.length;
 
 /** The step text: one visible number (decorative), the <ol> gives the order. */
@@ -183,54 +187,67 @@ function Segment({ progress, index }: { progress: MotionValue<number>; index: nu
   );
 }
 
-/** Small drawn screen for each step. Shapes only, no text: decorative. */
-function StepVisual({ index }: { index: number }) {
+/**
+ * An example screen for one step: the tutorial mock UI (static, inert,
+ * aria-hidden) drawn at a fixed design size and scaled to the frame width.
+ * Wide: a 4:3 frame, so the crossfading screens never shift the layout.
+ * Compact (phones, reduced motion): a one-column screen as tall as its content.
+ */
+function ScreenFrame({ screen, compact = false }: { screen: HeroScreen; compact?: boolean }) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const W = compact ? HERO_SCREEN_SIZE.compact.w : HERO_SCREEN_SIZE.wide.w;
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    const stage = stageRef.current;
+    if (!frame || !stage) return;
+    const fit = () => {
+      const k = frame.clientWidth / W;
+      stage.style.setProperty("--screen-k", String(k));
+      if (compact) frame.style.setProperty("--screen-h", `${Math.ceil(stage.offsetHeight * k)}px`);
+    };
+    fit();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(fit);
+    ro.observe(frame);
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, [W, compact]);
+
+  const root = screenRoot(screen, compact);
   return (
-    <div className={s.visualCard}>
-      <LandingIcon name={STEP_ICONS[index]} className={s.visualIcon} />
-      {index === 0 && (
-        <div className={s.mockList}>
-          {[0, 1, 2, 3].map((r) => (
-            <span key={r} className={s.mockRow}>
-              <span className={s.mockLine} />
-              <span className={s.mockPill} />
-            </span>
-          ))}
-        </div>
-      )}
-      {index === 1 && (
-        <div className={s.mockMember}>
-          <span className={s.mockBlockWide} />
-          <span className={s.mockLine} />
-          <span className={s.mockLineShort} />
-          <span className={s.mockButton} />
-        </div>
-      )}
-      {index === 2 && (
-        <div className={s.mockCall}>
-          <span className={s.mockTile} />
-          <span className={s.mockTile} />
-          <span className={s.mockBar} />
-        </div>
-      )}
-      {index === 3 && (
-        <div className={s.mockThread}>
-          <span className={s.mockBubble} />
-          <span className={`${s.mockBubble} ${s.mockBubbleMine}`} />
-          <span className={s.mockBubble} />
-        </div>
-      )}
+    <div ref={frameRef} className={cx(s.screenFrame, compact && s.screenFrameCompact)} aria-hidden="true" inert>
+      <div ref={stageRef} className={cx(s.screenStage, compact && s.screenStageCompact)}>
+        {screen.shell && !compact ? (
+          <MockScene root={root} overrides={EMPTY_OVERRIDES} />
+        ) : (
+          <div className={s.screenPage}>
+            <MockScene root={root} overrides={EMPTY_OVERRIDES} />
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+/** Marks the screens as illustrations, so nobody reads them as real data. */
+function ScreenCaption() {
+  return (
+    <span className={s.screenCaption} aria-hidden="true">
+      Example screen
+    </span>
   );
 }
 
 function VisualLayer({ progress, index }: { progress: MotionValue<number>; index: number }) {
   const { input, output } = stepStops(index);
   const opacity = useTransform(progress, input, output.map((o) => (o === 1 ? 1 : 0)));
-  const y = useTransform(progress, input, output.map((o) => (o === 1 ? 0 : 24)));
+  const y = useTransform(progress, input, output.map((o) => (o === 1 ? 0 : 16)));
+  const scale = useTransform(progress, input, output.map((o) => (o === 1 ? 1 : 0.98)));
   return (
-    <motion.div className={s.visualLayer} style={{ opacity, y }}>
-      <StepVisual index={index} />
+    <motion.div className={s.visualLayer} style={{ opacity, y, scale }}>
+      <ScreenFrame screen={HERO_SCREENS[index]} />
     </motion.div>
   );
 }
@@ -263,9 +280,12 @@ function PinnedSteps({ progress }: { progress: MotionValue<number> }) {
         </ol>
       </div>
       <div className={s.visual} aria-hidden="true">
-        {HERO.how.map((text, i) => (
-          <VisualLayer key={text} progress={progress} index={i} />
-        ))}
+        <ScreenCaption />
+        <div className={s.visualStack}>
+          {HERO.how.map((text, i) => (
+            <VisualLayer key={text} progress={progress} index={i} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -287,6 +307,10 @@ export function StepsScroll() {
                 <li key={text} className={s.stepPlain}>
                   <Reveal className={s.stepGrid} delay={i * 0.06}>
                     <StepBody index={i} text={text} />
+                  </Reveal>
+                  <Reveal className={s.stepScreen} delay={0.1}>
+                    <ScreenCaption />
+                    <ScreenFrame screen={HERO_SCREENS[i]} compact />
                   </Reveal>
                 </li>
               ))}
