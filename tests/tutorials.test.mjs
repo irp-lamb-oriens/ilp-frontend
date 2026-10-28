@@ -493,3 +493,15 @@ test("homepage tutorials: prices match the plan (US$79.99 a month, US$100 activa
   }
   assert.ok(!/\b(30|90|120) minutes\b/.test(copy), "minutes match the plan");
 });
+
+test("homepage: every tutorial band plays a homepage tutorial, in order, and the page renders each band", async () => {
+  const { TUTORIAL_BANDS } = await import("../src/components/landing/content.ts");
+  const { readFileSync } = await import("node:fs");
+  const bands = Object.entries(TUTORIAL_BANDS);
+  assert.deepEqual(bands.map(([, b]) => b.id), [...HOMEPAGE_TUTORIAL_IDS]);
+  const page = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+  for (const [key, b] of bands) {
+    assert.ok(page.includes(`TUTORIAL_BANDS.${key}`), `page.tsx renders the ${key} band`);
+    assert.ok(b.lead.length > 0 && b.caption.length > 0, `${key} has a lead-in and a caption`);
+  }
+});
