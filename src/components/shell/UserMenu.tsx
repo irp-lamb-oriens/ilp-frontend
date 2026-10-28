@@ -11,9 +11,9 @@ export interface UserMenuProps {
   user?: ShellUser | null;
   roleLabel: string;
   onLogout?: () => void;
-  /** Optional "Log out on all devices" (the role's /auth/logout-all route). */
+  /** Optional "Sign out on all devices" (the role's /auth/logout-all route). */
   onLogoutAll?: () => void;
-  /** Links listed above "Log out" (e.g. data and privacy, legal pages). */
+  /** Links listed above "Sign out" (e.g. data and privacy, legal pages). */
   links?: MenuLink[];
   /** Opens the "Tutorials" list (replay and reset). */
   onOpenTutorials?: () => void;
@@ -85,7 +85,7 @@ export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links, onOpen
             onLogout?.();
           }}
         >
-          Log out
+          Sign out
         </button>
         {onLogoutAll && (
           <button
@@ -97,7 +97,7 @@ export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links, onOpen
               onLogoutAll();
             }}
           >
-            Log out on all devices
+            Sign out on all devices
           </button>
         )}
       </div>

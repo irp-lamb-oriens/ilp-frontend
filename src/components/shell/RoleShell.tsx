@@ -26,9 +26,9 @@ export interface RoleShellProps {
   actions?: ReactNode;
   user?: ShellUser | null;
   onLogout?: () => void;
-  /** Shows "Log out on all devices" in the user menu (e.g. `() => staffApi.logoutAll().then(...)`). */
+  /** Shows "Sign out on all devices" in the user menu (e.g. `() => staffApi.logoutAll().then(...)`). */
   onLogoutAll?: () => void;
-  /** Links in the user menu above "Log out" (data and privacy, legal pages). */
+  /** Links in the user menu above "Sign out" (data and privacy, legal pages). */
   menuLinks?: MenuLink[];
   /** Called on submit of the global search. Omit to hide the search input. */
   onSearch?: (query: string) => void;
@@ -217,8 +217,8 @@ export function RoleShell({
             <UserMenu
               user={user}
               roleLabel={roleLabel}
-              onLogout={onLogout && (() => void leave.guard(onLogout, { title: "Log out without saving?", confirmLabel: "Log out without saving" }))}
-              onLogoutAll={onLogoutAll && (() => void leave.guard(onLogoutAll, { title: "Log out without saving?", confirmLabel: "Log out without saving" }))}
+              onLogout={onLogout && (() => void leave.guard(onLogout, { title: "Sign out without saving?", confirmLabel: "Sign out without saving" }))}
+              onLogoutAll={onLogoutAll && (() => void leave.guard(onLogoutAll, { title: "Sign out without saving?", confirmLabel: "Sign out without saving" }))}
               links={menuLinks}
               onOpenTutorials={tutorials ? () => tutorials.openList(role) : undefined}
             />
