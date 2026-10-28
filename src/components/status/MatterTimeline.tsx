@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusPill } from "@/components/ui";
+import { IconCheck, StatusPill } from "@/components/ui";
 import { useMember } from "./MemberContext";
 import { areaLabel, dateShort, stageCopy } from "./format";
 import s from "./MatterTimeline.module.scss";
@@ -30,7 +30,7 @@ export default function MatterTimeline() {
           return (
             <li key={st.id} className={`${s.step} ${s[state]}`} aria-current={state === "now" ? "step" : undefined}>
               <span className={s.marker} aria-hidden="true">
-                {state === "done" ? "✓" : i + 1}
+                {state === "done" ? <IconCheck /> : i + 1}
               </span>
               <div className={s.body}>
                 <p className={s.label}>

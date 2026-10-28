@@ -54,17 +54,16 @@ export default function MessagesThread() {
 
   return (
     <div className={s.page}>
-      <p className={s.intro}>
-        Write to your ILP team here and a person from your team answers. For quick general questions you can ask
-        the AI assistant. It is not your lawyer, and your team confirms anything legal.
-      </p>
-
       <div className={s.thread} aria-live="polite">
         <Loadable loading={items === null} label="Loading messages" skeleton={<ThreadSkeleton />}>
           {() =>
             items === null ? null : items.length === 0 ? (
               <StaggerItem>
-                <EmptyState compact title="No messages yet" body="Your conversation with your ILP team will appear here." />
+                <EmptyState
+                  compact
+                  title="No messages yet"
+                  body="Write your first message in the box below. A person from your ILP team answers here, and the whole conversation stays on this page."
+                />
               </StaggerItem>
             ) : (
               <Stagger>

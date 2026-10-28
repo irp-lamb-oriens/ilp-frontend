@@ -133,7 +133,11 @@ export default function DocumentsPanel() {
 
       <Loadable loading={items === null} label="Loading your documents" skeleton={<DocumentsListSkeleton />}>
       {() => items === null ? null : items.length === 0 ? (
-        <EmptyState compact title="No documents yet" body="Documents you upload appear here, tagged by type and matter." />
+        <EmptyState
+          compact
+          title="No documents yet"
+          body="Documents you upload appear here, tagged by type and matter. Your passport and your DIMEX (if you have one) are good ones to start with."
+        />
       ) : (
         <ul className={s.list}>
           {items.map((d) => (

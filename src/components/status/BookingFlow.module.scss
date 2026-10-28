@@ -25,10 +25,37 @@
 }
 
 .stepTitle {
-  margin: 0 0 $space-3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: $space-3;
+  row-gap: $space-1;
+  margin: 0 0 $space-4;
   font-size: 1.25rem;
   color: $color-navy;
   letter-spacing: -0.01em;
+}
+
+// Numbered step badge: the same four steps as the page intro.
+.num {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  border: 1px solid $color-hairline;
+  color: $color-navy;
+  font-family: $font-mono;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  align-self: center;
+}
+
+.sr {
+  @include visually-hidden;
 }
 
 .tz {

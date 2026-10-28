@@ -41,7 +41,12 @@ export default function CancelMembership() {
     return (
       <EmptyState
         title="There is nothing to cancel"
-        body={m?.status === "cancelled" ? "Your membership has already ended." : "You do not have a running membership."}
+        body={m?.status === "cancelled" ? "Your membership has already ended. Your profile and documents are still here." : "You do not have a running membership."}
+        action={
+          <ButtonLink href="/status/money" variant="secondary">
+            Back to money
+          </ButtonLink>
+        }
       />
     );
   }
@@ -77,7 +82,7 @@ export default function CancelMembership() {
   if (m.cancelAtPeriodEnd) {
     return (
       <div className={s.page}>
-        <h1 className={s.title}>Your membership ends on {ends}</h1>
+        <h2 className={s.title}>Your membership ends on {ends}</h2>
         <p className={s.body}>
           We sent a confirmation to your email. Until {ends} everything works as usual. Someone from your ILP team may call
           to ask how we could have done better; you do not have to take the call.
@@ -100,8 +105,6 @@ export default function CancelMembership() {
   const reasons = Object.entries(data.reasons ?? {});
   return (
     <div className={s.page}>
-      <h1 className={s.title}>Cancel your membership</h1>
-
       <section className={s.what} aria-labelledby="what-title" data-tour="client-cancel-what">
         <h2 className={s.sub} id="what-title">
           What happens

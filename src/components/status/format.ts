@@ -49,7 +49,7 @@ export function relativeDue(iso?: string | null): string {
 }
 
 export function money(cents: number | null | undefined, currency = "USD"): string {
-  if (cents === null || cents === undefined) return "—";
+  if (cents === null || cents === undefined) return "Not set";
   return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
 }
 

@@ -69,7 +69,7 @@ export default function MonthlyFeedback() {
 
   return (
     <div className={s.page} data-tour="client-feedback-scale">
-      <h1 className={s.title}>{saved !== null ? "Thank you" : "One question"}</h1>
+      <h2 className={s.title}>{saved !== null ? "Thank you" : "One question"}</h2>
       {saved !== null && <p className={s.body}>We saved your answer: {saved} out of 10. Your team reads every answer.</p>}
 
       <ScoreScale

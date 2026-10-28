@@ -80,7 +80,11 @@ export default function MoneyView() {
           Charges and proposals
         </h2>
         {data.charges.length === 0 && others.length === 0 ? (
-          <EmptyState compact title="Nothing here yet" body="Your membership charges and any proposals for legal work appear here." />
+          <EmptyState
+            compact
+            title="No charges or proposals yet"
+            body="Your monthly membership charges appear here once they are made. If your lawyer suggests paid legal work, the proposal appears here for you to accept or decline."
+          />
         ) : (
           <ul className={s.rows}>
             {others.map((q) => (

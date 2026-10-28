@@ -139,9 +139,11 @@ export default function BookingFlow() {
         <strong>{cap.callsAvailable} {cap.callsAvailable === 1 ? "call" : "calls"}</strong> available this month.
       </p>
 
-      <section className={s.step} aria-labelledby="q-title">
+      <section className={s.step} aria-labelledby="q-title" data-tour="client-book-question">
         <h2 className={s.stepTitle} id="q-title">
-          1. What would you like to ask?
+          <span className={s.num} aria-hidden="true">1</span>
+          <span className={s.sr}>Step 1: </span>
+          What would you like to ask?
         </h2>
         <TextArea
           label={<>Your question{matter ? ` about ${matter.title}` : ""}</>}
@@ -166,7 +168,9 @@ export default function BookingFlow() {
 
       <section className={s.step} aria-labelledby="t-title" data-tour="client-book-time">
         <h2 className={s.stepTitle} id="t-title">
-          2. Pick a time <span className={s.tz}>(Costa Rica time)</span>
+          <span className={s.num} aria-hidden="true">2</span>
+          <span className={s.sr}>Step 2: </span>
+          Pick a time <span className={s.tz}>(Costa Rica time)</span>
         </h2>
         {loadError && <ErrorNotice audience="member">{loadError}</ErrorNotice>}
         <Loadable
@@ -251,7 +255,9 @@ export default function BookingFlow() {
 
       <section className={s.step} aria-labelledby="rec-title">
         <h2 className={s.stepTitle} id="rec-title">
-          3. May the call be recorded?
+          <span className={s.num} aria-hidden="true">3</span>
+          <span className={s.sr}>Step 3: </span>
+          May the call be recorded?
         </h2>
         <p className={s.muted}>
           A recording gives your lawyer a transcript, so you get a written summary and next steps sooner. AI drafts the
@@ -284,7 +290,9 @@ export default function BookingFlow() {
 
       <section className={s.summary} aria-labelledby="sum-title">
         <h2 className={s.stepTitle} id="sum-title">
-          4. Confirm
+          <span className={s.num} aria-hidden="true">4</span>
+          <span className={s.sr}>Step 4: </span>
+          Confirm
         </h2>
         <p className={s.uses}>
           This call uses <strong>{len} minutes</strong> and 1 call. Afterwards you will have{" "}
