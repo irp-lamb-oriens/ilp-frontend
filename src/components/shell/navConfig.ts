@@ -1,5 +1,17 @@
 import { createElement } from "react";
 import { IconCard, IconChat, IconHome, IconPerson } from "../status/navIcons";
+import {
+  IconNavBoard,
+  IconNavBriefcase,
+  IconNavCalendar,
+  IconNavChart,
+  IconNavList,
+  IconNavMoney,
+  IconNavPeople,
+  IconNavSliders,
+  IconNavTag,
+  IconNavToday,
+} from "./navIcons";
 import type { Country, MenuLink, NavItem, ShellRole } from "./types";
 
 /**
@@ -15,21 +27,23 @@ export const DEFAULT_NAV: Record<ShellRole, NavItem[]> = {
     { href: "/status/messages", label: "Messages", icon: createElement(IconChat) },
   ],
   lawyer: [
-    { href: "/lawyer", label: "Today", icon: "◷", match: "exact" },
-    { href: "/lawyer/board", label: "Board", icon: "▦" },
-    { href: "/lawyer/clients", label: "Clients", icon: "☰" },
-    { href: "/lawyer/finance", label: "Finance", icon: "$" },
-    { href: "/lawyer/availability", label: "Availability", icon: "◴" },
+    // T7: SVG icons for every portal (no text glyphs).
+    { href: "/lawyer", label: "Today", icon: createElement(IconNavToday), match: "exact" },
+    { href: "/lawyer/board", label: "Board", icon: createElement(IconNavBoard) },
+    { href: "/lawyer/clients", label: "Clients", icon: createElement(IconNavList) },
+    { href: "/lawyer/finance", label: "Finance", icon: createElement(IconNavMoney) },
+    { href: "/lawyer/availability", label: "Availability", icon: createElement(IconNavCalendar) },
   ],
+  // The live staff nav is staffNav() in components/dashboard/staff/StaffSession.tsx (same icons).
   staff: [
-    { href: "/dashboard", label: "Today", icon: "◷", match: "exact" },
-    { href: "/dashboard/members", label: "Members", icon: "☰" },
-    { href: "/dashboard/pipeline", label: "Pipeline", icon: "▦" },
-    { href: "/dashboard/opportunities", label: "Opportunities", icon: "◇" },
-    { href: "/dashboard/lawyers", label: "Lawyers", icon: "§" },
-    { href: "/dashboard/finance", label: "Finance", icon: "$" },
-    { href: "/dashboard/reports", label: "Reports", icon: "▤" },
-    { href: "/dashboard/settings", label: "Settings", icon: "⚙" },
+    { href: "/dashboard", label: "Today", icon: createElement(IconNavToday), match: "exact" },
+    { href: "/dashboard/members", label: "Members", icon: createElement(IconNavPeople) },
+    { href: "/dashboard/pipeline", label: "Pipeline", icon: createElement(IconNavBoard) },
+    { href: "/dashboard/opportunities", label: "Opportunities", icon: createElement(IconNavTag) },
+    { href: "/dashboard/lawyers", label: "Lawyers", icon: createElement(IconNavBriefcase) },
+    { href: "/dashboard/finance", label: "Finance", icon: createElement(IconNavMoney) },
+    { href: "/dashboard/reports", label: "Reports", icon: createElement(IconNavChart) },
+    { href: "/dashboard/settings", label: "Settings", icon: createElement(IconNavSliders) },
   ],
 };
 

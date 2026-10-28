@@ -5,6 +5,17 @@ import { usePathname, useRouter } from "next/navigation";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { RoleShell } from "@/components/shell";
 import type { NavItem } from "@/components/shell";
+import {
+  IconNavBoard,
+  IconNavBriefcase,
+  IconNavChart,
+  IconNavMoney,
+  IconNavPeople,
+  IconNavShield,
+  IconNavSliders,
+  IconNavTag,
+  IconNavToday,
+} from "@/components/shell/navIcons";
 import { ApiError, getRoleToken, staffApi } from "@/lib/api";
 import { Button, Notice, SkeletonRegion, useSkeleton } from "@/components/ui";
 import StaffRouteSkeleton from "./StaffRouteSkeleton";
@@ -35,15 +46,15 @@ const ROLE_TITLE: Record<StaffRole, string> = {
 /** Staff nav. Finance and Settings are admin only (plan W6 deliverable 6). */
 export function staffNav(role: StaffRole): NavItem[] {
   const all: Array<NavItem & { admin?: boolean }> = [
-    { href: "/dashboard", label: "Today", icon: "◷", match: "exact" },
-    { href: "/dashboard/members", label: "Members", icon: "☰" },
-    { href: "/dashboard/pipeline", label: "Pipeline", icon: "▦" },
-    { href: "/dashboard/opportunities", label: "Opportunities", icon: "◇" },
-    { href: "/dashboard/lawyers", label: "Lawyers", icon: "§" },
-    { href: "/dashboard/finance", label: "Finance", icon: "$", admin: true },
-    { href: "/dashboard/reports", label: "Reports", icon: "▤" },
-    { href: "/dashboard/settings", label: "Settings", icon: "⊞", admin: true },
-    { href: "/dashboard/privacy", label: "Privacy", icon: "◎", admin: true },
+    { href: "/dashboard", label: "Today", icon: <IconNavToday />, match: "exact" },
+    { href: "/dashboard/members", label: "Members", icon: <IconNavPeople /> },
+    { href: "/dashboard/pipeline", label: "Pipeline", icon: <IconNavBoard /> },
+    { href: "/dashboard/opportunities", label: "Opportunities", icon: <IconNavTag /> },
+    { href: "/dashboard/lawyers", label: "Lawyers", icon: <IconNavBriefcase /> },
+    { href: "/dashboard/finance", label: "Finance", icon: <IconNavMoney />, admin: true },
+    { href: "/dashboard/reports", label: "Reports", icon: <IconNavChart /> },
+    { href: "/dashboard/settings", label: "Settings", icon: <IconNavSliders />, admin: true },
+    { href: "/dashboard/privacy", label: "Privacy", icon: <IconNavShield />, admin: true },
   ];
   return all.filter((i) => !i.admin || role === "admin").map(({ admin: _admin, ...rest }) => rest);
 }
