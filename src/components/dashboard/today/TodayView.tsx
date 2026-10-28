@@ -9,7 +9,7 @@ import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { dueLabel, pct, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
-import type { AttentionItem, QueueResponse, QueueTask, StaffSummary } from "../staff/types";
+import { isLawyerApplicationTask, type AttentionItem, type QueueResponse, type QueueTask, type StaffSummary } from "../staff/types";
 import { TaskDrawer } from "./TaskDrawer";
 import { QueueSkeleton, RailSkeleton, TodayKpisSkeleton } from "./TodaySkeleton";
 import s from "./today.module.scss";
@@ -142,7 +142,7 @@ export default function TodayView() {
                 <StatTile
                   size="lg"
                   label="Monthly recurring revenue"
-                  value={k ? <CountUp value={k.mrr.cents} formatter={usdFmt} /> : "—"}
+                  value={k ? <CountUp value={k.mrr.cents} formatter={usdFmt} /> : "No data yet"}
                   delta={k && k.mrr.deltaCents24h !== 0 ? `${k.mrr.deltaCents24h > 0 ? "+" : "−"}${usd(Math.abs(k.mrr.deltaCents24h))} since yesterday` : undefined}
                   trend={k ? (k.mrr.deltaCents24h > 0 ? "up" : k.mrr.deltaCents24h < 0 ? "down" : "flat") : "flat"}
                   hint={k ? `${k.mrr.activeMembers} active member${k.mrr.activeMembers === 1 ? "" : "s"} × US$79.99` : undefined}
@@ -151,28 +151,28 @@ export default function TodayView() {
               <StaggerItem index={1}>
                 <StatTile
                   label="Month-3 retention"
-                  value={k && k.retentionM3.pct != null ? <CountUp value={k.retentionM3.pct} formatter={pctFmt} /> : "—"}
+                  value={k && k.retentionM3.pct != null ? <CountUp value={k.retentionM3.pct} formatter={pctFmt} /> : "No data yet"}
                   hint={k ? (k.retentionM3.cohort ? `${k.retentionM3.retained} of ${k.retentionM3.cohort} · target 80%` : "No 90-day cohort yet") : undefined}
                 />
               </StaggerItem>
               <StaggerItem index={2}>
                 <StatTile
                   label="Consultation-ready"
-                  value={k && k.consultationReady.pct != null ? <CountUp value={k.consultationReady.pct} formatter={pctFmt} /> : "—"}
+                  value={k && k.consultationReady.pct != null ? <CountUp value={k.consultationReady.pct} formatter={pctFmt} /> : "No data yet"}
                   hint={k ? `${k.consultationReady.ready} of ${k.consultationReady.active} active members` : undefined}
                 />
               </StaggerItem>
               <StaggerItem index={3}>
                 <StatTile
                   label="Handoffs confirmed in 24 h"
-                  value={k && k.handoffSla.pct != null ? <CountUp value={k.handoffSla.pct} formatter={pctFmt} /> : "—"}
+                  value={k && k.handoffSla.pct != null ? <CountUp value={k.handoffSla.pct} formatter={pctFmt} /> : "No data yet"}
                   hint={k ? `${k.handoffSla.within24h} of ${k.handoffSla.total} · target 100%` : undefined}
                 />
               </StaggerItem>
               <StaggerItem index={4}>
                 <StatTile
                   label="Overdue open tasks"
-                  value={k ? <CountUp value={k.overdueTasks.total} /> : "—"}
+                  value={k ? <CountUp value={k.overdueTasks.total} /> : "No data yet"}
                   upIsGood={false}
                   hint={k ? `${k.overdueTasks.mine} yours` : undefined}
                 />
@@ -243,7 +243,7 @@ export default function TodayView() {
                               )}
                             </span>
                             <span className={s.taskMember}>
-                              {t.memberName ?? t.clientId}
+                              {isLawyerApplicationTask(t) ? "Lawyer application" : (t.memberName ?? t.clientId)}
                               {scope === "all" && t.ownerEmail ? ` · ${t.ownerEmail}` : ""}
                             </span>
                           </span>

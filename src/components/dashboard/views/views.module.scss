@@ -95,3 +95,61 @@
   gap: $space-1;
   max-width: 20rem;
 }
+
+/* T2: lawyer applications drawer */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  align-items: center;
+}
+
+.factList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+
+  > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: $space-1;
+    padding-block: $space-2;
+    border-top: 1px solid $color-hairline;
+
+    @include md {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      gap: $space-3;
+    }
+  }
+
+  dt {
+    color: $color-steel;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-charcoal;
+    overflow-wrap: anywhere;
+  }
+}
+
+.bio {
+  margin: 0;
+  color: $color-charcoal;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.linkButton {
+  @include focus-ring;
+  min-height: $touch-target;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: $color-navy;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

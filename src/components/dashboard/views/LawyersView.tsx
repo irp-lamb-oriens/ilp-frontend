@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { DataTable, EmptyState, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
@@ -10,20 +10,50 @@ import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
 import { useLawyers } from "../staff/useLawyers";
 import { PageHeader, ErrorText } from "../staff/PageHeader";
 import type { LawyerCapacity } from "../staff/types";
+import { LawyerApplications, type LawyerApplication } from "./LawyerApplications";
 import s from "./views.module.scss";
 
-/** Lawyer capacity first, then the existing provider list and assignment queue. */
+/**
+ * Lawyer capacity first, then the existing provider list and assignment
+ * queue, plus Applications (T2): lawyers who applied from /lawyers/apply,
+ * waiting for Approve, Request changes or Decline. /dashboard/lawyers#applications
+ * opens that tab (the review task links there).
+ */
 export default function LawyersView() {
+  const [apps, setApps] = useState<LawyerApplication[] | null>(null);
+  const [appsError, setAppsError] = useState<string | null>(null);
+  const [tab, setTab] = useState("capacity");
+
+  const loadApps = useCallback(() => {
+    setAppsError(null);
+    staffApi
+      .get<{ items: LawyerApplication[] }>("/api/dashboard/providers/applications")
+      .then((r) => setApps(r.items ?? []))
+      .catch((e) => setAppsError(e instanceof Error ? e.message : "Applications could not be loaded."));
+  }, []);
+
+  useEffect(() => {
+    loadApps();
+    if (typeof window !== "undefined" && window.location.hash === "#applications") setTab("applications");
+  }, [loadApps]);
+
+  const waiting = apps?.filter((a) => a.status === "pending_review").length ?? 0;
   const tabs: TabItem[] = [
     { id: "capacity", label: "Capacity", content: () => <Capacity /> },
+    { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications items={apps} error={appsError} onChanged={loadApps} /> },
     { id: "hours", label: "Hours", content: () => <Hours /> },
     { id: "assignment", label: "Assignment", content: () => <AssignmentView /> },
     { id: "directory", label: "Directory", content: () => <ProvidersList /> },
   ];
   return (
     <>
-      <PageHeader title="Lawyers" sub="Who has room for the next member, and who is carrying aging matters." />
-      <Tabs tabs={tabs} label="Lawyer views" />
+      <PageHeader title="Lawyers" sub="Who has room for the next member, who is carrying aging matters, and who has applied to join." />
+      {waiting > 0 && tab !== "applications" && (
+        <Notice tone="info" title={`${waiting} lawyer application${waiting === 1 ? "" : "s"} waiting for review`} actions={<button type="button" className={s.linkButton} onClick={() => setTab("applications")}>Open applications</button>}>
+          Members cannot book these lawyers until someone approves them.
+        </Notice>
+      )}
+      <Tabs tabs={tabs} label="Lawyer views" value={tab} onChange={setTab} />
     </>
   );
 }
@@ -41,7 +71,7 @@ function Capacity() {
 
   const columns: Column<LawyerCapacity>[] = [
     { key: "name", header: "Lawyer", render: (l) => l.name, sortValue: (l) => l.name, width: "wide" },
-    { key: "areas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "—", hideOnMobile: true },
+    { key: "areas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "None set", hideOnMobile: true },
     { key: "open", header: "Open matters", render: (l) => l.openMatters, sortValue: (l) => l.openMatters, align: "end" },
     {
       key: "aging",

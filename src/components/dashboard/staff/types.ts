@@ -59,7 +59,14 @@ export type QueueTask = CsmTask & {
   overdue?: boolean;
   memberName?: string;
   membershipStatus?: Membership["status"] | null;
+  /** T2: set on "Review lawyer application" tasks; clientId then holds the provider id. */
+  subject?: { kind: "lawyer_application"; providerId: string };
 };
+
+/** A "Review lawyer application" task (T2): about a lawyer, not a member. */
+export function isLawyerApplicationTask(t: Pick<QueueTask, "subject"> | null | undefined): boolean {
+  return t?.subject?.kind === "lawyer_application";
+}
 
 export interface QueueResponse {
   owner: string;
