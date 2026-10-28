@@ -25,6 +25,7 @@ import GuardGallery from "./GuardGallery";
 import LoadingGallery from "./LoadingGallery";
 import TutorialsGallery from "./TutorialsGallery";
 import NoticeGallery from "./NoticeGallery";
+import { EmbedGallery, IntroGallery } from "./IntroGallery";
 import { ACTIVITY, MEMBERS, NOW, formatDate, type MemberRow } from "./sampleData";
 import s from "./UiGallery.module.scss";
 
@@ -47,6 +48,8 @@ const SECTIONS = [
   ["shell", "RoleShell"],
   ["login", "PortalLogin"],
   ["tutorials", "Tutorials"],
+  ["intro", "PageIntro"],
+  ["embed", "TutorialEmbed"],
 ] as const;
 
 const MEMBERSHIP_PILL: Record<MemberRow["status"], { label: string; tone: StatusTone }> = {
@@ -447,6 +450,16 @@ export default function UiGallery() {
       <section id="tutorials" className={s.section}>
         <h2 className={s.h2}>Tutorials</h2>
         <TutorialsGallery />
+      </section>
+
+      <section id="intro" className={s.section}>
+        <h2 className={s.h2}>PageIntro</h2>
+        <IntroGallery />
+      </section>
+
+      <section id="embed" className={s.section}>
+        <h2 className={s.h2}>TutorialEmbed</h2>
+        <EmbedGallery />
       </section>
     </div>
   );

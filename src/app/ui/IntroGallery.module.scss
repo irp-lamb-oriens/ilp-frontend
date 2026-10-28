@@ -1,0 +1,46 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.note {
+  margin: 0;
+  max-width: 65ch;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}
+
+.frame {
+  padding: $space-6 $space-4;
+  border: 1px dashed $color-hairline-strong;
+  border-radius: $radius-lg;
+
+  @include md {
+    padding: $space-8;
+  }
+}
+
+.embedGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-6;
+
+  @include lg {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+  }
+}
+
+.embedText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  @include lg {
+    grid-row: span 2;
+  }
+}
