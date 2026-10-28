@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { providerFetch } from "@/lib/provider";
-import { SkeletonRegion, useSkeleton, ErrorNotice } from "@/components/ui";
+import { FilterBar, ListFooter, SkeletonRegion, useSkeleton, ErrorNotice } from "@/components/ui";
 import { DeadlinesSkeleton } from "./LawyerSkeletons";
 import styles from "./DeadlineEditor.module.scss";
 
@@ -83,6 +85,19 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
     load();
   }, [load]);
   const sk = useSkeleton(loading && !payload);
+  // FILTERS: the catalog's deadlines with their saved dates, searched and filtered (category, date set or not).
+  const rows = useMemo(
+    () => (payload ? payload.priorities.map((p) => ({ ...p, date: payload.deadlines[p.id]?.date ?? null })) : null),
+    [payload],
+  );
+  const dl = useSchemaList<LegalPriority & { date: string | null }>({
+    schema: LOCAL_SCHEMAS.lawyerDeadlines,
+    key: `deadlines-${payload?.countryCode ?? ""}`,
+    rows,
+    pageSize: 50,
+    keyOf: (p) => p.id,
+    local: { read: (p, f) => (f.key === "hasDate" ? !!p.date : undefined) },
+  });
 
   async function act(priorityId: string, fn: () => Promise<void>) {
     setBusyId(priorityId);
@@ -128,11 +143,13 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
   }
 
   const byCategory = new Map<string, LegalPriority[]>();
-  for (const p of payload.priorities) byCategory.set(p.category, [...(byCategory.get(p.category) ?? []), p]);
+  for (const p of dl.list.items) byCategory.set(p.category, [...(byCategory.get(p.category) ?? []), p]);
 
   return (
     <div className={styles.wrap}>
       {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
+      {payload.priorities.length > 3 && <FilterBar list={dl} noun="deadlines" searchLabel="Search deadlines" placeholder="Deadline or description" sortOptions="schema" compact />}
+      {dl.list.status === "done" && dl.list.items.length === 0 && <p className={styles.empty}>No deadline matches these filters.</p>}
       {Array.from(byCategory.entries()).map(([category, priorities]) => (
         <section key={category} className={styles.group}>
           <h3 className={styles.groupTitle}>{category}</h3>
@@ -171,6 +188,7 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
           </ul>
         </section>
       ))}
+      <ListFooter list={dl.list} audience="lawyer" auto={false} endLabel={null} />
     </div>
   );
 }

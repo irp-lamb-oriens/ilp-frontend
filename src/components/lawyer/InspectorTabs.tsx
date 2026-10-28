@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AgingBadge, Button, Loadable, StatusPill, TextInput, ErrorNotice } from "@/components/ui";
+import { AgingBadge, Button, FilterBar, ListFooter, Loadable, StatusPill, TextInput, ErrorNotice } from "@/components/ui";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import BriefPanel from "./BriefPanel";
 import MoveToMenu from "./MoveToMenu";
 import NotesTab from "./NotesTab";
 import { BriefPanelSkeleton, InspectorCallsSkeleton, NotesSkeleton } from "./LawyerSkeletons";
-import { areaLabel, errorText, fmtDate, fmtShortDate, lawyerApi, WHO_LABEL, type BoardCard, type ClientBrief } from "./lawyerApi";
+import { areaLabel, errorText, fmtDate, fmtShortDate, lawyerApi, WHO_LABEL, type BoardCard, type CallRow, type ClientBrief } from "./lawyerApi";
 import { SummaryPill } from "./pills";
 import type { LawyerClient } from "./types";
 import s from "./InspectorTabs.module.scss";
@@ -134,21 +136,7 @@ export function NotesCallsTab({ loadBrief, loadClient }: { loadBrief: () => Prom
         ) : brief.data.calls.length === 0 ? (
           <p className={s.muted}>No calls with this member yet.</p>
         ) : (
-          <ul className={s.calls}>
-            {brief.data.calls.map((c) => (
-              <li key={c.id} className={s.call}>
-                <span className={s.callHead}>
-                  <span className={s.strong}>{fmtDate(c.scheduledAt)}</span>
-                  <span className={s.inline}>
-                    {c.status === "no_show" && <StatusPill size="sm" tone="warning" label="No-show" />}
-                    {c.handoffId ? <StatusPill size="sm" tone="success" label="Handed off" /> : <SummaryPill status={c.summaryStatus} />}
-                  </span>
-                </span>
-                {c.question && <span className={s.muted}>Asked: {c.question}</span>}
-                {c.summary && <span>{c.summary}</span>}
-              </li>
-            ))}
-          </ul>
+          <InspectorCalls calls={brief.data.calls} />
         )}
       </section>
       <section aria-labelledby="notes-h">
@@ -162,5 +150,40 @@ export function NotesCallsTab({ loadBrief, loadClient }: { loadBrief: () => Prom
         )}
       </section>
     </div>
+  );
+}
+
+/** Calls with this member: status, date, summary state and search (FILTERS), five at a time. */
+function InspectorCalls({ calls }: { calls: CallRow[] }) {
+  const sl = useSchemaList<CallRow>({
+    schema: LOCAL_SCHEMAS.lawyerCalls,
+    key: "lawyer-inspector-calls",
+    rows: calls,
+    pageSize: 5,
+    defaultSort: { key: "scheduledAt", dir: "desc" },
+    keyOf: (c) => c.id,
+    local: { read: (c, f) => (f.key === "handedOff" ? !!c.handoffId : undefined) },
+  });
+  return (
+    <>
+      {calls.length > 3 && <FilterBar list={sl} noun="calls" searchLabel="Search calls" placeholder="Question or summary" sortOptions="schema" compact />}
+      {sl.list.status === "done" && sl.list.items.length === 0 && <p className={s.muted}>No call matches these filters.</p>}
+      <ul className={s.calls}>
+        {sl.list.items.map((c) => (
+          <li key={c.id} className={s.call}>
+            <span className={s.callHead}>
+              <span className={s.strong}>{fmtDate(c.scheduledAt)}</span>
+              <span className={s.inline}>
+                {c.status === "no_show" && <StatusPill size="sm" tone="warning" label="No-show" />}
+                {c.handoffId ? <StatusPill size="sm" tone="success" label="Handed off" /> : <SummaryPill status={c.summaryStatus} />}
+              </span>
+            </span>
+            {c.question && <span className={s.muted}>Asked: {c.question}</span>}
+            {c.summary && <span>{c.summary}</span>}
+          </li>
+        ))}
+      </ul>
+      <ListFooter list={sl.list} audience="lawyer" auto={false} endLabel={null} loadMoreLabel="Show more calls" />
+    </>
   );
 }

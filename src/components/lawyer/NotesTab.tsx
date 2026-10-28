@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./notesTab.module.scss";
-import { IconClose, IconNote, TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
+import { FilterBar, IconClose, IconNote, ListFooter, TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
 
 interface Collaborator {
   email: string;
@@ -62,7 +64,23 @@ export default function NotesTab({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
 
-  const notes = (client.notes ?? []).slice().reverse();
+  // FILTERS: notes newest first, with a stable id per note, searched and paged in the browser.
+  const notes = useMemo(
+    () => (client.notes ?? []).map((n, i): Record<string, unknown> & { noteKey: string } => ({ ...n, noteKey: String(n.createdAt ?? i) })).reverse(),
+    [client.notes],
+  );
+  const nl = useSchemaList<(typeof notes)[number]>({
+    schema: LOCAL_SCHEMAS.lawyerNotes,
+    key: `lawyer-notes-${client.id}`,
+    rows: notes,
+    pageSize: 10,
+    keyOf: (n) => n.noteKey,
+    local: { read: (n, f) => (f.key === "text" ? aiNoteText(n.text) : f.key === "author" ? String(n.author ?? "") : undefined) },
+  });
+  const authorOptions = useMemo(
+    () => ({ author: [...new Set(notes.map((n) => String(n.author ?? "")).filter(Boolean))].map((a) => ({ value: a, label: a.split("@")[0] })) }),
+    [notes],
+  );
 
   const notifications = (client.pendingActions ?? [])
     .filter(
@@ -308,9 +326,11 @@ export default function NotesTab({
       {error && <ErrorNotice audience="lawyer">{error}</ErrorNotice>}
 
       {notes.length === 0 && <p className={styles.empty}>No notes yet.</p>}
+      {notes.length > 3 && <FilterBar list={nl} noun="notes" searchLabel="Search notes" placeholder="Words in a note" sortOptions="schema" options={authorOptions} compact />}
+      {notes.length > 0 && nl.list.status === "done" && nl.list.items.length === 0 && <p className={styles.empty}>No note matches these filters.</p>}
 
-      {notes.map((n, i) => {
-        const noteId = String(n.createdAt ?? i);
+      {nl.list.items.map((n) => {
+        const noteId = n.noteKey;
         const isEditing = editingId === noteId;
         return (
           <div key={noteId} className={styles.note}>
@@ -382,6 +402,7 @@ export default function NotesTab({
           </div>
         );
       })}
+      <ListFooter list={nl.list} audience="lawyer" auto={false} endLabel={null} loadMoreLabel="Show older notes" />
     </div>
   );
 }

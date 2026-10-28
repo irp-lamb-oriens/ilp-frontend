@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { useStreamedList } from "@/lib/useStreamedList";
-import { DataTable, ListFooter, ListToolbar, Select, SkeletonRegion, Stagger, StaggerItem, StatTile, StatusPill, useSkeleton, type Column, ErrorNotice, EmptyState } from "@/components/ui";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
+import { DataTable, FilterBar, ListFooter, SkeletonRegion, Stagger, StaggerItem, StatTile, StatusPill, useSkeleton, type Column, ErrorNotice, EmptyState } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { fmtDate, money, paymentsSource, type FinanceData, type FinanceMeta, type FinancePayment } from "./lawyerApi";
 import { LawyerFinanceSkeleton } from "./LawyerSkeletons";
+import { useLawyer } from "./LawyerContext";
 import s from "./FinanceView.module.scss";
 
 type MatterRow = FinanceData["byMatter"][number];
@@ -27,22 +30,38 @@ function moneyFmt(cur: string): (v: number) => string {
  * per-matter rollup come with the first page.
  */
 export default function FinanceView() {
-  const list = useStreamedList<FinancePayment>(paymentsSource, {
+  const lawyer = useLawyer();
+  const sl = useSchemaList<FinancePayment>({
+    schema: LIST_SCHEMAS.lawyerFinance,
     key: "lawyer-payments",
+    source: paymentsSource,
     pageSize: 25,
-    sort: { key: "date", dir: "desc" },
+    defaultSort: { key: "date", dir: "desc" },
     keyOf: (p) => p.id,
+    viewer: lawyer.email,
   });
+  const list = sl.list;
   const meta = list.meta as FinanceMeta;
+  // FILTERS: the per-matter rollup comes with the first page; it is searched, sorted and paged here.
+  const byMatterRows = useMemo(() => (list.initialLoading ? null : meta.byMatter ?? []), [list.initialLoading, meta.byMatter]);
+  const ml = useSchemaList<MatterRow>({
+    schema: LOCAL_SCHEMAS.lawyerFeesByMatter,
+    key: "lawyer-fees-by-matter",
+    rows: byMatterRows,
+    pageSize: 10,
+    defaultSort: { key: "pending", dir: "desc" },
+    keyOf: (r) => r.key,
+    viewer: lawyer.email,
+  });
 
   const matterCols = useMemo<Column<MatterRow>[]>(() => {
     const cur = meta.currency || "USD";
     return [
-      { key: "title", header: "Matter", render: (r) => <span className={s.strong}>{r.title}</span>, sortValue: (r) => r.title, width: "wide" },
-      { key: "client", header: "Member", render: (r) => r.clientName, sortValue: (r) => r.clientName, hideOnMobile: true },
-      { key: "paid", header: "Paid", render: (r) => money(r.paid, cur), sortValue: (r) => r.paid, align: "end" },
-      { key: "pending", header: "Pending", render: (r) => money(r.pending, cur), sortValue: (r) => r.pending, align: "end" },
-      { key: "next", header: "Next payout", render: (r) => (r.nextPayoutAt ? fmtDate(r.nextPayoutAt) : "None scheduled"), sortValue: (r) => r.nextPayoutAt ?? "9999", hideOnMobile: true },
+      { key: "title", header: "Matter", render: (r) => <span className={s.strong}>{r.title}</span>, sortable: true, width: "wide" },
+      { key: "clientName", header: "Member", render: (r) => r.clientName, sortable: true, hideOnMobile: true },
+      { key: "paid", header: "Paid", render: (r) => money(r.paid, cur), sortable: true, align: "end" },
+      { key: "pending", header: "Pending", render: (r) => money(r.pending, cur), sortable: true, align: "end" },
+      { key: "nextPayoutAt", header: "Next payout", render: (r) => (r.nextPayoutAt ? fmtDate(r.nextPayoutAt) : "None scheduled"), sortable: true, hideOnMobile: true },
     ];
   }, [meta.currency]);
 
@@ -51,8 +70,9 @@ export default function FinanceView() {
     return [
       { key: "date", header: "Payout date", render: (p) => fmtDate(p.date), sortable: true },
       { key: "work", header: "Work", render: (p) => p.note ?? p.quoteTitle ?? "Legal fee", width: "wide" },
-      { key: "client", header: "Member", render: (p) => p.clientName, hideOnMobile: true },
-      { key: "status", header: "Status", render: (p) => <StatusPill size="sm" tone={p.paid ? "success" : "warning"} label={p.paid ? "Paid" : "Pending"} /> },
+      { key: "clientName", header: "Member", render: (p) => p.clientName, hideOnMobile: true },
+      { key: "matterTitle", header: "Matter", render: (p) => p.matterTitle ?? "General", hideOnMobile: true },
+      { key: "paid", header: "Status", render: (p) => <StatusPill size="sm" tone={p.paid ? "success" : "warning"} label={p.paid ? "Paid" : "Pending"} /> },
       { key: "amount", header: "Your fee", render: (p) => money(p.amount, cur), sortable: true, align: "end" },
     ];
   }, [meta.currency]);
@@ -103,19 +123,23 @@ export default function FinanceView() {
         <>
           <StaggerItem as="section" index={3} aria-labelledby="fin-matters">
             <h2 id="fin-matters" className={s.h}>By matter</h2>
-            <DataTable columns={matterCols} rows={byMatter} rowKey={(r) => r.key} caption="Your fees by matter" defaultSort={{ key: "pending", dir: "desc" }} />
+            {byMatter.length > 5 && <FilterBar list={ml} noun="matters" searchLabel="Search matters" placeholder="Matter or member" views={false} />}
+            <DataTable
+              columns={matterCols}
+              rows={ml.list.items}
+              rowKey={(r) => r.key}
+              caption="Your fees by matter"
+              sort={ml.list.sort}
+              onSortChange={ml.list.setSort}
+              empty="No matter matches these filters."
+            />
+            <ListFooter list={ml.list} audience="lawyer" auto={false} endLabel={null} />
           </StaggerItem>
           <StaggerItem as="section" index={4} aria-labelledby="fin-payouts">
             <h2 id="fin-payouts" className={s.h}>Payouts</h2>
-            <ListToolbar list={list} noun="payouts" searchLabel="Search payouts" placeholder="Member, matter or note">
-              <Select label="Status" value={list.filters.paid ?? ""} onChange={(e) => list.setFilter("paid", e.target.value)}>
-                <option value="">Paid and pending</option>
-                <option value="1">Paid</option>
-                <option value="0">Pending</option>
-              </Select>
-            </ListToolbar>
+            <FilterBar list={sl} noun="payouts" searchLabel="Search payouts" placeholder="Member, matter or note" columns={payCols.map((c) => ({ key: c.key, header: c.header }))} />
             <DataTable
-              columns={payCols}
+              columns={sl.visibleColumns(payCols)}
               rows={list.items}
               rowKey={(p) => p.id}
               caption="Your payouts"

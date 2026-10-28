@@ -1,9 +1,11 @@
 "use client";
 
 import { QUOTE_PHASE_LABEL, quotePhase } from "@/lib/quoteStatus";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { providerFetch } from "@/lib/provider";
-import { Button, EmptyState, Loadable, StatusPill, TextInput, type StatusTone, ErrorNotice } from "@/components/ui";
+import { Button, EmptyState, FilterBar, ListFooter, Loadable, StatusPill, TextInput, type StatusTone, ErrorNotice } from "@/components/ui";
 import { errorText, fmtShortDate, money } from "./lawyerApi";
 import { QUOTE_STATUS_LABELS, type FeeLine, type QuoteStatus } from "./types";
 import { QuotesListSkeleton } from "./LawyerSkeletons";
@@ -60,6 +62,20 @@ const editable = (q: RawQuote) => q.status === "draft" || q.status === "changes_
 export default function FeeQuotesTab({ clientId }: { clientId: string }) {
   const base = `/api/provider/clients/${encodeURIComponent(clientId)}/quotes`;
   const [quotes, setQuotes] = useState<RawQuote[] | null>(null);
+  // FILTERS: status, fee, date and title, newest first, five at a time.
+  const ql = useSchemaList<RawQuote>({
+    schema: LOCAL_SCHEMAS.lawyerQuotes,
+    key: `lawyer-quotes-${clientId}`,
+    rows: quotes,
+    pageSize: 5,
+    defaultSort: { key: "createdAt", dir: "desc" },
+    keyOf: idOf,
+    local: { read: (q, f) => (f.key === "status" ? q.status ?? "draft" : f.key === "fee" ? feeOf(q) : f.key === "title" ? q.title ?? "Quote" : undefined) },
+  });
+  const statusOptions = useMemo(
+    () => ({ status: [...new Set((quotes ?? []).map((q) => q.status ?? "draft"))].map((v) => ({ value: v, label: QUOTE_STATUS_LABELS[v as QuoteStatus] ?? v.replace(/_/g, " ") })) }),
+    [quotes],
+  );
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
@@ -166,9 +182,11 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
         {null}
       </Loadable>
       {quotes && quotes.length === 0 && <EmptyState compact title="No quotes yet" body="Scope paid work here after a call. The ILP team prices and sends it." />}
+      {quotes && quotes.length > 3 && <FilterBar list={ql} noun="quotes" searchLabel="Search quotes" placeholder="Quote title" sortOptions="schema" options={statusOptions} compact />}
+      {quotes && quotes.length > 0 && ql.list.status === "done" && ql.list.items.length === 0 && <p className={s.muted}>No quote matches these filters.</p>}
       {quotes && quotes.length > 0 && (
         <ul className={s.list}>
-          {quotes.map((q) => {
+          {ql.list.items.map((q) => {
             const status = (q.status ?? "draft") as QuoteStatus;
             return (
               <li key={idOf(q)} className={s.quote}>
@@ -191,6 +209,7 @@ export default function FeeQuotesTab({ clientId }: { clientId: string }) {
           })}
         </ul>
       )}
+      {quotes && quotes.length > 0 && <ListFooter list={ql.list} audience="lawyer" auto={false} endLabel={null} loadMoreLabel="Show more quotes" />}
     </div>
   );
 }
