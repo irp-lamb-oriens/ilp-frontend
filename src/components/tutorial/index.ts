@@ -8,6 +8,23 @@ export { TutorialModal } from "./TutorialModal";
 export { TutorialList } from "./TutorialList";
 export { ScenePlayer, SCENE_SIZE } from "./ScenePlayer";
 export { TutorialEmbed } from "./TutorialEmbed";
+export { PlayerControls, StepNav } from "./PlayerControls";
+export type { PlayerControlsProps, StepNavProps } from "./PlayerControls";
+export {
+  playerReducer,
+  initPlayer,
+  actionPosition,
+  canPrev,
+  canNext,
+  shownMode,
+  actionLabel,
+  stepLabel,
+  positionText,
+  stopNames,
+  stopDurations,
+  explainItems,
+} from "./playerState";
+export type { PlayerState, PlayerAction, PlayMode, PauseCause, ExplainItem } from "./playerState";
 export type { TutorialEmbedProps, EmbedAutoplay } from "./TutorialEmbed";
 export { MockScene } from "./mock/MockScene";
 export { TourSpotlight } from "./TourSpotlight";
