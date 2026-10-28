@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import {
   animate,
   motion,
@@ -21,13 +21,25 @@ import {
   useStoryLayout,
   type StoryLayout,
 } from "@/components/motion/Story";
-import { activeBeat, beatParts, trackScrollY } from "@/components/motion/storyMath";
+import {
+  activeBeat,
+  beatExit,
+  beatParts,
+  easeEnter,
+  revealAt,
+  splitPhrases,
+  trackScrollY,
+  zigzagDrift,
+  type BeatRange,
+  type Window,
+} from "@/components/motion/storyMath";
 import { scrollPageTo } from "@/components/SmoothScroll";
 import { cx } from "@/components/ui/cx";
 import { COSTS, COSTS_HEAD, COSTS_VISUALS, COSTS_WRAP } from "./content";
 import {
   COSTS_RANGES,
   COSTS_START_AT,
+  COSTS_ZIGZAG,
   FINES_SHIFT,
   costAnchorId,
   costAnchorProgress,
@@ -42,19 +54,25 @@ import s from "./CostsStory.module.scss";
  *
  * Wide screens with motion allowed (pinned): the track is 320vh tall and its
  * stage sticks to the viewport. The heading, the lead and the progress rail
- * stay top left; the three costs play one after another in the main area.
- * Each beat: the eyebrow rule draws and the label fades in, the title lands,
- * the body brightens phrase by phrase, and a small picture beside it plays
- * its own timeline (dates passing "today", answers that do not line up, a
- * profile that loses a line with each new lawyer). Then the beat lifts out.
+ * stay top left in their own column; the three costs play one after another
+ * in the main column, in a Gutenberg Z (COSTS_ZIGZAG): text top left and
+ * picture bottom right, then text top right and picture bottom left, then
+ * back. Each beat: the eyebrow rule draws and the label fades in, the title
+ * lands, the body appears word by word from opacity 0, and the picture slides
+ * in from its side and plays its own timeline once the title has landed.
+ * Then the beat fades to 0 while each part drifts toward its corner, and only
+ * after a short empty gap does the next beat start. Beats never overlap.
  *
  * Tablets (staged): no pin; each beat is its own block whose levels stagger
- * in when it enters, and its picture plays once. Phones and reduced motion
- * (stacked): blocks fade in once and pictures show their end state.
+ * in when it enters, picture sides alternate, and the picture plays once.
+ * Phones and reduced motion (stacked): blocks fade in once and pictures show
+ * their end state.
  *
  * The rail links (#costs-fines, #costs-doubt, #costs-retelling) scroll to the
  * point where that beat is fully read, in every layout. All text is in the
- * DOM from the first render; the pictures are aria-hidden.
+ * DOM from the first render; the pictures are aria-hidden. Pinned beats are
+ * hidden whenever they are off stage, so the pinned layout keeps a visually
+ * hidden copy of the three beats for assistive tech.
  */
 export function CostsStory() {
   const layout = useStoryLayout();
@@ -90,6 +108,17 @@ export function CostsStory() {
                 ),
               )}
             </div>
+            {pinned && (
+              <div className={s.srOnly}>
+                {COSTS.map((cost) => (
+                  <article key={cost.id}>
+                    <p>{cost.eyebrow}</p>
+                    <h3>{cost.title}</h3>
+                    <p>{cost.body}</p>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -225,22 +254,75 @@ function RailFill({ progress, index }: { progress: MotionValue<number>; index: n
 function PinnedBeat({ index, progress }: { index: number; progress: MotionValue<number> }) {
   const cost = COSTS[index];
   const range = COSTS_RANGES[index];
-  const parts = beatParts(range);
-  const timeline = useTransform(progress, [...parts.timeline], [0, 1]);
+  const slot = COSTS_ZIGZAG[index];
+  const parts = beatParts(range, splitPhrases(cost.body).length);
+  const timeline = useTransform(progress, (v) => revealAt(v, parts.timeline));
   const titleId = `${costAnchorId(index)}-title`;
   return (
-    <Beat progress={progress} range={range} id={costAnchorId(index)} labelledBy={titleId} className={s.beat}>
-      <div className={s.beatText}>
+    <Beat
+      progress={progress}
+      range={range}
+      id={costAnchorId(index)}
+      hidden
+      className={cx(s.beat, slot.text === "end" && s.textEnd)}
+    >
+      <Drift
+        progress={progress}
+        range={range}
+        enter={[range[0], parts.title[1]]}
+        drift={zigzagDrift(slot.text, "top")}
+        className={s.beatText}
+      >
         <Eyebrow scrub={{ progress, window: [parts.rule[0], parts.eyebrow[1]] }}>{cost.eyebrow}</Eyebrow>
         <ScrubItem progress={progress} window={parts.title} level="title" as="h3" id={titleId} className={s.beatTitle}>
           {cost.title}
         </ScrubItem>
         <RevealText text={cost.body} scrub={{ progress, window: parts.body }} className={s.beatBody} />
-      </div>
-      <ScrubItem progress={progress} window={parts.visual} level="visual" className={s.beatVisual}>
+      </Drift>
+      <Drift
+        progress={progress}
+        range={range}
+        enter={parts.visual}
+        drift={zigzagDrift(slot.visual, "bottom")}
+        fade
+        className={s.beatVisual}
+      >
         <Visual index={index} t={timeline} />
-      </ScrubItem>
+      </Drift>
     </Beat>
+  );
+}
+
+/**
+ * One part of a pinned beat on the Z path: slides in from its own side over
+ * `enter` (eased out; with `fade`, also from opacity 0), and drifts toward
+ * its corner over the beat's exit (eased in) while the beat fades to 0.
+ */
+function Drift({
+  progress,
+  range,
+  enter,
+  drift,
+  fade = false,
+  className,
+  children,
+}: {
+  progress: MotionValue<number>;
+  range: BeatRange;
+  enter: Window;
+  drift: ReturnType<typeof zigzagDrift>;
+  fade?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const inT = useTransform(progress, (v) => easeEnter(revealAt(v, enter)));
+  const outT = useTransform(progress, (v) => beatExit(v, range));
+  const x = useTransform([inT, outT], ([i, o]: number[]) => (1 - i) * drift.enter.x + o * drift.exit.x);
+  const y = useTransform([inT, outT], ([i, o]: number[]) => (1 - i) * drift.enter.y + o * drift.exit.y);
+  return (
+    <motion.div className={className} style={fade ? { opacity: inT, x, y } : { x, y }}>
+      {children}
+    </motion.div>
   );
 }
 
@@ -251,7 +333,7 @@ function StagedBeat({ index, layout }: { index: number; layout: StoryLayout }) {
     <Stage
       as="article"
       id={costAnchorId(index)}
-      className={cx(s.beat, index % 2 === 1 && s.beatFlip)}
+      className={cx(s.beat, COSTS_ZIGZAG[index].text === "end" && s.beatFlip)}
       tone={layout === "stacked" ? "fade" : "rise"}
       amount={0.35}
     >

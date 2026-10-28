@@ -187,12 +187,50 @@ $nav: 64px;
     align-items: center;
   }
 
+  // Pinned: every beat sits in the same cell of the main column, on a
+  // 12-column grid with a text row and a picture row (the Z below).
   @include pinned {
     grid-area: 1 / 1;
-    grid-template-columns: minmax(0, 1fr);
-    gap: $space-8;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 0;
+    row-gap: $space-6;
     align-items: start;
   }
+}
+
+/* Pinned Gutenberg Z (COSTS_ZIGZAG in costsBeats.ts): text top left with the
+ * picture bottom right, then text top right with the picture bottom left.
+ * The two overlap by a third of the column, so the eye moves on a diagonal.
+ * Everything stays in the main column, clear of the heading, lead and rail. */
+.beat > .beatText {
+  @include pinned {
+    grid-column: 1 / span 8;
+    grid-row: 1;
+  }
+}
+
+.beat > .beatVisual {
+  @include pinned {
+    grid-column: 5 / -1;
+    grid-row: 2;
+  }
+}
+
+.textEnd > .beatText {
+  @include pinned {
+    grid-column: 5 / -1;
+  }
+}
+
+.textEnd > .beatVisual {
+  @include pinned {
+    grid-column: 1 / span 8;
+  }
+}
+
+/* Pinned: the three beats for assistive tech (the visible ones are hidden off stage). */
+.srOnly {
+  @include visually-hidden;
 }
 
 /* Tablets: alternate the picture side from beat to beat. */

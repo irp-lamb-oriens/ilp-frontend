@@ -2,7 +2,7 @@
  * Layout constants and link targets for "What a missed date can cost you"
  * (CostsStory.tsx). Plain math, so tests/homepage.test.mjs can check it.
  */
-import { beatAnchorProgress, beatRanges, type BeatRange } from "@/components/motion/storyMath";
+import { beatAnchorProgress, beatRanges, zigzag, type BeatRange, type ZigzagSlot } from "@/components/motion/storyMath";
 import { COSTS, COSTS_HEAD } from "./content";
 
 /** Height of the pinned track on wide screens. Kept in step with $costs-track-vh in CostsStory.module.scss. */
@@ -11,8 +11,18 @@ export const COSTS_TRACK_VH = 320;
 /** Progress 0 when the track's top is 35% down the viewport, so the first beat plays in as the stage pins. */
 export const COSTS_START_AT = 0.35;
 
-/** Enter, hold and exit windows of the three beats; the last one holds to the end. */
+/**
+ * Enter, hold and exit windows of the three beats, with an empty gap between
+ * one beat's exit and the next one's enter; the last one holds to the end.
+ */
 export const COSTS_RANGES: BeatRange[] = beatRanges(COSTS.length);
+
+/**
+ * Gutenberg Z per beat: Fines text top left with its picture bottom right,
+ * Doubt text top right with its picture bottom left, Retelling as Fines.
+ * Tablets use the same sides for their alternating rows.
+ */
+export const COSTS_ZIGZAG: ZigzagSlot[] = zigzag(COSTS.length);
 
 /** Fragment id of beat i (0-based): "costs-fines", "costs-doubt", "costs-retelling". */
 export const costAnchorId = (i: number) => `${COSTS_HEAD.anchor}-${COSTS[i].id}`;
