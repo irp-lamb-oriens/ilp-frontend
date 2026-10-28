@@ -1,0 +1,58 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Scroll story primitives (Story.tsx). Motion only on transform and opacity.
+
+.eyebrow {
+  @include story-eyebrow;
+}
+
+/* Short accent rule before the label; draws in with scaleX. */
+.rule {
+  display: inline-block;
+  flex: none;
+  width: 2rem;
+  height: 2px;
+  border-radius: 1px;
+  background: $color-accent;
+  transform-origin: left center;
+}
+
+.eyebrowLabel {
+  display: inline-block;
+}
+
+.body {
+  @include story-body;
+}
+
+/* The one key phrase of a section. */
+.mark {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  font-weight: 600;
+  color: $color-navy;
+
+  @include below-md {
+    display: inline;
+    white-space: normal;
+    text-decoration: underline 2px $color-accent;
+    text-underline-offset: 0.2em;
+  }
+}
+
+.markLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.1em;
+  height: 2px;
+  border-radius: 1px;
+  background: $color-accent;
+  transform-origin: left center;
+
+  @include below-md {
+    display: none;
+  }
+}
