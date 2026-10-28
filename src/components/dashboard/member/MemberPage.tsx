@@ -18,6 +18,7 @@ import { TaskDrawer } from "../today/TaskDrawer";
 import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
 import { MemberOpportunities } from "../opportunities/MemberOpportunities";
 import { CallsPanel } from "./CallsPanel";
+import { MemberDeadlines } from "./MemberDeadlines";
 import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
 import { JoinAnswers } from "./JoinAnswers";
@@ -167,6 +168,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
           actions={
             <>
               {bundle.client?.placeholder === true && <StatusPill label="Placeholder" tone="warning" />}
+              {bundle.client?.accountType === "free" && <StatusPill label="Free account" tone="info" />}
               <ButtonLink href="/dashboard/members" variant="secondary">
                 All members
               </ButtonLink>
@@ -285,6 +287,9 @@ export default function MemberPage({ clientId }: { clientId: string }) {
           </StaggerItem>
           <StaggerItem index={3}>
             <CallsPanel calls={bundle.consultations} lawyerName={nameOf} onChanged={load} />
+          </StaggerItem>
+          <StaggerItem index={4}>
+            <MemberDeadlines obligations={bundle.obligations} onChanged={load} />
           </StaggerItem>
           <StaggerItem index={4}>
             <MemberOpportunities bundle={bundle} />
