@@ -10,7 +10,7 @@ import "@/styles/global.scss";
 export const metadata: Metadata = {
   title: "International Legal Partner",
   description:
-    "Trusted legal support for your life abroad. Clear, calm guidance for living, investing, and doing business in Costa Rica, Panama, and Mexico.",
+    "A legal membership for North Americans in Costa Rica: calls with a lawyer licensed in Costa Rica, a living legal profile, follow-up from your customer success manager, and a free deadline check. Panama and Mexico are planned next.",
   icons: {
     icon: "/logo.png",
   },
