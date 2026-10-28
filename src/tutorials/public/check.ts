@@ -24,8 +24,8 @@ const question = stack(
     hidden(
       stack(
         [
-          text("Do you have a Costa Rican corporation?", "h2"),
-          meta("Many people hold a house or car through one, even if it does no business."),
+          text("Do you have a Costa Rican company?", "h2"),
+          meta("Many people hold a house or a car through an S.A. or an S.R.L."),
           stack(
             [btn("Yes, a sociedad anónima (S.A.)", "secondary", "corp_sa"), btn("Yes, a limitada (S.R.L.)", "secondary", "corp_srl"), btn("No", "secondary", "corp_no")],
             2,

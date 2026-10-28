@@ -5,12 +5,14 @@ import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import FunnelHeader from "./FunnelHeader";
-import { Notice, Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
+import { Notice, PageIntro, Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
+import { TutorialEmbed } from "@/components/tutorial";
 import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
 import {
   type CheckAnswers,
   type CheckFinding,
   EMAIL_RE,
+  PRICE,
   longDate,
   runCheck,
   saveCheck,
@@ -22,6 +24,9 @@ type ChoiceStep = {
   id: string;
   kind: "choice";
   question: string;
+  /** One line: why we ask this question. */
+  why: string;
+  /** A plain hint: what counts, where to find it. */
   help?: string;
   options: Option<string | boolean>[];
   apply: (a: CheckAnswers, v: string | boolean) => CheckAnswers;
@@ -32,7 +37,9 @@ type DateStep = {
   id: string;
   kind: "date";
   question: string;
+  why: string;
   help?: string;
+  label: string;
   field: "residencyExpiresAt" | "lastEntryDate";
   show: (a: CheckAnswers) => boolean;
 };
@@ -45,12 +52,14 @@ const YES_NO: Option<boolean>[] = [
 
 const PROVINCES = ["Guanacaste", "San José", "Alajuela", "Heredia", "Cartago", "Puntarenas", "Limón"];
 
+// Every question feeds a rule in the country catalog (server CHECK_RULES).
 const STEPS: Step[] = [
   {
     id: "country",
     kind: "choice",
-    question: "Where do you live or own things abroad?",
-    help: "The free check covers Costa Rica today. Panama and Mexico come next.",
+    question: "Which country is this about?",
+    why: "Each country has its own legal dates, so we start here.",
+    help: "The free check covers Costa Rica today. Panama and Mexico are planned after Costa Rica.",
     options: [{ value: "CR", label: "Costa Rica" }],
     apply: (a) => ({ ...a, country: "CR" }),
     selected: (a) => a.country,
@@ -59,10 +68,11 @@ const STEPS: Step[] = [
     id: "residency",
     kind: "choice",
     question: "What is your residency status in Costa Rica?",
+    why: "Residents have a card to renew and monthly Caja payments. Visitors have a limit on how long they can stay.",
     options: [
-      { value: "resident", label: "I am a resident", hint: "I have a DIMEX card" },
-      { value: "applying", label: "My application is in progress" },
-      { value: "visitor", label: "I visit as a tourist" },
+      { value: "resident", label: "I am a resident", hint: "I have a DIMEX card." },
+      { value: "applying", label: "My application is in progress", hint: "I applied and I am waiting for an answer." },
+      { value: "visitor", label: "I visit as a tourist", hint: "I enter with my passport and no residency." },
       { value: "unsure", label: "I am not sure" },
     ],
     apply: (a, v) => {
@@ -77,7 +87,9 @@ const STEPS: Step[] = [
     id: "residencyDate",
     kind: "date",
     field: "residencyExpiresAt",
+    label: "Expiry date",
     question: "When does your DIMEX card expire?",
+    why: "Renewals are usually filed in the three months before the card expires, so we date that window from it.",
     help: "It is printed on the front of the card. Skip this if you do not have it at hand.",
     show: (a) => a.residencyStatus === "resident",
   },
@@ -85,7 +97,9 @@ const STEPS: Step[] = [
     id: "entryDate",
     kind: "date",
     field: "lastEntryDate",
+    label: "Entry date",
     question: "When did you last enter Costa Rica?",
+    why: "A tourist stay is counted from the day you enter, up to 180 days.",
     help: "The date on your most recent entry stamp. Skip this if you are not sure.",
     show: (a) => a.residencyStatus === "visitor",
   },
@@ -93,6 +107,7 @@ const STEPS: Step[] = [
     id: "property",
     kind: "choice",
     question: "Do you own property in Costa Rica?",
+    why: "Property owners pay a yearly municipal tax, usually in quarterly installments.",
     help: "A house, condo or land, in your own name or through a company.",
     options: YES_NO,
     apply: (a, v) => {
@@ -106,6 +121,8 @@ const STEPS: Step[] = [
     id: "propertyLocation",
     kind: "choice",
     question: "Which province is it in?",
+    why: "The tax is paid to the local municipality, and your lawyer will want to know which one.",
+    help: "If you own more than one, choose the main one.",
     options: PROVINCES.map((p) => ({ value: p, label: p })),
     apply: (a, v) => ({ ...a, propertyLocation: v as string }),
     selected: (a) => a.propertyLocation,
@@ -114,8 +131,9 @@ const STEPS: Step[] = [
   {
     id: "company",
     kind: "choice",
-    question: "Do you have a Costa Rican corporation?",
-    help: "Many people hold a house or car through one, even if it does no business.",
+    question: "Do you have a Costa Rican company?",
+    why: "Companies have a yearly tax and a yearly ownership declaration, even when they do no business.",
+    help: "Many people hold a house or a car through an S.A. or an S.R.L.",
     options: [
       { value: "SA", label: "Yes, a sociedad anónima (S.A.)" },
       { value: "SRL", label: "Yes, a limitada (S.R.L.)" },
@@ -129,6 +147,8 @@ const STEPS: Step[] = [
     id: "vehicle",
     kind: "choice",
     question: "Do you own a car or motorcycle registered in Costa Rica?",
+    why: "Every vehicle needs a yearly circulation permit, the marchamo, paid by December 31.",
+    help: "Count a vehicle in your own name or in your company's name.",
     options: YES_NO,
     apply: (a, v) => ({ ...a, ownsVehicle: v as boolean }),
     selected: (a) => a.ownsVehicle,
@@ -137,7 +157,8 @@ const STEPS: Step[] = [
     id: "employees",
     kind: "choice",
     question: "Does anyone work for you in Costa Rica?",
-    help: "Including a housekeeper, gardener, caretaker or driver.",
+    why: "Employers, including households, usually pay monthly Caja contributions and a year-end bonus.",
+    help: "Including a housekeeper, gardener, caretaker or driver, even part time.",
     options: YES_NO,
     apply: (a, v) => ({ ...a, hasEmployees: v as boolean }),
     selected: (a) => a.hasEmployees,
@@ -186,6 +207,13 @@ export default function CheckPage() {
 
   // Move focus to the new question so screen readers and keyboards follow along.
   useEffect(() => {
+    if (done) {
+      // The results title lives inside PageIntro: make it focusable, then focus it.
+      const h = document.querySelector<HTMLElement>("#check-results h1");
+      h?.setAttribute("tabindex", "-1");
+      h?.focus();
+      return;
+    }
     headingRef.current?.focus();
   }, [index, done]);
 
@@ -262,92 +290,112 @@ export default function CheckPage() {
 
   if (done) {
     const groups = groupFindings(findings);
+    const n = findings.length;
     return (
       <div className={s.page}>
         <FunnelHeader note="Free, no account needed" />
         <main className={s.main}>
-          <motion.section {...motionProps} aria-labelledby="results-title">
-            <h1 id="results-title" className={s.title} ref={headingRef} tabIndex={-1}>
-              {findings.length
-                ? `${findings.length} ${findings.length === 1 ? "date" : "dates"} that may apply to you`
-                : "Nothing dated came up from your answers"}
-            </h1>
-            {findings.length ? (
-              <Notice
-                tone="neutral"
-                className={s.disclaimer}
-                headingLevel={2}
-                title="These dates may require review"
-                fix={{
-                  steps: [
-                    "These are general dates based on your answers. They are not legal advice.",
-                    "Some may not apply to you, or may have a different date in your case.",
-                    "A lawyer can confirm which ones apply. ILP members get that on a call.",
-                    "Nothing is due from you on this page.",
-                  ],
-                }}
-              >
-                {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
-              </Notice>
-            ) : (
-              <p className={s.help}>
-                That is good news. Rules and dates change, so it is worth checking again once a year or when something changes.
-              </p>
-            )}
+          <motion.section {...motionProps} aria-label="Your results" id="check-results">
+            <PageIntro
+              className={s.resultsIntro}
+              title={n ? `${n} ${n === 1 ? "date" : "dates"} that may apply to you` : "Nothing dated came up from your answers"}
+              what={
+                n
+                  ? "A list of general dates in Costa Rica that may apply to you, based on your answers. Each one may require review by a lawyer. It is not legal advice."
+                  : "None of the yearly dates in the check matched your answers. Rules and dates change, so it is worth checking again once a year or when something changes."
+              }
+              how={[
+                n ? "Read each date and what it usually means." : "Check your answers if something looks wrong.",
+                "Email the list to yourself, or join ILP.",
+                "As a member, a lawyer licensed in Costa Rica goes through them with you on a call, and your team reminds you before each date.",
+              ]}
+              labels={{ how: "What happens next" }}
+              why="A missed date can bring late fees, interest or a lapsed status. Knowing the dates early gives you time to act."
+            />
 
             {groups.map(([area, items]) => (
-              <section key={area} className={s.group} aria-label={AREA_LABELS[area] ?? area}>
-                <h2 className={s.groupTitle}>{AREA_LABELS[area] ?? area}</h2>
+              <section key={area} className={s.group} aria-labelledby={`area-${area}`}>
+                <h2 className={s.groupTitle} id={`area-${area}`}>{AREA_LABELS[area] ?? area}</h2>
                 <ul className={s.findings}>
                   {items.map((f) => (
                     <li key={f.ruleId} className={s.finding}>
                       <span className={s.findingDate}>{longDate(f.dueAt)}</span>
                       <h3 className={s.findingTitle}>{f.title}</h3>
-                      <p className={s.findingMeaning}>{f.meaning}</p>
+                      <p className={s.findingMeaning}>
+                        <span className={s.meaningLabel}>What this usually means:</span> {f.meaning}
+                      </p>
                     </li>
                   ))}
                 </ul>
               </section>
             ))}
 
-            <div className={s.cta}>
-              <p className={s.ctaText}>
-                An ILP lawyer can go through these with you on a call, and your team follows up on each date.
-              </p>
-              <Link
-                href={leadId ? "/join?from=check" : "/join"}
-                className={`${s.primary} ${s.primaryWide}`}
-              >
-                Have a lawyer review this — join ILP
-              </Link>
+            <Notice
+              tone="neutral"
+              className={s.disclaimer}
+              headingLevel={2}
+              title={n ? "These dates may require review" : "General information only"}
+              fix={{
+                steps: [
+                  "These are general dates based on your answers. They are not legal advice.",
+                  "Some may not apply to you, or may have a different date in your case.",
+                  "A lawyer can confirm which ones apply. ILP members get that on a call.",
+                  "Nothing is due from you on this page.",
+                ],
+              }}
+            >
+              {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
+            </Notice>
+
+            <h2 className={s.choiceTitle}>What would you like to do?</h2>
+            <div className={s.choices}>
+              <div className={s.cta}>
+                <h3 className={s.choiceHead}>Have a lawyer review this</h3>
+                <p className={s.ctaText}>
+                  Join ILP for {PRICE.monthly} a month plus a {PRICE.activation} activation fee. A lawyer licensed in Costa Rica goes
+                  through these dates with you on a call, and your team follows up on each one. Your answers are filled in for you.
+                </p>
+                <Link href={leadId ? "/join?from=check" : "/join"} className={`${s.primary} ${s.primaryWide}`}>
+                  Join ILP
+                </Link>
+              </div>
+
+              <div className={s.emailBox}>
+                <h3>Save these results by email</h3>
+                {emailState === "saved" ? (
+                  <Notice tone="success" variant="inline" title={`Saved. We sent the list to ${email.trim().toLowerCase()}.`} />
+                ) : (
+                  <form onSubmit={saveEmail} noValidate>
+                    <p>We email you this list so you have the dates at hand. You do not need an account.</p>
+                    <div className={s.field}>
+                      <label htmlFor="check-email">Email</label>
+                      <input
+                        id="check-email"
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        aria-invalid={!!emailError}
+                        aria-describedby={emailError ? "check-email-error" : undefined}
+                      />
+                      {emailError && <span id="check-email-error" className={s.error}>{emailError}</span>}
+                    </div>
+                    <button type="submit" className={s.ghost} disabled={emailState === "saving"}>
+                      {emailState === "saving" ? "Saving…" : "Email me the list"}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
 
-            <div className={s.emailBox}>
-              <h2>Keep these dates</h2>
-              {emailState === "saved" ? (
-                <Notice tone="success" variant="inline" title={`Saved. We sent the list to ${email.trim().toLowerCase()}.`} />
-              ) : (
-                <form onSubmit={saveEmail} noValidate>
-                  <p>We will email you this list. No account and no spam.</p>
-                  <div className={s.field}>
-                    <label htmlFor="check-email">Email</label>
-                    <input
-                      id="check-email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      aria-invalid={!!emailError}
-                      aria-describedby={emailError ? "check-email-error" : undefined}
-                    />
-                    {emailError && <span id="check-email-error" className={s.error}>{emailError}</span>}
-                  </div>
-                  <button type="submit" className={s.ghost} disabled={emailState === "saving"}>
-                    {emailState === "saving" ? "Saving…" : "Email me the list"}
-                  </button>
-                </form>
-              )}
+            <div className={s.demo}>
+              <TutorialEmbed
+                tutorialId="public.call"
+                autoplay="off"
+                headingLevel={3}
+                caption="What a call with an ILP lawyer looks like, from booking to the next steps your team follows up."
+              />
             </div>
 
             <div className={s.actions}>
@@ -363,13 +411,8 @@ export default function CheckPage() {
                 Change my answers
               </button>
             </div>
-            {findings.length === 0 && (
-              <p className={s.fine}>
-                {CHECK_DISCLAIMER} <Link href="/legal/disclaimer">Read the disclaimer</Link>
-              </p>
-            )}
             <p className={s.fine}>
-              ILP is a membership service that connects you with vetted, independent Costa Rica lawyers.
+              ILP is a membership service that connects you with vetted, independent lawyers licensed in Costa Rica.
             </p>
           </motion.section>
         </main>
@@ -395,6 +438,9 @@ export default function CheckPage() {
           <h1 id={`q-${step.id}`} className={s.question} ref={headingRef} tabIndex={-1}>
             {step.question}
           </h1>
+          <p className={s.why}>
+            <span className={s.whyLabel}>Why we ask:</span> {step.why}
+          </p>
           {step.help && <p className={s.help}>{step.help}</p>}
 
           {error && <p className={s.error} role="alert">{error}</p>}
@@ -427,7 +473,7 @@ export default function CheckPage() {
               }}
             >
               <div className={s.field}>
-                <label htmlFor={`d-${step.id}`}>Date</label>
+                <label htmlFor={`d-${step.id}`}>{step.label}</label>
                 <input
                   id={`d-${step.id}`}
                   type="date"
