@@ -18,8 +18,8 @@ import {
   timeToMinutes,
   useSkeleton,
   validateWindows,
+  IconArrowLeft,
 } from "@/components/ui";
-import { IconChevronDown } from "@/components/ui/icons";
 import { AREA_LABEL, errorText } from "./lawyerApi";
 import { callsApi, type AvailabilitySettings, type WeeklyWindow } from "./callsApi";
 import { LawyerAvailabilitySkeleton } from "./LawyerSkeletons";
@@ -152,7 +152,7 @@ export default function AvailabilityView({
   if (showSkeleton || !data || !draft) {
     return (
       <SkeletonRegion label="Loading your hours" visible={skeletonVisible}>
-        <LawyerAvailabilitySkeleton />
+        <LawyerAvailabilitySkeleton withIntro={Boolean(intro)} />
       </SkeletonRegion>
     );
   }
@@ -194,7 +194,7 @@ export default function AvailabilityView({
       {showBack && (
         <nav aria-label="Breadcrumb">
           <Link href="/lawyer" className={s.back}>
-            <IconChevronDown className={s.backIcon} /> Back to Today
+            <IconArrowLeft /> Back to Today
           </Link>
         </nav>
       )}

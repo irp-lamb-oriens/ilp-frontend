@@ -102,7 +102,25 @@ export {
   weeklySlotTotal,
 } from "./timeUtils";
 export type { DayWindow } from "./timeUtils";
-export { IconCalendar, IconCheck, IconClock, IconClose, IconCopy, IconMinus, IconPlus } from "./icons";
+export {
+  IconArrowLeft,
+  IconArrowRight,
+  IconCalendar,
+  IconCheck,
+  IconChevronDown,
+  IconChevronRight,
+  IconClock,
+  IconClose,
+  IconCopy,
+  IconDanger,
+  IconInfo,
+  IconMessage,
+  IconMinus,
+  IconNote,
+  IconPlus,
+  IconSuccess,
+  IconWarning,
+} from "./icons";
 
 // Notices (NOTICES.md): every prerequisite, warning, disclaimer and banner.
 export { Notice, resetNoticeDismissals } from "./Notice";
@@ -111,5 +129,5 @@ export { ErrorNotice, errorFix } from "./ErrorNotice";
 export type { ErrorNoticeProps, NoticeAudience } from "./ErrorNotice";
 
 // Page intro (copy-rules.md "Page intro pattern"): what, how, why, in either order.
-export { PageIntro, useIntroCollapsed, INTRO_STORAGE_KEY } from "./PageIntro";
-export type { PageIntroProps, PageIntroOrder, PageIntroPart, PageIntroLabels } from "./PageIntro";
+export { PageIntro, PageIntroSkeleton, useIntroCollapsed, INTRO_STORAGE_KEY } from "./PageIntro";
+export type { PageIntroProps, PageIntroOrder, PageIntroPart, PageIntroLabels, PageIntroAudience } from "./PageIntro";

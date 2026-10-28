@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useState } from "react";
-import { PageIntro, type PageIntroProps } from "@/components/ui";
+import { PageIntro, PageIntroSkeleton, type PageIntroProps } from "@/components/ui";
 import s from "./MemberIntro.module.scss";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -36,6 +36,7 @@ export default function MemberIntro({ screen, collapseOnPhone = false, defaultCo
   return (
     <div className={s.wrap}>
       <PageIntro
+        audience="member"
         {...rest}
         compact
         order="what-how-why"
@@ -43,6 +44,15 @@ export default function MemberIntro({ screen, collapseOnPhone = false, defaultCo
         defaultCollapsed={defaultCollapsed || (collapseOnPhone && phone)}
         className={s.intro}
       />
+    </div>
+  );
+}
+
+/** Loading placeholder for a member screen intro (same frame and remembered Hide / Show). */
+export function MemberIntroSkeleton({ screen }: { screen: string }) {
+  return (
+    <div className={s.wrap}>
+      <PageIntroSkeleton storageKey={`status:${screen}`} className={s.intro} />
     </div>
   );
 }

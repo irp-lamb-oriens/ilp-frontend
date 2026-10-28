@@ -16,16 +16,27 @@
  *
  * `tutorialId` adds a "Watch how it works" button that opens that tutorial in
  * the tutorial modal (hidden when no TutorialProvider is mounted).
+ *
+ * `terms` adds a "Words on this screen" disclosure under the parts with the
+ * glossary meaning of each word, loaded the first time it opens.
+ *
+ * `audience` picks the default part headings: "staff" uses "What this screen
+ * is", "What you do here", "Why it matters"; everyone else reads "What this
+ * is", "What happens", "Why it matters to you". `labels` still wins.
  */
 import { useEffect, useId, useLayoutEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useTutorialOptional } from "../tutorial/context";
 import { cx } from "./cx";
 import { Stagger, StaggerItem } from "./Stagger";
+import { Skeleton } from "./Skeleton";
+import { SkeletonText } from "./SkeletonLayouts";
+import type { GlossaryEntry, TermKey } from "../../tutorials/glossary";
 import s from "./PageIntro.module.scss";
 
 export type PageIntroOrder = "why-how-what" | "what-how-why";
 export type PageIntroPart = "what" | "how" | "why";
+export type PageIntroAudience = "public" | "member" | "lawyer" | "staff";
 
 export interface PageIntroLabels {
   what?: string;
@@ -45,8 +56,12 @@ export interface PageIntroProps {
   why: ReactNode;
   /** "why-how-what" for marketing heroes, "what-how-why" (default) for working screens. */
   order?: PageIntroOrder;
-  /** Part headings. Defaults: "What this is", "What happens", "Why it matters to you". */
+  /** Part headings. Defaults come from `audience`; any label given here wins. */
   labels?: PageIntroLabels;
+  /** Who reads the intro; sets the default part headings. Default "public". */
+  audience?: PageIntroAudience;
+  /** Glossary words used on the screen, shown under "Words on this screen". */
+  terms?: TermKey[];
   /** Hide the part headings visually (screen readers still hear them). */
   hideLabels?: boolean;
   /** Buttons or links under the parts. One primary action at most. */
@@ -79,6 +94,13 @@ const DEFAULT_LABELS: Required<PageIntroLabels> = {
   why: "Why it matters to you",
 };
 
+const AUDIENCE_LABELS: Record<PageIntroAudience, Required<PageIntroLabels>> = {
+  public: DEFAULT_LABELS,
+  member: DEFAULT_LABELS,
+  lawyer: DEFAULT_LABELS,
+  staff: { what: "What this screen is", how: "What you do here", why: "Why it matters" },
+};
+
 const ORDERS: Record<PageIntroOrder, PageIntroPart[]> = {
   "why-how-what": ["why", "how", "what"],
   "what-how-why": ["what", "how", "why"],
@@ -96,11 +118,12 @@ function readCollapsed(): Record<string, boolean> {
   }
 }
 
+// Both choices are stored: an intro that starts collapsed (defaultCollapsed)
+// has to remember being opened, or it collapses again on the next visit.
 function writeCollapsed(key: string, collapsed: boolean) {
   try {
     const all = readCollapsed();
-    if (collapsed) all[key] = true;
-    else delete all[key];
+    all[key] = collapsed;
     window.localStorage.setItem(INTRO_STORAGE_KEY, JSON.stringify(all));
   } catch {
     // storage blocked: the toggle still works for this visit
@@ -130,6 +153,8 @@ export function PageIntro({
   why,
   order = "what-how-why",
   labels,
+  audience = "public",
+  terms,
   hideLabels = false,
   actions,
   illustration,
@@ -149,7 +174,7 @@ export function PageIntro({
   const titleId = `${uid}-title`;
   const bodyId = `${uid}-body`;
   const [collapsed, setCollapsed] = useIntroCollapsed(storageKey ?? (pathname || "page"), compact, defaultCollapsed);
-  const L = { ...DEFAULT_LABELS, ...labels };
+  const L = { ...AUDIENCE_LABELS[audience], ...labels };
   const H = headingLevel === 2 ? "h2" : "h1";
   const P = headingLevel === 2 ? "h3" : "h2";
 
@@ -239,6 +264,7 @@ export function PageIntro({
                 {watch}
               </StaggerItem>
             )}
+            {terms && terms.length > 0 && <IntroTerms terms={terms} />}
           </div>
         </div>
         {illustration && !collapsed && (
@@ -248,6 +274,85 @@ export function PageIntro({
         )}
       </section>
     </Stagger>
+  );
+}
+
+/**
+ * Loading placeholder for a compact intro, in the same frame, so a page does
+ * not shift down when it loads. It reads the stored Hide / Show choice for
+ * the same key, so a collapsed intro loads as a single title row.
+ */
+export function PageIntroSkeleton({
+  storageKey,
+  defaultCollapsed = false,
+  className,
+}: {
+  /** Same key as the PageIntro it stands for. Default: the current path. */
+  storageKey?: string;
+  defaultCollapsed?: boolean;
+  className?: string;
+}) {
+  const pathname = usePathname() ?? "";
+  const [collapsed] = useIntroCollapsed(storageKey ?? (pathname || "page"), true, defaultCollapsed);
+  return (
+    <div aria-hidden="true" className={cx(s.intro, s.compact, collapsed && s.collapsed, className)}>
+      <div className={s.main}>
+        <div className={s.head}>
+          <div className={s.headText}>
+            <Skeleton shape="line" size="lg" width="40" />
+          </div>
+          <Skeleton shape="block" size="sm" width="pill" />
+        </div>
+        {!collapsed && (
+          <div className={s.body}>
+            <div className={s.parts}>
+              {[2, 3, 2].map((lines, i) => (
+                <div key={i} className={s.part}>
+                  <Skeleton shape="line" size="sm" width="25" />
+                  <SkeletonText lines={lines} size="sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** "Words on this screen": glossary meanings, loaded the first time it opens. */
+function IntroTerms({ terms }: { terms: TermKey[] }) {
+  const [rows, setRows] = useState<Array<{ key: string; word: string; meaning: string }> | null>(null);
+  function load(open: boolean) {
+    if (!open || rows) return;
+    void import("../../tutorials/glossary").then(({ GLOSSARY }) => {
+      const table = GLOSSARY as Record<string, GlossaryEntry>;
+      setRows(terms.filter((k) => table[k]).map((k) => ({ key: k, word: table[k].word, meaning: table[k].meaning })));
+    });
+  }
+  return (
+    <details className={s.terms} onToggle={(e) => load((e.currentTarget as HTMLDetailsElement).open)}>
+      <summary className={s.termsSummary}>
+        <svg className={s.termsIcon} width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3 2.5h7.5L13 5v8.5H3z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+          <path d="M5.5 7h5M5.5 9.5h5M5.5 12h3" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+        Words on this screen
+        <span className={s.termsCount}>{terms.length}</span>
+      </summary>
+      {rows ? (
+        <dl className={s.termsList}>
+          {rows.map((r) => (
+            <div key={r.key} className={s.term}>
+              <dt>{r.word}</dt>
+              <dd>{r.meaning}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className={s.termsLoading}>Loading the meanings.</p>
+      )}
+    </details>
   );
 }
 

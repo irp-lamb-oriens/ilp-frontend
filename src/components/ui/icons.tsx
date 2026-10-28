@@ -69,3 +69,12 @@ export const IconNote = (p: IconProps) => (
   </Svg>
 );
 export const IconChevronDown = (p: IconProps) => <Svg {...p}><path d="M4 6l4 4 4-4" /></Svg>;
+export const IconChevronRight = (p: IconProps) => <Svg {...p}><path d="M6 4l4 4-4 4" /></Svg>;
+export const IconArrowLeft = (p: IconProps) => <Svg {...p}><path d="M13 8H3M7 4L3 8l4 4" /></Svg>;
+export const IconArrowRight = (p: IconProps) => <Svg {...p}><path d="M3 8h10M9 4l4 4-4 4" /></Svg>;
+/** A speech bubble: member messages and comments (notes use IconNote). */
+export const IconMessage = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 3h10a1 1 0 011 1v6a1 1 0 01-1 1H7l-3 2.5V11H3a1 1 0 01-1-1V4a1 1 0 011-1z" />
+  </Svg>
+);

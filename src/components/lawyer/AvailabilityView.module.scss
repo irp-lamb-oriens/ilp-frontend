@@ -17,10 +17,6 @@
   @include focus-ring;
 }
 
-// The chevron from the shared icon set, turned to point left.
-.backIcon {
-  transform: rotate(90deg);
-}
 
 .head {
   display: grid;

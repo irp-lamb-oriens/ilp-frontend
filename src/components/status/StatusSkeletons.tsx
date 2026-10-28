@@ -8,6 +8,7 @@ import feedback from "./MonthlyFeedback.module.scss";
 import scale from "./ScoreScale.module.scss";
 import privacy from "@/components/legal/PrivacyCenter.module.scss";
 import moneyPage from "@/app/status/money/money.module.scss";
+import { MemberIntroSkeleton } from "./MemberIntro";
 import s from "./StatusSkeletons.module.scss";
 
 /** "Next step" card: what, who, by when, and the action button. */
@@ -382,10 +383,6 @@ function PrivacyCardSkeleton({ lines = 2, rows = 0 }: { lines?: number; rows?: n
 export function PrivacySkeleton() {
   return (
     <div className={privacy.page} aria-hidden="true">
-      <div className={privacy.head}>
-        <Skeleton shape="line" size="xl" width="60" />
-        <SkeletonText lines={2} />
-      </div>
       <PrivacyCardSkeleton lines={3} />
       <PrivacyCardSkeleton lines={0} rows={3} />
       <PrivacyCardSkeleton />
@@ -413,6 +410,30 @@ export function PrivacyRequestsSkeleton() {
 
 /** Gate and loading.tsx: the skeleton of the member page being opened. */
 export default function StatusRouteSkeleton({ pathname }: { pathname: string }) {
+  const screen = SCREENS.find(([prefix]) => pathname.startsWith(prefix))?.[1];
+  const body = routeBody(pathname);
+  // Each member screen opens with its MemberIntro (Overview draws its own inside the view).
+  if (!screen) return body;
+  return (
+    <>
+      <MemberIntroSkeleton screen={screen} />
+      {body}
+    </>
+  );
+}
+
+/** Route prefix to MemberIntro `screen` key, most specific first. */
+const SCREENS: Array<[string, string]> = [
+  ["/status/profile", "profile"],
+  ["/status/money/cancel", "cancel"],
+  ["/status/money", "money"],
+  ["/status/messages", "messages"],
+  ["/status/book", "book"],
+  ["/status/feedback", "feedback"],
+  ["/status/privacy", "privacy"],
+];
+
+function routeBody(pathname: string) {
   if (pathname.startsWith("/status/profile")) return <ProfileSkeleton />;
   if (pathname.startsWith("/status/money/cancel")) return <CancelSkeleton />;
   if (pathname.startsWith("/status/money")) {

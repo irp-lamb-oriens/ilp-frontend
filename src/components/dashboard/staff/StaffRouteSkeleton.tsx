@@ -13,6 +13,7 @@ import pmf from "../pmf/PmfPanel.module.scss";
 import { StageConfigSkeleton } from "../views/SettingsView";
 import views from "../views/views.module.scss";
 import { PageHeader } from "./PageHeader";
+import { IntroTitleContext, ScreenIntroSkeleton } from "./ScreenIntro";
 
 const sub = <Skeleton shape="line" size="sm" width="25" />;
 
@@ -50,6 +51,22 @@ const filterBar = (
  * skeleton the page itself shows, so the hand-off is seamless.
  */
 export default function StaffRouteSkeleton({ pathname }: { pathname: string }) {
+  const body = routeBody(pathname);
+  // The member page draws its own intro placeholder (MemberSkeleton); every
+  // other staff route opens with its ScreenIntro, then the PageHeader status line.
+  if (/^\/dashboard\/members\/[^/]+/.test(pathname) || !STAFF_ROUTE.test(pathname)) return body;
+  return (
+    <>
+      <ScreenIntroSkeleton />
+      <IntroTitleContext.Provider value={true}>{body}</IntroTitleContext.Provider>
+    </>
+  );
+}
+
+/** Staff routes wrapped in StaffScreen (each has a ScreenIntro). */
+const STAFF_ROUTE = /^\/dashboard(?:\/(?:members|pipeline|opportunities|lawyers|finance|reports|settings|privacy))?\/?(?:$|[?#/])/;
+
+function routeBody(pathname: string) {
   if (pathname === "/dashboard" || pathname === "/dashboard/") {
     return (
       <>

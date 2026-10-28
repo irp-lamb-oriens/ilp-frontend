@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { SkeletonRegion, Stagger, StaggerItem, useSkeleton, ErrorNotice } from "@/components/ui";
+import { IconArrowLeft, SkeletonRegion, Stagger, StaggerItem, useSkeleton, ErrorNotice } from "@/components/ui";
 import { MemberDocumentsList } from "@/components/documents/MemberDocumentsList";
-import { IconChevronDown } from "@/components/ui/icons";
 import BriefPanel from "./BriefPanel";
 import CallPanel from "./CallPanel";
 import LawyerIntro from "./LawyerIntro";
@@ -51,7 +50,7 @@ export default function CallView({ consultationId }: { consultationId: string })
     <div className={s.page}>
       <nav className={s.crumbs} aria-label="Breadcrumb">
         <Link href="/lawyer" className={s.back}>
-          <IconChevronDown className={s.backIcon} /> Back to Today
+          <IconArrowLeft /> Back to Today
         </Link>
       </nav>
       <LawyerIntro screen="call" />

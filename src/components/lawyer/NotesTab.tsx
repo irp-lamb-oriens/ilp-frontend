@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { providerFetch } from "@/lib/provider";
 import type { LawyerClient } from "./types";
 import styles from "./notesTab.module.scss";
-import { IconClose, TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
-import { IconNote } from "@/components/ui/icons";
+import { IconClose, IconNote, TextArea, useUnsavedChanges, ErrorNotice } from "@/components/ui";
 
 interface Collaborator {
   email: string;

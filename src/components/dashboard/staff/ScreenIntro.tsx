@@ -1,8 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { PageIntro } from "@/components/ui";
-import type { GlossaryEntry, TermKey } from "@/tutorials/glossary";
+import { createContext, useContext, type ReactNode } from "react";
+import { PageIntro, PageIntroSkeleton } from "@/components/ui";
 import { STAFF_INTROS, type StaffIntro, type StaffIntroKey } from "./intros";
 import s from "./ScreenIntro.module.scss";
 
@@ -12,8 +11,6 @@ import s from "./ScreenIntro.module.scss";
  */
 export const IntroTitleContext = createContext(false);
 export const useIntroTitleShown = () => useContext(IntroTitleContext);
-
-const LABELS = { what: "What this screen is", how: "What you do here", why: "Why it matters" };
 
 /**
  * The compact What, How, Why intro at the top of a staff screen, with the
@@ -38,48 +35,21 @@ export function ScreenIntro({
         what={intro.what}
         how={intro.how}
         why={intro.why}
-        labels={LABELS}
+        audience="staff"
+        terms={intro.terms}
         tutorialId={intro.tutorialId}
         storageKey={storageKey}
       />
-      {intro.terms && intro.terms.length > 0 && <ScreenTerms terms={intro.terms} />}
     </div>
   );
 }
 
-/** "Words on this screen": glossary meanings, loaded the first time it opens. */
-function ScreenTerms({ terms }: { terms: TermKey[] }) {
-  const [rows, setRows] = useState<Array<{ key: string; word: string; meaning: string }> | null>(null);
-  function load(open: boolean) {
-    if (!open || rows) return;
-    void import("@/tutorials/glossary").then(({ GLOSSARY }) => {
-      const table = GLOSSARY as Record<string, GlossaryEntry>;
-      setRows(terms.filter((k) => table[k]).map((k) => ({ key: k, word: table[k].word, meaning: table[k].meaning })));
-    });
-  }
+/** Loading placeholder for ScreenIntro (same frame, same remembered Hide / Show). */
+export function ScreenIntroSkeleton({ storageKey }: { storageKey?: string }) {
   return (
-    <details className={s.terms} onToggle={(e) => load((e.currentTarget as HTMLDetailsElement).open)}>
-      <summary className={s.termsSummary}>
-        <svg className={s.termsIcon} width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M3 2.5h7.5L13 5v8.5H3z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-          <path d="M5.5 7h5M5.5 9.5h5M5.5 12h3" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-        </svg>
-        Words on this screen
-        <span className={s.termsCount}>{terms.length}</span>
-      </summary>
-      {rows ? (
-        <dl className={s.termsList}>
-          {rows.map((r) => (
-            <div key={r.key} className={s.term}>
-              <dt>{r.word}</dt>
-              <dd>{r.meaning}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : (
-        <p className={s.termsLoading}>Loading the meanings.</p>
-      )}
-    </details>
+    <div className={s.wrap}>
+      <PageIntroSkeleton storageKey={storageKey} />
+    </div>
   );
 }
 

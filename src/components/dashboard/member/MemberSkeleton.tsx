@@ -1,14 +1,15 @@
 "use client";
 
 import { Skeleton, SkeletonCard, SkeletonText, SkeletonTimeline } from "@/components/ui";
+import { ScreenIntroSkeleton } from "../staff/ScreenIntro";
 import s from "./member.module.scss";
 
 /** Profile left, timeline centre, next actions right: the member page frame. */
 export default function MemberSkeleton() {
   return (
     <>
+      <ScreenIntroSkeleton storageKey="/dashboard/members/[id]" />
       <div className={s.skHead} aria-hidden="true">
-        <Skeleton shape="line" size="xl" width="40" />
         <Skeleton shape="line" size="sm" width="25" />
       </div>
       <div className={s.layout} aria-hidden="true">

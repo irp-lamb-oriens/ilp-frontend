@@ -26,10 +26,6 @@
   @include focus-ring;
 }
 
-// The chevron from the shared icon set, turned to point left.
-.backIcon {
-  transform: rotate(90deg);
-}
 
 // Two columns that each fit the viewport; the brief never needs to scroll on
 // a laptop, the call column scrolls on its own if the transcript is long.

@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton, SkeletonBoard, SkeletonCard, SkeletonList, SkeletonStatStrip, SkeletonTable, SkeletonText } from "@/components/ui";
+import { PageIntroSkeleton, Skeleton, SkeletonBoard, SkeletonCard, SkeletonList, SkeletonStatStrip, SkeletonTable, SkeletonText } from "@/components/ui";
 import today from "./TodayView.module.scss";
 import board from "./BoardView.module.scss";
 import clients from "./ClientsView.module.scss";
@@ -12,6 +12,12 @@ import insp from "./InspectorTabs.module.scss";
 import notes from "./notesTab.module.scss";
 import fq from "./FeeQuotesTab.module.scss";
 import dl from "./DeadlineEditor.module.scss";
+import introCss from "./LawyerIntro.module.scss";
+
+/** The compact intro a lawyer screen opens with (LawyerIntro), as a placeholder. */
+function IntroSkeleton({ screen, collapsed = false, flush = false }: { screen: string; collapsed?: boolean; flush?: boolean }) {
+  return <PageIntroSkeleton storageKey={`lawyer.${screen}`} defaultCollapsed={collapsed} className={flush ? undefined : introCss.intro} />;
+}
 
 /** Today's call rows: time, member and matter, consent and summary pills. */
 export function CallsSkeleton({ rows = 4 }: { rows?: number }) {
@@ -96,11 +102,12 @@ export function LawyerFinanceSkeleton() {
 }
 
 /** Weekly hours (seven day rows) beside days off, limits and specialties. */
-export function LawyerAvailabilitySkeleton() {
+export function LawyerAvailabilitySkeleton({ withIntro = false }: { withIntro?: boolean }) {
   // Mirrors AvailabilityView: week editor (switch | ranges | count per day)
   // beside days off, limits, specialty chips and calendar blocks.
   return (
     <div className={avail.page}>
+      {withIntro && <IntroSkeleton screen="availability" flush />}
       <header className={avail.head} aria-hidden="true">
         <Skeleton shape="line" size="lg" width="40" />
         <Skeleton shape="line" size="sm" width="75" />
@@ -163,6 +170,7 @@ export function LawyerCallSkeleton() {
       <div className={call.crumbs} aria-hidden="true">
         <Skeleton shape="line" size="sm" width="pill" />
       </div>
+      <IntroSkeleton screen="call" collapsed />
       <div className={call.cols}>
         <div className={call.briefCol}>
           <SkeletonCard badge lines={2}>
@@ -319,11 +327,14 @@ export function DeadlinesSkeleton({ groups = [2, 2] }: { groups?: number[] }) {
 }
 
 /** Gate: the skeleton of the lawyer page being opened. */
+// Each route page renders its LawyerIntro above the view, so the route
+// skeleton starts with the intro placeholder (the call and availability
+// views place theirs inside the view skeleton).
 export default function LawyerRouteSkeleton({ pathname }: { pathname: string }) {
-  if (pathname.startsWith("/lawyer/board")) return <LawyerBoardSkeleton />;
-  if (pathname.startsWith("/lawyer/clients")) return <LawyerClientsSkeleton />;
-  if (pathname.startsWith("/lawyer/finance")) return <LawyerFinanceSkeleton />;
-  if (pathname.startsWith("/lawyer/availability")) return <LawyerAvailabilitySkeleton />;
+  if (pathname.startsWith("/lawyer/board")) return <><IntroSkeleton screen="board" /><LawyerBoardSkeleton /></>;
+  if (pathname.startsWith("/lawyer/clients")) return <><IntroSkeleton screen="clients" /><LawyerClientsSkeleton /></>;
+  if (pathname.startsWith("/lawyer/finance")) return <><IntroSkeleton screen="finance" /><LawyerFinanceSkeleton /></>;
+  if (pathname.startsWith("/lawyer/availability")) return <LawyerAvailabilitySkeleton withIntro />;
   if (pathname.startsWith("/lawyer/calls/")) return <LawyerCallSkeleton />;
-  return <LawyerTodaySkeleton />;
+  return <><IntroSkeleton screen="today" /><LawyerTodaySkeleton /></>;
 }

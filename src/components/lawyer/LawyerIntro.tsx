@@ -116,6 +116,7 @@ export default function LawyerIntro({ screen, flush = false }: { screen: LawyerS
   return (
     <PageIntro
       compact
+      audience="lawyer"
       headingLevel={2}
       title={c.title}
       what={c.what}

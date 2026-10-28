@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EmptyState, IconCalendar, IconClock, Loadable, StatusPill, Stagger, StaggerItem, ErrorNotice } from "@/components/ui";
-import { IconChevronDown } from "@/components/ui/icons";
+import { EmptyState, IconArrowRight, IconCalendar, IconClock, Loadable, StatusPill, Stagger, StaggerItem, ErrorNotice } from "@/components/ui";
 import { areaLabel, dayWindow, errorText, fmtShortDate, fmtTime, lawyerApi, type TodayItem } from "./lawyerApi";
 import { useLawyer } from "./LawyerContext";
 import { ConsentPill, SummaryPill } from "./pills";
@@ -122,7 +121,7 @@ export default function TodayView() {
                     )}
                   </span>
                   <span className={s.open} aria-hidden="true">
-                    Open brief <IconChevronDown className={s.openIcon} />
+                    Open brief <IconArrowRight />
                   </span>
                 </Link>
                 {!c.handoffId && (c.status === "booked" || c.status === "in_progress") && (

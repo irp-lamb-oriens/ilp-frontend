@@ -267,3 +267,81 @@
     transition: none;
   }
 }
+
+// "Words on this screen" (the `terms` prop): a small disclosure under the parts.
+.terms {
+  max-width: 72ch;
+  color: $color-steel;
+}
+
+.termsSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: 44px;
+  padding: 0 $space-1;
+  font-size: 0.875rem;
+  color: $color-navy;
+  cursor: pointer;
+  list-style: none;
+  border-radius: $radius-sm;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.termsIcon {
+  flex: none;
+  color: $color-steel;
+}
+
+.termsCount {
+  min-width: 1.5rem;
+  padding: 0 $space-2;
+  font-size: 0.75rem;
+  line-height: 1.5rem;
+  text-align: center;
+  color: $color-accent-ink;
+  background: $color-accent-soft;
+  border-radius: $radius-pill;
+}
+
+.termsList {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-3;
+  margin: $space-2 0 0;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: $space-6;
+  }
+}
+
+.term {
+  dt {
+    font-weight: 600;
+    color: $color-navy;
+  }
+
+  dd {
+    margin: $space-1 0 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+.termsLoading {
+  margin: $space-2 0 0;
+  font-size: 0.875rem;
+  color: $color-muted;
+}
