@@ -106,7 +106,7 @@ export default function BoardView() {
     { key: "area", header: "Area", render: (c) => areaLabel(c.area), sortValue: (c) => c.area, hideOnMobile: true },
     { key: "stage", header: "Stage", render: (c) => label(c.stage), sortValue: (c) => (data?.stages ?? []).indexOf(c.stage) },
     { key: "aging", header: "In stage", render: (c) => <Flags card={c} />, sortValue: (c) => new Date(c.stageEnteredAt).getTime() * -1 },
-    { key: "call", header: "Next call", render: (c) => fmtShortDate(c.nextCallAt), sortValue: (c) => c.nextCallAt ?? "9999", hideOnMobile: true },
+    { key: "call", header: "Next call", render: (c) => (c.nextCallAt ? fmtShortDate(c.nextCallAt) : <span className={s.muted}>None booked</span>), sortValue: (c) => c.nextCallAt ?? "9999", hideOnMobile: true },
     {
       key: "move",
       header: "Move",
@@ -128,7 +128,7 @@ export default function BoardView() {
               <option key={a} value={a}>{areaLabel(a)}</option>
             ))}
         </Select>
-        <span className={s.count}>{cards.length} {cards.length === 1 ? "matter" : "matters"}</span>
+        <span className={s.count} aria-live="polite">{cards.length} {cards.length === 1 ? "matter" : "matters"}{area === "all" ? "" : ` in ${areaLabel(area).toLowerCase()}`}</span>
       </div>
 
       <p className={s.sr} aria-live="polite">{announce}</p>
@@ -172,6 +172,7 @@ export default function BoardView() {
                 <h3 id={`col-${stage}`} className={s.colH}>
                   {label(stage)} <span className={s.colCount}>{col.length}</span>
                 </h3>
+                {col.length === 0 && <p className={s.colEmpty}>No matters in this stage. Drag a card here to move it.</p>}
                 <ul className={s.cards}>
                   {col.map((c) => (
                     <li

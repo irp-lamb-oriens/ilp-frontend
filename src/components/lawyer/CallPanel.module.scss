@@ -36,8 +36,29 @@
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: $color-steel;
+  color: $color-navy;
   padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+// Step number in front of each part of the call panel.
+.stepNum {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid $color-accent;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  color: $color-accent-ink;
+  font-family: $font-sans;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .muted {

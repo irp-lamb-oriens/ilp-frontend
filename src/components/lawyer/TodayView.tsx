@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EmptyState, Loadable, StatusPill, Stagger, StaggerItem, ErrorNotice } from "@/components/ui";
+import { EmptyState, IconCalendar, IconClock, Loadable, StatusPill, Stagger, StaggerItem, ErrorNotice } from "@/components/ui";
+import { IconChevronDown } from "@/components/ui/icons";
 import { areaLabel, dayWindow, errorText, fmtShortDate, fmtTime, lawyerApi, type TodayItem } from "./lawyerApi";
 import { useLawyer } from "./LawyerContext";
 import { ConsentPill, SummaryPill } from "./pills";
 import JoinCall from "./JoinCall";
-import ApplicationStatus from "./ApplicationStatus";
+import ApplicationStatus, { inReview } from "./ApplicationStatus";
 import { CallsSkeleton, UpcomingSkeleton } from "./LawyerSkeletons";
 import s from "./TodayView.module.scss";
 
@@ -42,6 +43,7 @@ export default function TodayView() {
   const first = me.name?.split(" ")[0] ?? "";
   const nowIso = new Date().toISOString();
   const next = today?.find((c) => c.status !== "completed" && !c.handoffId && c.scheduledAt >= nowIso.slice(0, 10)) ?? null;
+  const reviewing = inReview(me);
   const open = today?.filter((c) => c.status === "completed" && !c.handoffId).length ?? 0;
 
   return (
@@ -56,7 +58,9 @@ export default function TodayView() {
             {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             {open > 0 ? ` · ${open} summary ${open === 1 ? "needs" : "need"} your confirmation` : ""}
           </p>
-          <Link className={s.settingsLink} href="/lawyer/availability">Your hours and availability</Link>
+          <Link className={s.settingsLink} href="/lawyer/availability">
+            <IconClock /> Your hours and availability
+          </Link>
         </header>
 
         {error && (
@@ -68,11 +72,19 @@ export default function TodayView() {
         <Loadable loading={today === null && !error} label="Loading today's calls" skeleton={<CallsSkeleton />}>
         {today && today.length === 0 && !error && (
           <StaggerItem>
-          <EmptyState
-            title="Nothing booked for today"
-            body="Members book 20-minute calls from their portal. Your board has the matters waiting on you."
-            action={<Link className={s.link} href="/lawyer/board">Open the board</Link>}
-          />
+          {reviewing ? (
+            <EmptyState
+              title="No calls yet"
+              body="Members can book you once ILP approves your application. Your calls will appear here, in time order."
+              action={<Link className={s.link} href="/lawyer/availability">Check your hours</Link>}
+            />
+          ) : (
+            <EmptyState
+              title="Nothing booked for today"
+              body="Members book 20-minute calls from their portal. Your board has the matters waiting on you."
+              action={<Link className={s.link} href="/lawyer/board">Open the board</Link>}
+            />
+          )}
           </StaggerItem>
         )}
 
@@ -109,7 +121,9 @@ export default function TodayView() {
                       </>
                     )}
                   </span>
-                  <span className={s.open} aria-hidden="true">Brief →</span>
+                  <span className={s.open} aria-hidden="true">
+                    Open brief <IconChevronDown className={s.openIcon} />
+                  </span>
                 </Link>
                 {!c.handoffId && (c.status === "booked" || c.status === "in_progress") && (
                   <div className={s.join}>
@@ -125,10 +139,12 @@ export default function TodayView() {
       </section>
 
       <aside className={s.rail} aria-labelledby="upcoming-h">
-        <h3 id="upcoming-h" className={s.railH}>Next 3 days</h3>
+        <h3 id="upcoming-h" className={s.railH}>
+          <IconCalendar /> Next 3 days
+        </h3>
         <Loadable loading={today === null && !error} label="Loading the next 3 days" skeleton={<UpcomingSkeleton />}>
         {upcoming.length === 0 ? (
-          <StaggerItem as="p" className={s.railEmpty}>No calls booked yet.</StaggerItem>
+          <StaggerItem as="p" className={s.railEmpty}>No calls booked in the next 3 days.</StaggerItem>
         ) : (
           <Stagger>
           <ul className={s.railList}>

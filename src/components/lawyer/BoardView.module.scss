@@ -111,6 +111,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+// Shown in a stage column with no cards, so the column still reads as a drop target.
+.colEmpty {
+  margin: 0;
+  padding: $space-3 $space-2;
+  border: 1px dashed $color-hairline-strong;
+  border-radius: $radius-sm;
+  color: $color-muted;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
 .cards {
   list-style: none;
   margin: 0;

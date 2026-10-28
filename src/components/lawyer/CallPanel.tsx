@@ -17,7 +17,7 @@ const blank = (): LegalNextStep => ({ what: "", who: "client" });
 
 /**
  * The call flow: recording consent, transcript, the AI summary shown as
- * "Suggested — confirm", 1-5 legal next steps, and one "Confirm and hand off"
+ * "Suggested: check it", 1-5 legal next steps, and one "Confirm and hand off"
  * that confirms the summary, records minutes and creates the handoff.
  * Commercial notes are not shown or edited here.
  */
@@ -187,12 +187,24 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
     );
   }
 
+  // Numbered steps down the panel; the join step shows only before and during the call.
+  const showJoin = status === "booked" || status === "in_progress";
+  const base = showJoin ? 1 : 0;
+  const num = (k: number) => (
+    <span className={s.stepNum} aria-hidden="true">
+      {base + k}
+    </span>
+  );
+
   return (
     <section className={s.panel} aria-labelledby="call-h">
-      <h2 id="call-h" className={s.h}>Call</h2>
+      <h2 id="call-h" className={s.h}>Call steps</h2>
 
-      {(status === "booked" || status === "in_progress") && (
+      {showJoin && (
         <div className={s.block}>
+          <span className={s.label}>
+            {num(0)}Join the call
+          </span>
           <div className={s.actions}>
             <JoinCall meetUrl={c.meetUrl} scheduledAt={c.scheduledAt} durationMin={c.durationMin} size="md" />
             {noShowAllowed(c.scheduledAt, now) && !confirmNoShow && (
@@ -232,7 +244,9 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
 
       <div className={s.block}>
         <div className={s.rowBetween}>
-          <span className={s.label}>Recording consent</span>
+          <span className={s.label}>
+            {num(1)}Recording consent
+          </span>
           <ConsentPill state={consent} size="md" />
         </div>
         {consent === "pending" && (
@@ -295,7 +309,9 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
 
       <div className={s.block}>
         <div className={s.rowBetween}>
-          <span className={s.label}>Transcript</span>
+          <span className={s.label}>
+            {num(2)}Transcript
+          </span>
           {consent === "granted" && !pasting && (
             <Button size="sm" variant="ghost" onClick={() => setPasting(true)}>{transcript ? "Replace" : "Paste transcript"}</Button>
           )}
@@ -345,14 +361,16 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
 
       <div className={s.block}>
         <div className={s.rowBetween}>
-          <label htmlFor="summary" className={s.label}>Summary</label>
-          {summaryStatus === "suggested" && <StatusPill label="Suggested — confirm" tone="info" size="sm" srPrefix="AI draft:" />}
+          <label htmlFor="summary" className={s.label}>
+            {num(3)}Summary for the member
+          </label>
+          {summaryStatus === "suggested" && <StatusPill label="Suggested: check it" tone="info" size="sm" srPrefix="AI draft:" />}
         </div>
         {summaryStatus === "suggested" && (
           <Notice
             tone="info"
             variant="inline"
-            title="Drafted by AI — check it before you confirm"
+            title="Drafted by AI. Check it before you confirm."
             terms={["aiSummary"]}
             fix={{
               steps: [
@@ -372,7 +390,9 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
       </div>
 
       <fieldset className={s.block}>
-        <legend className={s.label}>Legal next steps ({cleanSteps.length} of {MAX_STEPS})</legend>
+        <legend className={s.label}>
+          {num(4)}Legal next steps ({cleanSteps.length} of {MAX_STEPS})
+        </legend>
         <ol className={s.steps}>
           {steps.map((x, i) => (
             <li key={i} className={s.step}>
@@ -397,6 +417,9 @@ export default function CallPanel({ brief, onChanged }: { brief: Brief; onChange
         )}
       </fieldset>
 
+      <span className={s.label}>
+        {num(5)}Confirm and hand off
+      </span>
       <div className={s.field}>
         <TextInput
           label="Minutes used"

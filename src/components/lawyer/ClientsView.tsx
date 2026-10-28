@@ -19,8 +19,13 @@ export default function ClientsView() {
     setQ(params?.get("q") ?? "");
   }, [params]);
 
-  useEffect(() => {
+  function load() {
+    setError(null);
     lawyerApi.board().then(setData).catch((err) => setError(errorText(err, "Could not load your clients.")));
+  }
+
+  useEffect(() => {
+    load();
   }, []);
 
   const label = (id: string) => data?.stageLabels.find((x) => x.id === id)?.label ?? id.replace(/_/g, " ");
@@ -48,22 +53,22 @@ export default function ClientsView() {
     {
       key: "deadlines",
       header: "Deadlines",
-      render: (c) => (c.overdueCount ? <StatusPill size="sm" tone="danger" label={`${c.overdueCount} overdue`} /> : c.dueSoonCount ? <StatusPill size="sm" tone="warning" label={`${c.dueSoonCount} soon`} /> : <span className={s.muted}>None due</span>),
+      render: (c) => (c.overdueCount ? <StatusPill size="sm" tone="danger" label={`${c.overdueCount} overdue`} /> : c.dueSoonCount ? <StatusPill size="sm" tone="warning" label={`${c.dueSoonCount} due soon`} /> : <span className={s.muted}>None due</span>),
       sortValue: (c) => -(c.overdueCount * 100 + c.dueSoonCount),
       hideOnMobile: true,
     },
-    { key: "call", header: "Next call", render: (c) => fmtShortDate(c.nextCallAt), sortValue: (c) => c.nextCallAt ?? "9999" },
+    { key: "call", header: "Next call", render: (c) => (c.nextCallAt ? fmtShortDate(c.nextCallAt) : <span className={s.muted}>None booked</span>), sortValue: (c) => c.nextCallAt ?? "9999" },
   ];
 
   return (
     <div className={s.page}>
       <div className={s.bar}>
         <SearchInput className={s.search} label="Find a member or matter" data-tour="lawyer-clients-search" value={q} onValueChange={setQ} placeholder="Name, matter or area" />
-        {data ? <span className={s.muted}>{rows.length} of {data.cards.length}</span> : <Skeleton shape="line" size="sm" width="pill-sm" />}
+        {data ? <span className={s.muted} aria-live="polite">Showing {rows.length} of {data.cards.length}</span> : <Skeleton shape="line" size="sm" width="pill-sm" />}
       </div>
       {error && (
         <StaggerItem>
-          <ErrorNotice audience="lawyer" title="Your clients did not load">
+          <ErrorNotice audience="lawyer" title="Your clients did not load" onRetry={data ? undefined : load}>
             {error}
           </ErrorNotice>
         </StaggerItem>

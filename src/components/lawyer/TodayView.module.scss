@@ -42,6 +42,7 @@
 .settingsLink {
   display: inline-flex;
   align-items: center;
+  gap: $space-2;
   min-height: $touch-target;
   margin-top: $space-1;
   color: $color-navy;
@@ -168,6 +169,9 @@
 }
 
 .open {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
   color: $color-navy;
   font-size: 0.875rem;
   white-space: nowrap;
@@ -189,7 +193,15 @@
   }
 }
 
+// The chevron from the shared icon set, turned to point right.
+.openIcon {
+  transform: rotate(-90deg);
+}
+
 .railH {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
   margin: 0 0 $space-3;
   font-size: 1rem;
   color: $color-navy;

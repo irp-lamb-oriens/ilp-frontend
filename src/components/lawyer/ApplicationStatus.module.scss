@@ -19,8 +19,32 @@
 
 .h {
   @include heading-lg;
-  margin: 0 0 $space-4;
+  margin: 0 0 $space-1;
   font-size: 1.25rem;
+}
+
+.lead {
+  margin: 0 0 $space-4;
+  color: $color-steel;
+}
+
+// Step number, or a check once the step is done.
+.num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  color: $color-navy;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  &[data-done] {
+    border-color: $color-success;
+    color: $color-success;
+  }
 }
 
 .list {
@@ -31,7 +55,7 @@
 
 .item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: $space-3;
   align-items: start;
   padding-block: $space-3;

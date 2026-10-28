@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ButtonLink, Notice, StatusPill, type StatusTone } from "@/components/ui";
+import { ButtonLink, IconCheck, Notice, StatusPill, type StatusTone } from "@/components/ui";
 import { callsApi } from "./callsApi";
 import type { LawyerMe } from "./lawyerApi";
 import s from "./ApplicationStatus.module.scss";
@@ -111,9 +111,13 @@ export default function ApplicationStatus({ me }: { me: LawyerMe }) {
         <h2 id="application-status-h" className={s.h}>
           Finish your profile
         </h2>
+        <p className={s.lead}>The steps from your application to your first call. The ones marked To do are yours.</p>
         <ol className={s.list}>
-          {items.map((it) => (
+          {items.map((it, i) => (
             <li key={it.id} className={s.item}>
+              <span className={s.num} data-done={it.state === DONE || undefined} aria-hidden="true">
+                {it.state === DONE ? <IconCheck /> : i + 1}
+              </span>
               <div className={s.itemMain}>
                 <span className={s.itemTitle}>{it.title}</span>
                 <span className={s.itemBody}>{it.body}</span>

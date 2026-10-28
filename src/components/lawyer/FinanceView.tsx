@@ -62,7 +62,7 @@ export default function FinanceView() {
     { key: "client", header: "Member", render: (r) => r.clientName, sortValue: (r) => r.clientName, hideOnMobile: true },
     { key: "paid", header: "Paid", render: (r) => money(r.paid, cur), sortValue: (r) => r.paid, align: "end" },
     { key: "pending", header: "Pending", render: (r) => money(r.pending, cur), sortValue: (r) => r.pending, align: "end" },
-    { key: "next", header: "Next payout", render: (r) => fmtDate(r.nextPayoutAt), sortValue: (r) => r.nextPayoutAt ?? "9999", hideOnMobile: true },
+    { key: "next", header: "Next payout", render: (r) => (r.nextPayoutAt ? fmtDate(r.nextPayoutAt) : "None scheduled"), sortValue: (r) => r.nextPayoutAt ?? "9999", hideOnMobile: true },
   ];
 
   const payCols: Column<FinancePayment>[] = [
