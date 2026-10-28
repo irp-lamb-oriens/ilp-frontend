@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Button, EmptyState, ListFooter, ListToolbar, Select, SkeletonList, StatusPill, Loadable, ErrorNotice, Notice } from "@/components/ui";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button, EmptyState, FilterBar, ListFooter, Select, SkeletonList, StatusPill, Loadable, ErrorNotice, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import { useStreamedList } from "@/lib/useStreamedList";
+import { LIST_SCHEMAS } from "@/lib/listSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { documentsSource, memberApi, type MemberDocument } from "./api";
 import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
 import { useMember } from "./MemberContext";
@@ -29,7 +30,15 @@ function size(n: number): string {
 export default function DocumentsPanel() {
   const { home, matter } = useMember();
   // Documents on file: newest first, searched and paged on the server.
-  const list = useStreamedList<MemberDocument>(documentsSource, { key: "member-documents", pageSize: 20, sort: { key: "uploadedAt", dir: "desc" }, keyOf: (d) => d.id });
+  const sl = useSchemaList<MemberDocument>({
+    schema: LIST_SCHEMAS.memberDocuments,
+    key: "member-documents",
+    source: documentsSource,
+    pageSize: 20,
+    defaultSort: { key: "uploadedAt", dir: "desc" },
+    keyOf: (d) => d.id,
+  });
+  const list = sl.list;
   const items = list.initialLoading ? null : list.items;
   const categories = (list.meta.categories as string[] | undefined)?.length ? (list.meta.categories as string[]) : Object.keys(CATEGORY_LABEL);
   const [matterId, setMatterId] = useState<string>(matter?.id ?? "");
@@ -64,6 +73,7 @@ export default function DocumentsPanel() {
   }
 
   const matterTitle = (id?: string) => home.matters.find((m) => m.id === id)?.title;
+  const filterOptions = useMemo(() => ({ matterId: home.matters.map((m) => ({ value: m.id, label: m.title })) }), [home.matters]);
 
   return (
     <section className={s.wrap} id="documents" aria-labelledby="documents-title" data-tour="client-documents">
@@ -123,20 +133,11 @@ export default function DocumentsPanel() {
         )}
       </div>
 
-      {(list.items.length > 0 || !!list.activeQuery || !!list.filters.category) && (
-        <ListToolbar list={list} noun="documents" searchLabel="Search your documents" placeholder="File name">
-          <Select label="Kind" value={list.filters.category ?? ""} onChange={(e) => list.setFilter("category", e.target.value)}>
-            <option value="">All kinds</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABEL[c] ?? c}
-              </option>
-            ))}
-          </Select>
-        </ListToolbar>
+      {(list.items.length > 0 || !!list.activeQuery || sl.activeCount > 0) && (
+        <FilterBar list={sl} noun="documents" searchLabel="Search your documents" placeholder="File name" sortOptions="schema" options={filterOptions} views={false} />
       )}
       <Loadable loading={items === null && !list.error} label="Loading your documents" skeleton={<DocumentsListSkeleton />}>
-      {() => items === null ? null : items.length === 0 && (list.activeQuery || list.filters.category) ? (
+      {() => items === null ? null : items.length === 0 && (list.activeQuery || sl.activeCount > 0) ? (
         <EmptyState compact title="No document matches" body="Try another name or kind, or clear the search." />
       ) : items.length === 0 ? (
         <EmptyState

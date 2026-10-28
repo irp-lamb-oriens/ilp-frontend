@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Button, Checkbox, SkeletonRegion, Stagger, StaggerItem, StatusPill, TextInput, useSkeleton, ErrorNotice, EmptyState } from "@/components/ui";
+import { Button, Checkbox, FilterBar, ListFooter, SkeletonRegion, Stagger, StaggerItem, StatusPill, TextInput, useSkeleton, ErrorNotice, EmptyState } from "@/components/ui";
 import type { StatusTone } from "@/components/ui";
 import { ApiError } from "@/lib/api";
+import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
+import { useSchemaList } from "@/lib/useSchemaList";
 import { memberApi, type MoneyPayload, type QuoteView } from "./api";
 import { useMember } from "./MemberContext";
 import { dateLong, dateShort, money } from "./format";
@@ -17,6 +19,18 @@ const CHARGE_STATUS: Record<string, { label: string; tone: StatusTone }> = {
   due: { label: "To pay", tone: "warning" },
 };
 
+/** One line of the history: a proposal already answered, or a charge. */
+interface MoneyRow {
+  id: string;
+  kind: "proposal" | "charge";
+  title: string;
+  date?: string;
+  amountCents: number | null;
+  currency: string;
+  status: string;
+  meta: string;
+}
+
 /** Balance due first, then proposals and charges together. */
 export default function MoneyView() {
   const [data, setData] = useState<MoneyPayload | null>(null);
@@ -25,6 +39,35 @@ export default function MoneyView() {
   useEffect(() => {
     memberApi.money().then(setData).catch(() => setError(true));
   }, []);
+
+  // FILTERS: answered proposals and charges in one list, searched, filtered and paged here.
+  const rows = useMemo<MoneyRow[] | null>(() => {
+    if (!data) return null;
+    const proposals: MoneyRow[] = data.quotes
+      .filter((q) => q.status !== "awaiting")
+      .map((q) => ({
+        id: `q:${q.id}`,
+        kind: "proposal",
+        title: q.title,
+        date: q.acceptedAt ?? q.createdAt,
+        amountCents: q.totalCents,
+        currency: q.currency,
+        status: q.status,
+        meta: `Proposal${q.acceptedAt ? `, accepted ${dateShort(q.acceptedAt)}` : q.createdAt ? `, ${dateShort(q.createdAt)}` : ""}`,
+      }));
+    const charges: MoneyRow[] = data.charges.map((c) => ({
+      id: `c:${c.id}`,
+      kind: "charge",
+      title: c.label,
+      date: c.date,
+      amountCents: c.amountCents,
+      currency: c.currency,
+      status: c.status,
+      meta: `${c.date ? dateShort(c.date) : ""}${c.status === "partially_paid" ? ` · ${money(c.balanceCents, c.currency)} left to pay` : ""}`,
+    }));
+    return [...proposals, ...charges];
+  }, [data]);
+  const sl = useSchemaList<MoneyRow>({ schema: LOCAL_SCHEMAS.memberMoney, key: "member-money", rows, pageSize: 10, keyOf: (r) => r.id });
 
   const { showSkeleton, skeletonVisible } = useSkeleton(!data && !error);
   if (error) {
@@ -86,44 +129,28 @@ export default function MoneyView() {
             body="Your monthly membership charges appear here once they are made. If your lawyer suggests paid legal work, the proposal appears here for you to accept or decline."
           />
         ) : (
-          <ul className={s.rows}>
-            {others.map((q) => (
-              <li key={q.id} className={s.row}>
-                <div className={s.rowMain}>
-                  <p className={s.rowTitle}>{q.title}</p>
-                  <p className={s.rowMeta}>
-                    Proposal{q.acceptedAt ? `, accepted ${dateShort(q.acceptedAt)}` : q.createdAt ? `, ${dateShort(q.createdAt)}` : ""}
-                  </p>
-                </div>
-                <div className={s.rowEnd}>
-                  <span className={s.amount}>{money(q.totalCents, q.currency)}</span>
-                  <StatusPill
-                    label={q.status === "accepted" ? "Accepted" : "Declined"}
-                    tone={q.status === "accepted" ? "success" : "neutral"}
-                    size="sm"
-                  />
-                </div>
-              </li>
-            ))}
-            {data.charges.map((c) => {
-              const st = CHARGE_STATUS[c.status];
-              return (
-                <li key={c.id} className={s.row}>
-                  <div className={s.rowMain}>
-                    <p className={s.rowTitle}>{c.label}</p>
-                    <p className={s.rowMeta}>
-                      {c.date ? dateShort(c.date) : ""}
-                      {c.status === "partially_paid" ? ` · ${money(c.balanceCents, c.currency)} left to pay` : ""}
-                    </p>
-                  </div>
-                  <div className={s.rowEnd}>
-                    <span className={s.amount}>{money(c.amountCents, c.currency)}</span>
-                    <StatusPill label={st.label} tone={st.tone} size="sm" />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            {(rows?.length ?? 0) > 3 && <FilterBar list={sl} noun="charges and proposals" searchLabel="Search charges and proposals" placeholder="What it was for" sortOptions="schema" views={false} />}
+            {sl.list.status === "done" && sl.list.items.length === 0 && <p className={s.rowMeta}>Nothing matches these filters.</p>}
+            <ul className={s.rows}>
+              {sl.list.items.map((r) => {
+                const st = r.kind === "charge" ? CHARGE_STATUS[r.status] : { label: r.status === "accepted" ? "Accepted" : "Declined", tone: (r.status === "accepted" ? "success" : "neutral") as StatusTone };
+                return (
+                  <li key={r.id} className={s.row}>
+                    <div className={s.rowMain}>
+                      <p className={s.rowTitle}>{r.title}</p>
+                      <p className={s.rowMeta}>{r.meta}</p>
+                    </div>
+                    <div className={s.rowEnd}>
+                      <span className={s.amount}>{money(r.amountCents, r.currency)}</span>
+                      <StatusPill label={st.label} tone={st.tone} size="sm" />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <ListFooter list={sl.list} audience="member" auto={false} endLabel={null} loadMoreLabel="Show more" />
+          </>
         )}
       </StaggerItem>
     </div>
