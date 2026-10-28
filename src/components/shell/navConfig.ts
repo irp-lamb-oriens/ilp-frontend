@@ -1,3 +1,5 @@
+import { createElement } from "react";
+import { IconCard, IconChat, IconHome, IconPerson } from "../status/navIcons";
 import type { Country, MenuLink, NavItem, ShellRole } from "./types";
 
 /**
@@ -6,10 +8,11 @@ import type { Country, MenuLink, NavItem, ShellRole } from "./types";
  */
 export const DEFAULT_NAV: Record<ShellRole, NavItem[]> = {
   client: [
-    { href: "/status", label: "Overview", icon: "◧", match: "exact" },
-    { href: "/status/profile", label: "Profile", icon: "◔" },
-    { href: "/status/money", label: "Money", icon: "$" },
-    { href: "/status/messages", label: "Messages", icon: "✉" },
+    // T6: SVG icons (same set as the member portal nav) instead of glyphs and the envelope emoji.
+    { href: "/status", label: "Overview", icon: createElement(IconHome), match: "exact" },
+    { href: "/status/profile", label: "Profile", icon: createElement(IconPerson) },
+    { href: "/status/money", label: "Money", icon: createElement(IconCard) },
+    { href: "/status/messages", label: "Messages", icon: createElement(IconChat) },
   ],
   lawyer: [
     { href: "/lawyer", label: "Today", icon: "◷", match: "exact" },
