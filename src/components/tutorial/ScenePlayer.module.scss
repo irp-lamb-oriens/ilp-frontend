@@ -30,6 +30,9 @@
   background: $color-canvas;
   pointer-events: none;
   user-select: none;
+  border-width: 1rem;
+  border-color: transparent;
+  box-shadow: 0 0 0 1px black;
 }
 
 .desktop {
