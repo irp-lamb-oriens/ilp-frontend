@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import { RevealTitle, Reveal } from "@/components/motion/Motion";
+import { RevealTitle } from "@/components/motion/Motion";
+import { RevealText, Stage } from "@/components/motion/Story";
 import s from "./ParallaxBand.module.scss";
 
 interface ParallaxBandProps {
@@ -12,6 +13,8 @@ interface ParallaxBandProps {
   eyebrow?: string;
   title: string;
   body: string;
+  /** The key phrase of the body, underlined once it is read. */
+  mark?: string;
   align?: "left" | "right" | "center";
 }
 
@@ -28,6 +31,7 @@ export default function ParallaxBand({
   eyebrow,
   title,
   body,
+  mark,
   align = "left",
 }: ParallaxBandProps) {
   const ref = useRef<HTMLElement>(null);
@@ -51,11 +55,11 @@ export default function ParallaxBand({
         }}
       />
       <div className={s.inner}>
-        <Reveal className={s.glass} from={align === "right" ? "right" : "left"}>
+        <Stage className={s.glass} enter="visual" amount={0.4}>
           {eyebrow && <p className={s.eyebrow}>{eyebrow}</p>}
           <RevealTitle text={title} className={s.title} />
-          <p className={s.body}>{body}</p>
-        </Reveal>
+          <RevealText text={body} mark={mark} className={s.body} />
+        </Stage>
       </div>
     </section>
   );

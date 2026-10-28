@@ -446,11 +446,15 @@ $nav-offset: 64px;
   flex-direction: column;
 }
 
+.priceMark {
+  font-weight: inherit;
+}
+
 .whatLine {
   padding-block: $space-6;
   border-top: 1px solid $color-hairline;
 
-  p {
+  .whatText {
     margin: 0;
     max-width: 40ch;
     font-size: clamp(1.125rem, 1.8vw, 1.35rem);

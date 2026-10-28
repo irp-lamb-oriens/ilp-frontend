@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
 import CountUp from "@/components/motion/CountUp";
 import { MorphStage, Reveal } from "@/components/motion/Motion";
+import { Mark, RevealText, Stage, StageItem } from "@/components/motion/Story";
 import { CHECK_CTA, HERO, PROBLEM, WHAT } from "./content";
 import { MockScene } from "@/components/tutorial/mock/MockScene";
 import { EMPTY_OVERRIDES } from "@/components/tutorial/sceneUtils";
@@ -487,34 +488,36 @@ const formatPrice = (v: number) => `US$${v.toFixed(2)}`;
 
 export function WhatYouGet() {
   return (
-    <section className={s.what} aria-label={HERO.labels.what}>
-      <div className={s.whatInner}>
-        <Reveal>
-          <h2 className={s.whatHeading}>{HERO.labels.what}</h2>
-        </Reveal>
+    <section className={s.what} aria-labelledby="what-title">
+      <Stage className={s.whatInner} amount={0.3}>
+        <StageItem as="h2" level="title" id="what-title" className={s.whatHeading}>
+          {HERO.labels.what}
+        </StageItem>
         <div className={s.whatGrid}>
-          <Reveal className={s.priceBlock} delay={0.08}>
+          <StageItem level="visual" className={s.priceBlock}>
             <p className={s.price}>
-              <CountUp value={WHAT.price} formatter={formatPrice} duration={0.9} className={s.priceFigure} />{" "}
+              <Mark className={s.priceMark}>
+                <CountUp value={WHAT.price} formatter={formatPrice} duration={0.9} className={s.priceFigure} />
+              </Mark>{" "}
               <span className={s.priceUnit}>{WHAT.unit}</span>
             </p>
             <p className={s.activation}>{WHAT.activation}</p>
-          </Reveal>
+          </StageItem>
           <div className={s.whatLines}>
-            <Reveal className={s.whatLine} delay={0.16} from="right">
-              <p>{WHAT.calls}</p>
-            </Reveal>
-            <Reveal className={s.whatLine} delay={0.24} from="right">
-              <p>{WHAT.extra}</p>
-            </Reveal>
+            <StageItem level="body" className={s.whatLine}>
+              <RevealText text={WHAT.calls} className={s.whatText} />
+            </StageItem>
+            <StageItem level="body" className={s.whatLine}>
+              <RevealText text={WHAT.extra} className={s.whatText} />
+            </StageItem>
           </div>
         </div>
-        <Reveal delay={0.3}>
+        <StageItem level="body">
           <Link href="/check" className={s.primary}>
             {CHECK_CTA}
           </Link>
-        </Reveal>
-      </div>
+        </StageItem>
+      </Stage>
     </section>
   );
 }

@@ -78,11 +78,13 @@ export const BANDS = {
   clarity: {
     title: "See what applies to you before it is due.",
     body: "Your profile lists the dates and rules that may apply to your residency, your property, your companies and your car. You can ask your lawyer about any of them before you sign, pay or file anything.",
+    mark: "may apply",
     alt: "People in a meeting reviewing documents",
   },
   lawyers: {
     title: "A lawyer licensed in your country, when you need one.",
     body: "Each call is with a lawyer licensed in the country your membership covers, who has read your brief first. If your question turns into paid legal work, the lawyer quotes it in writing and you decide whether to go ahead.",
+    mark: "quotes it in writing",
     alt: "A tidy desk with a laptop and papers",
   },
 };
@@ -156,6 +158,7 @@ export const COSTS_WRAP = {
 export const FEATURES_HEAD = {
   title: "What the membership includes",
   why: "Your legal life abroad sits in one place, with a lawyer and a team who already know it when you ask a question.",
+  mark: "already know it",
 };
 
 export const FEATURES = [
@@ -178,12 +181,14 @@ export const FEATURES = [
   {
     title: "Reminders before your dates",
     body: "Residency renewals, social security payments, property tax, company filings and vehicle fees are listed as dates that may require review, for your country. You hear about them before they are due.",
+    mark: "may require review",
   },
 ];
 
 export const STEPS_HEAD = {
   title: "What this looks like in real situations",
   why: "Three common situations, and how a date or a question moves from your list to a call and then to a next step.",
+  mark: "to a next step",
 };
 
 export const STEPS = [
@@ -207,6 +212,7 @@ export const STEPS = [
 export const COVERAGE_HEAD = {
   title: "Six countries, open now",
   why: "The rules, the dates and the lawyers are local. Each country has its own list of dates from our research, and lawyers licensed there.",
+  mark: "are local",
 };
 
 /** All six are open (contracts COUNTRIES). Notes name a few of each country's dates from docs/research. */
@@ -222,6 +228,7 @@ export const COUNTRIES = [
 export const SCENARIOS_HEAD = {
   title: "Example situations",
   why: "ILP is just opening, so these are made-up examples of common situations, not reviews from real members.",
+  mark: "made-up examples",
   label: "Example",
 };
 
@@ -269,6 +276,7 @@ export interface Plan {
 export const PRICING_HEAD = {
   title: "What it costs",
   why: "Start with the free check. Pay a monthly fee only if you want a lawyer and a team to help with what it shows.",
+  mark: "free check",
 };
 
 export const PLANS: Plan[] = [
@@ -340,6 +348,7 @@ export const ADDONS = [
 export const FAQ_HEAD = {
   title: "Questions people ask before joining",
   why: "Short answers about what ILP does, what it costs and what it does not do.",
+  mark: "what it does not do",
 };
 
 export const FAQ = [
@@ -373,13 +382,14 @@ export const FAQ = [
   },
 ];
 
-/** Tutorials played between the homepage sections, with their lead-ins. */
+/** Tutorials played between the homepage sections, with their lead-ins and each lead-in's key phrase. */
 export const TUTORIAL_BANDS = {
   check: {
     id: "public.check",
     anchor: "free-check",
     title: "Try the free check",
     lead: "Here is the free deadline check: a few short questions, then a dated list of what may apply to you.",
+    mark: "a dated list",
     caption: "The free deadline check, from the first question to the dated list.",
   },
   home: {
@@ -387,6 +397,7 @@ export const TUTORIAL_BANDS = {
     anchor: "member-home",
     title: "What your member home looks like",
     lead: "When you sign in as a member, this is the first page you see. It starts with your next step.",
+    mark: "your next step",
     caption: "A member's home page with example data: next step, minutes left and dates to ask about.",
   },
   call: {
@@ -394,6 +405,7 @@ export const TUTORIAL_BANDS = {
     anchor: "lawyer-call",
     title: "How a call with your lawyer works",
     lead: "From booking a time to the follow-up afterwards, this is what one call looks like.",
+    mark: "one call",
     caption: "Booking, the call, the summary and next steps, and the follow-up from your ILP team.",
   },
   pricing: {
@@ -401,6 +413,7 @@ export const TUTORIAL_BANDS = {
     anchor: "what-you-pay",
     title: "What you pay and what's included",
     lead: "This is the Money page a member sees: the monthly fee, the calls included and a quote for extra work.",
+    mark: "a quote for extra work",
     caption: "The membership fee, the minutes included and a quote you can accept or decline.",
   },
 } as const;
@@ -408,6 +421,7 @@ export const TUTORIAL_BANDS = {
 export const FINAL = {
   title: "Start with the free deadline check.",
   sub: "Pick your country, answer a few questions and see the dates that may apply. It takes about two minutes and you do not need an account.",
+  mark: "about two minutes",
   pick: "Pick your country",
   soon: "Not yet",
   hint: "The check is free. Membership is US$79.99 a month plus a one-time US$100 activation fee.",

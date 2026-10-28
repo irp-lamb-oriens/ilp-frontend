@@ -1,30 +1,32 @@
 "use client";
 
-import { motion, useTransform, type MotionValue } from "framer-motion";
-import { MorphStage, Reveal } from "@/components/motion/Motion";
+import { Eyebrow, RevealText, Stage, StageItem } from "@/components/motion/Story";
+import { cx } from "@/components/ui/cx";
 import { FEATURES, FEATURES_HEAD, STEPS, STEPS_HEAD } from "./content";
 import { SectionHead } from "./SectionHead";
 import s from "./landing.module.scss";
 
 /**
- * Sticky split: the heading locks on the left while features stream past.
- * The four-step loop diagram that sat under the heading moved out (HERO
- * redesign): "How ILP works" above already walks through the same steps.
+ * Sticky split: the heading locks on the left while the features stream past.
+ * Each feature card rises in, then its number (eyebrow), title and body
+ * stage in order; the reminders card underlines "may require review".
  */
 export function FeaturesSticky() {
   return (
-    <section className={`${s.wrap} ${s.sticky}`}>
+    <section className={`${s.wrap} ${s.sticky}`} aria-labelledby="features-title">
       <div className={s.stickyHead}>
-        <SectionHead title={FEATURES_HEAD.title} why={FEATURES_HEAD.why} icon="profile" immediate />
+        <SectionHead id="features-title" title={FEATURES_HEAD.title} why={FEATURES_HEAD.why} mark={FEATURES_HEAD.mark} icon="profile" />
       </div>
       <ol className={s.featureList}>
         {FEATURES.map((f, i) => (
           <li key={f.title}>
-            <Reveal className={s.feature} from={i % 2 === 0 ? "right" : "bottom"} immediate>
-              <span className={s.featureIndex}>{String(i + 1).padStart(2, "0")}</span>
-              <h3>{f.title}</h3>
-              <p>{f.body}</p>
-            </Reveal>
+            <Stage className={s.feature} enter="visual" amount={0.35}>
+              <Eyebrow className={s.featureIndex}>{String(i + 1).padStart(2, "0")}</Eyebrow>
+              <StageItem as="h3" level="title" className={s.featureTitle}>
+                {f.title}
+              </StageItem>
+              <RevealText text={f.body} mark={f.mark} className={s.featureBody} />
+            </Stage>
           </li>
         ))}
       </ol>
@@ -32,31 +34,32 @@ export function FeaturesSticky() {
   );
 }
 
-/** Steps pan horizontally while the stage is locked (vertical scroll -> x). */
-export function StepsPan() {
+/**
+ * Real situations. No longer pinned (the page keeps two pinned stories: the
+ * hero story and the costs story): each situation is a row that stages in as
+ * it enters, number first, then title and body, alternating sides.
+ */
+export function SituationsList() {
   return (
-    <section className={s.steps} aria-label={STEPS_HEAD.title}>
-      <MorphStage heightVh={240} className={s.stepsStage}>
-        {(progress, reduce) => <StepsTrack progress={progress} reduce={reduce} />}
-      </MorphStage>
+    <section className={s.steps} aria-labelledby="situations-title">
+      <div className={`${s.wrap} ${s.section}`}>
+        <SectionHead id="situations-title" title={STEPS_HEAD.title} why={STEPS_HEAD.why} mark={STEPS_HEAD.mark} icon="path" />
+        <ol className={s.situations}>
+          {STEPS.map((st, i) => (
+            <Stage as="li" key={st.n} className={cx(s.situation, i % 2 === 1 && s.situationFlip)} amount={0.4}>
+              <StageItem level="visual" className={s.stepNum}>
+                <span aria-hidden="true">{st.n}</span>
+              </StageItem>
+              <div className={s.situationText}>
+                <StageItem as="h3" level="title" className={s.situationTitle}>
+                  {st.title}
+                </StageItem>
+                <RevealText text={st.body} className={s.situationBody} />
+              </div>
+            </Stage>
+          ))}
+        </ol>
+      </div>
     </section>
-  );
-}
-
-function StepsTrack({ progress, reduce }: { progress: MotionValue<number>; reduce: boolean }) {
-  const x = useTransform(progress, [0.05, 0.95], ["0%", "-52%"]);
-  return (
-    <div className={s.stepsViewport}>
-      <SectionHead title={STEPS_HEAD.title} why={STEPS_HEAD.why} icon="path" immediate className={s.stepsIntro} />
-      <motion.ol className={s.stepsTrack} style={reduce ? undefined : { x }}>
-        {STEPS.map((st) => (
-          <li key={st.n} className={s.stepCard}>
-            <span className={s.stepNum}>{st.n}</span>
-            <h3>{st.title}</h3>
-            <p>{st.body}</p>
-          </li>
-        ))}
-      </motion.ol>
-    </div>
   );
 }

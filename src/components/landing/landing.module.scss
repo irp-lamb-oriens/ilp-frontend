@@ -9,7 +9,8 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .centerHead { margin-inline: auto; text-align: center; align-items: center; }
 .eyebrow { @include eyebrow; margin: 0; }
 .headingXl { @include heading-xl; margin: 0; font-size: clamp(2.25rem, 5vw, 4rem); letter-spacing: -0.035em; }
-.sub { color: $color-steel; font-size: 1.125rem; line-height: 1.65; margin: 0; max-width: 52ch; }
+.sectionHead .sub, .sub { color: $color-steel; font-size: 1.125rem; line-height: 1.65; margin: 0; max-width: 52ch; }
+.headMarker { display: flex; }
 .primary { @include button-primary; padding: $space-4 $space-8; }
 .ghost { @include button-ghost; padding: $space-4 $space-8; }
 .primary, .ghost { @include focus-ring; min-height: $touch-target; text-decoration: none; }
@@ -43,16 +44,16 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 .featureList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: $space-6; }
 .feature {
-  @include card; padding: clamp(1.75rem, 3vw, 2.5rem); display: grid; gap: $space-3;
+  @include card; padding: clamp(1.75rem, 3vw, 2.5rem); display: flex; flex-direction: column; gap: $space-4;
   transition: transform 500ms $ease;
-  h3 { font-size: 1.35rem; margin: 0; }
-  p { color: $color-steel; margin: 0; }
   @media (hover: hover) and (pointer: fine) {
     &:hover { transform: translateY(-4px); }
   }
 }
+.featureTitle { @include story-title; font-size: clamp(1.375rem, 2vw, 1.75rem); }
+.feature .featureBody { max-width: 56ch; font-size: 1.0625rem; }
 .featureList li:nth-child(even) .feature { @include lg { margin-inline-start: 12%; } }
-.featureIndex { font-family: $font-mono; font-size: 0.8rem; color: $color-accent; }
+.feature .featureIndex { font-size: 0.75rem; }
 
 /* ── Tutorial bands between sections ───────────── */
 .tutorialBand { padding-block: $space-16; @include md { padding-block: $space-24; } }
@@ -68,27 +69,25 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 .tutorialEmbed { min-width: 0; }
 
-/* ── Steps: horizontal pan inside a pinned stage ── */
+/* ── Real situations: staged rows, alternating sides ── */
 .steps { background: $color-accent-soft; }
-.stepsStage { place-items: stretch; }
-.stepsViewport {
-  @include container; display: flex; flex-direction: column; justify-content: center;
-  gap: $space-12; min-height: 100dvh; padding-block: calc(64px + #{$space-8}) $space-16;
+.situations { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid $color-hairline; }
+.situation {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: $space-4;
+  padding-block: $space-8; border-bottom: 1px solid $color-hairline;
+  @include md { grid-template-columns: minmax(0, 2fr) minmax(0, 7fr); gap: $space-8; align-items: start; padding-block: $space-12; }
+  @include lg { grid-template-columns: minmax(0, 2fr) minmax(0, 7fr) minmax(0, 3fr); }
 }
-.stepsIntro { display: flex; flex-direction: column; gap: $space-4; max-width: 720px; }
-.stepsTrack {
-  list-style: none; margin: 0; padding: 0; display: flex; gap: $space-6; width: max-content;
+/* Every other row sits one column to the right on wide screens. */
+.situationFlip {
+  @include lg { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr) minmax(0, 7fr); }
+  .stepNum { @include lg { grid-column: 2; } }
+  .situationText { @include lg { grid-column: 3; } }
 }
-.stepCard {
-  @include card; width: min(78vw, 460px); flex-shrink: 0; padding: clamp(2rem, 4vw, 3rem);
-  h3 { font-size: 1.5rem; margin: $space-4 0 $space-3; }
-  p { color: $color-steel; margin: 0; }
-}
-.stepNum { font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; color: $color-accent; line-height: 1; }
-
-@media (prefers-reduced-motion: reduce) {
-  .stepsTrack { width: 100%; flex-wrap: wrap; }
-}
+.situationText { display: flex; flex-direction: column; gap: $space-4; min-width: 0; }
+.situationTitle { @include story-title; }
+.situationText .situationBody { max-width: 60ch; }
+.stepNum { font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; color: $color-navy; line-height: 1; transform-origin: left bottom; }
 
 /* ── Coverage: Gutenberg zig-zag ───────────────── */
 .coverage { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
@@ -98,8 +97,10 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .alignEnd { justify-content: flex-end; text-align: right; }
 .alignCenter { justify-content: center; text-align: center; }
 .alignEnd .coverageNote { margin-inline-start: auto; }
+.alignEnd .coverageCode { flex-direction: row-reverse; }
 .alignCenter .coverageNote { margin-inline: auto; }
-.coverageCode { display: block; font-family: $font-mono; font-size: 0.8rem; color: $color-accent; margin-bottom: $space-2; }
+.coverageBody { min-width: 0; }
+.coverageRow .coverageCode { margin-bottom: $space-2; }
 .coverageName {
   display: inline-block; font-size: clamp(2.5rem, 7vw, 5.5rem); font-weight: 700;
   letter-spacing: -0.045em; line-height: 1; color: $color-ink;
@@ -115,7 +116,7 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
 .alignEnd .coverageStatus { margin-inline-start: auto; }
 .alignCenter .coverageStatus { margin-inline: auto; }
 .coverageOpen { border-color: $color-accent; background: $color-accent-soft; color: $color-navy; }
-.coverageNote { color: $color-steel; margin: $space-3 0 0; max-width: 40ch; }
+.coverageRow .coverageNote { color: $color-steel; margin: $space-3 0 0; max-width: 40ch; font-size: 1rem; }
 
 /* ── Quotes: offset wall ───────────────────────── */
 .quoteWall {
@@ -135,7 +136,7 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
 .scenarioLabel { background: $color-navy; color: $color-on-navy; }
 .scenarioTag { border: 1px solid $color-hairline-strong; color: $color-steel; }
 .scenarioTitle { margin: 0; font-size: 1.2rem; line-height: 1.3; color: $color-navy; }
-.scenarioBody { margin: 0; color: $color-steel; }
+.quote .scenarioBody { margin: 0; color: $color-steel; font-size: 1rem; }
 .attribution { display: flex; align-items: center; gap: $space-3; }
 .avatar {
   width: 44px; height: 44px; border-radius: 14px; background: $color-navy; color: $color-accent;
@@ -167,13 +168,7 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
 .planHighlight {
   border-top-color: $color-accent;
 }
-.planTagline {
-  font-family: $font-mono;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: $color-accent;
-}
+.planCard .planTagline { font-size: 0.75rem; }
 .planName { font-size: 1.25rem; font-weight: 700; color: $color-navy; margin: 0; }
 .planPrice { font-size: clamp(2.25rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: $color-navy; }
 .planUnit { font-size: 1rem; font-weight: 500; letter-spacing: 0; color: $color-steel; }
@@ -193,7 +188,8 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
       border-left: 2px solid $color-accent; border-bottom: 2px solid $color-accent; transform: rotate(-45deg); }
   }
 }
-.planCard button, .planCard a { align-self: flex-start; margin-top: auto; }
+.planAction { margin-top: auto; }
+.planPrice .priceMark { font-weight: inherit; font-variant-numeric: tabular-nums; }
 
 .addons {
   display: grid; grid-template-columns: 1fr; gap: $space-4; margin-top: $space-8;
@@ -202,7 +198,7 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
 .addon {
   @include card; padding: $space-6;
   h3 { font-size: 1.1rem; margin: 0 0 $space-2; color: $color-navy; }
-  p { color: $color-steel; font-size: 0.9rem; margin: 0; }
+  .addonBody { color: $color-steel; font-size: 0.95rem; margin: 0; }
 }
 
 /* ── FAQ ───────────────────────────────────────── */
@@ -231,9 +227,9 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
 }
 .finalKicker { @include eyebrow; margin: 0 auto $space-6; }
 .finalTitle { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; color: $color-navy; margin: 0 0 $space-6; }
-.finalSub { color: $color-steel; margin: 0 auto $space-8; }
-.finalPick { @include eyebrow; margin: 0 0 $space-3; }
-.finalGlass > .primary { margin-bottom: $space-6; }
+.finalGlass .finalSub { color: $color-steel; margin: 0 auto $space-8; }
+.finalGlass .finalPick { margin: 0 0 $space-3; }
+.finalGlass .primary { margin-bottom: $space-6; }
 .finalChips { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-3; margin-bottom: $space-6; }
 .chip {
   @include press; @include focus-ring; display: inline-flex; align-items: center; min-height: $touch-target; text-decoration: none; padding: $space-3 $space-6; border-radius: $radius-pill; cursor: pointer;

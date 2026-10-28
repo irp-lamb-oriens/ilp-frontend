@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import HeroCTA from "@/components/HeroCTA";
 import ParallaxBand from "@/components/ParallaxBand";
-import { FeaturesSticky, StepsPan } from "@/components/landing/StorySections";
+import { FeaturesSticky, SituationsList } from "@/components/landing/StorySections";
 import { CostsStory } from "@/components/landing/CostsStory";
 import { ProblemScroll, StepsScroll, WhatYouGet } from "@/components/landing/HeroStory";
 import { TutorialBand } from "@/components/landing/TutorialBand";
@@ -23,15 +23,16 @@ export const metadata: Metadata = {
 };
 
 /**
- * Homepage order (HERO, 2026-10-27): hero (title and the two actions, one
+ * Homepage order (STORY, 2026-10-28): hero (title and the two actions, one
  * screen) -> the problem (pinned, phrase by phrase) -> how ILP works (pinned,
  * one step at a time, #how-it-works) -> what you get (price and terms) ->
- * what a missed date can cost you -> demo: the free check -> photo band ->
- * what the membership includes -> demo: the member home -> real situations ->
- * demo: a call with your lawyer -> photo band -> six countries -> example
- * situations -> pricing -> demo: what you pay -> questions -> final call to
- * action -> footer. The three-facts strip (TrustStrip) is no longer rendered:
- * "What you get" now says the same facts.
+ * what a missed date can cost you (pinned three-beat story, #costs) -> demo:
+ * the free check -> photo band -> what the membership includes -> demo: the
+ * member home -> real situations (staged rows, no longer pinned) -> demo: a
+ * call with your lawyer -> photo band -> six countries -> example situations
+ * -> pricing -> demo: what you pay -> questions -> final call to action ->
+ * footer. Pinned stories: the hero story and the costs story; every other
+ * section stages eyebrow, title and body as it enters (motion/Story.tsx).
  */
 export default function HomePage() {
   return (
@@ -51,13 +52,14 @@ export default function HomePage() {
           alt={BANDS.clarity.alt}
           title={BANDS.clarity.title}
           body={BANDS.clarity.body}
+          mark={BANDS.clarity.mark}
           align="left"
         />
 
         <FeaturesSticky />
         <TutorialBand band={TUTORIAL_BANDS.home} tint />
 
-        <StepsPan />
+        <SituationsList />
         <TutorialBand band={TUTORIAL_BANDS.call} />
 
         <ParallaxBand
@@ -65,6 +67,7 @@ export default function HomePage() {
           alt={BANDS.lawyers.alt}
           title={BANDS.lawyers.title}
           body={BANDS.lawyers.body}
+          mark={BANDS.lawyers.mark}
           align="right"
         />
 

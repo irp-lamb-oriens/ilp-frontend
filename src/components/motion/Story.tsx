@@ -31,7 +31,15 @@
  */
 
 import { createContext, useContext, useEffect, useState, type ReactNode, type RefObject } from "react";
-import { motion, useReducedMotion, useScroll, useTransform, type MotionValue, type Variants } from "framer-motion";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+  type TargetAndTransition,
+  type Variants,
+} from "framer-motion";
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 import { cx } from "@/components/ui/cx";
 import { splitMark, splitPhrases, splitWindow, type BeatRange, type Window } from "./storyMath";
@@ -131,6 +139,7 @@ export function Stage({
   amount = 0.3,
   stagger = 0.12,
   delay = 0,
+  enter,
 }: {
   as?: BlockTag;
   children: ReactNode;
@@ -143,10 +152,25 @@ export function Stage({
   amount?: number;
   stagger?: number;
   delay?: number;
+  /** The block itself enters at this level (a card rising) before its children. */
+  enter?: Level;
 }) {
   const reduce = useReducedMotion();
   const t: Tone = reduce ? "fade" : (tone ?? "rise");
   const Comp = motion[as];
+  const self = enter ? (t === "fade" ? FADE : RISE[enter]) : null;
+  const selfShow = (self?.show ?? {}) as TargetAndTransition;
+  const variants: Variants = {
+    hidden: (self?.hidden ?? {}) as TargetAndTransition,
+    show: {
+      ...selfShow,
+      transition: {
+        ...(selfShow.transition ?? {}),
+        staggerChildren: t === "fade" ? 0.04 : stagger,
+        delayChildren: delay + (self && t === "rise" ? 0.15 : 0),
+      },
+    },
+  };
   return (
     <ToneContext.Provider value={t}>
       <Comp
@@ -155,10 +179,7 @@ export function Stage({
         initial={immediate ? false : "hidden"}
         whileInView="show"
         viewport={{ once: true, amount }}
-        variants={{
-          hidden: {},
-          show: { transition: { staggerChildren: t === "fade" ? 0.04 : stagger, delayChildren: delay } },
-        }}
+        variants={variants}
       >
         {children}
       </Comp>
@@ -438,9 +459,9 @@ function WithMark({ text, mark, scrub }: { text: string; mark?: string; scrub?: 
  * that draws in (scaleX) after the phrase is revealed. Phones get a static
  * underline (the phrase may wrap there).
  */
-export function Mark({ children, scrub }: { children: ReactNode; scrub?: Scrub }) {
+export function Mark({ children, scrub, className }: { children: ReactNode; scrub?: Scrub; className?: string }) {
   return (
-    <span className={s.mark}>
+    <span className={cx(s.mark, className)}>
       {children}
       {scrub ? <ScrubUnderline scrub={scrub} /> : <StagedUnderline />}
     </span>

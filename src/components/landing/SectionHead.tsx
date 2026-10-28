@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Reveal, RevealTitle } from "@/components/motion/Motion";
+import { RevealText, Stage, StageItem } from "@/components/motion/Story";
 import s from "./landing.module.scss";
 
 export type LandingIconName = "calendar" | "play" | "profile" | "path" | "globe" | "example" | "price" | "question" | "lawyer";
@@ -91,25 +91,45 @@ interface SectionHeadProps {
   title: string;
   /** One sentence on why it matters to the reader. */
   why: ReactNode;
+  /** The key phrase of `why`, underlined in the accent once it is read. */
+  mark?: string;
   icon?: LandingIconName;
   center?: boolean;
   /** Show the heading at once (inside pinned or sticky stages). */
   immediate?: boolean;
   className?: string;
+  /** Id for the heading, so the section can be aria-labelledby it. */
+  id?: string;
 }
 
 /**
- * The "what / why" head every homepage section opens with: a short heading
- * that says what the section is, then one sentence on why it matters.
+ * The "what / why" head every homepage section opens with, staged like every
+ * scroll story level (motion/Story.tsx): the icon tile and its accent rule
+ * first, then the heading rises in, then the why line brightens phrase by
+ * phrase and its key phrase is underlined.
  */
-export function SectionHead({ title, why, icon, center, immediate, className }: SectionHeadProps) {
+export function SectionHead({ title, why, mark, icon, center, immediate, className, id }: SectionHeadProps) {
   return (
-    <div className={[s.sectionHead, center ? s.centerHead : "", className ?? ""].join(" ").trim()}>
-      {icon && <LandingIcon name={icon} />}
-      <RevealTitle as="h2" text={title} className={s.headingXl} immediate={immediate} />
-      <Reveal delay={0.1} immediate={immediate}>
-        <p className={s.sub}>{why}</p>
-      </Reveal>
-    </div>
+    <Stage
+      className={[s.sectionHead, center ? s.centerHead : "", className ?? ""].join(" ").trim()}
+      immediate={immediate}
+      amount={0.5}
+    >
+      {icon && (
+        <StageItem level="eyebrow" className={s.headMarker}>
+          <LandingIcon name={icon} />
+        </StageItem>
+      )}
+      <StageItem as="h2" level="title" id={id} className={s.headingXl}>
+        {title}
+      </StageItem>
+      {typeof why === "string" ? (
+        <RevealText text={why} mark={mark} className={s.sub} />
+      ) : (
+        <StageItem level="body">
+          <p className={s.sub}>{why}</p>
+        </StageItem>
+      )}
+    </Stage>
   );
 }
