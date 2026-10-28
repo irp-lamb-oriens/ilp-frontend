@@ -1,6 +1,6 @@
 "use client";
 
-import { Skeleton, SkeletonBoard, SkeletonStatTile } from "@/components/ui";
+import { BoardSkeleton, Skeleton, SkeletonStatTile } from "@/components/ui";
 import s from "./opportunities.module.scss";
 
 /** Open pipeline (large), four small figures and the by-stage strip. */
@@ -24,5 +24,5 @@ export function OpportunitySummarySkeleton() {
 
 /** Five stage columns with cards, in the board's own grid. */
 export function OpportunityBoardSkeleton() {
-  return <SkeletonBoard className={s.board} columnClassName={s.column} cards={[3, 2, 2, 1, 1]} />;
+  return <BoardSkeleton columns={5} cards={3} />;
 }
