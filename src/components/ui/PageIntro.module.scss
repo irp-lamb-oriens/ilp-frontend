@@ -1,0 +1,269 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Page intro (What, How, Why). Left-aligned, asymmetric, hairlines instead of
+// cards. Motion is the shared Stagger reveal (opacity + transform) plus the
+// chevron rotation; both drop movement under reduced motion.
+
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-8;
+  color: $color-charcoal;
+}
+
+.withArt {
+  @include lg {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+    gap: $space-12;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.eyebrow {
+  @include eyebrow;
+  margin: 0;
+}
+
+.title {
+  @include heading-xl;
+  margin: 0;
+  max-width: 22ch;
+  overflow-wrap: break-word;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.parts {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  max-width: 72ch;
+}
+
+.part {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.label {
+  margin: 0;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: $color-steel;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
+
+.text {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
+// Golden Circle heroes lead with "why": it reads as the lede.
+.full[data-order="why-how-what"] .part_why .text {
+  font-size: clamp(1.2rem, 1.8vw, 1.4rem);
+  line-height: 1.45;
+  color: $color-navy;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid $color-hairline;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: $space-3;
+  padding-block: $space-3;
+  border-bottom: 1px solid $color-hairline;
+  line-height: 1.5;
+}
+
+.num {
+  font-family: $font-mono;
+  font-size: 0.875rem;
+  color: $color-navy;
+}
+
+.stepText {
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+.watch {
+  @include press;
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: $space-2 $space-4;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+  color: $color-navy;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  @include hover-only {
+    &:hover {
+      background: $color-accent-soft;
+    }
+  }
+}
+
+.watchIcon {
+  flex: none;
+  color: $color-navy;
+}
+
+.art {
+  min-width: 0;
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+// ─── Compact (dashboards) ─────────────────────────────────────────────────
+
+.compact {
+  gap: $space-4;
+  padding: $space-4 $space-6;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  background: $color-canvas;
+
+  .main {
+    gap: $space-4;
+  }
+
+  .title {
+    @include heading-lg;
+    max-width: none;
+  }
+
+  .text {
+    font-size: 0.9375rem;
+  }
+
+  .step {
+    font-size: 0.9375rem;
+    padding-block: $space-2;
+  }
+
+  .parts {
+    max-width: none;
+
+    @include lg {
+      display: grid;
+      grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 4fr);
+      gap: $space-8;
+    }
+  }
+
+  @include below-md {
+    padding: $space-4;
+  }
+}
+
+.collapsed {
+  .head {
+    align-items: center;
+  }
+}
+
+.toggle {
+  @include press;
+  @include focus-ring;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: $space-2 $space-3;
+  border: 0;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-steel;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  @include hover-only {
+    &:hover {
+      color: $color-navy;
+      background: $color-mist;
+    }
+  }
+}
+
+.chevron {
+  transform: rotate(180deg);
+  transition: transform $duration-fast $ease-out-strong;
+
+  .collapsed & {
+    transform: rotate(0deg);
+  }
+
+  @include reduced-motion {
+    transition: none;
+  }
+}

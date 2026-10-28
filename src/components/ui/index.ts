@@ -109,3 +109,7 @@ export { Notice, resetNoticeDismissals } from "./Notice";
 export type { NoticeProps, NoticeFix, NoticeTone, NoticeVariant, NoticeHeading } from "./Notice";
 export { ErrorNotice, errorFix } from "./ErrorNotice";
 export type { ErrorNoticeProps, NoticeAudience } from "./ErrorNotice";
+
+// Page intro (copy-rules.md "Page intro pattern"): what, how, why, in either order.
+export { PageIntro, useIntroCollapsed, INTRO_STORAGE_KEY } from "./PageIntro";
+export type { PageIntroProps, PageIntroOrder, PageIntroPart, PageIntroLabels } from "./PageIntro";
