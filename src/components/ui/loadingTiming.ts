@@ -14,5 +14,7 @@ export const REVEAL_WINDOW_MS = 700;
 export const STAGGER_MAX = 6;
 /** rules.md strong ease-out, as a framer-motion / animate() curve. */
 export const EASE_OUT_STRONG = [0.23, 1, 0.32, 1] as const;
+/** Accelerating curve for scroll-driven exits only (pinned stories). Mirrors $ease-in-exit. */
+export const EASE_IN_EXIT = [0.4, 0, 1, 1] as const;
 /** Count-up length for KPI figures, in seconds. */
 export const COUNT_UP_S = 0.6;

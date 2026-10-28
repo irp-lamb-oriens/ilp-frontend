@@ -88,7 +88,8 @@ No CTA label wraps to two lines at desktop. One primary CTA per viewport tier.
 
 - **Animate only `transform` and `opacity`.** Never `top`/`left`/`width`/`height`.
 - **Easing:** strong ease-out `cubic-bezier(0.23, 1, 0.32, 1)` for entrances and
-  press feedback. Never `ease-in` on UI.
+  press feedback. Never `ease-in` on UI. One exception: a pinned scroll story's
+  beat leaving the stage uses `$ease-in-exit` (it follows the scroll, not a click).
 - **Durations:** press 100–160ms, tooltips 125–200ms, dropdowns 150–250ms,
   modals/drawers 200–500ms. UI stays under 300ms.
 - **Never `scale(0)`.** Start from `scale(0.95)` + `opacity: 0`.

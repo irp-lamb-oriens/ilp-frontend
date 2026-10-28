@@ -1,6 +1,7 @@
 // Run: npm test. Scroll story math (components/motion/storyMath.ts): beat
-// enter / hold / exit windows, the staging order of the three copy levels,
-// anchors and phrase splitting.
+// enter / hold / exit windows, the no-overlap invariant, the staging order of
+// the three copy levels, word reveal 0 to 1, the zigzag, anchors and phrase
+// splitting.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { register } from "node:module";
@@ -17,26 +18,127 @@ const {
   splitPhrases,
   splitMark,
   trackScrollY,
+  wordWindows,
+  revealAt,
+  beatOpacity,
+  beatExit,
+  easeEnter,
+  easeExit,
+  zigzag,
+  zigzagDrift,
 } = await import("../src/components/motion/storyMath.ts");
 
-test("story: three beats share the track end to end, the last one holds", () => {
+test("story: three beats share the track in order, with an empty gap between them", () => {
   const r = beatRanges(3);
   assert.deepEqual(r, [
-    [0, 0.116667, 0.266667, 0.333333],
-    [0.333333, 0.45, 0.6, 0.666667],
-    [0.666667, 0.783333, 1, 1],
+    [0, 0.1, 0.266667, 0.32],
+    [0.346667, 0.446667, 0.6, 0.653333],
+    [0.68, 0.78, 1, 1],
   ]);
-  for (let i = 0; i < r.length - 1; i++) assert.equal(r[i][3], r[i + 1][0], `beat ${i + 1} exits as beat ${i + 2} enters`);
+  for (let i = 0; i < r.length - 1; i++) assert.ok(r[i][3] < r[i + 1][0], `beat ${i + 1} is gone before beat ${i + 2} enters`);
   for (const [a, b, c, d] of r) assert.ok(a < b && b < c && c <= d, "a < b < c <= d");
   assert.deepEqual(beatRanges(0), []);
-  assert.deepEqual(beatRanges(2, { span: 0.8, enter: 0.5, exit: 0.25 })[0], [0, 0.2, 0.3, 0.4]);
+  assert.deepEqual(beatRanges(2, { span: 0.8, enter: 0.5, exit: 0.25, gap: 0 })[0], [0, 0.2, 0.3, 0.4]);
+});
+
+/** Opacity of each layer of beat i at progress p, as the components compute it. */
+function layers(p, ranges, i, phrases = 5) {
+  const r = ranges[i];
+  const parts = beatParts(r, phrases);
+  const beat = beatOpacity(p, r);
+  const words = wordWindows([parts.body], [12])[0];
+  return {
+    rule: beat * revealAt(p, parts.rule),
+    eyebrow: beat * revealAt(p, parts.eyebrow),
+    title: beat * revealAt(p, parts.title),
+    body: beat * Math.max(...words.map((w) => revealAt(p, w))),
+    visual: beat * revealAt(p, parts.visual),
+  };
+}
+
+test("story: at no progress do two beats show at once, text or picture", () => {
+  for (const count of [2, 3, 4]) {
+    const r = beatRanges(count);
+    for (let k = 0; k <= 4000; k++) {
+      const p = k / 4000;
+      const on = r.map((_, i) => Object.values(layers(p, r, i)).some((o) => o > 0));
+      assert.ok(on.filter(Boolean).length <= 1, `${count} beats, p=${p}: ${on.filter(Boolean).length} beats visible`);
+      for (let i = 0; i < r.length - 1; i++) {
+        if (p >= r[i + 1][0]) assert.equal(beatOpacity(p, r[i]), 0, "the previous beat is at 0 once the next one starts");
+        if (p >= r[i + 1][0]) assert.equal(beatExit(p, r[i]), 1, "and its drift has finished");
+      }
+    }
+  }
+});
+
+test("story: every layer of a beat reaches exactly 1 in its hold", () => {
+  const r = beatRanges(3);
+  for (const [i, range] of r.entries()) {
+    const [, b, c] = range;
+    for (const p of [beatAnchorProgress(range), b + (c - b) * 0.75, c]) {
+      const l = layers(p, r, i);
+      for (const [k, v] of Object.entries(l)) assert.equal(v, 1, `beat ${i + 1} ${k} is at 1 at p=${p}`);
+    }
+  }
+  assert.equal(beatOpacity(1, r[2]), 1, "the last beat holds to the end");
+});
+
+test("story: words appear in reading order from 0 to 1 and stay", () => {
+  const [w] = wordWindows([[0.2, 0.5]], [9]);
+  assert.equal(w.length, 9);
+  assert.equal(w[0][0], 0.2, "the first word starts with the window");
+  assert.equal(w[8][1], 0.5, "the last word lands at its end");
+  let prev = w.map(() => 0);
+  for (let k = 0; k <= 600; k++) {
+    const p = k / 1000;
+    const o = w.map((x) => revealAt(p, x));
+    for (let j = 0; j < o.length; j++) {
+      assert.ok(o[j] >= prev[j], "a word never dims once it has appeared");
+      if (j > 0) assert.ok(o[j] <= o[j - 1], "a later word is never ahead of an earlier one");
+    }
+    prev = o;
+  }
+  assert.ok(w.every((x) => revealAt(0.19, x) === 0), "all words start at opacity 0");
+  assert.ok(w.every((x) => revealAt(0.5, x) === 1), "all words end at opacity 1");
+  assert.deepEqual(wordWindows([[0, 1], [1, 2]], [0, 1]), [[], [[1, 2]]]);
+});
+
+test("story: easings run 0 to 1 and never step back", () => {
+  for (const ease of [easeEnter, easeExit]) {
+    assert.equal(ease(0), 0);
+    assert.equal(ease(1), 1);
+    let last = 0;
+    for (let k = 1; k <= 100; k++) {
+      const v = ease(k / 100);
+      assert.ok(v >= last - 1e-9, "monotonic");
+      last = v;
+    }
+  }
+  assert.ok(easeEnter(0.3) > 0.7, "ease-out: most of the move happens early");
+  assert.ok(easeExit(0.3) < 0.2, "ease-in: a leaving beat starts slowly");
+});
+
+test("story: the zigzag alternates sides and every exit leaves toward its corner", () => {
+  const z = zigzag(4);
+  assert.deepEqual(z.map((s) => s.text), ["start", "end", "start", "end"]);
+  for (const [i, slot] of z.entries()) {
+    assert.notEqual(slot.text, slot.visual, "text and picture sit on opposite sides");
+    if (i > 0) {
+      assert.notEqual(slot.text, z[i - 1].text, "the text changes sides from beat to beat");
+      assert.notEqual(slot.visual, z[i - 1].visual, "so does the picture");
+    }
+  }
+  const tl = zigzagDrift("start", "top");
+  const br = zigzagDrift("end", "bottom");
+  assert.ok(tl.enter.x < 0 && tl.exit.x < 0 && tl.exit.y < 0, "top left comes from the left, leaves up and left");
+  assert.ok(br.enter.x > 0 && br.exit.x > 0 && br.exit.y > 0, "bottom right comes from the right, leaves down and right");
 });
 
 test("story: beatPhase maps progress to enter, hold and exit", () => {
   const [first, , last] = beatRanges(3);
   assert.deepEqual(beatPhase(0, first), { phase: "enter", t: 0 });
   assert.equal(beatPhase(0.05, first).phase, "enter");
-  assert.ok(Math.abs(beatPhase(0.0583335, first).t - 0.5) < 1e-3, "half way through the enter");
+  assert.ok(Math.abs(beatPhase(0.05, first).t - 0.5) < 1e-3, "half way through the enter");
   assert.equal(beatPhase(0.2, first).phase, "hold");
   assert.equal(beatPhase(0.3, first).phase, "exit");
   assert.deepEqual(beatPhase(0.5, first), { phase: "after", t: 1 });
@@ -47,7 +149,7 @@ test("story: beatPhase maps progress to enter, hold and exit", () => {
 
 test("story: one beat is active at a time, and each anchor lands in its own hold", () => {
   const r = beatRanges(3);
-  assert.deepEqual([0, 0.2, 0.34, 0.5, 0.7, 1].map((p) => activeBeat(p, r)), [0, 0, 1, 1, 2, 2]);
+  assert.deepEqual([0, 0.2, 0.33, 0.35, 0.5, 0.7, 1].map((p) => activeBeat(p, r)), [0, 0, 0, 1, 1, 2, 2]);
   for (const [i, range] of r.entries()) {
     const p = beatAnchorProgress(range);
     assert.equal(activeBeat(p, r), i);
@@ -60,11 +162,16 @@ test("story: eyebrow, then title, then body, the visual plays through the hold",
     const [a, b, c] = range;
     const p = beatParts(range);
     assert.ok(p.rule[0] === a && p.rule[0] <= p.eyebrow[0], "the rule draws first");
+    assert.ok(p.rule[1] <= p.eyebrow[0], "the label waits for the rule to finish drawing");
     assert.ok(p.eyebrow[0] < p.title[0] && p.title[0] < p.body[0], "eyebrow < title < body");
     assert.ok(p.eyebrow[1] <= b && p.title[1] <= b, "eyebrow and title are in by the hold");
-    assert.ok(p.body[1] > b && p.body[1] < c, "the body finishes brightening inside the hold");
+    assert.ok(p.body[1] > b && p.body[1] <= beatAnchorProgress(range), "the body has appeared by the anchor");
+    const five = beatParts(range, 5).body;
+    const share = (five[1] - five[0]) / 5 / (1 / 3);
+    assert.ok(share >= 0.04 && share <= 0.06, `about one phrase per 5% of the beat (${share})`);
     assert.ok(p.visual[0] > a && p.visual[1] === b, "the visual rises during the enter");
     assert.ok(p.timeline[0] < b && p.timeline[1] < c, "the visual timeline ends before the exit");
+    assert.equal(p.timeline[0], p.title[1], "the picture plays once the title has landed");
   }
   assert.deepEqual(splitWindow([0.2, 0.6], 4), [[0.2, 0.3], [0.3, 0.4], [0.4, 0.5], [0.5, 0.6]]);
 });

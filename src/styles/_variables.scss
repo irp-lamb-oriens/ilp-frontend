@@ -77,6 +77,8 @@ $color-on-navy-hover: rgba(255, 255, 255, 0.08);
 // Interaction
 $touch-target: 44px;
 $ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+// Scroll-driven exits only (a pinned story beat leaving). Mirrors EASE_IN_EXIT.
+$ease-in-exit: cubic-bezier(0.4, 0, 1, 1);
 $duration-press: 160ms;
 $duration-fast: 200ms;
 $duration-drawer: 280ms;
