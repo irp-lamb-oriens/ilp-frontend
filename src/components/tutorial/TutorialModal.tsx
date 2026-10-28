@@ -3,7 +3,16 @@
 /**
  * The walkthrough modal, on the kit Dialog (focus trap, Esc, aria-modal,
  * labelled by the step title). A centred card on desktop, a bottom sheet on
- * phones. ← / → move between steps (while the demo is paused they step
+ * phones.
+ *
+ * - Header: the tutorial's name and "Step 2 of 4" above the step title, and a
+ *   close button.
+ * - Body: the demo with its control bar (PlayerControls), the step text, and
+ *   "What happens here".
+ * - Footer: "Don't show again" and the step navigation (StepNav): previous
+ *   step, labelled step segments, next step (Done on the last step).
+ *
+ * Keys: ← / → move between steps (while the demo is paused they step
  * between its actions first); Enter goes on when focus is not on a control.
  * Captions offer a glossary meaning the first time a word appears in the
  * tutorial. The scene's cursor actions are also written out for screen
@@ -13,8 +22,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/Button";
 import { Checkbox } from "../ui/Checkbox";
 import { Dialog } from "../ui/Dialog";
-import { cx } from "../ui/cx";
 import type { ActiveTutorial, CloseReason } from "./context";
+import { StepNav } from "./PlayerControls";
 import { ScenePlayer } from "./ScenePlayer";
 import { describeScene, firstUseTerms } from "./sceneUtils";
 import s from "./TutorialModal.module.scss";
@@ -39,7 +48,7 @@ function tourTargetExists(target: string | undefined): boolean {
   }
 }
 
-const CONTROL = "input, textarea, select, button, a[href], [contenteditable='true']";
+const CONTROL = "input, textarea, select, button, a[href], [contenteditable='true'], [role='radio']";
 
 export function TutorialModal({ active, hidden = false, onNext, onBack, onClose, onSpotlight }: TutorialModalProps) {
   const { tutorial, step } = active;
@@ -50,6 +59,8 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
   const [targetHere, setTargetHere] = useState(false);
   const description = st.describe ?? describeScene(st.scene);
   const newTerms = useMemo(() => firstUseTerms(steps), [steps]);
+  const titles = useMemo(() => steps.map((x) => x.title), [steps]);
+  const many = steps.length > 1;
 
   useEffect(() => {
     setTargetHere(tourTargetExists(st.target));
@@ -61,10 +72,11 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
       const el = e.target as HTMLElement | null;
       const onControl = !!el?.closest?.(CONTROL);
-      if (e.key === "ArrowRight" && !el?.closest?.("input, textarea, select")) {
+      const inField = !!el?.closest?.("input, textarea, select, [role='radiogroup']");
+      if (e.key === "ArrowRight" && !inField) {
         e.preventDefault();
         if (!last) onNext();
-      } else if (e.key === "ArrowLeft" && !el?.closest?.("input, textarea, select")) {
+      } else if (e.key === "ArrowLeft" && !inField) {
         e.preventDefault();
         onBack();
       } else if (e.key === "Enter" && !onControl) {
@@ -77,53 +89,43 @@ export function TutorialModal({ active, hidden = false, onNext, onBack, onClose,
     return () => window.removeEventListener("keydown", onKey);
   }, [hidden, last, onNext, onBack, onClose, dontShow]);
 
+  const close = () => onClose(last ? "done" : "skip", dontShow);
+  const eyebrow = active.adhoc ? (many ? `Step ${step + 1} of ${steps.length}` : undefined) : `${tutorial.title} · Step ${step + 1} of ${steps.length}`;
+
   return (
     <Dialog
       open={!hidden}
       size="lg"
-      onClose={() => onClose(last ? "done" : "skip", dontShow)}
+      onClose={close}
       title={st.title}
+      eyebrow={eyebrow}
+      closeLabel={last ? "Close" : "Close the tutorial"}
       footer={
         <div className={s.footer}>
-          <Button variant="ghost" onClick={() => onClose(last ? "done" : "skip", dontShow)}>
-            {last ? "Close" : "Skip tutorial"}
-          </Button>
-          <div className={s.nav}>
-            {targetHere && st.target && (
-              <Button variant="secondary" onClick={() => onSpotlight(st.target as string)}>
-                Show me on this page
-              </Button>
-            )}
-            <Button variant="secondary" onClick={onBack} disabled={step === 0}>
-              Back
-            </Button>
-            <Button data-autofocus="" onClick={() => (last ? onClose("done", dontShow) : onNext())}>
-              {last ? "Done" : "Next"}
-            </Button>
-          </div>
+          {!active.adhoc && <Checkbox label="Don't show again" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />}
+          <StepNav
+            className={s.nav}
+            index={step}
+            count={steps.length}
+            titles={titles}
+            onPrev={onBack}
+            onNext={() => (last ? onClose("done", dontShow) : onNext())}
+            lastLabel="Done"
+            primaryNext
+            extra={
+              targetHere && st.target ? (
+                <Button variant="secondary" onClick={() => onSpotlight(st.target as string)}>
+                  Show me on this page
+                </Button>
+              ) : undefined
+            }
+          />
         </div>
       }
     >
-      {!active.adhoc && (
-        <p className={s.kicker}>
-          {tutorial.title}
-          <span className={s.count}>
-            {" "}
-            · Step {step + 1} of {steps.length}
-          </span>
-        </p>
-      )}
-      <ScenePlayer key={`${tutorial.id}:${st.id}`} scene={st.scene} className={s.scene} keys newTerms={newTerms[step]} />
+      <ScenePlayer key={`${tutorial.id}:${st.id}`} scene={st.scene} className={s.scene} keys newTerms={newTerms[step]} step={{ index: step, count: steps.length }} />
       {st.body && <p className={s.body}>{st.body}</p>}
       {description && <p className={s.sr}>{description}</p>}
-      <div className={s.meta}>
-        <ol className={s.dots} aria-hidden="true">
-          {steps.map((x, i) => (
-            <li key={x.id} className={cx(s.dot, i === step && s.dotOn, i < step && s.dotDone)} />
-          ))}
-        </ol>
-        {!active.adhoc && <Checkbox label="Don't show again" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />}
-      </div>
       <p className={s.sr} aria-live="polite" aria-atomic="true">
         Step {step + 1} of {steps.length}: {st.title}
       </p>

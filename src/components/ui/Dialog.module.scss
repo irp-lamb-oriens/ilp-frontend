@@ -75,6 +75,66 @@
   }
 }
 
+// Title row with an eyebrow above and a close button on the right.
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: $space-3;
+  margin-top: -$space-2;
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding-top: $space-2;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.close {
+  @include focus-ring;
+  display: inline-grid;
+  place-items: center;
+  width: $touch-target;
+  height: $touch-target;
+  margin-right: -$space-2;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-pill;
+  background: transparent;
+  color: $color-steel;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong, background-color $duration-press ease;
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  @include hover-only {
+    &:hover {
+      background: $color-mist;
+      color: $color-navy;
+    }
+  }
+
+  @include reduced-motion {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
 .title {
   margin: 0;
   font-size: 1.25rem;

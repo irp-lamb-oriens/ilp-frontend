@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cx } from "./cx";
+import { IconClose } from "./icons";
 import s from "./Dialog.module.scss";
 
 export interface DialogProps {
@@ -22,6 +23,10 @@ export interface DialogProps {
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   /** "lg" widens the panel for richer content (tutorials). Default "md". */
   size?: "md" | "lg";
+  /** Small line above the title (the tutorial's name and step). */
+  eyebrow?: ReactNode;
+  /** Adds a close button (×) beside the title with this accessible name; it calls onClose. */
+  closeLabel?: string;
 }
 
 const FOCUSABLE =
@@ -33,7 +38,7 @@ const EXIT_MS = 200;
  * Focus is trapped while open and returns to the element that opened it;
  * Esc and the scrim call onClose. Fades and scales with opacity/transform only.
  */
-export function Dialog({ open, onClose, title, children, footer, role = "dialog", initialFocusRef, size = "md" }: DialogProps) {
+export function Dialog({ open, onClose, title, children, footer, role = "dialog", initialFocusRef, size = "md", eyebrow, closeLabel }: DialogProps) {
   const titleId = useId();
   const bodyId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -114,9 +119,25 @@ export function Dialog({ open, onClose, title, children, footer, role = "dialog"
         aria-describedby={children ? bodyId : undefined}
         tabIndex={-1}
       >
-        <h2 id={titleId} className={s.title}>
-          {title}
-        </h2>
+        {eyebrow || closeLabel ? (
+          <div className={s.head}>
+            <div className={s.headText}>
+              {eyebrow && <p className={s.eyebrow}>{eyebrow}</p>}
+              <h2 id={titleId} className={s.title}>
+                {title}
+              </h2>
+            </div>
+            {closeLabel && (
+              <button type="button" className={s.close} aria-label={closeLabel} onClick={onClose}>
+                <IconClose />
+              </button>
+            )}
+          </div>
+        ) : (
+          <h2 id={titleId} className={s.title}>
+            {title}
+          </h2>
+        )}
         {children && (
           <div id={bodyId} className={s.body}>
             {children}
