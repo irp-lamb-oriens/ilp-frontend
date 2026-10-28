@@ -34,7 +34,7 @@ const calls = list(
       title: `${M.hiroshi} · Next`,
       meta: "S.A. clean-up before sale · Profile 82%",
       quote: "Can I sell the house before the S.A. books are fixed?",
-      pills: [p("Recording allowed", "success"), p("Brief →", "info")],
+      pills: [p("Recording allowed", "success"), p("Open brief", "info")],
     },
     {
       id: "c2",
@@ -45,7 +45,7 @@ const calls = list(
       quote: "My DIMEX expires in March. What do I start now?",
       pills: [p("Consent pending", "warning")],
     },
-    { id: "c3", lead: "8:00", leadMeta: "20 min", title: M.priya, meta: "Property purchase review · Profile 90%", pills: [p("Suggested — confirm", "warning")] },
+    { id: "c3", lead: "8:00", leadMeta: "20 min", title: M.priya, meta: "Property purchase review · Profile 90%", pills: [p("Suggested: check it", "warning")] },
   ],
   "rows",
   "calls",
@@ -82,7 +82,7 @@ function page() {
 
 export const lawyerToday: Tutorial = {
   id: "lawyer.today",
-  version: 2,
+  version: 3,
   title: "Today",
   summary: "Your calls today and what each one needs from you.",
   audience: ["lawyer"],
@@ -105,7 +105,7 @@ export const lawyerToday: Tutorial = {
       "The labels on each call tell you what to do before or after it: ask about recording, or check a summary that waits for you.",
       scene(page(), [
         say(hover("c2", [mark("c2")]), "Consent pending", "The member has not said yet whether the call may be recorded. Ask at the start, before you record.", ["recordingConsent"]),
-        say(hover("c3", [mark("c2", false), mark("c3")]), "Suggested — confirm", "A computer drafted a summary of this call. It counts only after you check and confirm it.", ["aiSummary"]),
+        say(hover("c3", [mark("c2", false), mark("c3")]), "Suggested: check it", "A computer drafted a summary of this call. It counts only after you check and confirm it.", ["aiSummary"]),
       ]),
     ),
     step(

@@ -33,7 +33,7 @@ const rows = table(
   ["Member", "Matter", "Stage", "Deadlines", "Next call"],
   [
     { id: "r1", cells: [M.hiroshi, "S.A. clean-up · Corporate", pill("Legal Review"), pill("1 due soon", "warning"), `Today 9:30`] },
-    { id: "r2", cells: [M.omar, "Property transfer · Property", pill("Legal Review"), pill("1 overdue", "danger"), "—"] },
+    { id: "r2", cells: [M.omar, "Property transfer · Property", pill("Legal Review"), pill("1 overdue", "danger"), "None booked"] },
     { id: "r3", cells: [M.chloe, "Will and estate plan · Family", pill("Quote Sent"), "None due", dateIn(6)] },
     { id: "r4", cells: [M.dmitri, "Residency application · Immigration", pill("Intake"), "None due", dateIn(2)] },
   ],
@@ -83,7 +83,7 @@ function page() {
 
 export const lawyerClients: Tutorial = {
   id: "lawyer.clients",
-  version: 2,
+  version: 3,
   title: "Clients",
   summary: "Every member assigned to you, with their matters and legal dates.",
   audience: ["lawyer"],

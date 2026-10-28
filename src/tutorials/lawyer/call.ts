@@ -70,9 +70,9 @@ const panel = stack(
       { id: "transcript" },
     ),
     card(
-      "Summary",
+      "Summary for the member",
       [
-        row([btn("Draft summary", "secondary", "draft", "sm"), hidden(pill("Suggested — confirm", "warning", "suggested"))], "start"),
+        row([btn("Draft summary", "secondary", "draft", "sm"), hidden(pill("Suggested: check it", "warning", "suggested"))], "start"),
         input(undefined, { multiline: true, placeholder: "What was discussed and what you concluded, in plain words for the member.", id: "summary" }),
         text("What needs to happen", "label"),
         list(
@@ -93,7 +93,7 @@ const panel = stack(
 );
 
 function page() {
-  return mockShell("lawyer", "Today", stack([row([text("Today", "meta"), text("›", "meta"), text(`${M.hiroshi}, 9:30`, "meta")], "start", 1), grid("1-1", [brief, panel])]), {
+  return mockShell("lawyer", "Today", stack([row([text("Back to Today", "meta"), text(`${M.hiroshi}, 9:30`, "meta")], "start", 1), grid("1-1", [brief, panel])]), {
     overlays: [toast("toast", "Summary confirmed and handed off")],
   });
 }
@@ -102,7 +102,7 @@ const SUMMARY = "You can sell once the S.A. books are updated. Send the books; I
 
 export const lawyerCall: Tutorial = {
   id: "lawyer.call",
-  version: 2,
+  version: 3,
   title: "Call page",
   summary: "Brief, recording consent, transcript, summary and handoff for one call.",
   audience: ["lawyer"],
@@ -125,7 +125,7 @@ export const lawyerCall: Tutorial = {
       "ILP records a call only when the member agrees. Ask at the start of the call and note their answer here.",
       scene(page(), [
         say(hover("rec"), "Start recording", "Locked until the member says yes. This protects the member and you."),
-        say(click("agree", [show("consent_ok"), set("agree", { variant: "primary" })]), "Member agreed", "Press this when the member says yes, and recording unlocks. If they say no, press Member declined and take your own notes.", ["recordingConsent"]),
+        say(click("agree", [show("consent_ok"), set("agree", { variant: "primary" })]), "Member agreed", "Press this when the member says yes. Start recording then works. If they say no, press Member declined and take your own notes.", ["recordingConsent"]),
         say(click("rec", [set("rec", { label: "Recording" })]), "Start recording", "Starts recording the call. The recording is used to make a written transcript."),
       ]),
     ),

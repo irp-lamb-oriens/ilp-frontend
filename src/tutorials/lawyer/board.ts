@@ -53,9 +53,9 @@ const cards = board(
 const listView = table(
   ["Member", "Matter", "Stage", "In stage", "Next call"],
   [
-    { id: "l1", cells: [M.omar, "Property transfer", pill("Legal Review"), pill("Overdue · 16 days in stage", "danger"), "—"] },
+    { id: "l1", cells: [M.omar, "Property transfer", pill("Legal Review"), pill("Overdue · 16 days in stage", "danger"), "None booked"] },
     { id: "l2", cells: [M.hiroshi, "S.A. clean-up", pill("Legal Review"), pill("Warn · 8 days in stage", "warning"), "Today 9:30"] },
-    { id: "l3", cells: [M.chloe, "Will and estate plan", pill("Quote Sent"), "3 days", "—"] },
+    { id: "l3", cells: [M.chloe, "Will and estate plan", pill("Quote Sent"), "3 days", "None booked"] },
   ],
   "list",
 );
@@ -82,7 +82,7 @@ function page() {
 
 export const lawyerBoard: Tutorial = {
   id: "lawyer.board",
-  version: 2,
+  version: 3,
   title: "Board",
   summary: "Your matters by stage, and what has waited too long.",
   audience: ["lawyer"],
@@ -111,7 +111,7 @@ export const lawyerBoard: Tutorial = {
     step(
       "keyboard",
       "Or use Move to…",
-      "Move to… does the same without dragging, and it works with the keyboard: arrow keys to pick a stage, Enter to move.",
+      "The Move to menu does the same without dragging, and it works with the keyboard: arrow keys to pick a stage, Enter to move.",
       scene(page(), [
         say(click("moveto", [open("menu")]), "Move to…", "Opens a short list of stages. Handy when dragging is hard, or when you use the keyboard."),
         say(click("mi_filing", [shut("menu"), { id: "k3", moveTo: "c_filing" }]), "Filing", "Moves the card to Filing. The result is the same as dragging it."),
