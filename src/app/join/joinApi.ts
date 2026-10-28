@@ -7,23 +7,19 @@
  */
 
 import { API_URL, ApiError } from "@/lib/api";
-import { PLAN_STANDARD, type LeadFinding } from "@/lib/contracts";
+import { type CountryCode, PLAN_STANDARD, type LeadFinding } from "@/lib/contracts";
 import type { JoinConsent } from "@/components/legal/consentApi";
 
+/** COUNTRIES: the country plus that country's question keys (GET /api/countries/:code/questions). */
 export type CheckAnswers = {
-  country: "CR";
-  residencyStatus?: "resident" | "applying" | "visitor" | "unsure";
-  residencyExpiresAt?: string;
-  lastEntryDate?: string;
-  ownsProperty?: boolean;
-  propertyLocation?: string;
-  companyType?: "SA" | "SRL" | "none" | "unsure";
-  ownsVehicle?: boolean;
-  hasEmployees?: boolean;
+  country: CountryCode;
+  [key: string]: string | string[];
 };
 
 export interface CheckFinding extends LeadFinding {
   meaning: string;
+  authority?: string;
+  reviewedByCounsel?: boolean;
 }
 
 export type PaymentsMode = "stripe" | "manual";

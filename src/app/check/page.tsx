@@ -8,6 +8,11 @@ import FunnelHeader from "./FunnelHeader";
 import { Notice, PageIntro, Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
 import { TutorialEmbed } from "@/components/tutorial";
 import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
+import { COUNTRIES, type CountryCode, isCountryCode } from "@/lib/contracts";
+import { type CountryAnswers, type CountryQuestion, DEFAULT_WHY, questionShown, visibleAnswers } from "@/lib/countryQuestions";
+import { useCountryQuestions } from "@/components/countries/useCountryQuestions";
+import { setCountryContext } from "@/lib/countryContext";
+import { LEGAL_COUNTRY_OPTIONS } from "@/components/join/joinModel";
 import {
   type CheckAnswers,
   type CheckFinding,
@@ -19,160 +24,23 @@ import {
 } from "@/app/join/joinApi";
 import s from "./funnel.module.scss";
 
-type Option<V> = { value: V; label: string; hint?: string };
-type ChoiceStep = {
-  id: string;
-  kind: "choice";
-  question: string;
-  /** One line: why we ask this question. */
-  why: string;
-  /** A plain hint: what counts, where to find it. */
-  help?: string;
-  options: Option<string | boolean>[];
-  apply: (a: CheckAnswers, v: string | boolean) => CheckAnswers;
-  selected: (a: CheckAnswers) => string | boolean | undefined;
-  show?: (a: CheckAnswers) => boolean;
-};
-type DateStep = {
-  id: string;
-  kind: "date";
-  question: string;
-  why: string;
-  help?: string;
-  label: string;
-  field: "residencyExpiresAt" | "lastEntryDate";
-  show: (a: CheckAnswers) => boolean;
-};
-type Step = ChoiceStep | DateStep;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-const YES_NO: Option<boolean>[] = [
-  { value: true, label: "Yes" },
-  { value: false, label: "No" },
-];
-
-const PROVINCES = ["Guanacaste", "San José", "Alajuela", "Heredia", "Cartago", "Puntarenas", "Limón"];
-
-// Every question feeds a rule in the country catalog (server CHECK_RULES).
-const STEPS: Step[] = [
-  {
-    id: "country",
-    kind: "choice",
-    question: "Which country is this about?",
-    why: "Each country has its own legal dates, so we start here.",
-    help: "The free check covers Costa Rica today. Panama and Mexico are planned after Costa Rica.",
-    options: [{ value: "CR", label: "Costa Rica" }],
-    apply: (a) => ({ ...a, country: "CR" }),
-    selected: (a) => a.country,
-  },
-  {
-    id: "residency",
-    kind: "choice",
-    question: "What is your residency status in Costa Rica?",
-    why: "Residents have a card to renew and monthly Caja payments. Visitors have a limit on how long they can stay.",
-    options: [
-      { value: "resident", label: "I am a resident", hint: "I have a DIMEX card." },
-      { value: "applying", label: "My application is in progress", hint: "I applied and I am waiting for an answer." },
-      { value: "visitor", label: "I visit as a tourist", hint: "I enter with my passport and no residency." },
-      { value: "unsure", label: "I am not sure" },
-    ],
-    apply: (a, v) => {
-      const next: CheckAnswers = { ...a, residencyStatus: v as CheckAnswers["residencyStatus"] };
-      if (v !== "resident") delete next.residencyExpiresAt;
-      if (v !== "visitor") delete next.lastEntryDate;
-      return next;
-    },
-    selected: (a) => a.residencyStatus,
-  },
-  {
-    id: "residencyDate",
-    kind: "date",
-    field: "residencyExpiresAt",
-    label: "Expiry date",
-    question: "When does your DIMEX card expire?",
-    why: "Renewals are usually filed in the three months before the card expires, so we date that window from it.",
-    help: "It is printed on the front of the card. Skip this if you do not have it at hand.",
-    show: (a) => a.residencyStatus === "resident",
-  },
-  {
-    id: "entryDate",
-    kind: "date",
-    field: "lastEntryDate",
-    label: "Entry date",
-    question: "When did you last enter Costa Rica?",
-    why: "A tourist stay is counted from the day you enter, up to 180 days.",
-    help: "The date on your most recent entry stamp. Skip this if you are not sure.",
-    show: (a) => a.residencyStatus === "visitor",
-  },
-  {
-    id: "property",
-    kind: "choice",
-    question: "Do you own property in Costa Rica?",
-    why: "Property owners pay a yearly municipal tax, usually in quarterly installments.",
-    help: "A house, condo or land, in your own name or through a company.",
-    options: YES_NO,
-    apply: (a, v) => {
-      const next = { ...a, ownsProperty: v as boolean };
-      if (!v) delete next.propertyLocation;
-      return next;
-    },
-    selected: (a) => a.ownsProperty,
-  },
-  {
-    id: "propertyLocation",
-    kind: "choice",
-    question: "Which province is it in?",
-    why: "The tax is paid to the local municipality, and your lawyer will want to know which one.",
-    help: "If you own more than one, choose the main one.",
-    options: PROVINCES.map((p) => ({ value: p, label: p })),
-    apply: (a, v) => ({ ...a, propertyLocation: v as string }),
-    selected: (a) => a.propertyLocation,
-    show: (a) => a.ownsProperty === true,
-  },
-  {
-    id: "company",
-    kind: "choice",
-    question: "Do you have a Costa Rican company?",
-    why: "Companies have a yearly tax and a yearly ownership declaration, even when they do no business.",
-    help: "Many people hold a house or a car through an S.A. or an S.R.L.",
-    options: [
-      { value: "SA", label: "Yes, a sociedad anónima (S.A.)" },
-      { value: "SRL", label: "Yes, a limitada (S.R.L.)" },
-      { value: "none", label: "No" },
-      { value: "unsure", label: "I am not sure" },
-    ],
-    apply: (a, v) => ({ ...a, companyType: v as CheckAnswers["companyType"] }),
-    selected: (a) => a.companyType,
-  },
-  {
-    id: "vehicle",
-    kind: "choice",
-    question: "Do you own a car or motorcycle registered in Costa Rica?",
-    why: "Every vehicle needs a yearly circulation permit, the marchamo, paid by December 31.",
-    help: "Count a vehicle in your own name or in your company's name.",
-    options: YES_NO,
-    apply: (a, v) => ({ ...a, ownsVehicle: v as boolean }),
-    selected: (a) => a.ownsVehicle,
-  },
-  {
-    id: "employees",
-    kind: "choice",
-    question: "Does anyone work for you in Costa Rica?",
-    why: "Employers, including households, usually pay monthly Caja contributions and a year-end bonus.",
-    help: "Including a housekeeper, gardener, caretaker or driver, even part time.",
-    options: YES_NO,
-    apply: (a, v) => ({ ...a, hasEmployees: v as boolean }),
-    selected: (a) => a.hasEmployees,
-  },
-];
+/** The country question, then that country's questions from the research (server API/countries/rules). */
+type Step = { kind: "country" } | { kind: "question"; q: CountryQuestion };
 
 const AREA_LABELS: Record<string, string> = {
-  immigration: "Residency",
+  immigration: "Residency and visas",
   property: "Property",
-  corporate: "Your corporation",
+  corporate: "Your company",
+  tax: "Taxes",
   vehicle: "Vehicle",
   employment: "People who work for you",
+  estate: "Family and estate",
+  identity: "IDs and registrations",
+  cross_border: "Home-country filings",
 };
-const AREA_ORDER = ["immigration", "property", "corporate", "vehicle", "employment"];
+const AREA_ORDER = ["immigration", "property", "corporate", "tax", "vehicle", "employment", "estate", "identity", "cross_border"];
 
 function groupFindings(findings: CheckFinding[]) {
   const by = new Map<string, CheckFinding[]>();
@@ -180,24 +48,53 @@ function groupFindings(findings: CheckFinding[]) {
   return [...by.entries()].sort((a, b) => AREA_ORDER.indexOf(a[0]) - AREA_ORDER.indexOf(b[0]));
 }
 
+/** The date line of a finding: a window, one date, or "ask your lawyer" for a low-confidence date. */
+function dateLine(f: CheckFinding): string {
+  if (!f.dueAt) return "No fixed date";
+  if (f.confidence === "low") return "Ask your lawyer to confirm this date";
+  if (f.windowStartAt && f.windowStartAt.slice(0, 10) < f.dueAt.slice(0, 10)) return `Between ${longDate(f.windowStartAt)} and ${longDate(f.dueAt)}`;
+  return longDate(f.dueAt);
+}
+
 export default function CheckPage() {
   const reduce = useReducedMotion();
-  const [answers, setAnswers] = useState<CheckAnswers>({ country: "CR" });
+  const [country, setCountry] = useState<CountryCode | "">("");
+  const [answers, setAnswers] = useState<CountryAnswers>({});
   const [index, setIndex] = useState(0);
   const [findings, setFindings] = useState<CheckFinding[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dateDraft, setDateDraft] = useState("");
+  const [multiDraft, setMultiDraft] = useState<string[]>([]);
   const [email, setEmail] = useState("");
   const [emailState, setEmailState] = useState<"idle" | "saving" | "saved">("idle");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [leadId, setLeadId] = useState<string | undefined>();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const { questions, error: loadError, retry } = useCountryQuestions(country || null, "check");
   // While the dates are computed, the results page's placeholder replaces the last question.
   const sk = useSkeleton(busy);
+  const countryName = country ? COUNTRIES[country].name : "";
 
-  const visible = useMemo(() => STEPS.filter((st) => !("show" in st) || !st.show || st.show(answers)), [answers]);
-  const step = visible[Math.min(index, visible.length - 1)];
+  // A country page or the country switcher can open the check with ?country=XX: start on its first question.
+  useEffect(() => {
+    try {
+      const code = new URLSearchParams(window.location.search).get("country")?.toUpperCase() ?? "";
+      if (isCountryCode(code)) {
+        setCountry(code);
+        setIndex(1);
+      }
+    } catch {
+      // no query string
+    }
+  }, []);
+
+  const steps = useMemo<Step[]>(
+    () => [{ kind: "country" }, ...(questions ?? []).filter((q) => questionShown(q, answers)).map((q) => ({ kind: "question" as const, q }))],
+    [questions, answers],
+  );
+  const loadingQuestions = !!country && questions === null && !loadError;
+  const step = steps[Math.min(index, steps.length - 1)];
   const done = findings !== null;
 
   // P2 funnel: the visitor opened the check.
@@ -215,20 +112,26 @@ export default function CheckPage() {
       return;
     }
     headingRef.current?.focus();
-  }, [index, done]);
+  }, [index, done, loadingQuestions]);
 
+  const stepKey = step?.kind === "question" ? step.q.key : "country";
   useEffect(() => {
-    if (step?.kind === "date") setDateDraft((answers[step.field] as string | undefined) ?? "");
+    if (step?.kind !== "question") return;
+    const v = answers[step.q.key];
+    if (step.q.type === "date") setDateDraft(typeof v === "string" ? v : "");
+    if (step.q.type === "multi") setMultiDraft(Array.isArray(v) ? v : []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step?.id]);
+  }, [stepKey]);
 
-  async function finish(final: CheckAnswers) {
+  async function finish(final: CountryAnswers) {
+    if (!country) return;
     setBusy(true);
     setError(null);
     try {
-      const res = await runCheck(final);
+      const body: CheckAnswers = { country, ...final };
+      const res = await runCheck(body);
       setFindings(res.findings);
-      saveCheck({ answers: final, findings: res.findings });
+      saveCheck({ answers: body, findings: res.findings });
       trackFunnel("check_completed");
       window.scrollTo({ top: 0 });
     } catch (err) {
@@ -238,12 +141,25 @@ export default function CheckPage() {
     }
   }
 
-  function advance(next: CheckAnswers) {
+  /** Save an answer (or remove it with undefined) and go to the next shown question, or finish. */
+  function answer(key: string, value: string | string[] | undefined) {
+    const raw = { ...answers };
+    if (value === undefined || (Array.isArray(value) && !value.length)) delete raw[key];
+    else raw[key] = value;
+    const next = visibleAnswers(questions ?? [], raw);
     setAnswers(next);
-    const nextVisible = STEPS.filter((st) => !("show" in st) || !st.show || st.show(next));
-    const pos = nextVisible.findIndex((st) => st.id === step.id);
-    if (pos + 1 >= nextVisible.length) void finish(next);
-    else setIndex(pos + 1);
+    const nextSteps = (questions ?? []).filter((q) => questionShown(q, next));
+    const pos = nextSteps.findIndex((q) => q.key === key);
+    if (pos + 1 >= nextSteps.length) void finish(next);
+    else setIndex(pos + 2); // + the country step
+  }
+
+  function chooseCountry(code: string) {
+    if (!isCountryCode(code)) return;
+    if (code !== country) setAnswers({});
+    setCountry(code);
+    setCountryContext(code);
+    setIndex(1);
   }
 
   function back() {
@@ -258,11 +174,13 @@ export default function CheckPage() {
       setEmailError("Enter a valid email address.");
       return;
     }
+    if (!country) return;
     setEmailState("saving");
     try {
-      const res = await runCheck(answers, clean);
+      const body: CheckAnswers = { country, ...answers };
+      const res = await runCheck(body, clean);
       setLeadId(res.leadId);
-      saveCheck({ answers, findings: res.findings, email: clean, leadId: res.leadId });
+      saveCheck({ answers: body, findings: res.findings, email: clean, leadId: res.leadId });
       trackFunnel("check_email_given", { leadId: res.leadId });
       setEmailState("saved");
     } catch (err) {
@@ -289,7 +207,9 @@ export default function CheckPage() {
   }
 
   if (done) {
-    const groups = groupFindings(findings);
+    const dated = findings.filter((f) => f.dueAt);
+    const undated = findings.filter((f) => !f.dueAt);
+    const groups = groupFindings(dated);
     const n = findings.length;
     return (
       <div className={s.page}>
@@ -298,16 +218,16 @@ export default function CheckPage() {
           <motion.section {...motionProps} aria-label="Your results" id="check-results">
             <PageIntro
               className={s.resultsIntro}
-              title={n ? `${n} ${n === 1 ? "date" : "dates"} that may apply to you` : "Nothing dated came up from your answers"}
+              title={n ? `${n} ${n === 1 ? "item" : "items"} that may apply to you in ${countryName}` : `Nothing came up from your answers for ${countryName}`}
               what={
                 n
-                  ? "A list of general dates in Costa Rica that may apply to you, based on your answers. Each one may require review by a lawyer. It is not legal advice."
-                  : "None of the yearly dates in the check matched your answers. Rules and dates change, so it is worth checking again once a year or when something changes."
+                  ? `A list of general dates and duties in ${countryName} that may apply to you, based on your answers. Each one may require review by a lawyer. It is not legal advice.`
+                  : "None of the items in the check matched your answers. Rules and dates change, so it is worth checking again once a year or when something changes."
               }
               how={[
-                n ? "Read each date and what it usually means." : "Check your answers if something looks wrong.",
+                n ? "Read each item, its date and what it usually means." : "Check your answers if something looks wrong.",
                 "Email the list to yourself, or join ILP.",
-                "As a member, a lawyer licensed in Costa Rica goes through them with you on a call, and your team reminds you before each date.",
+                `As a member, a lawyer licensed in ${countryName} goes through them with you on a call, and your team reminds you before each date.`,
               ]}
               labels={{ how: "What happens next" }}
               why="A missed date can bring late fees, interest or a lapsed status. Knowing the dates early gives you time to act."
@@ -319,16 +239,39 @@ export default function CheckPage() {
                 <ul className={s.findings}>
                   {items.map((f) => (
                     <li key={f.ruleId} className={s.finding}>
-                      <span className={s.findingDate}>{longDate(f.dueAt)}</span>
+                      <span className={s.findingDate}>{dateLine(f)}</span>
                       <h3 className={s.findingTitle}>{f.title}</h3>
                       <p className={s.findingMeaning}>
                         <span className={s.meaningLabel}>What this usually means:</span> {f.meaning}
                       </p>
+                      {f.confidence === "low" && f.dueText && <p className={s.findingMeaning}>{f.dueText}</p>}
                     </li>
                   ))}
                 </ul>
               </section>
             ))}
+
+            {undated.length > 0 && (
+              <section className={s.group} aria-labelledby="area-undated">
+                <h2 className={s.groupTitle} id="area-undated">No fixed date: worth knowing</h2>
+                <ul className={s.findings}>
+                  {undated.map((f) => (
+                    <li key={f.ruleId} className={s.finding}>
+                      <span className={s.findingDate}>{AREA_LABELS[f.area] ?? f.area}</span>
+                      <h3 className={s.findingTitle}>{f.title}</h3>
+                      <p className={s.findingMeaning}>
+                        <span className={s.meaningLabel}>What this usually means:</span> {f.meaning}
+                      </p>
+                      {f.dueText && (
+                        <p className={s.findingMeaning}>
+                          <span className={s.meaningLabel}>When:</span> {f.confidence === "low" ? `${f.dueText} Ask your lawyer to confirm this date.` : f.dueText}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             <Notice
               tone="neutral"
@@ -337,10 +280,10 @@ export default function CheckPage() {
               title={n ? "These dates may require review" : "General information only"}
               fix={{
                 steps: [
-                  "These are general dates based on your answers. They are not legal advice.",
+                  "These are general dates and duties based on your answers. They are not legal advice.",
                   "Some may not apply to you, or may have a different date in your case.",
+                  "Where our research was not certain, we say Ask your lawyer to confirm this date.",
                   "A lawyer can confirm which ones apply. ILP members get that on a call.",
-                  "Nothing is due from you on this page.",
                 ],
               }}
             >
@@ -352,7 +295,7 @@ export default function CheckPage() {
               <div className={s.cta}>
                 <h3 className={s.choiceHead}>Have a lawyer review this</h3>
                 <p className={s.ctaText}>
-                  Join ILP for {PRICE.monthly} a month plus a {PRICE.activation} activation fee. A lawyer licensed in Costa Rica goes
+                  Join ILP for {PRICE.monthly} a month plus a {PRICE.activation} activation fee. A lawyer licensed in {countryName} goes
                   through these dates with you on a call, and your team follows up on each one. Your answers are filled in for you.
                 </p>
                 <Link href={leadId ? "/join?from=check" : "/join"} className={`${s.primary} ${s.primaryWide}`}>
@@ -403,15 +346,26 @@ export default function CheckPage() {
                 className={s.linkButton}
                 onClick={() => {
                   setFindings(null);
-                  setIndex(0);
+                  setIndex(1);
                   setEmailState("idle");
                 }}
               >
                 Change my answers
               </button>
+              <button
+                type="button"
+                className={s.linkButton}
+                onClick={() => {
+                  setFindings(null);
+                  setIndex(0);
+                  setEmailState("idle");
+                }}
+              >
+                Check another country
+              </button>
             </div>
             <p className={s.fine}>
-              ILP is a membership service that connects you with vetted, independent lawyers licensed in Costa Rica.
+              ILP is a membership service that connects you with vetted, independent lawyers licensed in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain.
             </p>
           </motion.section>
         </main>
@@ -419,8 +373,8 @@ export default function CheckPage() {
     );
   }
 
-  const position = visible.findIndex((st) => st.id === step.id);
-  const total = visible.length;
+  const total = loadingQuestions || !questions ? null : steps.length;
+  const position = Math.min(index, steps.length - 1);
 
   return (
     <div className={s.page}>
@@ -428,86 +382,137 @@ export default function CheckPage() {
       <main className={s.main}>
         <div className={s.progress}>
           <span className={s.progressLabel} aria-live="polite">
-            Question {position + 1} of {total}
+            {total ? `Question ${position + 1} of ${total}` : "Question 1"}
           </span>
-          <progress className={s.track} aria-label="Check progress" max={total} value={position + 1} />
+          <progress className={s.track} aria-label="Check progress" max={total ?? 10} value={position + 1} />
         </div>
 
-        <motion.section key={step.id} {...motionProps} aria-labelledby={`q-${step.id}`}>
-          <h1 id={`q-${step.id}`} className={s.question} ref={headingRef} tabIndex={-1}>
-            {step.question}
-          </h1>
-          <p className={s.why}>
-            <span className={s.whyLabel}>Why we ask:</span> {step.why}
-          </p>
-          {step.help && <p className={s.help}>{step.help}</p>}
-
-          {error && <p className={s.error} role="alert">{error}</p>}
-
-          {step.kind === "choice" ? (
+        {index > 0 && loadError ? (
+          <Notice
+            tone="warning"
+            title="The questions did not load"
+            fix={{ steps: ["Check your connection.", "Press Try again.", "Or go back and choose the country again."] }}
+          >
+            {loadError}{" "}
+            <button type="button" className={s.linkButton} onClick={retry}>
+              Try again
+            </button>
+          </Notice>
+        ) : index > 0 && loadingQuestions ? (
+          <div aria-live="polite">
+            <p className={s.help}>Loading the questions for {countryName}…</p>
+            <SkeletonText lines={3} />
+          </div>
+        ) : step.kind === "country" ? (
+          <motion.section key="country" {...motionProps} aria-labelledby="q-country">
+            <h1 id="q-country" className={s.question} ref={headingRef} tabIndex={-1}>
+              Which country is this about?
+            </h1>
+            <p className={s.why}>
+              <span className={s.whyLabel}>Why we ask:</span> Each country has its own legal dates, so we start here.
+            </p>
+            <p className={s.help}>The free check covers Colombia, Costa Rica, Mexico, Panama, Portugal and Spain. Choose the country where your residency, property or company is.</p>
+            {error && <p className={s.error} role="alert">{error}</p>}
             <ul className={s.options}>
-              {step.options.map((o) => {
-                const selected = step.selected(answers) === o.value;
+              {LEGAL_COUNTRY_OPTIONS.map((o) => {
+                const selected = country === o.value;
                 return (
-                  <li key={String(o.value)}>
-                    <button
-                      type="button"
-                      className={`${s.option} ${selected ? s.optionSelected : ""}`}
-                      aria-pressed={selected}
-                      disabled={busy}
-                      onClick={() => advance(step.apply(answers, o.value))}
-                    >
+                  <li key={o.value}>
+                    <button type="button" className={`${s.option} ${selected ? s.optionSelected : ""}`} aria-pressed={selected} disabled={busy} onClick={() => chooseCountry(o.value)}>
                       <span className={s.optionLabel}>{o.label}</span>
-                      {o.hint && <span className={s.optionHint}>{o.hint}</span>}
                     </button>
                   </li>
                 );
               })}
             </ul>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                advance({ ...answers, [step.field]: dateDraft || undefined });
-              }}
-            >
-              <div className={s.field}>
-                <label htmlFor={`d-${step.id}`}>{step.label}</label>
-                <input
-                  id={`d-${step.id}`}
-                  type="date"
-                  value={dateDraft}
-                  onChange={(e) => setDateDraft(e.target.value)}
-                />
-              </div>
-              <div className={s.actions}>
-                <button type="submit" className={s.primary} disabled={busy || !dateDraft}>
-                  Continue
-                </button>
-                <button
-                  type="button"
-                  className={s.linkButton}
-                  disabled={busy}
-                  onClick={() => {
-                    const next = { ...answers };
-                    delete next[step.field];
-                    advance(next);
-                  }}
-                >
-                  Skip this question
-                </button>
-              </div>
-            </form>
-          )}
+          </motion.section>
+        ) : (
+          <motion.section key={step.q.key} {...motionProps} aria-labelledby={`q-${step.q.key}`}>
+            <h1 id={`q-${step.q.key}`} className={s.question} ref={headingRef} tabIndex={-1}>
+              {step.q.question}
+            </h1>
+            <p className={s.why}>
+              <span className={s.whyLabel}>Why we ask:</span> {step.q.why ?? DEFAULT_WHY}
+            </p>
+            {step.q.help && <p className={s.help}>{step.q.help}</p>}
 
-          {position > 0 && (
-            <div className={s.actions}>
-              <button type="button" className={s.linkButton} onClick={back} disabled={busy}>
-                Back
-              </button>
-            </div>
-          )}
-        </motion.section>
+            {error && <p className={s.error} role="alert">{error}</p>}
+
+            {step.q.type === "date" ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  answer(step.q.key, dateDraft || undefined);
+                }}
+              >
+                <div className={s.field}>
+                  <label htmlFor={`d-${step.q.key}`}>Date</label>
+                  <input id={`d-${step.q.key}`} type="date" value={dateDraft} onChange={(e) => setDateDraft(e.target.value)} />
+                </div>
+                <div className={s.actions}>
+                  <button type="submit" className={s.primary} disabled={busy || !dateDraft}>
+                    Continue
+                  </button>
+                  <button type="button" className={s.linkButton} disabled={busy} onClick={() => answer(step.q.key, undefined)}>
+                    Skip this question
+                  </button>
+                </div>
+              </form>
+            ) : step.q.type === "multi" ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  answer(step.q.key, multiDraft);
+                }}
+              >
+                <ul className={s.options}>
+                  {step.q.options.map((o) => {
+                    const on = multiDraft.includes(o.value);
+                    return (
+                      <li key={o.value}>
+                        <button
+                          type="button"
+                          className={`${s.option} ${on ? s.optionSelected : ""}`}
+                          aria-pressed={on}
+                          disabled={busy}
+                          onClick={() => setMultiDraft(on ? multiDraft.filter((x) => x !== o.value) : [...multiDraft, o.value])}
+                        >
+                          <span className={s.optionLabel}>{o.label}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className={s.actions}>
+                  <button type="submit" className={s.primary} disabled={busy}>
+                    {multiDraft.length ? "Continue" : "None of these"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <ul className={s.options}>
+                {(step.q.type === "month" ? MONTHS.map((m, i) => ({ value: String(i + 1), label: m })) : step.q.options).map((o) => {
+                  const selected = answers[step.q.key] === o.value;
+                  return (
+                    <li key={o.value}>
+                      <button type="button" className={`${s.option} ${selected ? s.optionSelected : ""}`} aria-pressed={selected} disabled={busy} onClick={() => answer(step.q.key, o.value)}>
+                        <span className={s.optionLabel}>{o.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </motion.section>
+        )}
+
+        {index > 0 && (
+          <div className={s.actions}>
+            <button type="button" className={s.linkButton} onClick={back} disabled={busy}>
+              Back
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

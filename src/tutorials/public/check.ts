@@ -78,7 +78,7 @@ export const publicCheck: Tutorial = {
   id: "public.check",
   version: 1,
   title: "The free deadline check",
-  summary: "Answer a few questions and see the dates that may apply to you in Costa Rica.",
+  summary: "Pick your country, answer a few questions and see the dates that may apply to you there.",
   audience: ["public"],
   autoStart: "never",
   steps: [
@@ -87,7 +87,7 @@ export const publicCheck: Tutorial = {
       "Answer a few questions",
       "Each question has a short answer to tap. It takes about two minutes and you do not need an account.",
       scene(question, [
-        say(hover("q1"), "One question at a time", "Each screen asks one thing about your life in Costa Rica. The bar on top shows how far along you are."),
+        say(hover("q1"), "One question at a time", "After you pick your country, each screen asks one thing about your life there. This example is Costa Rica. The bar on top shows how far along you are."),
         say(click("own_yes", [hide("q1"), show("q2")]), "Yes", "Tap the answer that fits. The next question appears straight away."),
         say(click("corp_sa", [mark("corp_sa")]), "Yes, a sociedad anónima (S.A.)", "Many people hold a house or a car through a company. The check asks so it can list the company's yearly dates too."),
       ], "wide"),
@@ -99,7 +99,7 @@ export const publicCheck: Tutorial = {
       scene(results, [
         say(hover("f1", [mark("f1")]), "DIMEX renewal", "The date your residency card may need renewing, worked out from the expiry date you gave.", ["dimex"]),
         say(hover("f2", [mark("f1", false), mark("f2")]), "Corporate tax return (D-101)", "A yearly tax form for your company. It is listed early, so there is plenty of time.", ["d101"]),
-        say(hover("join", [mark("f2", false)]), "Join ILP", "Members talk these dates through with a lawyer licensed in Costa Rica, on a 20-minute video call."),
+        say(hover("join", [mark("f2", false)]), "Join ILP", "Members talk these dates through with a lawyer licensed in their country, on a 20-minute video call."),
       ], "wide"),
     ),
     step(
