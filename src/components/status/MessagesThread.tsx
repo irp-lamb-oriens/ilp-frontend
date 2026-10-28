@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, EmptyState, TextArea, Loadable, Skeleton, SkeletonRegion, SkeletonText, Stagger, StaggerItem, STAGGER_MAX, ErrorNotice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import { memberApi, type ThreadItem } from "./api";
+import { useStreamedList } from "@/lib/useStreamedList";
+import { memberApi, messagesSource, type ThreadItem } from "./api";
 import { isLegalTopic } from "./messageRules";
 import { announceAiConsent, useAiConsent } from "@/components/legal/aiConsent";
 import { dateShort, timeOfDay } from "./format";
@@ -16,7 +17,9 @@ import s from "./MessagesThread.module.scss";
  * "your team will confirm" on anything legal.
  */
 export default function MessagesThread() {
-  const [items, setItems] = useState<ThreadItem[] | null>(null);
+  // Newest first from the server; shown oldest at the top. Older pages load on scroll up.
+  const list = useStreamedList<ThreadItem>(messagesSource, { key: "member-messages", pageSize: 30, sort: { key: "at", dir: "desc" }, keyOf: (m) => m.id });
+  const items = useMemo(() => (list.initialLoading ? null : [...list.items].reverse()), [list.initialLoading, list.items]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState<"team" | "ai" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,16 +27,44 @@ export default function MessagesThread() {
   // P6/P7: the assistant stays off until the AI notice above is accepted.
   const aiAllowed = useAiConsent();
 
-  useEffect(() => {
-    memberApi
-      .messages()
-      .then((d) => setItems(d.items))
-      .catch(() => setItems([]));
-  }, []);
+  const topRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const anchor = useRef<{ id: string; top: number } | null>(null);
 
+  // Open on the newest message, and follow new ones; loading older ones does not jump.
+  const newest = items?.[items.length - 1]?.id;
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
-  }, [items?.length]);
+    if (newest) endRef.current?.scrollIntoView({ block: "end" });
+  }, [newest]);
+
+  /** Remember where the first visible message is, so older ones can load above it without a jump. */
+  function loadOlder() {
+    const first = listRef.current?.querySelector<HTMLElement>("li[data-id]");
+    if (first) anchor.current = { id: first.dataset.id ?? "", top: first.getBoundingClientRect().top };
+    list.loadMore();
+  }
+  useLayoutEffect(() => {
+    const a = anchor.current;
+    if (!a) return;
+    const el = listRef.current?.querySelector<HTMLElement>(`li[data-id="${CSS.escape(a.id)}"]`);
+    if (!el) return;
+    const delta = el.getBoundingClientRect().top - a.top;
+    if (delta) window.scrollBy(0, delta);
+    if (!list.loadingMore) anchor.current = null;
+  }, [items, list.loadingMore]);
+
+  // The top of the thread scrolled into view: load the page before it.
+  const canLoadOlder = list.hasMore && list.status === "done";
+  useEffect(() => {
+    const el = topRef.current;
+    if (!canLoadOlder || !el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) loadOlder();
+    }, { rootMargin: "200px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canLoadOlder]);
 
   async function send(to: "team" | "ai") {
     const body = text.trim();
@@ -42,7 +73,11 @@ export default function MessagesThread() {
     setError(null);
     try {
       const d = to === "team" ? await memberApi.sendMessage(body) : await memberApi.askAssistant(body);
-      setItems(d.items);
+      // The reply holds the whole thread (oldest first): add only the new messages, newest first.
+      list.update((cur) => {
+        const have = new Set(cur.map((m) => m.id));
+        return [...d.items.filter((m) => !have.has(m.id)).reverse(), ...cur];
+      });
       setText("");
     } catch (err) {
       if (to === "ai" && err instanceof ApiError && err.status === 403) announceAiConsent(false);
@@ -54,8 +89,22 @@ export default function MessagesThread() {
 
   return (
     <div className={s.page}>
-      <div className={s.thread} aria-live="polite">
-        <Loadable loading={items === null} label="Loading messages" skeleton={<ThreadSkeleton />}>
+      <div className={s.thread} aria-live="polite" aria-busy={list.loadingMore || undefined}>
+        <div ref={topRef} />
+        {list.hasMore && (
+          <div className={s.older}>
+            <Button size="sm" variant="ghost" onClick={loadOlder} disabled={list.loadingMore}>
+              {list.loadingMore ? "Loading earlier messages…" : "Show earlier messages"}
+            </Button>
+          </div>
+        )}
+        {list.loadingMore && <SkeletonText lines={2} size="sm" />}
+        {list.error && (
+          <ErrorNotice audience="member" onRetry={list.items.length ? loadOlder : list.refresh}>
+            {list.error}
+          </ErrorNotice>
+        )}
+        <Loadable loading={items === null && !list.error} label="Loading messages" skeleton={<ThreadSkeleton />}>
           {() =>
             items === null ? null : items.length === 0 ? (
               <StaggerItem>
@@ -67,7 +116,7 @@ export default function MessagesThread() {
               </StaggerItem>
             ) : (
               <Stagger>
-                <ol className={s.list}>
+                <ol className={s.list} ref={listRef}>
                   {items.map((m, i) => (
                     // The newest messages (at the bottom, in view) stagger; older ones land together.
                     <Message key={m.id} m={m} index={Math.max(0, i - (items.length - STAGGER_MAX - 1))} />
@@ -129,7 +178,7 @@ function Message({ m, index }: { m: ThreadItem; index: number }) {
   const when = m.at ? `${dateShort(m.at)}, ${timeOfDay(m.at)}` : "";
   if (m.kind === "ai") {
     return (
-      <StaggerItem as="li" index={index} className={s.ai}>
+      <StaggerItem as="li" index={index} className={s.ai} data-id={m.id}>
         <p className={s.aiHead}>
           <span className={s.aiTag}>AI assistant</span>
           <span className={s.when}>{when}</span>
@@ -143,7 +192,7 @@ function Message({ m, index }: { m: ThreadItem; index: number }) {
   }
   const mine = m.kind === "member";
   return (
-    <StaggerItem as="li" index={index} className={mine ? s.mine : s.team}>
+    <StaggerItem as="li" index={index} className={mine ? s.mine : s.team} data-id={m.id}>
       <p className={s.head}>
         <span className={s.author}>{mine ? "You" : m.author}</span>
         {mine && m.to === "ai" && <span className={s.toAi}>to the AI assistant</span>}

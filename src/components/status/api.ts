@@ -12,6 +12,7 @@ import { downloadFile } from "@/lib/api";
 import { clientApi } from "@/lib/status";
 import type { Membership, Obligation, ProfileSection } from "@/lib/contracts";
 import { mockMemberApi } from "@/lib/mocks/w4";
+import { apiListSource, memoryListSource, type ListSource } from "@/lib/listSource";
 
 // ── Payloads ────────────────────────────────────────────────────────────────
 
@@ -183,3 +184,23 @@ const liveApi: MemberApi = {
 };
 
 export const memberApi: MemberApi = process.env.NEXT_PUBLIC_W4_MOCK === "1" ? mockMemberApi : liveApi;
+
+// ── LISTS: paged, streamed sources (docs/workstreams/LISTS.md) ─────────────
+const MOCK = process.env.NEXT_PUBLIC_W4_MOCK === "1";
+
+/** The member's documents, newest first, a page at a time (category and matter filters, file-name search). */
+export const documentsSource: ListSource<MemberDocument> = MOCK
+  ? memoryListSource(async () => (await mockMemberApi.documents()).items, {
+    search: (d) => [d.fileName, d.category],
+    filters: { category: (d, v) => d.category === v, matterId: (d, v) => d.matterId === v },
+    sorts: { uploadedAt: (d) => d.uploadedAt },
+  })
+  : apiListSource<MemberDocument>(clientApi, `${BASE}/documents`);
+
+/** The thread, newest first, so it opens on the latest messages and loads older ones on scroll up. */
+export const messagesSource: ListSource<ThreadItem> = MOCK
+  ? memoryListSource(async () => (await mockMemberApi.messages()).items, {
+    search: (m) => [m.body, m.author],
+    sorts: { at: (m) => m.at },
+  })
+  : apiListSource<ThreadItem>(clientApi, `${BASE}/messages`);

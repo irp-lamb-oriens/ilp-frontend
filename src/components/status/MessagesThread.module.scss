@@ -119,3 +119,10 @@
 .pendingReply {
   margin-top: $space-3;
 }
+
+// LISTS: "Show earlier messages" above the oldest loaded message.
+.older {
+  display: flex;
+  justify-content: center;
+  margin-bottom: $space-3;
+}

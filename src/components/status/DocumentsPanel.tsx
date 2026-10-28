@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, EmptyState, Select, StatusPill, Loadable, ErrorNotice, Notice } from "@/components/ui";
+import { useEffect, useRef, useState } from "react";
+import { Button, EmptyState, ListFooter, ListToolbar, Select, SkeletonList, StatusPill, Loadable, ErrorNotice, Notice } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import { memberApi, type MemberDocument } from "./api";
+import { useStreamedList } from "@/lib/useStreamedList";
+import { documentsSource, memberApi, type MemberDocument } from "./api";
 import { DOCUMENT_ACCEPT, DOCUMENT_MAX_BYTES, uploadMemberDocument } from "./documentUpload";
 import { useMember } from "./MemberContext";
 import { DownloadButton } from "@/components/documents/DownloadButton";
@@ -27,8 +28,10 @@ function size(n: number): string {
 /** Upload per matter with a category tag; list what is on file. */
 export default function DocumentsPanel() {
   const { home, matter } = useMember();
-  const [items, setItems] = useState<MemberDocument[] | null>(null);
-  const [categories, setCategories] = useState<string[]>(Object.keys(CATEGORY_LABEL));
+  // Documents on file: newest first, searched and paged on the server.
+  const list = useStreamedList<MemberDocument>(documentsSource, { key: "member-documents", pageSize: 20, sort: { key: "uploadedAt", dir: "desc" }, keyOf: (d) => d.id });
+  const items = list.initialLoading ? null : list.items;
+  const categories = (list.meta.categories as string[] | undefined)?.length ? (list.meta.categories as string[]) : Object.keys(CATEGORY_LABEL);
   const [matterId, setMatterId] = useState<string>(matter?.id ?? "");
   const [category, setCategory] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -36,17 +39,6 @@ export default function DocumentsPanel() {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const load = useCallback(() => {
-    memberApi
-      .documents()
-      .then((d) => {
-        setItems(d.items);
-        if (d.categories?.length) setCategories(d.categories);
-      })
-      .catch(() => setItems([]));
-  }, []);
-
-  useEffect(load, [load]);
   useEffect(() => setMatterId(matter?.id ?? ""), [matter?.id]);
 
   async function upload() {
@@ -63,7 +55,7 @@ export default function DocumentsPanel() {
       setFile(null);
       setCategory("");
       if (fileRef.current) fileRef.current.value = "";
-      load();
+      list.refresh();
     } catch (err) {
       setMsg({ ok: false, text: err instanceof ApiError ? err.message : "Upload failed. Try again." });
     } finally {
@@ -131,15 +123,29 @@ export default function DocumentsPanel() {
         )}
       </div>
 
-      <Loadable loading={items === null} label="Loading your documents" skeleton={<DocumentsListSkeleton />}>
-      {() => items === null ? null : items.length === 0 ? (
+      {(list.items.length > 0 || !!list.activeQuery || !!list.filters.category) && (
+        <ListToolbar list={list} noun="documents" searchLabel="Search your documents" placeholder="File name">
+          <Select label="Kind" value={list.filters.category ?? ""} onChange={(e) => list.setFilter("category", e.target.value)}>
+            <option value="">All kinds</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABEL[c] ?? c}
+              </option>
+            ))}
+          </Select>
+        </ListToolbar>
+      )}
+      <Loadable loading={items === null && !list.error} label="Loading your documents" skeleton={<DocumentsListSkeleton />}>
+      {() => items === null ? null : items.length === 0 && (list.activeQuery || list.filters.category) ? (
+        <EmptyState compact title="No document matches" body="Try another name or kind, or clear the search." />
+      ) : items.length === 0 ? (
         <EmptyState
           compact
           title="No documents yet"
           body="Documents you upload appear here, tagged by type and matter. Your passport and your DIMEX (if you have one) are good ones to start with."
         />
       ) : (
-        <ul className={s.list}>
+        <ul className={s.list} aria-busy={list.stale || undefined}>
           {items.map((d) => (
             <li key={d.id} className={s.item}>
               <div className={s.itemMain}>
@@ -156,6 +162,7 @@ export default function DocumentsPanel() {
         </ul>
       )}
       </Loadable>
+      <ListFooter list={list} audience="member" skeleton={<SkeletonList rows={2} variant="plain" />} endLabel={list.items.length > 10 ? "That is every document on file." : null} />
     </section>
   );
 }
