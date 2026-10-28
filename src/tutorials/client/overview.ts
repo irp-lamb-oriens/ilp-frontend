@@ -91,12 +91,12 @@ const matter = card(
 );
 
 function page() {
-  return mockShell("client", "Overview", stack([text("Hello, Linda.", "h1"), grid("3-2", [stack([nextStep, obligations, matter], 3), stack([membership, calls], 3)])]));
+  return mockShell("client", "Overview", stack([text("Hello, Linda", "h1"), grid("3-2", [stack([nextStep, obligations, matter], 3), stack([membership, calls], 3)])]));
 }
 
 export const clientOverview: Tutorial = {
   id: "client.overview",
-  version: 2,
+  version: 3,
   title: "Your ILP home",
   summary: "Your next step, your call minutes and the dates that may need attention.",
   audience: ["client"],
@@ -105,7 +105,7 @@ export const clientOverview: Tutorial = {
     step(
       "next",
       "Start with your next step",
-      "This is your home page. The blue box at the top always tells you the one thing to do next, who does it, and by when.",
+      "This is your home page. The box called Your next step, near the top, always tells you the one thing to do next, who does it, and by when.",
       scene(page(), [
         say(hover("nextstep", [mark("nextstep")]), "Your next step", "The one thing to do now: send two company documents within a week. Your lawyer confirmed this after your call."),
         say(hover("ns_who"), "Who", "Who does this step. Here it is you. Sometimes it is your lawyer or your ILP team."),

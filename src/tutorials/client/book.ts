@@ -36,16 +36,16 @@ const times = row(
 
 const form = stack(
   [
-    card("When", [
+    card("What would you like to ask?", [
+      input(undefined, { multiline: true, placeholder: "For example: Do I need to file anything for my S.A. before January?", id: "question" }),
+      meta("Also added to this call from your list: Corporate tax return (D-101)", "also_added"),
+    ]),
+    card("Pick a time", [
       row([chip(dayIn(1), false, "d1"), chip(dayIn(2), false, "d2"), chip(dayIn(3), true, "d3"), chip(dayIn(6), false, "d4")], "start", 1),
       text("Time (Costa Rica time)", "label", "tz"),
       times,
     ]),
-    card("Your question", [
-      input(undefined, { multiline: true, placeholder: "For example: Do I need to file anything for my S.A. before January?", id: "question" }),
-      meta("Also added to this call from your list: Corporate tax return (D-101)", "also_added"),
-    ]),
-    card("May your lawyer record this call?", [
+    card("May the call be recorded?", [
       row([toggle("Yes, record it", false, "rec_yes", "checkbox"), toggle("No recording", false, "rec_no", "checkbox")], "start", 4),
       text("How recording and AI work", "meta", "how_ai"),
     ]),
@@ -67,12 +67,22 @@ function page() {
 
 export const clientBook: Tutorial = {
   id: "client.book",
-  version: 2,
+  version: 3,
   title: "Book a call",
-  summary: "Pick a time, write your question and book your call.",
+  summary: "Write your question, pick a time and book your call.",
   audience: ["client"],
   route: "/status/book",
   steps: [
+    step(
+      "question",
+      "Tell your lawyer what you want to ask",
+      "One or two sentences is enough. Your lawyer reads your question, together with your profile, before the call.",
+      scene(page(), [
+        say(type("question", "Do I need to file anything for my S.A. before January?"), "Your question", "Write it in your own words. It helps your lawyer prepare, so your 20 minutes go further."),
+        say(hover("also_added"), "Also added to this call", "A date you asked about earlier is added for you, so you do not forget to mention it."),
+      ]),
+      { target: "client-book-question" },
+    ),
     step(
       "time",
       "Pick a day and a time",
@@ -83,15 +93,6 @@ export const clientBook: Tutorial = {
         say(click("t3", [set("t3", { selected: true })]), "10:30 am", "Each button is a free 20-minute time. Pick one and it stays highlighted to show it is chosen."),
       ]),
       { target: "client-book-time" },
-    ),
-    step(
-      "question",
-      "Tell your lawyer what you want to ask",
-      "One or two sentences is enough. Your lawyer reads your question, together with your profile, before the call.",
-      scene(page(), [
-        say(type("question", "Do I need to file anything for my S.A. before January?"), "Your question", "Write it in your own words. It helps your lawyer prepare, so your 20 minutes go further."),
-        say(hover("also_added"), "Also added to this call", "A date you asked about earlier is added for you, so you do not forget to mention it."),
-      ]),
     ),
     step(
       "record",
