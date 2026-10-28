@@ -8,6 +8,7 @@ import FunnelHeader from "@/app/check/FunnelHeader";
 import { setRoleToken } from "@/lib/api";
 import { type JoinStatus, PRICE, joinStatus, longDate, portalSession } from "../joinApi";
 import { Skeleton, SkeletonRegion, SkeletonText } from "@/components/ui";
+import { clearDraft } from "@/components/join/joinModel";
 import s from "@/app/check/funnel.module.scss";
 
 const POLL_MS = 3000;
@@ -15,7 +16,10 @@ const POLL_LIMIT = 40; // about two minutes while Stripe confirms
 
 /**
  * After join: waits for the membership to turn active (Stripe webhook or
- * staff mark-paid), then opens the member's home in /status with ?welcome=1.
+ * staff mark-paid), then opens the member's home in /status with ?welcome=1
+ * on its own (T3). A new member gets a session from the join; an existing
+ * client lands on the /status sign-in with the email filled in and a code
+ * on its way.
  */
 export default function WelcomePage() {
   const router = useRouter();
@@ -85,6 +89,19 @@ export default function WelcomePage() {
     if (active) trackFunnel("join_paid");
   }, [active]);
 
+  // T3: once active, the join draft is done with, and the home opens by itself.
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (!active || !token || !status || autoOpened.current) return;
+    autoOpened.current = true;
+    try {
+      clearDraft(window.localStorage);
+    } catch {
+      // storage blocked: nothing was saved
+    }
+    void openHome(token, status);
+  }, [active, token, status, openHome]);
+
   return (
     <div className={s.page}>
       <FunnelHeader />
@@ -119,9 +136,8 @@ export default function WelcomePage() {
                 </div>
               )}
             </section>
-            <p className={s.help}>
-              Next, your ILP team will reach out within one business day to welcome you and review your profile.
-              Completing your profile now makes your first call faster.
+            <p className={s.help} role="status">
+              {opening ? "Opening your ILP home, where your first step is to book your first call." : "Your first step is to book your first call. Your ILP team will also reach out within one business day to welcome you."}
             </p>
             <button
               type="button"

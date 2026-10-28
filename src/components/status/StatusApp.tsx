@@ -23,7 +23,7 @@ const CLIENT_NAV: NavItem[] = [
   { href: "/status", label: "Overview", icon: "◧", match: "exact" },
   { href: "/status/profile", label: "Profile", icon: "◔" },
   { href: "/status/money", label: "Money", icon: "$" },
-  { href: "/status/messages", label: "Messages", icon: "✉" },
+  { href: "/status/messages", label: "Messages", icon: "◫" },
 ];
 
 const TITLES: Array<[RegExp, string]> = [
@@ -156,9 +156,20 @@ export default function StatusApp({ children }: { children: ReactNode }) {
       <PortalLogin
         role="client"
         initialEmail={project ? projectIdToEmail(project) : undefined}
+        // T3: straight after joining, the code is sent at once to the email the member joined with.
+        autoSend={welcome && !!project}
+        lead={
+          welcome && project ? (
+            <Notice tone="info" title="Check your email for a sign-in code">
+              A 6-digit code is on its way to {projectIdToEmail(project)}. Type it below to open your ILP home, where your first step is to book your first call. The code can take a minute to arrive; check your spam folder too.
+            </Notice>
+          ) : undefined
+        }
         title={welcome || project ? "Sign in to open your new membership" : undefined}
         sub={
-          welcome || project
+          welcome && project
+            ? "Your membership is active. You already had an ILP account with this email, so you sign in with a code."
+            : welcome || project
             ? "Your payment went through. Enter your email to get a sign-in code, and your membership opens with your first steps ready."
             : undefined
         }

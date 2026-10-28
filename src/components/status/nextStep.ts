@@ -11,6 +11,8 @@ export interface NextStepModel {
   origin: "lawyer" | "matter" | "profile" | "booking" | "call";
 }
 
+/** "Book your first call" (the first matter from the join form, T3) leads to booking. */
+const BOOK_WORDS = /\bbook\b.*\bcall\b/i;
 const DOC_WORDS = /\b(upload|send|scan|document|certificate|receipt|letter|books|copy|passport|deed)\b/i;
 
 /** The single card at the top of Overview: always something, never empty. */
@@ -18,7 +20,9 @@ export function nextStepModel(home: MemberHome, matter: MatterView | null): Next
   const step = matter?.nextStep ?? (home.matters.length ? null : home.generalNextStep);
   if (step) {
     const action = step.who === "client"
-      ? DOC_WORDS.test(step.what)
+      ? BOOK_WORDS.test(step.what) && home.capacity.canBook
+        ? { label: "Book a call", href: "/status/book" }
+        : DOC_WORDS.test(step.what)
         ? { label: "Upload a document", href: "/status/profile#documents" }
         : { label: "Message your team", href: "/status/messages" }
       : undefined;
