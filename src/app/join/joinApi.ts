@@ -42,7 +42,8 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
   if (!res.ok) {
     const msg = (data as { error?: string } | null)?.error ?? "Something went wrong. Please try again.";
-    throw new ApiError(msg, res.status);
+    // The body rides along so the join form can show the server's field errors (T3).
+    throw new ApiError(msg, res.status, data);
   }
   return data as T;
 }
@@ -73,6 +74,15 @@ export interface JoinBody {
   /** P2 funnel: anonymous browser id + first-touch source (no PII). */
   anonId?: string;
   source?: string;
+  /** T3 guided form: profile fields and "what you need first" (components/join/joinModel.ts toJoinDetails). */
+  profile?: Record<string, unknown>;
+  intake?: Record<string, unknown>;
+}
+
+/** Field errors from a 400 on the join (T3), keyed like the form's fields. */
+export function joinFieldErrors(err: unknown): Record<string, string> | null {
+  const body = (err as { body?: unknown } | null)?.body as { errors?: Record<string, string> } | undefined;
+  return body?.errors && typeof body.errors === "object" ? body.errors : null;
 }
 
 export function join(body: JoinBody) {
