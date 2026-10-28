@@ -94,3 +94,14 @@ export const IconSearch = (p: IconProps) => (
 );
 export const IconChevronLeft = (p: IconProps) => <Svg {...p}><path d="M10 3.5L5.5 8l4.5 4.5" /></Svg>;
 export const IconDensity = (p: IconProps) => <Svg {...p}><path d="M2.5 4h11M2.5 8h11M2.5 12h11" /></Svg>;
+// Media controls (tutorial player). Same outline style; play and pause are filled shapes drawn in stroke.
+export const IconPlay = (p: IconProps) => <Svg {...p}><path d="M5 3.25v9.5L12.5 8z" /></Svg>;
+export const IconPause = (p: IconProps) => <Svg {...p}><path d="M5.5 3.5v9M10.5 3.5v9" /></Svg>;
+export const IconReplay = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.25 8a4.75 4.75 0 1 0 1.4-3.36" />
+    <path d="M3.25 2.75v2.5h2.5" />
+  </Svg>
+);
+export const IconSkipBack = (p: IconProps) => <Svg {...p}><path d="M12 3.75v8.5L6 8zM4 3.75v8.5" /></Svg>;
+export const IconSkipForward = (p: IconProps) => <Svg {...p}><path d="M4 3.75v8.5L10 8zM12 3.75v8.5" /></Svg>;

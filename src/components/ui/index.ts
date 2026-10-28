@@ -143,6 +143,11 @@ export {
   IconSearch,
   IconChevronLeft,
   IconDensity,
+  IconPlay,
+  IconPause,
+  IconReplay,
+  IconSkipBack,
+  IconSkipForward,
 } from "./icons";
 
 // Notices (NOTICES.md): every prerequisite, warning, disclaimer and banner.
