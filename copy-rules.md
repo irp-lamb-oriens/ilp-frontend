@@ -4,7 +4,7 @@ Every word a visitor, member, lawyer or staff member reads follows these rules: 
 
 ## Voice
 
-Plain, specific, calm. Write for a North American aged 40 to 75 who knows nothing about Costa Rica law, ILP or software. Say what a thing is, what will happen, and why it matters to the reader, in that order of usefulness. Prefer concrete facts from the product (US$79.99 a month, three 20-minute calls, 60 minutes, a lawyer licensed in Costa Rica) over adjectives. Vary sentence length: mix short sentences with longer ones that carry detail. Never invent facts, numbers, testimonials, partners or results.
+Plain, specific, calm. Write for a North American aged 40 to 75 who knows nothing about the law of Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, about ILP or about software. Say what a thing is, what will happen, and why it matters to the reader, in that order of usefulness. Prefer concrete facts from the product (US$79.99 a month, three 20-minute calls, 60 minutes, a lawyer licensed in the member's country) over adjectives. Vary sentence length: mix short sentences with longer ones that carry detail. Never invent facts, numbers, testimonials, partners or results.
 
 ## Banned patterns (the AI giveaways)
 
