@@ -127,6 +127,10 @@
   font-family: $font-mono;
   font-size: 0.875rem;
   color: $color-navy;
+
+  &::before {
+    content: attr(data-n);
+  }
 }
 
 .stepText {

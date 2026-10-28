@@ -23,15 +23,100 @@ export const LAWYERS_HERO = {
   primary: "Apply as a partner lawyer",
   secondary: "See the portal",
   signIn: "Already applied? Sign in",
-  imageAlt: "A lawyer reviewing documents at a desk",
-  cardTitle: "What you get in the portal",
-  cardItems: [
-    "Today: your calls in time order",
-    "A one-screen brief for every call",
-    "Summaries you confirm before members see them",
-    "Your hours, days off and legal areas",
-    "Your fees for paid work, paid and pending",
+};
+
+/**
+ * The hero copy above, split for the scroll sections (LawyersStory.tsx).
+ * Every piece is cut from LAWYERS_HERO without changing a word:
+ * tests/lawyersLanding.test.mjs joins the pieces back and compares.
+ */
+export const LAWYERS_INTRO = {
+  /** Eyebrow: "For lawyers in", then the countries one by one. */
+  eyebrowLead: "For lawyers in",
+  countries: ["Colombia,", "Costa Rica,", "Mexico,", "Panama,", "Portugal", "and Spain"],
+  /** H1: the first sentence, then the promise, underlined. */
+  titleLead: "Advise ILP members.",
+  titleKey: "We prepare each call and handle the follow-up.",
+};
+
+export const LAWYERS_WHY = {
+  anchor: "why-lawyers-join",
+  /** One beat per sentence of LAWYERS_HERO.why; `mark` is the phrase to underline. */
+  beats: [
+    {
+      id: "why-lawyers-join-members",
+      eyebrow: "Who the members are",
+      rail: "The members",
+      text: "Many North Americans live in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or own property there, and they have legal questions about residency, property, companies and cars.",
+      mark: "residency, property, companies and cars",
+      caption: "Example member questions, one per country.",
+    },
+    {
+      id: "why-lawyers-join-hours",
+      eyebrow: "The unpaid part of the work",
+      rail: "Unpaid hours",
+      text: "Finding them, booking them and chasing them after a call takes hours that nobody pays for.",
+      mark: "hours that nobody pays for",
+      caption: "An example week of work around calls that nobody bills.",
+    },
+    {
+      id: "why-lawyers-join-membership",
+      eyebrow: "What ILP members do",
+      rail: "Membership",
+      text: "ILP members pay a monthly membership that includes their calls, they write their question down before booking, and a customer success manager follows up after you speak.",
+      mark: "a customer success manager follows up",
+      caption: "An example member: the question written before booking, then the follow-up note.",
+    },
   ],
+};
+
+/**
+ * "How it works for you" as four beats. Each step of LAWYERS_HERO.how is its
+ * first sentence (the title) and the rest (the body, may be empty).
+ */
+export const LAWYERS_HOW = {
+  anchor: "how-it-works-for-lawyers",
+  steps: [
+    {
+      rail: "Apply",
+      title: "Apply online.",
+      body: "We check your licence with the body that issued it (for example your carné with the Colegio de Abogados y Abogadas de Costa Rica, or your colegiado number in Spain) and reply by email.",
+      mark: "reply by email",
+      caption: "Example screen: a Costa Rica licence checked with the Colegio, then the reply email.",
+    },
+    {
+      rail: "Your hours",
+      title: "Set the weekly hours when members can book you, and the legal areas you take.",
+      titleMark: "the legal areas you take",
+      body: "",
+      caption: "Example screen: weekly hours with Wednesday added, and the legal areas chosen.",
+    },
+    {
+      rail: "The brief",
+      title: "Before each 20-minute video call, read a one-screen brief with the member's question and profile.",
+      titleMark: "a one-screen brief",
+      body: "",
+      caption: "Example screen: the brief for a 20-minute call, with the question, profile facts and dates.",
+    },
+    {
+      rail: "After the call",
+      title: "After the call, confirm the suggested summary and next steps.",
+      body: "ILP follows up with the member, including quotes for paid work.",
+      mark: "ILP follows up with the member",
+      caption: "Example screen: the summary confirmed, then the customer success manager's follow-up and a quote in progress.",
+    },
+  ],
+};
+
+/** LAWYERS_HERO.what as the closing statement: lead, price, then the three facts. */
+export const LAWYERS_WHAT = {
+  lead: "ILP is a legal membership for North Americans in six countries:",
+  price: 79.99,
+  calls: "a month, with up to three 20-minute video calls a month with a lawyer licensed in the member's country.",
+  callsMark: "up to three 20-minute video calls",
+  partners: "Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal.",
+  extra: "Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
+  extraMark: "the member decides",
 };
 
 export const LAWYER_BANDS = {

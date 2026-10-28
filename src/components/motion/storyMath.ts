@@ -114,6 +114,38 @@ export function beatParts(r: BeatRange, phrases = 4) {
   };
 }
 
+/**
+ * Layer windows for a beat whose copy has up to three levels, each staged
+ * after the one above it has landed: the eyebrow rule draws and its label
+ * fades in (tertiary), then the title appears word by word (secondary), then
+ * the body appears word by word, starting only once the title is complete,
+ * then the visual's caption (tertiary, the text equivalent of the visual).
+ * The visual slides in while the title appears and plays its timeline from
+ * the moment the title has landed. Without a title the body takes its place.
+ * Every window ends inside the beat's hold, before beatAnchorProgress().
+ */
+export function beatLayers(r: BeatRange, opts: { title: boolean; bodyPhrases: number }) {
+  const [a, b] = r;
+  const rule = enterWindow(r, 0, 0.2);
+  const eyebrow = enterWindow(r, 0.2, 0.4);
+  const title: Window | null = opts.title ? enterWindow(r, 0.4, 1) : null;
+  const bodyFrom = title ? title[1] : enterWindow(r, 0.4, 0.4)[0];
+  const perPhrase = (b - a) / 6;
+  const latest = holdWindow(r, 0, 0.55)[1];
+  const earliest = title ? holdWindow(r, 0, 0.2)[1] : holdWindow(r, 0, 0.35)[1];
+  const bodyTo = opts.bodyPhrases > 0 ? Math.min(latest, Math.max(earliest, bodyFrom + perPhrase * opts.bodyPhrases)) : bodyFrom;
+  const capTo = holdWindow(r, 0, 0.7)[1];
+  return {
+    rule,
+    eyebrow,
+    title,
+    body: [round(bodyFrom), round(bodyTo)] as Window,
+    visual: enterWindow(r, 0.5, 1),
+    timeline: [title ? title[1] : round(bodyFrom), holdWindow(r, 0, 0.85)[1]] as Window,
+    caption: [round(bodyTo), round(Math.max(bodyTo, capTo))] as Window,
+  };
+}
+
 /** Split [from, to] into n equal, back-to-back windows (phrase i appears in window i). */
 export function splitWindow(w: Window, n: number): Window[] {
   const [from, to] = w;

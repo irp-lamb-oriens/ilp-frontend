@@ -8,7 +8,8 @@ import { MorphStage, Reveal } from "@/components/motion/Motion";
 import { Mark, RevealText, Stage, StageItem } from "@/components/motion/Story";
 import { CHECK_CTA, HERO, PROBLEM, WHAT } from "./content";
 import { MockScene } from "@/components/tutorial/mock/MockScene";
-import { EMPTY_OVERRIDES } from "@/components/tutorial/sceneUtils";
+import { EMPTY_OVERRIDES, type Overrides } from "@/components/tutorial/sceneUtils";
+import type { MockNode } from "@/components/tutorial/types";
 import { cx } from "@/components/ui/cx";
 import { HERO_SCREENS, HERO_SCREEN_SIZE, screenRoot, type HeroScreen } from "./heroScreens";
 import {
@@ -183,9 +184,9 @@ function StepLink({
       aria-current={current ? "step" : undefined}
       onClick={onClick}
     >
-      <span className={s.stepNum} aria-hidden="true">
-        {index + 1}
-      </span>
+      {/* The number is drawn by CSS (data-n), so copying the list does not
+          paste it twice next to the list's own marker. */}
+      <span className={s.stepNum} data-n={index + 1} aria-hidden="true" />
       <span className={s.stepText}>{text}</span>
     </a>
   );
@@ -243,6 +244,27 @@ function Segment({ progress, index }: { progress: MotionValue<number>; index: nu
  * Compact (phones, reduced motion): a one-column screen as tall as its content.
  */
 function ScreenFrame({ screen, compact = false }: { screen: HeroScreen; compact?: boolean }) {
+  return <MockFrame root={screenRoot(screen, compact)} framed={!!screen.shell && !compact} compact={compact} />;
+}
+
+/**
+ * A mock tree drawn at a fixed design size (720x540 wide, 400 wide compact)
+ * and scaled to the frame width; static, inert and aria-hidden. `framed`: the
+ * root is a portal shell (drawn edge to edge); otherwise it sits on a white
+ * page with padding. `overrides` patches the tree (a screen's timeline).
+ * Shared with the lawyers landing (components/lawyers).
+ */
+export function MockFrame({
+  root,
+  framed,
+  compact = false,
+  overrides = EMPTY_OVERRIDES,
+}: {
+  root: MockNode;
+  framed: boolean;
+  compact?: boolean;
+  overrides?: Overrides;
+}) {
   const frameRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const W = compact ? HERO_SCREEN_SIZE.compact.w : HERO_SCREEN_SIZE.wide.w;
@@ -264,15 +286,14 @@ function ScreenFrame({ screen, compact = false }: { screen: HeroScreen; compact?
     return () => ro.disconnect();
   }, [W, compact]);
 
-  const root = screenRoot(screen, compact);
   return (
     <div ref={frameRef} className={cx(s.screenFrame, compact && s.screenFrameCompact)} aria-hidden="true" inert>
       <div ref={stageRef} className={cx(s.screenStage, compact && s.screenStageCompact)}>
-        {screen.shell && !compact ? (
-          <MockScene root={root} overrides={EMPTY_OVERRIDES} />
+        {framed ? (
+          <MockScene root={root} overrides={overrides} />
         ) : (
           <div className={s.screenPage}>
-            <MockScene root={root} overrides={EMPTY_OVERRIDES} />
+            <MockScene root={root} overrides={overrides} />
           </div>
         )}
       </div>

@@ -269,6 +269,10 @@ $nav-offset: 64px;
   font-size: 0.95rem;
   color: $color-navy;
   align-self: start;
+
+  &::before {
+    content: attr(data-n);
+  }
 }
 
 .stepText {

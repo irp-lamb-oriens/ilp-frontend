@@ -189,9 +189,8 @@ export function PageIntro({
       <ol className={s.steps}>
         {how.map((stepText, i) => (
           <li key={i} className={s.step}>
-            <span className={s.num} aria-hidden="true">
-              {i + 1}
-            </span>
+            {/* Drawn by CSS (data-n) so a copied list does not repeat the number after the list marker. */}
+            <span className={s.num} data-n={i + 1} aria-hidden="true" />
             <span className={s.stepText}>{stepText}</span>
           </li>
         ))}
