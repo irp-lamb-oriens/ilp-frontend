@@ -1,0 +1,328 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Partner lawyer application (T2). One column on phones; from 1024px a
+// sticky step rail on the left and the form on the right.
+
+.page {
+  background: $color-mist;
+  padding-block: calc(64px + #{$space-8}) $space-16;
+
+  @include lg {
+    padding-block: calc(64px + #{$space-12}) $space-24;
+  }
+}
+
+.wrap {
+  @include container;
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  max-width: 900px;
+}
+
+.inlineLink {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-6;
+
+  @include lg {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: $space-12;
+    align-items: start;
+  }
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  @include lg {
+    position: sticky;
+    top: calc(64px + #{$space-6});
+  }
+}
+
+.stepList {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: $space-1;
+
+  @include lg {
+    display: flex;
+  }
+}
+
+.stepNum {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-inline-end: $space-2;
+  border-radius: $radius-pill;
+  border: 1px solid $color-hairline-strong;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.stepLabel,
+.stepButton {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  width: 100%;
+  padding: 0 $space-2;
+  border-radius: $radius-sm;
+  font: inherit;
+  text-align: left;
+}
+
+.stepButton {
+  @include focus-ring;
+  border: 0;
+  background: transparent;
+  color: $color-navy;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stepNow .stepLabel {
+  background: $color-canvas;
+  border: 1px solid $color-hairline;
+  color: $color-navy;
+  font-weight: 700;
+
+  .stepNum {
+    border-color: $color-accent;
+    background: $color-accent-soft;
+  }
+}
+
+.stepDone .stepNum {
+  border-color: $color-accent;
+}
+
+.stepLater .stepLabel {
+  color: $color-muted;
+}
+
+.railNote {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
+
+.form {
+  @include card;
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  padding: $space-6 $space-4;
+  min-width: 0;
+
+  @include md {
+    padding: $space-8;
+  }
+}
+
+.stepHead {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding-bottom: $space-6;
+  border-bottom: 1px solid $color-hairline;
+  scroll-margin-top: calc(64px + #{$space-6});
+}
+
+.stepCount {
+  @include eyebrow;
+  margin: 0;
+}
+
+.stepTitle {
+  @include heading-lg;
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  scroll-margin-top: calc(64px + #{$space-8});
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.stepIntro {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-3;
+
+  > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: $space-1;
+
+    @include md {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      gap: $space-4;
+    }
+  }
+
+  dt {
+    font-weight: 700;
+    color: $color-navy;
+  }
+
+  dd {
+    margin: 0;
+    color: $color-charcoal;
+    line-height: 1.55;
+    max-width: 65ch;
+  }
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-6;
+
+  @include md {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.comfort,
+.hours {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.comfortLegend {
+  padding: 0;
+  margin-bottom: $space-1;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.hint {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.feeGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-4;
+
+  @include md {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.guide {
+  padding: $space-4;
+  border: 1px dashed $color-hairline-strong;
+  border-radius: $radius-md;
+
+  ul {
+    margin: 0 0 $space-3;
+    padding-inline-start: 1.1rem;
+    line-height: 1.6;
+  }
+}
+
+.guideTitle {
+  margin: 0 0 $space-2;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.counter {
+  margin: $space-2 0 0;
+  color: $color-steel;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.counterOver {
+  color: $color-error;
+}
+
+.review {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-2;
+  padding: $space-4;
+  background: $color-mist;
+  border-radius: $radius-md;
+
+  > div {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: $space-3;
+  }
+
+  dt {
+    color: $color-steel;
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: $color-charcoal;
+  }
+}
+
+.honeypot {
+  @include visually-hidden;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+}
