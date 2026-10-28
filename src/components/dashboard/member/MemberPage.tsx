@@ -14,6 +14,7 @@ import { MemberOpportunities } from "../opportunities/MemberOpportunities";
 import { CallsPanel } from "./CallsPanel";
 import { HandoffReview } from "./HandoffReview";
 import { MembershipPanel } from "./MembershipPanel";
+import { JoinAnswers } from "./JoinAnswers";
 import { NextActions } from "./NextActions";
 import MemberSkeleton from "./MemberSkeleton";
 import s from "./member.module.scss";
@@ -189,6 +190,9 @@ export default function MemberPage({ clientId }: { clientId: string }) {
                 </div>
               ))}
             </dl>
+          </StaggerItem>
+          <StaggerItem index={1}>
+            <JoinAnswers membership={m} profile={profile} />
           </StaggerItem>
           <StaggerItem index={2}>
             <MembershipPanel membership={m} onChanged={load} />

@@ -1,4 +1,4 @@
-import { PROFILE_FIELDS, PROFILE_SECTIONS, type ProfileSection } from "@/lib/contracts";
+import { PROFILE_DETAIL_FIELDS, PROFILE_FIELDS, PROFILE_SECTIONS, type ProfileSection } from "@/lib/contracts";
 
 export type FieldKind = "text" | "tel" | "date" | "number" | "yesno" | "select";
 
@@ -69,9 +69,92 @@ export const FIELD_META: Record<string, FieldMeta> = {
     ],
   },
   ownsVehicle: { label: "Do you own a vehicle in Costa Rica?", kind: "yesno" },
+
+  // T3: detail keys (PROFILE_DETAIL_FIELDS), filled by the join form. They do not count toward completion.
+  preferredName: { label: "What should we call you?", kind: "text", hint: "Optional. The name your lawyer and your ILP team use with you." },
+  preferredLanguage: {
+    label: "Language for calls and messages",
+    kind: "select",
+    options: [
+      { value: "en", label: "English" },
+      { value: "es", label: "Spanish" },
+      { value: "either", label: "English or Spanish" },
+    ],
+  },
+  residenceCountry: { label: "Country where you live now", kind: "text" },
+  residenceProvince: { label: "Province where you live", kind: "text", hint: "If you live in Costa Rica." },
+  residenceTown: { label: "Town where you live", kind: "text", hint: "If you live in Costa Rica, like Atenas or Tamarindo." },
+  timezone: { label: "Time zone", kind: "text", hint: "Call times are shown in this time zone, like America/Costa_Rica." },
+  livesWithPartner: { label: "Does a spouse or partner live with you?", kind: "yesno" },
+  childrenAtHome: { label: "Children living with you", kind: "number", hint: "Enter 0 if none." },
+  otherHousehold: { label: "Other people living with you", kind: "number", hint: "Parents or other relatives you support. Enter 0 if none." },
+  pets: { label: "Pets", kind: "text", hint: "Optional. Useful if you travel or move with them, like two dogs." },
+  hasEmployees: { label: "Does anyone work for you in Costa Rica?", kind: "yesno", hint: "Including a housekeeper, gardener, caretaker or driver." },
+  residencyCategory: {
+    label: "Residency category",
+    kind: "select",
+    options: [
+      { value: "pensionado", label: "Pensionado (retiree with a pension)" },
+      { value: "rentista", label: "Rentista (fixed monthly income)" },
+      { value: "inversionista", label: "Inversionista (investor)" },
+      { value: "permanent", label: "Permanent resident" },
+      { value: "digital_nomad", label: "Digital nomad" },
+      { value: "family", label: "Through a family link (vínculo)" },
+      { value: "other", label: "Another category" },
+      { value: "unsure", label: "Not sure" },
+    ],
+  },
+  lastEntryDate: { label: "Date of your last entry to Costa Rica", kind: "date", hint: "For visitors: the date on your most recent entry stamp." },
+  propertyType: {
+    label: "Kind of property",
+    kind: "select",
+    options: [
+      { value: "house", label: "House" },
+      { value: "condo", label: "Condo" },
+      { value: "land", label: "Land or a lot" },
+      { value: "commercial", label: "Commercial property" },
+      { value: "several", label: "More than one property" },
+      { value: "other", label: "Something else" },
+    ],
+  },
+  propertyHolding: {
+    label: "Whose name is the property in?",
+    kind: "select",
+    options: [
+      { value: "personal", label: "My own name (or my spouse's)" },
+      { value: "company", label: "A company (S.A. or S.R.L.)" },
+      { value: "both", label: "Some in my name, some in a company" },
+      { value: "unsure", label: "Not sure" },
+    ],
+  },
+  companyCount: { label: "How many Costa Rican companies", kind: "number" },
+  companyUpToDate: {
+    label: "Are the company filings up to date?",
+    kind: "select",
+    options: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+      { value: "unsure", label: "Not sure" },
+    ],
+  },
+  marchamoStatus: {
+    label: "Is this year's marchamo paid?",
+    kind: "select",
+    options: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+      { value: "unsure", label: "Not sure" },
+    ],
+  },
 };
 
+/** Every field shown in a section: the counted ones, then the details (T3). */
 export function sectionFields(section: ProfileSection): string[] {
+  return [...PROFILE_FIELDS[section], ...PROFILE_DETAIL_FIELDS[section]];
+}
+
+/** Only the fields that count toward profile completion. */
+export function countedFields(section: ProfileSection): string[] {
   return PROFILE_FIELDS[section];
 }
 

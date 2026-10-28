@@ -14,6 +14,7 @@ import {
   fromInput,
   isFilled,
   sectionFields,
+  countedFields,
   toInput,
 } from "./profileFields";
 import s from "./ProfileAndDocuments.module.scss";
@@ -75,7 +76,9 @@ function SectionForm({ section }: { section: ProfileSection }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   const dirty = keys.some((k) => values[k] !== toInput(home.profile[k], FIELD_META[k]?.kind ?? "text"));
-  const filled = keys.filter((k) => isFilled(home.profile[k])).length;
+  // The count matches the completion bar: detail fields (T3) are shown but not counted.
+  const counted = countedFields(section);
+  const filled = counted.filter((k) => isFilled(home.profile[k])).length;
   const copy = SECTION_COPY[section];
   useUnsavedChanges(dirty, `Your ${copy.title.toLowerCase()} changes are not saved yet. If you leave now, they will be lost.`);
 
@@ -106,7 +109,7 @@ function SectionForm({ section }: { section: ProfileSection }) {
           {copy.title}
         </h2>
         <span className={s.count}>
-          {filled} of {keys.length} filled
+          {filled} of {counted.length} filled
         </span>
       </div>
       <p className={s.why}>{copy.why}</p>
