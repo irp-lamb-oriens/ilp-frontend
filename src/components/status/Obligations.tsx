@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Button, ButtonLink, EmptyState, ErrorNotice, Notice, StatusPill } from "@/components/ui";
 import { ApiError } from "@/lib/api";
-import { memberApi } from "./api";
+import { isFreeAccount, memberApi } from "./api";
+import { cardTitle } from "@/lib/deadlines";
 import { useMember } from "./MemberContext";
 import { dateLong, dateShort, daysUntil, relativeDue } from "./format";
 import s from "./Obligations.module.scss";
@@ -11,11 +12,15 @@ import s from "./Obligations.module.scss";
 /** Dated items from the member's answers, worded "may require review". */
 export default function Obligations() {
   const { home, refresh } = useMember();
+  const free = isFreeAccount(home);
   const [busy, setBusy] = useState<string | null>(null);
   const [done, setDone] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const items = [...home.obligations].sort((a, b) => String(a.dueAt ?? "9999").localeCompare(String(b.dueAt ?? "9999")));
+  // DEADLINES: the person's own date wins; the overview shows the next five, the Deadlines page has them all.
+  const dueOf = (o: (typeof home.obligations)[number]) => o.userDueAt || o.dueAt || undefined;
+  const all = [...home.obligations].sort((a, b) => String(dueOf(a) ?? "9999").localeCompare(String(dueOf(b) ?? "9999")));
+  const items = all.slice(0, 5);
 
   async function ask(id: string) {
     setBusy(id);
@@ -58,34 +63,38 @@ export default function Obligations() {
           tutorialStep: "dates",
         }}
       >
-        They come from what you told us; your lawyer tells you whether each one applies to you.
+        {free
+          ? "They are the deadlines you chose from the free check. Set a date for each one on your Deadlines page."
+          : "They come from what you told us; your lawyer tells you whether each one applies to you."}
       </Notice>
       {items.length === 0 ? (
         <EmptyState
           compact
           title="No dates on your list yet"
-          body="When your profile shows a filing, renewal or tax date that may apply, it appears here with a reminder."
+          body="When your profile shows a filing, renewal or tax date that may apply, it appears here with a reminder. You can also choose dates yourself on your Deadlines page."
         />
       ) : (
         <ul className={s.list}>
           {items.map((o) => {
-            const n = daysUntil(o.dueAt);
+            const due = dueOf(o);
+            const own = !!o.userDueAt;
+            const n = daysUntil(due);
             const soon = n !== null && n <= 30;
             const asked = o.status === "asked";
             return (
               <li key={o.id} className={s.item}>
                 <div className={s.text}>
-                  <p className={s.itemTitle}>{o.title}</p>
-                  {o.dueAt && o.confidence !== "low" && (
+                  <p className={s.itemTitle}>{cardTitle(o.title)}</p>
+                  {due && (own || o.confidence !== "low") && (
                     <p className={s.due}>
-                      {o.windowStartAt && o.windowStartAt.slice(0, 10) < o.dueAt.slice(0, 10) ? `${dateShort(o.windowStartAt)} to ` : ""}
-                      {dateShort(o.dueAt)} <span className={s.rel}>({relativeDue(o.dueAt)})</span>
+                      {!own && o.windowStartAt && o.dueAt && o.windowStartAt.slice(0, 10) < o.dueAt.slice(0, 10) ? `${dateShort(o.windowStartAt)} to ` : ""}
+                      {dateShort(due)} <span className={s.rel}>({relativeDue(due)})</span>
                       {soon && !asked && <StatusPill label="Coming up" tone="warning" size="sm" className={s.pill} />}
                     </p>
                   )}
-                  {/* COUNTRIES: research with low confidence never shows a firm date. */}
-                  {o.confidence === "low" && <p className={s.due}>Ask your lawyer to confirm this date.</p>}
-                  {!o.dueAt && o.dueText && o.confidence !== "low" && <p className={s.due}>{o.dueText}</p>}
+                  {/* COUNTRIES: research with low confidence never shows a firm date (a date the person set is theirs). */}
+                  {!own && o.confidence === "low" && <p className={s.due}>Ask your lawyer to confirm this date.</p>}
+                  {!due && o.dueText && o.confidence !== "low" && <p className={s.due}>{o.dueText}</p>}
                   {done[o.id] && (
                     <p className={s.saved} role="status">
                       {done[o.id]}
@@ -95,6 +104,10 @@ export default function Obligations() {
                 <div className={s.action}>
                   {asked ? (
                     <StatusPill label="On your list for the next call" tone="info" size="sm" />
+                  ) : free ? (
+                    <ButtonLink href="/join" variant="ghost" size="sm">
+                      Join to ask a lawyer
+                    </ButtonLink>
                   ) : (
                     <Button variant="secondary" busy={busy === o.id} onClick={() => ask(o.id)}>
                       Ask my lawyer
@@ -106,6 +119,11 @@ export default function Obligations() {
           })}
         </ul>
       )}
+      <p className={s.more}>
+        <ButtonLink href="/status/deadlines" variant="secondary" size="sm">
+          {all.length > items.length ? `See all ${all.length} deadlines` : items.length ? "See all deadlines and set dates" : "Choose your deadlines"}
+        </ButtonLink>
+      </p>
       {error && (
         <ErrorNotice audience="member">{error}</ErrorNotice>
       )}

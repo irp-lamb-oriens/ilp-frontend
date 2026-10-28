@@ -1,9 +1,10 @@
+import MemberOnly from "@/components/status/MemberOnly";
 import CancelMembership from "@/components/status/CancelMembership";
 import MemberIntro from "@/components/status/MemberIntro";
 
 export default function CancelMembershipPage() {
   return (
-    <>
+    <MemberOnly feature="money">
       <MemberIntro
         screen="cancel"
         title="Cancel your membership"
@@ -18,6 +19,6 @@ export default function CancelMembershipPage() {
         tutorialId="client.cancel"
       />
       <CancelMembership />
-    </>
+    </MemberOnly>
   );
 }

@@ -1,10 +1,11 @@
+import MemberOnly from "@/components/status/MemberOnly";
 import MessagesThread from "@/components/status/MessagesThread";
 import MemberIntro from "@/components/status/MemberIntro";
 import AiNotice from "@/components/legal/AiNotice";
 
 export default function MessagesPage() {
   return (
-    <>
+    <MemberOnly feature="messages">
       <MemberIntro
         screen="messages"
         title="Messages"
@@ -20,6 +21,6 @@ export default function MessagesPage() {
       {/* P6: one-time AI assistant notice (consent record), until accepted. */}
       <AiNotice />
       <MessagesThread />
-    </>
+    </MemberOnly>
   );
 }

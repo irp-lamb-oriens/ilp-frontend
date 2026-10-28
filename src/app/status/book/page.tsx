@@ -1,9 +1,10 @@
+import MemberOnly from "@/components/status/MemberOnly";
 import BookingFlow from "@/components/status/BookingFlow";
 import MemberIntro from "@/components/status/MemberIntro";
 
 export default function BookPage() {
   return (
-    <>
+    <MemberOnly feature="book">
       <MemberIntro
         screen="book"
         title="Book a call"
@@ -18,6 +19,6 @@ export default function BookPage() {
         tutorialId="client.book"
       />
       <BookingFlow />
-    </>
+    </MemberOnly>
   );
 }

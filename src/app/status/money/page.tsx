@@ -1,3 +1,4 @@
+import MemberOnly from "@/components/status/MemberOnly";
 import MoneyView from "@/components/status/MoneyView";
 import MembershipBilling from "@/components/status/MembershipBilling";
 import MemberIntro from "@/components/status/MemberIntro";
@@ -8,7 +9,7 @@ const MONTHLY = `US$${(PLAN_STANDARD.monthlyCents / 100).toFixed(2)}`;
 
 export default function MoneyPage() {
   return (
-    <>
+    <MemberOnly feature="money">
       <MemberIntro
         screen="money"
         title="Money"
@@ -25,6 +26,6 @@ export default function MoneyPage() {
         <MoneyView />
         <MembershipBilling />
       </div>
-    </>
+    </MemberOnly>
   );
 }

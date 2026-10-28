@@ -7,7 +7,7 @@ import { COUNTRIES, COUNTRY_ANSWERS_FIELD, isCountryCode, type ProfileSection } 
 import type { CountryAnswers } from "@/lib/countryQuestions";
 import { CountryQuestionFields } from "@/components/countries/CountryQuestionFields";
 import { useCountryQuestions } from "@/components/countries/useCountryQuestions";
-import { memberApi } from "./api";
+import { isFreeAccount, memberApi } from "./api";
 import { useMember } from "./MemberContext";
 import DocumentsPanel from "./DocumentsPanel";
 import {
@@ -66,9 +66,12 @@ export default function ProfileAndDocuments() {
         <CountrySituation />
       </StaggerItem>
 
-      <StaggerItem index={PROFILE_SECTIONS.length + 2}>
-        <DocumentsPanel />
-      </StaggerItem>
+      {/* DEADLINES: documents go to a lawyer, so a free account (no lawyer yet) does not upload them. */}
+      {!isFreeAccount(home) && (
+        <StaggerItem index={PROFILE_SECTIONS.length + 2}>
+          <DocumentsPanel />
+        </StaggerItem>
+      )}
     </div>
     </Stagger>
   );

@@ -37,3 +37,10 @@
   display: grid;
   gap: $space-4;
 }
+
+// DEADLINES: a free account's overview: one column.
+.free {
+  display: grid;
+  gap: $space-6;
+  max-width: 52rem;
+}
