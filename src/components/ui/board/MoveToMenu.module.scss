@@ -1,5 +1,5 @@
-@use "../../styles/variables" as *;
-@use "../../styles/mixins" as *;
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
 
 .wrap {
   position: relative;
@@ -16,7 +16,15 @@
   min-height: 32px;
   padding: 0 $space-3;
   cursor: pointer;
+  // 44px hit area around the compact trigger (BOARDS).
+  position: relative;
   @include focus-ring;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -6px -2px;
+  }
 
   &:disabled {
     opacity: 0.5;

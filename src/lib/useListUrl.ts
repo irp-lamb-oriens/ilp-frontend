@@ -8,40 +8,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { ListSort } from "./useStreamedList";
 
-export interface ListUrlState {
-  q: string;
-  filters: Record<string, string>;
-  sort?: ListSort;
-}
+import { type ListUrlState, listUrlParams, readListUrl } from "./listUrl";
 
-/** Pure: the list state in a query string. Exported for tests. */
-export function listUrlParams(state: ListUrlState, filterKeys: string[], defaults: Partial<ListUrlState> = {}): URLSearchParams {
-  const p = new URLSearchParams();
-  if (state.q.trim()) p.set("q", state.q.trim());
-  for (const k of filterKeys) {
-    const v = state.filters[k];
-    if (v && v !== (defaults.filters?.[k] ?? "")) p.set(k, v);
-  }
-  const sort = state.sort ? `${state.sort.key}:${state.sort.dir}` : "";
-  const def = defaults.sort ? `${defaults.sort.key}:${defaults.sort.dir}` : "";
-  if (sort && sort !== def) p.set("sort", sort);
-  return p;
-}
-
-/** Pure: the list state read from a query string. */
-export function readListUrl(params: URLSearchParams, filterKeys: string[], defaults: Partial<ListUrlState> = {}): ListUrlState {
-  const filters: Record<string, string> = { ...(defaults.filters ?? {}) };
-  for (const k of filterKeys) {
-    const v = params.get(k);
-    if (v !== null) filters[k] = v;
-  }
-  const raw = params.get("sort") ?? "";
-  const [key, dir] = raw.split(":");
-  const sort = key ? { key, dir: dir === "desc" ? ("desc" as const) : ("asc" as const) } : defaults.sort;
-  return { q: params.get("q") ?? defaults.q ?? "", filters, sort };
-}
+export { listUrlParams, readListUrl };
+export type { ListUrlState };
 
 export interface ListUrl {
   /** Values to start the list with; changes only when the URL changes from outside (shell search, a link). */

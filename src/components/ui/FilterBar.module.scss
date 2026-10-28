@@ -1,0 +1,365 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// FILTERS: schema filter bar. Hairline chips, one accent for "set", no fills beyond accent-soft.
+.bar {
+  display: grid;
+  gap: $space-2;
+  margin-bottom: $space-4;
+
+  // The toolbar's own bottom margin is replaced by this grid's gap.
+  > :first-child {
+    margin-bottom: 0;
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.spacer {
+  flex: 1 1 0;
+  min-width: 0;
+
+  @include below-md {
+    display: none;
+  }
+}
+
+.triggerText {
+  overflow: hidden;
+  max-width: 16rem;
+  text-overflow: ellipsis;
+}
+
+.ghostBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $color-navy;
+  background: transparent;
+  border: 1px dashed $color-hairline-strong;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong, border-color $duration-press ease;
+  @include focus-ring;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @include hover-only {
+    &:hover {
+      border-color: $color-navy;
+    }
+  }
+
+  @include reduced-motion {
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.ghostOn {
+  border-color: $color-accent;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 $space-1;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: $color-accent-ink;
+  background: $color-accent-soft;
+  border: 1px solid $color-accent;
+  border-radius: $radius-pill;
+}
+
+// Active filters
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: 2.25rem;
+  max-width: 100%;
+  padding: 0 $space-2 0 $space-3;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-accent-ink;
+  background: $color-accent-soft;
+  border: 1px solid $color-accent;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong, opacity $duration-press ease;
+  // 44px hit area around a compact chip.
+  position: relative;
+  @include focus-ring;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @include hover-only {
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  @include reduced-motion {
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.chipText {
+  overflow: hidden;
+  max-width: 22rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clearAll {
+  min-height: $touch-target;
+  padding: 0 $space-2;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-navy;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+// Panels and editors
+.panel {
+  display: grid;
+  gap: $space-3;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.panelActions,
+.drawerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-2;
+}
+
+.drawerBody {
+  display: grid;
+  gap: $space-6;
+}
+
+.fieldset {
+  display: grid;
+  gap: $space-2;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: $space-1;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
+
+.inputLabel {
+  display: grid;
+  gap: $space-1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.input {
+  width: 100%;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: $color-ink;
+  background: $color-surface;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-sm;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-2;
+}
+
+.segs {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  overflow: hidden;
+}
+
+.seg {
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-steel;
+  background: $color-surface;
+  border: 0;
+  cursor: pointer;
+
+  & + & {
+    border-left: 1px solid $color-hairline;
+  }
+
+  &[aria-pressed="true"] {
+    color: $color-accent-ink;
+    background: $color-accent-soft;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: -2px;
+  }
+}
+
+.options {
+  display: grid;
+  max-height: 16rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.option {
+  min-width: 0;
+}
+
+.optionLabel {
+  display: flex;
+  justify-content: space-between;
+  gap: $space-3;
+  width: 100%;
+}
+
+.optionCount {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: $color-muted;
+}
+
+.muted {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
+
+// Saved views
+.viewList {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid $color-hairline;
+}
+
+.viewRow {
+  display: flex;
+  align-items: center;
+}
+
+.viewBtn {
+  flex: 1;
+  min-height: $touch-target;
+  padding: 0 $space-2;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  color: $color-ink;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid $color-hairline;
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    font-weight: 700;
+    color: $color-accent-ink;
+    box-shadow: inset 2px 0 0 $color-accent;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: -2px;
+  }
+}
+
+.iconBtn {
+  display: inline-grid;
+  place-items: center;
+  width: $touch-target;
+  height: $touch-target;
+  color: $color-steel;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid $color-hairline;
+  cursor: pointer;
+  @include focus-ring;
+}
+
+.saveRow {
+  display: grid;
+  gap: $space-2;
+  justify-items: start;
+}

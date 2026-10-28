@@ -1,0 +1,101 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  max-width: 100%;
+  padding: 0 $space-3;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $color-steel;
+  white-space: nowrap;
+  background: $color-surface;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  transition: transform $duration-press $ease-out-strong, border-color $duration-press ease, color $duration-press ease, background-color $duration-press ease;
+
+  @include focus-ring;
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      color: $color-navy;
+      border-color: $color-navy;
+    }
+  }
+
+  @include reduced-motion {
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+.active {
+  color: $color-accent-ink;
+  background: $color-accent-soft;
+  border-color: $color-accent;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + #{$space-1});
+  z-index: $z-popover;
+  display: grid;
+  gap: $space-3;
+  padding: $space-3;
+  background: $color-surface;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: transform $duration-fast $ease-out-strong, opacity $duration-fast $ease-out-strong;
+
+  @include reduced-motion {
+    transform: none;
+    transition: opacity $duration-fade linear;
+  }
+}
+
+.shown {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.start {
+  left: 0;
+  transform-origin: top left;
+}
+
+.end {
+  right: 0;
+  transform-origin: top right;
+}
+
+.sm {
+  width: min(16rem, calc(100vw - #{$space-8}));
+}
+
+.md {
+  width: min(20rem, calc(100vw - #{$space-8}));
+}

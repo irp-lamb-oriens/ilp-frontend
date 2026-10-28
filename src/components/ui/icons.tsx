@@ -78,3 +78,19 @@ export const IconMessage = (p: IconProps) => (
     <path d="M3 3h10a1 1 0 011 1v6a1 1 0 01-1 1H7l-3 2.5V11H3a1 1 0 01-1-1V4a1 1 0 011-1z" />
   </Svg>
 );
+export const IconFilter = (p: IconProps) => <Svg {...p}><path d="M2.5 3.5h11M4.5 8h7M6.5 12.5h3" /></Svg>;
+export const IconColumns = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" />
+    <path d="M6.25 2.5v11M9.75 2.5v11" />
+  </Svg>
+);
+export const IconBookmark = (p: IconProps) => <Svg {...p}><path d="M4.5 2.5h7v11L8 10.75 4.5 13.5z" /></Svg>;
+export const IconSearch = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="7" cy="7" r="4.25" />
+    <path d="M10.25 10.25l3.25 3.25" />
+  </Svg>
+);
+export const IconChevronLeft = (p: IconProps) => <Svg {...p}><path d="M10 3.5L5.5 8l4.5 4.5" /></Svg>;
+export const IconDensity = (p: IconProps) => <Svg {...p}><path d="M2.5 4h11M2.5 8h11M2.5 12h11" /></Svg>;
