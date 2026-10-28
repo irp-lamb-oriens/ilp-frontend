@@ -25,6 +25,7 @@ import GuardGallery from "./GuardGallery";
 import LoadingGallery from "./LoadingGallery";
 import TutorialsGallery from "./TutorialsGallery";
 import NoticeGallery from "./NoticeGallery";
+import { BoardGallery, FilterGallery } from "./BoardGallery";
 import { EmbedGallery, IntroGallery } from "./IntroGallery";
 import { ACTIVITY, MEMBERS, NOW, formatDate, type MemberRow } from "./sampleData";
 import s from "./UiGallery.module.scss";
@@ -36,6 +37,8 @@ const SECTIONS = [
   ["status", "StatusPill and AgingBadge"],
   ["progress", "ProgressBar"],
   ["table", "DataTable and Drawer"],
+  ["filters", "FilterBar"],
+  ["board", "Board"],
   ["timeline", "Timeline"],
   ["tabs", "Tabs"],
   ["empty", "EmptyState"],
@@ -317,6 +320,16 @@ export default function UiGallery() {
           rowKey={(r) => r.id}
           empty={<EmptyState compact title="No members match these filters" body="Clear the area filter to see all 48 members." />}
         />
+      </section>
+
+      <section id="filters" className={s.section}>
+        <h2 className={s.h2}>FilterBar</h2>
+        <FilterGallery />
+      </section>
+
+      <section id="board" className={s.section}>
+        <h2 className={s.h2}>Board</h2>
+        <BoardGallery />
       </section>
 
       <section id="timeline" className={s.section}>

@@ -1,0 +1,20 @@
+@use "../../styles/variables" as *;
+
+.wrap {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.note {
+  margin: 0;
+  max-width: 65ch;
+  font-size: 0.9375rem;
+  color: $color-steel;
+}
+
+.h3 {
+  margin: $space-4 0 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
