@@ -8,7 +8,7 @@ import { clientApi } from "@/lib/status";
 import type { ConsentKind, PrivacyRequest, PrivacyRequestKind } from "@/lib/contracts";
 import { LEGAL_VERSIONS } from "./versions";
 
-export type ConsentSource = "join" | "booking" | "join_call" | "settings" | "lily" | "privacy_page";
+export type ConsentSource = "join" | "booking" | "join_call" | "settings" | "lily" | "privacy_page" | "check";
 
 export const VERSION_FOR_KIND: Record<ConsentKind, string> = {
   terms: LEGAL_VERSIONS.terms,

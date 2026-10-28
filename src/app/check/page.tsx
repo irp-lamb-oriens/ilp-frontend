@@ -3,9 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trackFunnel } from "@/lib/funnel";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import FunnelHeader from "./FunnelHeader";
-import { Notice, PageIntro, Skeleton, SkeletonRegion, SkeletonText, useSkeleton } from "@/components/ui";
+import { Button, Checkbox, Notice, PageIntro, Skeleton, SkeletonRegion, SkeletonText, TextInput, useSkeleton } from "@/components/ui";
+import { DeadlineCards } from "@/components/deadlines/DeadlineCards";
+import { joinConsents } from "@/components/legal/consentApi";
+import { type DeadlineCardItem, defaultSelection, savePendingDeadlines } from "@/lib/deadlines";
 import { TutorialEmbed } from "@/components/tutorial";
 import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
 import { COUNTRIES, type CountryCode, isCountryCode } from "@/lib/contracts";
@@ -16,12 +20,13 @@ import { LEGAL_COUNTRY_OPTIONS } from "@/components/join/joinModel";
 import {
   type CheckAnswers,
   type CheckFinding,
+  claimDeadlines,
   EMAIL_RE,
   PRICE,
-  longDate,
   runCheck,
   saveCheck,
 } from "@/app/join/joinApi";
+import { ApiError } from "@/lib/api";
 import s from "./funnel.module.scss";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -29,32 +34,18 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 /** The country question, then that country's questions from the research (server API/countries/rules). */
 type Step = { kind: "country" } | { kind: "question"; q: CountryQuestion };
 
-const AREA_LABELS: Record<string, string> = {
-  immigration: "Residency and visas",
-  property: "Property",
-  corporate: "Your company",
-  tax: "Taxes",
-  vehicle: "Vehicle",
-  employment: "People who work for you",
-  estate: "Family and estate",
-  identity: "IDs and registrations",
-  cross_border: "Home-country filings",
-};
-const AREA_ORDER = ["immigration", "property", "corporate", "tax", "vehicle", "employment", "estate", "identity", "cross_border"];
-
-function groupFindings(findings: CheckFinding[]) {
-  const by = new Map<string, CheckFinding[]>();
-  for (const f of findings) by.set(f.area, [...(by.get(f.area) ?? []), f]);
-  return [...by.entries()].sort((a, b) => AREA_ORDER.indexOf(a[0]) - AREA_ORDER.indexOf(b[0]));
-}
-
-/** The date line of a finding: a window, one date, or "ask your lawyer" for a low-confidence date. */
-function dateLine(f: CheckFinding): string {
-  if (!f.dueAt) return "No fixed date";
-  if (f.confidence === "low") return "Ask your lawyer to confirm this date";
-  if (f.windowStartAt && f.windowStartAt.slice(0, 10) < f.dueAt.slice(0, 10)) return `Between ${longDate(f.windowStartAt)} and ${longDate(f.dueAt)}`;
-  return longDate(f.dueAt);
-}
+/** DEADLINES: a finding as a deadline card (the rule id is the card id). */
+const toCard = (f: CheckFinding): DeadlineCardItem => ({
+  id: f.ruleId,
+  area: f.area,
+  title: f.title,
+  meaning: f.meaning,
+  authority: f.authority,
+  confidence: f.confidence,
+  dueAt: f.dueAt,
+  windowStartAt: f.windowStartAt,
+  dueText: f.dueText,
+});
 
 export default function CheckPage() {
   const reduce = useReducedMotion();
@@ -70,6 +61,15 @@ export default function CheckPage() {
   const [emailState, setEmailState] = useState<"idle" | "saving" | "saved">("idle");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [leadId, setLeadId] = useState<string | undefined>();
+  // DEADLINES: which cards are included, and the "Set the deadlines for each" form.
+  const router = useRouter();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claim, setClaim] = useState({ firstName: "", terms: false, privacy: false, marketing: false, website: "" });
+  const [claimErrors, setClaimErrors] = useState<Record<string, string>>({});
+  const [claimBusy, setClaimBusy] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const claimRef = useRef<HTMLHeadingElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { questions, error: loadError, retry } = useCountryQuestions(country || null, "check");
   // While the dates are computed, the results page's placeholder replaces the last question.
@@ -131,6 +131,8 @@ export default function CheckPage() {
       const body: CheckAnswers = { country, ...final };
       const res = await runCheck(body);
       setFindings(res.findings);
+      setSelected(defaultSelection(res.findings.map(toCard)));
+      setClaimOpen(false);
       saveCheck({ answers: body, findings: res.findings });
       trackFunnel("check_completed");
       window.scrollTo({ top: 0 });
@@ -189,6 +191,50 @@ export default function CheckPage() {
     }
   }
 
+  function openClaim() {
+    setClaimOpen(true);
+    // After the form renders: bring it into view and move focus to its heading.
+    window.requestAnimationFrame(() => {
+      claimRef.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+      claimRef.current?.focus({ preventScroll: true });
+    });
+  }
+
+  async function submitClaim(e: React.FormEvent) {
+    e.preventDefault();
+    if (!country || !findings) return;
+    const clean = email.trim().toLowerCase();
+    const errs: Record<string, string> = {};
+    if (!EMAIL_RE.test(clean)) errs.email = "Enter a valid email address.";
+    if (!claim.terms) errs.terms = "Tick this box to save your deadlines.";
+    if (!claim.privacy) errs.privacy = "Tick this box to save your deadlines.";
+    const ruleIds = findings.map((f) => f.ruleId).filter((id) => selected.has(id));
+    if (!ruleIds.length) errs.cards = "Include at least one item above.";
+    setClaimErrors(errs);
+    setClaimError(null);
+    if (Object.keys(errs).length) return;
+    setClaimBusy(true);
+    try {
+      const res = await claimDeadlines({
+        email: clean,
+        firstName: claim.firstName.trim() || undefined,
+        country,
+        answers,
+        leadId,
+        ruleIds,
+        consents: joinConsents(claim.marketing),
+        website: claim.website || undefined,
+      });
+      // Kept in this tab only: the Deadlines page finishes the save after sign-in. Nothing personal goes in the URL.
+      savePendingDeadlines({ email: clean, country, ruleIds, claimToken: res.claimToken, count: res.total ?? ruleIds.length, savedAt: new Date().toISOString() });
+      router.push("/status/deadlines");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 429) setClaimError("Too many tries from this connection. Wait a few minutes, then press Save my deadlines again.");
+      else setClaimError(err instanceof Error ? err.message : "We could not save your deadlines. Please try again.");
+      setClaimBusy(false);
+    }
+  }
+
   const motionProps = reduce
     ? {}
     : { initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.22, ease: [0.23, 1, 0.32, 1] as const } };
@@ -207,14 +253,13 @@ export default function CheckPage() {
   }
 
   if (done) {
-    const dated = findings.filter((f) => f.dueAt);
-    const undated = findings.filter((f) => !f.dueAt);
-    const groups = groupFindings(dated);
+    const cards = findings.map(toCard);
     const n = findings.length;
+    const chosen = cards.filter((c) => selected.has(c.id)).length;
     return (
       <div className={s.page}>
         <FunnelHeader note="Free, no account needed" />
-        <main className={s.main}>
+        <main className={`${s.main} ${s.mainWide}`}>
           <motion.section {...motionProps} aria-label="Your results" id="check-results">
             <PageIntro
               className={s.resultsIntro}
@@ -225,51 +270,102 @@ export default function CheckPage() {
                   : "None of the items in the check matched your answers. Rules and dates change, so it is worth checking again once a year or when something changes."
               }
               how={[
-                n ? "Read each item, its date and what it usually means." : "Check your answers if something looks wrong.",
-                "Email the list to yourself, or join ILP.",
+                n ? "Include the items that apply to you and skip the rest. You can go through them one by one." : "Check your answers if something looks wrong.",
+                n ? "Press Set the deadlines for each. We save them to a free ILP account, where you set a date for each one and get reminders." : "Email the list to yourself, or join ILP.",
                 `As a member, a lawyer licensed in ${countryName} goes through them with you on a call, and your team reminds you before each date.`,
               ]}
               labels={{ how: "What happens next" }}
               why="A missed date can bring late fees, interest or a lapsed status. Knowing the dates early gives you time to act."
+              tutorialId="public.check"
             />
 
-            {groups.map(([area, items]) => (
-              <section key={area} className={s.group} aria-labelledby={`area-${area}`}>
-                <h2 className={s.groupTitle} id={`area-${area}`}>{AREA_LABELS[area] ?? area}</h2>
-                <ul className={s.findings}>
-                  {items.map((f) => (
-                    <li key={f.ruleId} className={s.finding}>
-                      <span className={s.findingDate}>{dateLine(f)}</span>
-                      <h3 className={s.findingTitle}>{f.title}</h3>
-                      <p className={s.findingMeaning}>
-                        <span className={s.meaningLabel}>What this usually means:</span> {f.meaning}
-                      </p>
-                      {f.confidence === "low" && f.dueText && <p className={s.findingMeaning}>{f.dueText}</p>}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+            {n > 0 && (
+              <DeadlineCards
+                items={cards}
+                selected={selected}
+                onChange={setSelected}
+                intro="Items with a date from your answers start included. Items with no fixed date start skipped, so include the ones that apply to you."
+                actionLabel="Set the deadlines for each"
+                onAction={openClaim}
+                actionDisabled={chosen === 0}
+              />
+            )}
 
-            {undated.length > 0 && (
-              <section className={s.group} aria-labelledby="area-undated">
-                <h2 className={s.groupTitle} id="area-undated">No fixed date: worth knowing</h2>
-                <ul className={s.findings}>
-                  {undated.map((f) => (
-                    <li key={f.ruleId} className={s.finding}>
-                      <span className={s.findingDate}>{AREA_LABELS[f.area] ?? f.area}</span>
-                      <h3 className={s.findingTitle}>{f.title}</h3>
-                      <p className={s.findingMeaning}>
-                        <span className={s.meaningLabel}>What this usually means:</span> {f.meaning}
-                      </p>
-                      {f.dueText && (
-                        <p className={s.findingMeaning}>
-                          <span className={s.meaningLabel}>When:</span> {f.confidence === "low" ? `${f.dueText} Ask your lawyer to confirm this date.` : f.dueText}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+            {n > 0 && claimOpen && (
+              <section className={s.claim} aria-labelledby="claim-title">
+                <h2 className={s.choiceHead} id="claim-title" ref={claimRef} tabIndex={-1}>
+                  Set the deadlines for each
+                </h2>
+                <p className={s.ctaText}>
+                  We save the {chosen} {chosen === 1 ? "item" : "items"} you included to a free ILP account. Next, you sign in with a 6-digit code we email you,
+                  then set a date for each one. We remind you 30 and 7 days before each date. You can add or remove deadlines at any time.
+                </p>
+                <form onSubmit={submitClaim} noValidate className={s.claimForm}>
+                  <TextInput
+                    label="Email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={claimErrors.email}
+                    required
+                  />
+                  <TextInput
+                    label="First name"
+                    optional
+                    autoComplete="given-name"
+                    value={claim.firstName}
+                    onChange={(e) => setClaim({ ...claim, firstName: e.target.value })}
+                    hint="So our emails can greet you by name."
+                  />
+                  {/* Honeypot: hidden from people and screen readers; bots fill it. */}
+                  <div className={s.honeypot} aria-hidden="true">
+                    <label htmlFor="claim-website">Website</label>
+                    <input id="claim-website" tabIndex={-1} autoComplete="off" value={claim.website} onChange={(e) => setClaim({ ...claim, website: e.target.value })} />
+                  </div>
+                  <Checkbox
+                    label={
+                      <>
+                        I agree to the <Link href="/terms" target="_blank" rel="noopener">Terms (opens in a new tab)</Link>. I understand ILP is not a law firm and this list is general information, not legal advice.
+                      </>
+                    }
+                    checked={claim.terms}
+                    onChange={(e) => setClaim({ ...claim, terms: e.target.checked })}
+                    error={claimErrors.terms}
+                    required
+                  />
+                  <Checkbox
+                    label={
+                      <>
+                        I agree to the <Link href="/privacy" target="_blank" rel="noopener">Privacy Policy (opens in a new tab)</Link>: ILP keeps my answers and deadlines to show them to me and send my reminders.
+                      </>
+                    }
+                    checked={claim.privacy}
+                    onChange={(e) => setClaim({ ...claim, privacy: e.target.checked })}
+                    error={claimErrors.privacy}
+                    required
+                  />
+                  <Checkbox
+                    label="Send me ILP news and offers by email (optional). Reminders about my deadlines come either way, and every email has an unsubscribe link."
+                    checked={claim.marketing}
+                    onChange={(e) => setClaim({ ...claim, marketing: e.target.checked })}
+                  />
+                  {claimErrors.cards && <p className={s.error} role="alert">{claimErrors.cards}</p>}
+                  {claimError && (
+                    <Notice tone="danger" variant="inline" title="Your deadlines are not saved yet" fix={{ steps: ["Check your email address.", "Press Save my deadlines again.", "If it keeps happening, use Email me the list below so you keep the dates."] }}>
+                      {claimError}
+                    </Notice>
+                  )}
+                  <div className={s.actions}>
+                    <Button type="submit" busy={claimBusy}>
+                      Save my deadlines
+                    </Button>
+                    <button type="button" className={s.linkButton} onClick={() => setClaimOpen(false)} disabled={claimBusy}>
+                      Not now
+                    </button>
+                  </div>
+                </form>
               </section>
             )}
 

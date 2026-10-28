@@ -491,3 +491,41 @@
 .demo {
   margin: 0 0 $space-8;
 }
+
+// ── DEADLINES: cards and "Set the deadlines for each" ─────────────────────
+.mainWide {
+  max-width: 1120px;
+}
+
+.claim {
+  display: grid;
+  gap: $space-4;
+  margin: $space-8 0;
+  padding: $space-6 $space-4;
+  border: 1px solid $color-accent;
+  border-radius: $radius-lg;
+  max-width: 640px;
+
+  @include md {
+    padding: $space-6;
+  }
+
+  h2:focus {
+    outline: none;
+  }
+}
+
+.claimForm {
+  display: grid;
+  gap: $space-4;
+}
+
+.honeypot {
+  @include visually-hidden;
+}
+
+.mainWide .choices {
+  @include md {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

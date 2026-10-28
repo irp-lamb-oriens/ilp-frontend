@@ -51,6 +51,34 @@ export function runCheck(answers: CheckAnswers, email?: string, name?: string) {
   );
 }
 
+/** DEADLINES: "Set the deadlines for each" (server API/leads/claim.ts). */
+export interface ClaimBody {
+  email: string;
+  firstName?: string;
+  country: CountryCode;
+  answers: Record<string, string | string[]>;
+  leadId?: string;
+  ruleIds: string[];
+  consents: JoinConsent[];
+  /** Honeypot: people never see or fill it. */
+  website?: string;
+}
+
+export interface ClaimResponse {
+  saved: boolean;
+  total?: number;
+  created?: number;
+  accountType?: "free" | "member";
+  newAccount?: boolean;
+  codeSent?: boolean;
+  claimToken?: string;
+  expiresAt?: string;
+}
+
+export function claimDeadlines(body: ClaimBody) {
+  return call<ClaimResponse>("/api/leads/claim", { method: "POST", body: JSON.stringify(body) });
+}
+
 export async function getPlan(): Promise<{ mode: PaymentsMode }> {
   try {
     return await call<{ mode: PaymentsMode }>("/api/payments/plan");
