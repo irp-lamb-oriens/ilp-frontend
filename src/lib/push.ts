@@ -56,7 +56,7 @@ async function registerServiceWorker(): Promise<ServiceWorkerRegistration> {
 /** Fetch the VAPID public key from the backend. */
 async function fetchVapidPublicKey(): Promise<string> {
   const res = await fetch(`${API_URL}/api/push/vapid-public-key`);
-  if (!res.ok) throw new Error("Failed to load push configuration.");
+  if (!res.ok) throw new Error("Notifications could not be set up on this device.");
   const data = (await res.json()) as { publicKey: string };
   return data.publicKey;
 }

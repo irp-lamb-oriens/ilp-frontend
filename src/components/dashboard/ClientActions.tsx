@@ -43,7 +43,7 @@ export default function ClientActions({
       );
       setActions(res.actions ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load actions.");
+      setError(err instanceof Error ? err.message : "The actions did not load.");
     } finally {
       setLoaded(true);
     }

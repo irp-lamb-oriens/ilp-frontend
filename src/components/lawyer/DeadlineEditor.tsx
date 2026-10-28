@@ -73,7 +73,7 @@ export default function DeadlineEditor({ adapter, emptyHint }: { adapter: Deadli
       setPayload(data);
       setDrafts(Object.fromEntries(Object.entries(data.deadlines).map(([k, d]) => [k, d.date])));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load deadlines.");
+      setError(err instanceof Error ? err.message : "The deadlines did not load.");
     } finally {
       setLoading(false);
     }

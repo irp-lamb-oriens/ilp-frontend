@@ -39,7 +39,7 @@ export function useStaff(): StaffSession {
 
 const ROLE_TITLE: Record<StaffRole, string> = {
   staff: "ILP staff",
-  csm: "Customer Success Manager",
+  csm: "Customer success manager",
   admin: "Administrator",
 };
 

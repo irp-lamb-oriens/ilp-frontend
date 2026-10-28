@@ -97,7 +97,7 @@ function demoNav(role: ShellRole): NavItem[] {
 const SHELL_DEMO: Record<ShellRole, { title: string; user: { name: string; email: string; title: string } }> = {
   staff: {
     title: "Today",
-    user: { name: "Mariela Solís", email: "mariela.solis@ilp.legal", title: "Customer Success Manager" },
+    user: { name: "Mariela Solís", email: "mariela.solis@ilp.legal", title: "Customer success manager" },
   },
   lawyer: {
     title: "Today",

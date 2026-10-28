@@ -44,7 +44,7 @@ export function ProvidersList() {
   useEffect(() => {
     dashboardFetch<{ providers: Provider[] }>("/api/dashboard/providers")
       .then((r) => setRows(r.providers ?? []))
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load providers."));
+      .catch((e) => setError(e instanceof Error ? e.message : "The lawyer list did not load."));
   }, []);
 
   const { query, setQuery, page, setPage, pageItems, total, totalPages } =
@@ -57,7 +57,7 @@ export function ProvidersList() {
   if (error) return <ErrorNotice audience="staff" title="This section did not load">{error}</ErrorNotice>;
   if (sk.showSkeleton || rows === null) {
     return (
-      <SkeletonRegion label="Loading providers" visible={sk.skeletonVisible}>
+      <SkeletonRegion label="Loading lawyers" visible={sk.skeletonVisible}>
         <AdminListSkeleton />
       </SkeletonRegion>
     );
@@ -66,7 +66,7 @@ export function ProvidersList() {
 
   return (
     <div className={styles.listStack}>
-      <SearchInput value={query} onChange={setQuery} placeholder="Search providers…" resultCount={total} />
+      <SearchInput value={query} onChange={setQuery} placeholder="Search lawyers" resultCount={total} />
       {pageItems.map((p) => (
         <div key={p.id} className={styles.listItem}>
           <div>
@@ -89,7 +89,7 @@ export function VendorsList() {
   useEffect(() => {
     dashboardFetch<{ vendors: Vendor[] }>("/api/vendors")
       .then((r) => setRows(r.vendors ?? []))
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load vendors."));
+      .catch((e) => setError(e instanceof Error ? e.message : "The vendor list did not load."));
   }, []);
 
   const { query, setQuery, page, setPage, pageItems, total, totalPages } =
@@ -183,7 +183,7 @@ export function FinanceView() {
       .then(setMetrics)
       .catch((e) => {
         if (isRoleDenied(e)) setDenied(true);
-        else setError(e instanceof Error ? e.message : "Failed to load finance metrics.");
+        else setError(e instanceof Error ? e.message : "The finance figures did not load.");
       });
   }, []);
 
@@ -278,7 +278,7 @@ export function FinanceView() {
       <div className={styles.financeGrid}>
         <div className={styles.financeCard}>
           <h3 className={styles.financeTitle}>Revenue by lawyer</h3>
-          <RankedBarChart data={providerData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No provider data yet." />
+          <RankedBarChart data={providerData} color={PALETTE.navy} valueFormatter={money} emptyMessage="No lawyer revenue yet." />
         </div>
         <div className={styles.financeCard}>
           <h3 className={styles.financeTitle}>Revenue by stage</h3>
@@ -307,7 +307,7 @@ export function SalesView() {
       .then((r) => setRows(r.rows ?? r.sales ?? []))
       .catch((e) => {
         if (isRoleDenied(e)) setDenied(true);
-        else setError(e instanceof Error ? e.message : "Failed to load sales report.");
+        else setError(e instanceof Error ? e.message : "The sales report did not load.");
       });
   }, []);
 
@@ -398,7 +398,7 @@ export function AssignmentView() {
   const load = () => {
     dashboardFetch<AssignmentQueue>("/api/dashboard/assignment/queue")
       .then(setQueue)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load assignment queue."));
+      .catch((e) => setError(e instanceof Error ? e.message : "The assignment queue did not load."));
   };
 
   useEffect(load, []);

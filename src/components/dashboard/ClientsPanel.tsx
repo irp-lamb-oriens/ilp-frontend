@@ -48,7 +48,7 @@ export default function ClientsPanel() {
       const res = await dashboardFetch<{ clients: ClientSummary[] }>("/api/dashboard/clients");
       setClients(res.clients ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load clients.");
+      setError(err instanceof Error ? err.message : "The member list did not load.");
     }
   }, []);
 

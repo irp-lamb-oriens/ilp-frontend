@@ -38,7 +38,7 @@ export default function EmailsTab() {
       const res = await dashboardFetch<{ pending: EmailQueueItem[] }>("/api/dashboard/pending-emails");
       setPending(res.pending ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load email queue.");
+      setError(err instanceof Error ? err.message : "The email queue did not load.");
     }
   }, []);
 
@@ -79,7 +79,7 @@ export default function EmailsTab() {
       const doc = await dashboardFetch<SentEmail>(`/api/dashboard/sent-emails/${id}`);
       setPreview(doc);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load email.");
+      setError(err instanceof Error ? err.message : "This email did not load.");
     }
   }
 

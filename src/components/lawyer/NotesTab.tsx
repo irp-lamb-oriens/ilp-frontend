@@ -123,7 +123,7 @@ export default function NotesTab({
       setPickerOpen(false);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add note.");
+      setError(err instanceof Error ? err.message : "The note was not added. Try again.");
     } finally {
       setBusy(false);
     }
@@ -143,7 +143,7 @@ export default function NotesTab({
       setEditingText("");
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to edit note.");
+      setError(err instanceof Error ? err.message : "The note was not changed. Try again.");
     } finally {
       setBusy(false);
     }
@@ -159,7 +159,7 @@ export default function NotesTab({
       });
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete note.");
+      setError(err instanceof Error ? err.message : "The note was not deleted. Try again.");
     } finally {
       setBusy(false);
     }
@@ -181,7 +181,7 @@ export default function NotesTab({
         ),
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to mark as read.");
+      setError(err instanceof Error ? err.message : "It was not marked as read. Try again.");
     } finally {
       setResolvingId(null);
     }

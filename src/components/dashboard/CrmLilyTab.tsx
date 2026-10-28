@@ -30,7 +30,7 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
       );
       setThread(res.thread ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Lily thread.");
+      setError(err instanceof Error ? err.message : "The Lily conversation did not load.");
     } finally {
       setLoaded(true);
     }
@@ -55,7 +55,7 @@ export default function CrmLilyTab({ clientId }: { clientId: string }) {
       );
       setThread((prev) => [...prev, { role: "assistant", content: res.reply }]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reach Lily.");
+      setError(err instanceof Error ? err.message : "Lily did not answer. Try again.");
     } finally {
       setBusy(false);
       requestAnimationFrame(() => {
