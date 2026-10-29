@@ -78,6 +78,15 @@ Code: `src/lib/narration/follow.ts`.
 
 To tune a section: if it finishes too early or late, its narration is too short or long for its height. Lengthen or shorten that cue's text, or check that the transcript's segment for it ends where the speech ends.
 
+## Captions, word by word
+
+Captions show the current line of the narration and fill in word by word with the voice: each word fades in (rising a few pixels; no movement with reduced motion) when it is spoken. A line breaks after punctuation once it has 5 words, or at 12 words, so it stays within two lines; a new line or a new section clears the box. Earlier words stay visible; the word being spoken is not highlighted, which reads calmer. Screen readers hear each section's whole text once, not word by word.
+
+Word times come from the `words` list in `public/narration/<page>.json`:
+
+- Now: estimated. `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/estimateWordTimings.mjs` shares each section's speaking time over its words by English syllable count (acronyms such as ILP spelled out, hyphenated words and numbers read as words), with pauses after commas (0.25 s), full stops and colons (0.45 s) and the script's `[short pause]` (0.5 s) and `[pause]` (1 s). It writes `"words"` and `"wordsSource": "estimated-syllables"` and leaves `segments` alone. Run it again after changing a script or the segment times; `npm test` fails while the file is out of date.
+- Later, if you want exact times: `OPENAI_API_KEY=... node scripts/whisperWords.mjs home lawyers csm` sends each MP3 to the OpenAI transcription API with word timestamps and replaces the JSON (`"wordsSource": "whisper"`). The key is read from the environment only and never printed or saved. The estimate script then leaves those files alone. The local Whisper commands in section 2 with word timestamps work too.
+
 ## Changing a script
 
 1. Edit `ilp/docs/narration/SCRIPTS.md` and copy it to `frontend/docs/narration/SCRIPTS.md`. A test fails while the two differ.

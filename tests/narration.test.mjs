@@ -721,3 +721,134 @@ test("follow: the narrator drives scroll every frame from the time, not from tim
   const drive = n.slice(n.indexOf("const drive = () =>"), n.indexOf("/* ── Follow the time"));
   assert.ok(!/new |\[\]|\{\s*\}/.test(drive.replace(/rs\.active = false/, "")), "no allocation per frame");
 });
+
+/* ── Word-by-word captions ───────────────────────────────────── */
+
+const wt = await import("../src/lib/narration/wordTiming.ts");
+
+test("word timing: English syllable counts", () => {
+  const cases = {
+    ILP: 3,
+    CSM: 3,
+    "seventy-nine": 4,
+    "two-minute": 3,
+    retainer: 3,
+    Colombia: 4,
+    Panama: 3,
+    Mexico: 3,
+    Portugal: 3,
+    the: 1,
+    table: 2,
+    needed: 2,
+    boxes: 2,
+    places: 2,
+    licensed: 2,
+    countries: 2,
+    lawyer: 2,
+    reminder: 3,
+    residency: 4,
+    "follow-up": 3,
+    hundred: 2,
+    ninety: 2,
+  };
+  for (const [word, n] of Object.entries(cases)) assert.equal(wt.syllables(word), n, word);
+  assert.ok([2, 3].includes(wt.syllables("every")));
+  assert.equal(wt.syllables("ILP,"), 3, "punctuation does not count");
+  assert.equal(wt.syllables("US$79.99"), wt.syllables("seventy-nine dollars and ninety-nine cents"), "prices read as words");
+  assert.equal(wt.syllables("1,500"), wt.syllables("one thousand five hundred"));
+  assert.equal(wt.spokenNumbers("US$100"), "one hundred dollars");
+});
+
+test("word timing: a window is shared by syllables and pauses, ends on time, never goes back", () => {
+  const read = "[calm] Living abroad comes with legal dates written in another language, [short pause] and nobody sends you a reminder.";
+  const words = wt.estimateWords(read, 6, 12.65);
+  assert.equal(words.length, 16);
+  assert.equal(words[0].word, "Living");
+  assert.equal(words[0].start, 6 + wt.LEAD_IN, "a short lead-in");
+  assert.equal(words.at(-1).end, 12.65, "the last word ends with the window");
+  for (let k = 0; k < words.length; k++) {
+    assert.ok(words[k].end > words[k].start, `${words[k].word} has a length`);
+    if (k) assert.ok(words[k].start >= words[k - 1].end - 1e-9, "monotonic");
+  }
+  // The comma plus [short pause] after "language," leaves a gap of 0.75 s.
+  const i = words.findIndex((w) => w.word === "language,");
+  assert.ok(Math.abs(words[i + 1].start - words[i].end - 0.75) < 0.002);
+  // Speaking time plus pauses plus lead-in fill the window.
+  const speak = words.reduce((s, w) => s + (w.end - w.start), 0);
+  const gaps = words.slice(1).reduce((s, w, k) => s + (w.start - words[k].end), 0);
+  assert.ok(Math.abs(speak + gaps + wt.LEAD_IN - 6.65) < 0.01);
+  // Longer words take longer.
+  const len = (w) => words.find((x) => x.word === w);
+  assert.ok(len("reminder.").end - len("reminder.").start > len("you").end - len("you").start);
+  // Pauses are capped in a short window.
+  const tight = wt.estimateWords("One, two, three, four.", 0, 1);
+  assert.equal(tight.at(-1).end, 1);
+  assert.ok(tight.every((w) => w.end > w.start));
+  assert.deepEqual(wt.estimateWords("", 0, 1), []);
+});
+
+test("word timing: lines, revealed words and alignment with transcript words", () => {
+  const words = wt.captionWords("Living abroad comes with legal dates written in another language, and nobody sends you a reminder.");
+  const lines = wt.lineStarts(words);
+  assert.deepEqual(lines, [0, 10], "breaks after the comma");
+  assert.ok(wt.lineStarts(wt.captionWords("a b c d e f g h i j k l m n o p")).every((s, i, a) => !i || s - a[i - 1] <= 12));
+  const starts = new Float64Array([1, 1.4, 1.9, 2.5]);
+  assert.equal(wt.revealedCount(starts, 0.5), 0);
+  assert.equal(wt.revealedCount(starts, 1), 1, "a word shows at its start time");
+  assert.equal(wt.revealedCount(starts, 2.0), 3);
+  assert.equal(wt.revealedCount(starts, 9), 4);
+  assert.equal(wt.lineOf([0, 10], 9), 0);
+  assert.equal(wt.lineOf([0, 10], 10), 1);
+
+  const read = "[warm] ILP brings you prepared clients and handles the follow-up after each call.";
+  const cw = wt.captionWords("ILP brings you prepared clients and handles the follow-up after each call.");
+  // Real word times (as Whisper would give: "follow-up" is two tokens) win over the estimate.
+  const timed = [];
+  const firstAt = [];
+  cw.forEach((w) => {
+    firstAt.push(0.3 + timed.length * 0.3);
+    for (const token of tr.normalizeTokens(w)) timed.push({ token, start: 0.3 + timed.length * 0.3 });
+  });
+  const aligned = wt.alignCueWords(read, cw, 0, 4.65, timed);
+  cw.forEach((w, k) => assert.ok(Math.abs(aligned[k] - firstAt[k]) < 1e-9, w));
+  // A misheard word keeps the estimate, and times still never go backwards.
+  const misheard = timed.map((t, k) => (k === 3 ? { token: "repaired", start: t.start } : t));
+  const a2 = wt.alignCueWords(read, cw, 0, 4.65, misheard);
+  for (let k = 1; k < a2.length; k++) assert.ok(a2[k] >= a2[k - 1]);
+  // No transcript words: the estimate.
+  const est = wt.estimateWords(read, 0, 4.65);
+  const a3 = wt.alignCueWords(read, cw, 0, 4.65, null);
+  cw.forEach((_, k) => assert.equal(a3[k], est[k].start));
+});
+
+test("word timing: the JSON words cover every cue, in order, and read as the captions", async () => {
+  const { withEstimatedWords, ESTIMATED } = await import("../scripts/estimateWordTimings.mjs");
+  for (const p of PAGES) {
+    const file = new URL(`../public/narration/${p}.json`, import.meta.url);
+    if (!existsSync(file)) continue;
+    const json = JSON.parse(readFileSync(file, "utf8"));
+    if (json.wordsSource !== ESTIMATED) continue; // real Whisper words: not ours to check
+    const words = json.words;
+    const captions = NARRATION[p].cues.map((c) => c.caption).join(" ");
+    assert.equal(words.map((w) => w.word).join(" "), captions, `${p}: words are the captions`);
+    for (let k = 1; k < words.length; k++) assert.ok(words[k].start >= words[k - 1].end - 1e-9, `${p}: monotonic at ${k}`);
+    assert.ok(words.at(-1).end <= json.duration);
+    // Every cue's first word starts at its segment's start plus the lead-in.
+    const { found } = tr.cueStartsFromTranscript(json, NARRATION[p].cues.map((c) => c.match), NARRATION[p].cues.map((c) => c.estimate), json.duration);
+    found.forEach((t, i) => assert.ok(Math.abs(t - (json.segments[i].start + wt.LEAD_IN)) < 0.002, `${p} cue ${i}`));
+    // The file is what the script writes today.
+    assert.deepEqual(withEstimatedWords({ ...json, words: undefined }, NARRATION[p]).words, words, `${p}: run scripts/estimateWordTimings.mjs`);
+  }
+});
+
+test("word timing: the caption line is visual only; screen readers get the whole cue once", () => {
+  const n = read("src/components/narration/Narrator.tsx");
+  assert.match(n, /<p key=\{`live-\$\{cue\.id\}`\} className=\{s\.liveText\} aria-live=\{playing \? "polite" : "off"\}>\s*\{state\.captions \? cue\.caption : ""\}/);
+  assert.match(n, /className=\{idle \? `\$\{s\.caption\} \$\{s\.captionIdle\}` : s\.caption\} aria-hidden="true"/);
+  assert.equal((n.match(/aria-live=/g) ?? []).length, 1, "one live region");
+  assert.match(n, /revealedCount\(starts, time\)/, "binary search over word times");
+  const scss = read("src/components/narration/Narrator.module.scss");
+  assert.match(scss, /@include reduced-motion \{\s*\.word \{\s*transform: none;/);
+  assert.match(read("scripts/whisperWords.mjs"), /process\.env\.OPENAI_API_KEY/);
+  assert.ok(!/console\.(log|error)\([^)]*key\b/.test(read("scripts/whisperWords.mjs")), "the key is never printed");
+});
