@@ -14,6 +14,7 @@ import { staffReports } from "./staff/reports";
 import { staffJourneys } from "./staff/journeys";
 import { staffSettings } from "./staff/settings";
 import { staffPrivacy } from "./staff/privacy";
+import { csmToday } from "./csm/today"; // COMMS-P3
 
 import { lawyerToday } from "./lawyer/today";
 import { lawyerBoard } from "./lawyer/board";
@@ -42,6 +43,7 @@ export const STAFF_TUTORIALS: Tutorial[] = [
   staffJourneys,
   staffSettings,
   staffPrivacy,
+  csmToday,
 ];
 export const LAWYER_TUTORIALS: Tutorial[] = [
   lawyerToday,

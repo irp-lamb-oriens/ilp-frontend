@@ -190,7 +190,7 @@ test("scene utils: ids, end state, markers and the spoken description", () => {
 // ─── Configs ────────────────────────────────────────────────────────────────
 
 const REQUIRED = {
-  staff: ["/dashboard", "/dashboard/members", "/dashboard/members/[id]", "/dashboard/pipeline", "/dashboard/opportunities", "/dashboard/lawyers", "/dashboard/finance", "/dashboard/reports", "/dashboard/journeys", "/dashboard/settings", "/dashboard/privacy"],
+  staff: ["/csm", "/dashboard", "/dashboard/members", "/dashboard/members/[id]", "/dashboard/pipeline", "/dashboard/opportunities", "/dashboard/lawyers", "/dashboard/finance", "/dashboard/reports", "/dashboard/journeys", "/dashboard/settings", "/dashboard/privacy"],
   lawyer: ["/lawyer", "/lawyer/board", "/lawyer/clients", "/lawyer/calls/[id]", "/lawyer/finance", "/lawyer/availability"],
   client: ["/status", "/status/deadlines", "/status/profile", "/status/book", "/status/money", "/status/money/cancel", "/status/messages", "/status/feedback", "/status/privacy"],
 };

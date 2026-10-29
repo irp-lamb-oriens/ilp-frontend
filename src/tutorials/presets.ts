@@ -99,8 +99,13 @@ const SEARCH: Partial<Record<TutorialRole, string>> = {
   lawyer: "Search clients and matters",
 };
 
+/** COMMS-P3: the CSM portal's nav labels (the CSM tutorial uses the staff frame with these). */
+export const CSM_NAV = ["Today", "My book", "Onboarding", "Calls", "Renewals and risk", "Deadlines", "Quotes and opportunities", "Messages", "Playbooks", "My KPIs"];
+
 export interface ShellOpts {
   title?: string;
+  /** Nav labels when they differ from the role's (the CSM portal). */
+  nav?: string[];
   actions?: MockNode[];
   overlays?: MockNode[];
   search?: string | null;
@@ -111,7 +116,7 @@ export function mockShell(role: TutorialRole, active: string, body: MockNode, op
   return {
     type: "frame",
     role,
-    nav: NAV[role],
+    nav: opts.nav ?? NAV[role],
     active,
     title: opts.title,
     actions: opts.actions,

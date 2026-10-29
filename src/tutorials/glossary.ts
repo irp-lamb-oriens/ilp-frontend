@@ -57,6 +57,36 @@ export const GLOSSARY = {
     match: /\bCSMs?\b|customer success manager/i,
     group: "ILP",
   },
+  book: {
+    word: "Book",
+    meaning: "The members one CSM looks after. Each member has one CSM, named on their membership.",
+    match: /\bmy book\b|\bCSM.s book\b/i,
+    group: "ILP",
+  },
+  healthScore: {
+    word: "Health score",
+    meaning: "A number from 0 to 100 for how a member is doing. It drops after a failed payment, a low rating or weeks without contact. Under 50 is At risk.",
+    match: /\bhealth scores?\b/i,
+    group: "ILP",
+  },
+  playbook: {
+    word: "Playbook",
+    meaning: "A short checklist for a moment that comes up often, like a welcome call or a failed payment. Each one has an email you can send from the member page.",
+    match: /playbooks?/i,
+    group: "ILP",
+  },
+  firstContact: {
+    word: "First contact",
+    meaning: "The first call or message from a CSM to a new member. It is due within one business day of joining.",
+    match: /first contact/i,
+    group: "ILP",
+  },
+  digest: {
+    word: "Daily digest",
+    meaning: "One email to each CSM at 8:00 Costa Rica time with overdue tasks, tasks due today, new members and members at risk. No email on a quiet day.",
+    match: /daily digest|digest/i,
+    group: "ILP",
+  },
   ilpTeam: {
     word: "ILP team",
     meaning: "The ILP staff who run the service. They answer messages and handle follow-up, but they do not give legal advice. Lawyers do that.",
