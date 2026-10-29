@@ -76,6 +76,12 @@
   @media (max-width: 480px) {
     display: none;
   }
+
+  // 1024 to 1279px: the link cluster (three audience links, six flags, sign
+  // in) needs the room, so the logo stands alone; the wordmark returns at xl.
+  @media (min-width: $bp-lg) and (max-width: #{$bp-xl - 1px}) {
+    display: none;
+  }
 }
 
 // ── Link cluster ────────────────────────────────────────────────────────────

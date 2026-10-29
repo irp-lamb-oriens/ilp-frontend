@@ -32,6 +32,8 @@ function Flag({ code, name }: { code: string; name: string }) {
 export default function Nav() {
   const pathname = usePathname();
   const isLawyers = pathname === "/attorneys" || pathname === "/lawyers";
+  const isCsm = pathname === "/customer-success";
+  const isMembers = !isLawyers && !isCsm;
   const isCountry = (href: string) => pathname === href;
   const [scrolled, setScrolled] = useState(false);
 
@@ -58,8 +60,8 @@ export default function Nav() {
       <div className={styles.links}>
         <Link
           href="/"
-          className={`${styles.link} ${styles.audience} ${!isLawyers ? styles.active : ""}`}
-          aria-current={!isLawyers ? "page" : undefined}
+          className={`${styles.link} ${styles.audience} ${isMembers ? styles.active : ""}`}
+          aria-current={isMembers ? "page" : undefined}
         >
           For members
         </Link>
@@ -69,6 +71,13 @@ export default function Nav() {
           aria-current={isLawyers ? "page" : undefined}
         >
           For lawyers
+        </Link>
+        <Link
+          href="/customer-success"
+          className={`${styles.link} ${styles.audience} ${isCsm ? styles.active : ""}`}
+          aria-current={isCsm ? "page" : undefined}
+        >
+          Customer success
         </Link>
 
         <span className={styles.divider} aria-hidden="true" />
@@ -87,7 +96,7 @@ export default function Nav() {
 
         <span className={styles.divider} aria-hidden="true" />
 
-        {!isLawyers && (
+        {isMembers && (
           <Link
             href="/status"
             className={`${styles.link} ${pathname.startsWith("/status") ? styles.active : ""}`}
@@ -102,6 +111,12 @@ export default function Nav() {
             className={`${styles.link} ${pathname.startsWith("/lawyer") ? styles.active : ""}`}
           >
             Lawyer portal
+          </Link>
+        )}
+
+        {isCsm && (
+          <Link href="/csm" className={styles.link}>
+            CSM portal
           </Link>
         )}
 
