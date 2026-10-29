@@ -34,6 +34,7 @@ component; import the token.
 | `$color-error` | `#c0392b` | errors |
 | `$color-warning` | `#b7791f` | warnings |
 | `$color-success` | `#1f7a5c` | success |
+| `$color-strike` | `$color-error` | strike line on the comparison price only (`PriceAnchor`) |
 | `$notice-warning` | `#8e6d3a` | notice and warning-pill line (warning toward steel) |
 
 **Rules:**
@@ -41,6 +42,8 @@ component; import the token.
 - No pure `#000000`. Use `$color-charcoal` / `$color-navy`.
 - One palette per page. Do not mix warm and cool grays.
 - Accent is used identically across every section of a page.
+- `$color-strike` is the error red used as status meaning (a figure that does
+  not apply). It is not a second accent: only `PriceAnchor` uses it.
 
 ## 3. Typography
 
@@ -92,7 +95,9 @@ No CTA label wraps to two lines at desktop. One primary CTA per viewport tier.
   beat leaving the stage uses `$ease-in-exit` (it follows the scroll, not a click).
 - **Durations:** press 100–160ms, tooltips 125–200ms, dropdowns 150–250ms,
   modals/drawers 200–500ms. UI stays under 300ms.
-- **Never `scale(0)`.** Start from `scale(0.95)` + `opacity: 0`.
+- **Never `scale(0)`.** Start from `scale(0.95)` + `opacity: 0`. One exception:
+  a line that draws itself (the `PriceAnchor` strike) runs `scaleX(0)` to
+  `scaleX(1)` from its left edge.
 - **Popovers/dropdowns** scale from their trigger (`transform-origin`), not center.
 - **Transitions, not keyframes**, for anything triggered rapidly (toasts, toggles).
 - **Honor `prefers-reduced-motion`**: keep opacity/color, drop movement.

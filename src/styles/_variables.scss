@@ -24,6 +24,9 @@ $color-accent-soft: #eaf7fd;
 $color-error: #c0392b;
 $color-warning: #b7791f;
 $color-success: #1f7a5c;
+// Strike line on the comparison price (components/motion/PriceAnchor). The
+// error red as status meaning, not a second accent (rules.md, Color).
+$color-strike: $color-error;
 
 // Radius scale (flat, restrained)
 $radius-sm: 6px;
@@ -90,6 +93,11 @@ $duration-drawer: 280ms;
 // steps, so a full page lands in about 570ms.
 $duration-reveal: 300ms;
 $duration-fade: 150ms;
+// Price anchor sequence (components/motion/PriceAnchor.module.scss): the
+// strike line draws in $duration-strike; each step starts $price-anchor-beat
+// after the one before.
+$duration-strike: 420ms;
+$price-anchor-beat: 360ms;
 $stagger-step: 45ms;
 $stagger-max: 6;
 $reveal-distance: 10px;
