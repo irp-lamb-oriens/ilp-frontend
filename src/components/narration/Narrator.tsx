@@ -16,6 +16,17 @@ import { track } from "@/lib/journey";
 import { NARRATION, type NarrationPage } from "@/lib/narration/scripts";
 import { aboutMinutes, cueIndexAt, cueProgress, cumulativeStarts } from "@/lib/narration/timing";
 import { cueStartsFromTranscript, fillCueStarts } from "@/lib/narration/transcript";
+import { estimateSeconds } from "@/lib/narration/timing";
+import {
+  RESYNC_S,
+  createRanges,
+  createWindows,
+  fillWindows,
+  followY,
+  resyncY,
+  sectionRange,
+  speechEnds,
+} from "@/lib/narration/follow";
 import { initialNarratorState, narratorReducer, type NarratorEvent, type NarratorState } from "@/lib/narration/machine";
 import { isUserScrollIntent } from "@/lib/narration/scroll";
 import { resumeGraph, voiceGraph, type VoiceGraph } from "@/lib/narration/audioGraph";
@@ -38,6 +49,17 @@ import s from "./Narrator.module.scss";
  * viewport. Previous and next seek to a cue's start. A wheel, touch drag or
  * scroll key outside the player pauses the audio; Resume continues from the
  * same moment and returns to the cue's section.
+ *
+ * Scroll follows the voice (lib/narration/follow.ts): while a cue narrates,
+ * the page moves from its section's top to where the section's bottom meets
+ * the bar, in proportion to the time, so the section ends as its narration
+ * does; between cues a short eased move goes to the next section's top.
+ * Driven every frame from the audio's currentTime (or the caption-only
+ * clock) through Lenis with immediate scrolls. Section ranges are measured
+ * once and again on resize, orientation change, visual viewport resize and
+ * section or document size changes. Resume and seek ease back to the
+ * position for the current time. Reduced motion: each section's top at its
+ * cue start, no movement in between.
  *
  * The voice wave (VoiceWave.tsx) sits in the player bar and is also the
  * play/pause control. Its analyser is created only from the click on Start
@@ -69,14 +91,8 @@ const clockTime = (clock: Clock) => clock.current.banked + (clock.current.since 
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Scroll to a section by id, respecting its scroll-margin-top. */
-function scrollToSection(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
-  const reduce = reducedMotion();
-  scrollPageTo(Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - margin)), !reduce);
-}
+/** Visible height: the visual viewport on phones (address bar), else the window. */
+const viewportHeight = () => window.visualViewport?.height ?? window.innerHeight;
 
 /** Load an audio file's metadata; resolves its duration (s), or null when it cannot load. */
 function probeDuration(url: string, timeoutMs = 5000): Promise<number | null> {
@@ -134,8 +150,21 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   const audioStateRef = useRef<AudioState>("unknown");
   const audioWorkedRef = useRef(false);
   const loadRef = useRef<Promise<void> | null>(null);
+  const endsRef = useRef<(number | null)[] | null>(null);
+  const winRef = useRef(createWindows(count));
+  const rangesRef = useRef(createRanges(count));
+  const dirtyRef = useRef(true);
+  const lastYRef = useRef(-1);
+  const resyncRef = useRef({ active: false, from: 0, at: 0 });
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  /** Recompute the cue time windows from the current starts, speech ends and length. */
+  const retime = useCallback(() => {
+    fillWindows(winRef.current, startsRef.current, endsRef.current, totalRef.current);
+  }, []);
+  /** Caption-only speech ends: each cue's words and inner pauses, without the section pause. */
+  const timedEnds = useCallback(() => startsRef.current.map((st, i) => st + estimateSeconds(cues[i].read)), [cues]);
 
   /* ── Timeline: audio length and cue times, or caption-only ─── */
   const load = useCallback(() => {
@@ -150,16 +179,22 @@ export default function Narrator({ page }: { page: NarrationPage }) {
         return;
       }
       const matches = cues.map((c) => c.match);
-      startsRef.current = json
-        ? cueStartsFromTranscript(json, matches, weights, duration).starts
-        : fillCueStarts(cues.map((_, i) => (i === 0 ? 0 : null)), weights, duration);
+      if (json) {
+        const out = cueStartsFromTranscript(json, matches, weights, duration);
+        startsRef.current = out.starts;
+        endsRef.current = speechEnds(out.segments, out.starts);
+      } else {
+        startsRef.current = fillCueStarts(cues.map((_, i) => (i === 0 ? 0 : null)), weights, duration);
+        endsRef.current = null;
+      }
       totalRef.current = duration;
+      retime();
       setTotal(duration);
       audioStateRef.current = "available";
       setAudioState("available");
     })();
     return loadRef.current;
-  }, [cues, script.audio, script.transcript]);
+  }, [cues, script.audio, script.transcript, retime]);
 
   /** Seconds into the landing's narration. */
   const time = useCallback(() => (modeRef.current === "audio" && audioRef.current ? audioRef.current.currentTime : clockTime(clockRef)), []);
@@ -177,16 +212,21 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     const weights = cues.map((c) => c.estimate);
     startsRef.current = cumulativeStarts(weights);
     totalRef.current = weights.reduce((sum, v) => sum + v, 0);
+    endsRef.current = timedEnds();
+    retime();
     setTotal(totalRef.current);
     const from = startsRef.current[stateRef.current.index] ?? 0;
     if (stateRef.current.status === "playing") startClock(clockRef, from);
     else clockRef.current = { banked: from, since: 0 };
-  }, [cues]);
+  }, [cues, retime, timedEnds]);
 
   /* ── Mount: offer the overlay once per session ─────────────── */
   useEffect(() => {
+    endsRef.current = timedEnds();
+    retime();
     setMounted(true);
     if (!offerSeen(page)) setOffer(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   useEffect(() => {
@@ -242,15 +282,68 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       clockRef.current = { banked: t0, since: stateRef.current.status === "playing" ? performance.now() : 0 };
     }
     setNow(t0);
+    beginResync();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.seek]);
 
-  /* ── Each cue scrolls the page to its section ──────────────── */
+  /* ── Section ranges: measured once, again when the layout changes ── */
+  const measure = useCallback(() => {
+    dirtyRef.current = false;
+    const root = document.documentElement;
+    const reserve = parseFloat(getComputedStyle(root).getPropertyValue("--narrator-reserve")) || 0;
+    const view = { height: viewportHeight(), reserve, docHeight: root.scrollHeight };
+    const r = rangesRef.current;
+    cues.forEach((c, i) => {
+      const el = document.getElementById(c.anchor);
+      if (!el) {
+        r.topY[i] = i ? r.endY[i - 1] : 0;
+        r.endY[i] = r.topY[i];
+        return;
+      }
+      const box = el.getBoundingClientRect();
+      const range = sectionRange({ top: box.top + window.scrollY, height: box.height }, view);
+      r.topY[i] = range.topY;
+      r.endY[i] = range.endY;
+    });
+  }, [cues]);
+
+  /** Ease from where the page is now to the position for the current time (resume, seek). */
+  const beginResync = () => {
+    resyncRef.current = { active: true, from: window.scrollY, at: performance.now() };
+  };
+
+  /* ── Reduced motion: each section's top at its cue start ───── */
   const active = state.status === "playing" || state.status === "paused";
   useEffect(() => {
-    if (active) scrollToSection(cues[state.index].anchor);
+    if (!active || !reducedMotion()) return;
+    if (dirtyRef.current) measure();
+    scrollPageTo(rangesRef.current.topY[state.index] ?? 0, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.index, state.seek]);
+
+  useEffect(() => {
+    if (!active) return;
+    const dirty = () => {
+      dirtyRef.current = true;
+    };
+    dirty();
+    const vv = window.visualViewport;
+    window.addEventListener("resize", dirty);
+    window.addEventListener("orientationchange", dirty);
+    vv?.addEventListener("resize", dirty);
+    const ro = new ResizeObserver(dirty);
+    ro.observe(document.body);
+    for (const c of cues) {
+      const el = document.getElementById(c.anchor);
+      if (el) ro.observe(el);
+    }
+    return () => {
+      window.removeEventListener("resize", dirty);
+      window.removeEventListener("orientationchange", dirty);
+      vv?.removeEventListener("resize", dirty);
+      ro.disconnect();
+    };
+  }, [active, cues]);
 
   /* ── Play, pause, resume, stop ─────────────────────────────── */
   const prevStatus = useRef(state.status);
@@ -259,7 +352,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     prevStatus.current = state.status;
     const a = audioRef.current;
     if (state.status === "playing") {
-      if (before === "paused") scrollToSection(cues[state.index].anchor);
+      if (before === "paused") beginResync();
       if (modeRef.current === "audio" && a) {
         resumeGraph(graphRef.current);
         a.play().catch(() => fallBackToTimed());
@@ -275,6 +368,23 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     if (before !== "done" && state.status === "done") track.click(`narration.complete.${page}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status]);
+
+  /* ── Scroll with the voice, every frame ────────────────────── */
+  const drive = () => {
+    if (dirtyRef.current) measure();
+    let y = followY(rangesRef.current, winRef.current, time());
+    const rs = resyncRef.current;
+    if (rs.active) {
+      const elapsed = (performance.now() - rs.at) / 1000;
+      if (elapsed >= RESYNC_S) rs.active = false;
+      else y = resyncY(rs.from, y, elapsed);
+    }
+    y = Math.round(y);
+    if (y !== lastYRef.current) {
+      lastYRef.current = y;
+      scrollPageTo(y, false);
+    }
+  };
 
   /* ── Follow the time: reach cues, end in caption-only mode ─── */
   const sync = useCallback(() => {
@@ -293,8 +403,10 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   useEffect(() => {
     if (state.status !== "playing") return;
     let raf = 0;
+    const reduce = reducedMotion();
     const tick = () => {
       sync();
+      if (!reduce && stateRef.current.status === "playing") drive();
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -304,6 +416,8 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       cancelAnimationFrame(raf);
       a?.removeEventListener("timeupdate", sync);
     };
+    // drive reads refs only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.status, sync]);
 
   /* ── The visitor scrolls: pause ────────────────────────────── */
@@ -386,6 +500,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       if (h > max) {
         max = h;
         root.style.setProperty("--narrator-reserve", `${h}px`);
+        dirtyRef.current = true;
       }
     };
     set();
