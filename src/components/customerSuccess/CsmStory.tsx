@@ -58,7 +58,7 @@ export function CsmHero() {
   const words = CSM_INTRO.titleKey.split(" ");
 
   return (
-    <section ref={ref} className={s.hero} aria-labelledby="csm-hero-title">
+    <section ref={ref} id="csm-hero" className={s.hero} aria-labelledby="csm-hero-title">
       <motion.div className={s.heroInner} style={pinned ? { opacity, y, visibility } : undefined}>
         <Stage className={s.heroStage} amount={0.1} stagger={0.16}>
           <Eyebrow className={s.heroEyebrow}>
@@ -155,7 +155,7 @@ export function HowYourDayWorks() {
 export function RoleClose() {
   const w = CSM_WHAT;
   return (
-    <section className={s.what} aria-labelledby="csm-what-title">
+    <section id="what-the-role-is" className={s.what} aria-labelledby="csm-what-title">
       <Stage className={s.whatInner} amount={0.25} stagger={0.14}>
         <StageItem as="h2" level="title" id="csm-what-title" className={s.whatHeading}>
           {CSM_HERO.labels.what}

@@ -13,7 +13,7 @@ import s from "./landing.module.scss";
  */
 export function FeaturesSticky() {
   return (
-    <section className={`${s.wrap} ${s.sticky}`} aria-labelledby="features-title">
+    <section id="what-the-membership-includes" className={`${s.wrap} ${s.sticky}`} aria-labelledby="features-title">
       <div className={s.stickyHead}>
         <SectionHead id="features-title" title={FEATURES_HEAD.title} why={FEATURES_HEAD.why} mark={FEATURES_HEAD.mark} icon="profile" />
       </div>
@@ -41,7 +41,7 @@ export function FeaturesSticky() {
  */
 export function SituationsList() {
   return (
-    <section className={s.steps} aria-labelledby="situations-title">
+    <section id="real-situations" className={s.steps} aria-labelledby="situations-title">
       <div className={`${s.wrap} ${s.section}`}>
         <SectionHead id="situations-title" title={STEPS_HEAD.title} why={STEPS_HEAD.why} mark={STEPS_HEAD.mark} icon="path" />
         <ol className={s.situations}>

@@ -54,7 +54,7 @@ export function LawyersHero() {
   const words = LAWYERS_INTRO.titleKey.split(" ");
 
   return (
-    <section ref={ref} className={s.hero} aria-labelledby="lawyers-hero-title">
+    <section ref={ref} id="lawyers-hero" className={s.hero} aria-labelledby="lawyers-hero-title">
       <motion.div className={s.heroInner} style={pinned ? { opacity, y, visibility } : undefined}>
         <Stage className={s.heroStage} amount={0.1} stagger={0.16}>
           <Eyebrow className={s.heroEyebrow}>
@@ -148,7 +148,7 @@ export function HowItWorksForYou() {
 export function PartnershipClose() {
   const w = LAWYERS_WHAT;
   return (
-    <section className={s.what} aria-labelledby="lawyers-what-title">
+    <section id="what-the-partnership-is" className={s.what} aria-labelledby="lawyers-what-title">
       <Stage className={s.whatInner} amount={0.25} stagger={0.14}>
         <StageItem as="h2" level="title" id="lawyers-what-title" className={s.whatHeading}>
           {LAWYERS_HERO.labels.what}

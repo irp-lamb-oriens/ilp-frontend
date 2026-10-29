@@ -96,7 +96,7 @@ export function ProblemScroll() {
 
   if (simple) {
     return (
-      <section className={s.problem} aria-label={HERO.labels.why}>
+      <section id="the-problem" className={s.problem} aria-label={HERO.labels.why}>
         <div className={s.problemInner}>
           <Reveal>{heading}</Reveal>
           <Reveal delay={0.08}>
@@ -117,7 +117,7 @@ export function ProblemScroll() {
   }
 
   return (
-    <section className={s.problem} aria-label={HERO.labels.why}>
+    <section id="the-problem" className={s.problem} aria-label={HERO.labels.why}>
       <MorphStage heightVh={200} className={s.stage}>
         {(progress) => (
           <div className={s.problemInner}>
@@ -509,7 +509,7 @@ export function StepsScroll() {
 
 export function WhatYouGet() {
   return (
-    <section className={s.what} aria-labelledby="what-title">
+    <section id="what-you-get" className={s.what} aria-labelledby="what-title">
       <Stage className={s.whatInner} amount={0.3}>
         <StageItem as="h2" level="title" id="what-title" className={s.whatHeading}>
           {HERO.labels.what}

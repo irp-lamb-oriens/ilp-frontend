@@ -40,7 +40,7 @@ const COUNTRY_PAGES: Record<string, string> = {
  */
 export function CoverageGutenberg() {
   return (
-    <section className={`${s.wrap} ${s.section}`} aria-labelledby="coverage-title">
+    <section id="countries" className={`${s.wrap} ${s.section}`} aria-labelledby="coverage-title">
       <SectionHead id="coverage-title" title={COVERAGE_HEAD.title} why={COVERAGE_HEAD.why} mark={COVERAGE_HEAD.mark} icon="globe" />
       <ul className={s.coverage}>
         {COUNTRIES.map((c, i) => {
@@ -229,7 +229,7 @@ export function FaqSplit() {
 /** Final call to action: the free check, with the countries that are open. */
 export function FinalCta() {
   return (
-    <section className={s.finalCta} aria-labelledby="final-title">
+    <section id="free-deadline-check" className={s.finalCta} aria-labelledby="final-title">
       <div className={s.wrap}>
         <Stage className={s.finalGlass} enter="visual" stagger={0.1} amount={0.4}>
           <StageItem as="h2" level="title" id="final-title" className={s.finalTitle}>

@@ -35,7 +35,7 @@ export default function HeroCTA() {
         };
 
   return (
-    <section className={styles.hero} aria-labelledby="hero-title">
+    <section id="hero" className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.inner}>
         <motion.p className={styles.eyebrow} {...enter(0)}>
           {HERO.eyebrow}
