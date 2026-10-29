@@ -28,6 +28,8 @@ export interface TimedWord {
 
 export interface ParsedTranscript {
   words: TimedWord[];
+  /** Segment times (s), in file order. */
+  segments: { start: number; end: number }[];
   /** End of the last segment or word (s), or null. */
   end: number | null;
 }
@@ -147,13 +149,14 @@ function fromRawWords(words: RawWord[], fallback: number): TimedWord[] {
 export function parseTranscript(json: unknown): ParsedTranscript {
   const segments = rawSegments(json);
   let end: number | null = segments.length ? Math.max(...segments.map((s) => s.end)) : null;
+  const times = segments.map((s) => ({ start: s.start, end: s.end }));
 
   // OpenAI verbose_json with word granularity: top-level words.
   const top = isRec(json) ? rawWords(json.words) : null;
   if (top) {
     const lastEnd = top.reduce((m, w) => Math.max(m, w.end ?? w.start ?? 0), 0);
     end = Math.max(end ?? 0, lastEnd);
-    return { words: fromRawWords(top, 0), end };
+    return { words: fromRawWords(top, 0), segments: times, end };
   }
 
   const words: TimedWord[] = [];
@@ -167,7 +170,7 @@ export function parseTranscript(json: unknown): ParsedTranscript {
     const step = tokens.length ? (s.end - s.start) / tokens.length : 0;
     tokens.forEach((token, i) => words.push({ token, start: s.start + i * step }));
   }
-  return { words, end };
+  return { words, segments: times, end };
 }
 
 /** Index in `words` where `tokens` start, from `from` on, with at most `tolerance` wrong words; -1 if none. */
@@ -246,8 +249,8 @@ export function cueStartsFromTranscript(
   matches: readonly string[],
   weights: readonly number[],
   duration: number | null = null,
-): { starts: number[]; found: (number | null)[] } {
-  const { words, end } = parseTranscript(json);
+): { starts: number[]; found: (number | null)[]; segments: { start: number; end: number }[] } {
+  const { words, segments, end } = parseTranscript(json);
   const found = findCueStarts(words, matches);
-  return { starts: fillCueStarts(found, weights, duration ?? end), found };
+  return { starts: fillCueStarts(found, weights, duration ?? end), found, segments };
 }
