@@ -6,8 +6,8 @@ Code: `src/lib/narration/` (scripts, timing, scroll, state machine, session) and
 
 ## Audio from ElevenLabs
 
-1. Open `docs/narration/SCRIPTS.md`. Each `###` block is one clip.
-2. Paste only the text under "Read:" into ElevenLabs, pause tags included. Use the same voice and settings for every clip on a page.
+1. Open `docs/narration/SCRIPTS.md`. Each `###` block is one clip: a short pitch of one or two sentences for its section. The page carries the detail.
+2. Paste only the text under "Read:" into ElevenLabs. Use the same voice and settings for every clip on a page.
 3. Download as MP3 and name it exactly as the block heading, for example `home-02-problem.mp3`.
 4. Put it in `frontend/public/narration/<page>/`, where `<page>` is `home`, `lawyers` or `csm`:
 
@@ -24,7 +24,7 @@ The homepage plays in page order, so `home-05-price` (What you get) plays before
 ## Changing a script and regenerating one clip
 
 1. Edit the block in `ilp/docs/narration/SCRIPTS.md` and copy the file to `frontend/docs/narration/SCRIPTS.md`. A test fails while the two differ.
-2. Paste the same new text into the `read` field of that cue in `src/lib/narration/scripts.ts`. Captions are made from it (pause tags removed).
+2. Paste the same new text into the `read` field of that cue in `src/lib/narration/scripts.ts`. The caption is the same text (if you ever add an ElevenLabs pause tag such as `<break time="0.5s" />`, the caption drops it and the timed fallback counts the pause).
 3. Run `npm test`. It fails if `scripts.ts` and `SCRIPTS.md` differ by one character, or if the new text breaks `copy-rules.md`.
 4. Regenerate only that clip in ElevenLabs and replace the file under the same name.
 
@@ -33,7 +33,7 @@ The homepage plays in page order, so `home-05-price` (What you get) plays before
 Each cue in `src/lib/narration/scripts.ts` is tied to a section by `anchor` (its DOM id) and has a `scroll` mode:
 
 - `jump`: the page scrolls to the section once, as the clip starts.
-- `through`: for pinned scroll stories. The page lands on the story's start, then moves steadily to its end while the clip plays, so the beats change with the voice. `startAt` must match the story: `0.35` for BeatStory and CostsStory, `0` for MorphStage (the problem, how ILP works).
+- `through`: for pinned scroll stories. The page lands on the story's start, then moves steadily to its end while the clip plays, so the beats change with the voice. Clips are short (about 5 to 8 seconds), so a tall story passes quickly; if it feels rushed, switch that cue to `jump` or lengthen the pitch. `startAt` must match the story: `0.35` for BeatStory and CostsStory, `0` for MorphStage (the problem, how ILP works).
 
 Settings in `src/lib/narration/scroll.ts`:
 
@@ -45,7 +45,7 @@ Settings in `src/lib/narration/timing.ts` (caption-only mode, before the audio e
 - `WPM` (150): reading speed used for timing.
 - `CUE_PAD` (0.6 s): silence after each clip.
 
-If the beats run ahead of the voice in one section, add a short pause tag (`<break time="0.5s" />`) to that block in the script and regenerate that clip, or move the cue to `jump`. With audio present, the clip's own length sets the timing.
+If the beats run ahead of the voice in one section, lengthen that pitch (or add a pause tag) and regenerate that clip, or move the cue to `jump`. With audio present, the clip's own length sets the timing.
 
 ## Behaviour to know about
 

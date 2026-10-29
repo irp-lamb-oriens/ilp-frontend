@@ -135,12 +135,11 @@ test("narration timing: the fallback reads at 150 words a minute plus pauses", (
   for (const c of ALL) {
     const expected = (wordCount(c.read) / 150) * 60 + breakSeconds(c.read) + CUE_PAD;
     assert.ok(Math.abs(c.estimate - expected) < 0.06, c.id);
-    assert.ok(c.estimate > 4 && c.estimate < 60, `${c.id}: ${c.estimate}s`);
+    assert.ok(c.estimate > 3 && c.estimate < 15, `${c.id}: ${c.estimate}s`);
   }
-  const home02 = NARRATION.home.find((c) => c.id === "home-02-problem");
-  assert.equal(breakSeconds(home02.read), 0.4);
-  // Whole pages: a few minutes each.
-  assert.deepEqual(PAGES.map((p) => timing.minutesOf(scriptSeconds(p))), [4, 2, 2]);
+  // Short pitches: one or two sentences a clip, about a minute a page.
+  for (const c of ALL) assert.ok(timing.captionSegments(c.read).length <= 2, `${c.id}: one or two sentences`);
+  assert.deepEqual(PAGES.map((p) => timing.minutesOf(scriptSeconds(p))), [1, 1, 1]);
   assert.equal(timing.aboutMinutes(30), "about 1 minute");
   assert.equal(timing.aboutMinutes(200), "about 3 minutes");
 });
