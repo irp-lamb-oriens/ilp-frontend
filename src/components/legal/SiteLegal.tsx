@@ -32,6 +32,9 @@ export default function SiteLegal() {
             <li>
               <Link href="/status/privacy">Your data</Link>
             </li>
+            <li>
+              <Link href="/legal/cookies#measure-title">Measurement choice</Link>
+            </li>
           </ul>
         </nav>
         <p className={s.note}>

@@ -10,6 +10,7 @@ import { trackingAllowed } from "./consent";
 import { getVisitorId, touchSession } from "./ids";
 
 export const ASSIGN_KEY = "ilp_journey_assign";
+const ASSIGN_PATH = "/api/journey/assign";
 
 export interface Assignments {
   sessionId: string;
@@ -23,7 +24,7 @@ let pending: Promise<Assignments | null> | null = null;
 export type AssignFetcher = (visitorId: string) => Promise<JourneyAssignResponse>;
 
 const defaultFetcher: AssignFetcher = async (visitorId) => {
-  const res = await fetch(`${API_URL}/api/journey/assign?visitorId=${encodeURIComponent(visitorId)}`, { credentials: "omit" });
+  const res = await fetch(`${API_URL}${ASSIGN_PATH}?visitorId=${encodeURIComponent(visitorId)}`, { credentials: "omit" });
   if (!res.ok) throw new Error(`assign ${res.status}`);
   return (await res.json()) as JourneyAssignResponse;
 };

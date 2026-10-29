@@ -35,7 +35,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
       ["Membership and payments", "Plan, dates, minutes and calls used, payment status and Stripe customer and subscription references. Card details go to Stripe, not to us."],
       ["Feedback", "Call ratings, monthly scores and the reason you give if you cancel."],
       ["Security and technical", "Sign-in events and document downloads (audit log), error reports, and your IP address, used briefly to limit abuse. If you turn on notifications, your browser's push address."],
-      ["Measurement", "Only if you allow it: a random id kept in your browser and the steps you reach in the check and join flow, with the site that sent you. No name or email is attached until you join."],
+      ["Measurement", "Only if you allow it: a random id kept in your browser, the ILP pages you open and for how long, the steps you reach in the check, join and lawyer application forms, the buttons you press, the form fields that showed an error (never what you typed), which version of a page you saw when we test two, and the site that sent you. No name or email is attached until you join."],
     ],
   },
   {

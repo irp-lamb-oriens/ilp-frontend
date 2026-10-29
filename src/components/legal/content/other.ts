@@ -81,7 +81,8 @@ export const COOKIES_SECTIONS: LegalSection[] = [
     heading: "Optional: anonymous measurement id",
     body: [
       "If you allow it, we keep a random id (ilp_funnel_id) and the site that sent you (ilp_funnel_src) in your browser, to count how many people move from the free check to joining. No name or email is attached. When you join, the id is linked to your membership so we can count conversions.",
-      "If you refuse, or your browser sends the Global Privacy Control signal, we do not store the id. You can change your choice below at any time.",
+      "With the same permission we keep a second random id (ilp_vid), a visit id for this tab (ilp_journey_session) and the link or site that brought you (ilp_journey_src). We record which ILP pages you open, how long you spend on them, the steps you reach in the check, join and lawyer application forms, which button you press and which form field showed an error. We never record what you type. When we test two versions of a page, we remember which one you saw (ilp_journey_assign, ilp_journey_exposed) so it stays the same. Pages inside your member, lawyer or staff account are counted as one visit, nothing more.",
+      "If you refuse, or your browser sends the Global Privacy Control or Do Not Track signal, we do not store these ids and send nothing. No thanks also removes the ids already stored. You can change your choice below at any time.",
     ],
   },
   {
