@@ -4,7 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
-import { ApiError } from "@/lib/provider";
+import { ApiError, providerApi } from "@/lib/provider";
+import { NotificationCenter } from "@/components/shell/NotificationCenter";
+import { bellSource } from "@/lib/notifications";
 import { SkeletonRegion, useSkeleton, ErrorNotice, Notice } from "@/components/ui";
 import { APPLIED_EMAIL_KEY } from "@/components/lawyers/applyModel";
 import { getRoleToken } from "@/lib/api";
@@ -22,6 +24,9 @@ const TITLES: Array<[RegExp, string]> = [
   [/^\/lawyer\/calls\//, "Call"],
   [/^\/lawyer\/?$/, "Today"],
 ];
+
+/** COMMS-P3: the lawyer's bell (new members, work offered). */
+const LAWYER_BELL = bellSource(providerApi, "/api/provider/notifications");
 
 type State = { kind: "loading" } | { kind: "login" } | { kind: "error"; message: string } | { kind: "ready"; me: LawyerMe };
 
@@ -87,7 +92,7 @@ export default function LawyerGate({ children }: { children: ReactNode }) {
         }}
         menuLinks={LEGAL_MENU_LINKS}
         onSearch={(q) => router.push(`/lawyer/clients?q=${encodeURIComponent(q)}`)}
-        bell={null}
+        bell={me && !USING_MOCKS ? <NotificationCenter source={LAWYER_BELL} portal="lawyer" emptyText="Nothing new. New members and work offered to you appear here." /> : null}
       >
         {body}
       </RoleShell>

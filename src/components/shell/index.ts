@@ -6,6 +6,7 @@ export { RoleShell } from "./RoleShell";
 export type { RoleShellProps } from "./RoleShell";
 export { CountrySwitcher } from "./CountrySwitcher";
 export { NotificationBell } from "./NotificationBell";
+export { NotificationCenter } from "./NotificationCenter";
 export { UserMenu } from "./UserMenu";
 export { DEFAULT_NAV, ROLE_LABEL, COUNTRIES, SEARCH_PLACEHOLDER, LEGAL_MENU_LINKS } from "./navConfig";
 export * from "./navIcons";
