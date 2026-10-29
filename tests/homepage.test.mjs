@@ -268,13 +268,14 @@ test("homepage steps: one example screen at a time, alternating sides", async ()
   assert.deepEqual(a.STEP_SCREEN_SIDES, ["end", "start", "end", "start"]);
 });
 
-test("homepage: no scrubbed text starts dimmed (0 to 1 reveals only)", () => {
+test("homepage: only the problem starts dim; other reveals go 0 to 1 (see revealText.test.mjs)", () => {
   const story = readFileSync(new URL("../src/components/motion/Story.tsx", import.meta.url), "utf8");
   const hero = readFileSync(new URL("../src/components/landing/HeroStory.tsx", import.meta.url), "utf8");
   for (const [name, src] of [["Story.tsx", story], ["HeroStory.tsx", hero]]) {
-    assert.ok(!/floor/.test(src), `${name} has no dim floor opacity`);
+    assert.ok(!/floor/.test(src), `${name} has no ad hoc floor opacity`);
   }
-  assert.ok(story.includes('hidden: { opacity: 0, y: "0.5em" }'), "staged words start at opacity 0");
-  assert.ok(story.includes("<span className={s.srOnly}>{text}</span>"), "split lines keep the sentence for screen readers");
+  assert.ok(story.includes('hidden: { opacity: 0, y: "0.5em" }'), "staged words start at opacity 0 by default");
+  assert.ok(!story.includes("srOnly"), "split lines have no hidden duplicate; the word spans are the text");
   assert.ok(hero.includes("parts={PROBLEM.phrases}"), "the problem reveals its phrases with RevealText");
+  assert.ok(hero.includes('from="dim"'), "the problem starts dim");
 });
