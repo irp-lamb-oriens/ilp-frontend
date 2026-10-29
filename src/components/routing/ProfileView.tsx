@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Button,
   Checkbox,
+  DateInput,
   ChipSelect,
   ErrorNotice,
   IconCheck,
@@ -270,6 +271,7 @@ export default function ProfileView({ adapter, intro, title }: { adapter: Profil
                     <span>
                       {COUNTRIES[l.country].name}
                       {l.number ? `, ${COUNTRIES[l.country].lawyerBody.numberLabel.toLowerCase()} ${l.number}` : ""}
+                      {l.expiresAt ? `, expires ${new Date(l.expiresAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}` : ""}
                     </span>
                     <StatusPill size="sm" tone={l.verified ? "success" : "warning"} label={l.verified ? "Verified by ILP" : "Not verified yet"} />
                   </li>
@@ -455,6 +457,14 @@ function StaffLicences({ draft, patch, errors }: { draft: ProfileForm; patch: (p
             checked={l.verified}
             onChange={(e) => edit(l.country, { verified: e.target.checked })}
             hint={l.verified && l.verifiedBy ? `Verified by ${l.verifiedBy}${l.verifiedAt ? ` on ${l.verifiedAt.slice(0, 10)}` : ""}` : "Unverified licences are never routed members in that country."}
+          />
+          <DateInput
+            label="Licence expires"
+            optional
+            value={l.expiresAt?.slice(0, 10) ?? ""}
+            onChange={(e) => edit(l.country, { expiresAt: e.target.value || undefined })}
+            error={errors[`licenceExpiry_${l.country}`]}
+            hint="The lawyer and the ILP team get an email 60 and 30 days before this date."
           />
         </div>
       ))}

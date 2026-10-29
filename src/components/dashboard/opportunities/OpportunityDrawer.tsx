@@ -39,6 +39,7 @@ import {
   type MemberQuote,
   type OpportunityRow,
 } from "./oppApi";
+import { OffersPanel } from "./OffersPanel";
 import s from "./opportunities.module.scss";
 
 interface Props {
@@ -125,6 +126,7 @@ function OpportunityDetail({ o, initialStage, onChanged }: { o: OpportunityRow; 
 
       <StagePanel key={o.stage} o={o} initialStage={initialStage} onChanged={onChanged} />
       <QuotePanel key={o.quote?.id ?? "none"} o={o} onChanged={onChanged} />
+      <OffersPanel o={o} onAccepted={() => oppApi.get(o.id).then(onChanged).catch(() => undefined)} />
       <EditPanel o={o} onChanged={onChanged} />
     </div>
   );

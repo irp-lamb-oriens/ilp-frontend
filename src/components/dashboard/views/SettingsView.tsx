@@ -8,15 +8,18 @@ import EmailsTab from "@/components/dashboard/EmailsTab";
 import { PageHeader, ErrorText, TabNote } from "../staff/PageHeader";
 import { SpecialtiesEditor } from "../routing/SpecialtiesEditor"; // ROUTING
 import { SalesHours } from "../routing/SalesHours"; // ROUTING
+import { LawyerFeedbackSettings } from "../routing/LawyerFeedbackSettings"; // COMMS-P2
 import s from "./views.module.scss";
 
-/** Admin settings: pipeline stages, specialties, sales hours, email queue, vendors. */
+/** Admin settings: pipeline stages, specialties, sales hours, lawyer feedback, email queue, vendors. */
 export default function SettingsView() {
   const tabs: TabItem[] = [
     { id: "stages", label: "Stages", content: () => <StageConfig /> },
     // ROUTING: the specialty list lawyers pick from, and the sales team's hours.
     { id: "specialties", label: "Specialties", content: () => <SpecialtiesEditor /> },
     { id: "sales", label: "Sales calls", content: () => <SalesHours /> },
+    // COMMS-P2: thresholds of the monthly lawyer feedback (coaching and thank-you notes).
+    { id: "lawyer-feedback", label: "Lawyer feedback", content: () => <LawyerFeedbackSettings /> },
     {
       id: "emails",
       label: "Email queue",

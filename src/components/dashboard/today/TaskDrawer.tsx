@@ -8,7 +8,7 @@ import { Drawer, Loadable, ProgressBar, StatusPill } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { MemberGlanceSkeleton } from "../member/MemberSkeleton";
 import { dueLabel, memberName, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
-import { isLawyerApplicationTask, type MemberBundle, type QueueTask } from "../staff/types";
+import { isLawyerApplicationTask, isLawyerTask, lawyerTaskLabel, type MemberBundle, type QueueTask } from "../staff/types";
 import { CloseTaskForm } from "../member/CloseTaskForm";
 import { HandoffReview } from "../member/HandoffReview";
 import { MembershipPanel } from "../member/MembershipPanel";
@@ -35,7 +35,8 @@ export function TaskDrawer({
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   const lawyerApp = isLawyerApplicationTask(task);
-  const clientId = lawyerApp ? undefined : task?.clientId;
+  const lawyerTask = isLawyerTask(task);
+  const clientId = lawyerTask ? undefined : task?.clientId;
   const { nameOf } = useLawyers();
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function TaskDrawer({
     task?.source.kind === "quote"
       ? ((b?.client?.quotes as Array<Record<string, unknown>> | undefined) ?? []).find((q) => q.id === task.source.id)
       : undefined;
-  const name = lawyerApp ? "Lawyer application" : (task?.memberName ?? memberName(b?.client ?? null));
+  const name = lawyerTask ? lawyerTaskLabel(task) : (task?.memberName ?? memberName(b?.client ?? null));
 
   return (
     <Drawer
@@ -78,6 +79,10 @@ export function TaskDrawer({
               <Link className={s.linkBtn} href="/dashboard/lawyers#applications">
                 Open lawyer applications
               </Link>
+            ) : lawyerTask ? (
+              <Link className={s.linkBtn} href="/dashboard/lawyers">
+                Open lawyers
+              </Link>
             ) : (
               <Link className={s.linkBtn} href={`/dashboard/members/${encodeURIComponent(task.clientId)}`}>
                 Open member page
@@ -91,7 +96,12 @@ export function TaskDrawer({
           )}
 
           {error && <ErrorText>{error}</ErrorText>}
-          <Loadable loading={!lawyerApp && !b && !error} label="Loading member" skeleton={<MemberGlanceSkeleton />}>
+          {lawyerTask && !lawyerApp && (
+            <p className={s.meta}>
+              ILP emailed this lawyer their recent member feedback with constructive suggestions and offered a call. Offer the call, then close this task with what you agreed.
+            </p>
+          )}
+          <Loadable loading={!lawyerTask && !b && !error} label="Loading member" skeleton={<MemberGlanceSkeleton />}>
             {null}
           </Loadable>
 

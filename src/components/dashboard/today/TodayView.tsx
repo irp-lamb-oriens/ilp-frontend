@@ -12,7 +12,7 @@ import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText, SectionHead } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
 import { dueLabel, pct, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
-import { isLawyerApplicationTask, type AttentionItem, type QueueTask, type StaffSummary } from "../staff/types";
+import { isLawyerTask, lawyerTaskLabel, type AttentionItem, type QueueTask, type StaffSummary } from "../staff/types";
 import { TaskDrawer } from "./TaskDrawer";
 import { QueueSkeleton, RailSkeleton, TodayKpisSkeleton } from "./TodaySkeleton";
 import s from "./today.module.scss";
@@ -281,7 +281,7 @@ export default function TodayView() {
                               )}
                             </span>
                             <span className={s.taskMember}>
-                              {isLawyerApplicationTask(t) ? "Lawyer application" : (t.memberName ?? t.clientId)}
+                              {isLawyerTask(t) ? lawyerTaskLabel(t) : (t.memberName ?? t.clientId)}
                               {scope === "all" && t.ownerEmail ? ` · ${t.ownerEmail}` : ""}
                             </span>
                           </span>

@@ -59,13 +59,23 @@ export type QueueTask = CsmTask & {
   overdue?: boolean;
   memberName?: string;
   membershipStatus?: Membership["status"] | null;
-  /** T2: set on "Review lawyer application" tasks; clientId then holds the provider id. */
-  subject?: { kind: "lawyer_application"; providerId: string };
+  /** T2: set on "Review lawyer application" tasks (COMMS-P2: and "Offer a feedback call"); clientId then holds the provider id. */
+  subject?: { kind: "lawyer_application" | "lawyer_feedback"; providerId: string };
 };
 
 /** A "Review lawyer application" task (T2): about a lawyer, not a member. */
 export function isLawyerApplicationTask(t: Pick<QueueTask, "subject"> | null | undefined): boolean {
   return t?.subject?.kind === "lawyer_application";
+}
+
+/** COMMS-P2: any task about a lawyer rather than a member (application review, feedback call). */
+export function isLawyerTask(t: Pick<QueueTask, "subject"> | null | undefined): boolean {
+  return t?.subject?.kind === "lawyer_application" || t?.subject?.kind === "lawyer_feedback";
+}
+
+/** What a lawyer task is about, in the queue's member column. */
+export function lawyerTaskLabel(t: Pick<QueueTask, "subject"> | null | undefined): string {
+  return t?.subject?.kind === "lawyer_feedback" ? "Lawyer feedback" : "Lawyer application";
 }
 
 export interface QueueResponse {
