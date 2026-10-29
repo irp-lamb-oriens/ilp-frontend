@@ -1,0 +1,458 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+// Journeys (staff). One accent (light blue) for the measure that matters,
+// navy for the base series, cool gray for tracks. Labels are text, never
+// color alone. Hairlines over shadows (rules.md 2 and 4).
+
+.stack {
+  display: grid;
+  gap: $space-8;
+}
+
+// ─── Section links under the intro ──────────────────────────────────────────
+.subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  margin: 0 0 $space-4;
+  padding: 0 0 $space-2;
+  border-bottom: 1px solid $color-hairline;
+  list-style: none;
+}
+
+.subnavLink {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  padding: 0 $space-3;
+  border-radius: $radius-sm;
+  color: $color-steel;
+  font-weight: 500;
+  text-decoration: none;
+
+  &[aria-current="page"] {
+    color: $color-navy;
+    background: $color-accent-soft;
+    font-weight: 600;
+  }
+
+  @include hover-only {
+    &:hover {
+      color: $color-navy;
+    }
+  }
+}
+
+// ─── Filter bar ─────────────────────────────────────────────────────────────
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  align-items: end;
+  gap: $space-3;
+  margin-bottom: $space-6;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+
+  @include below-md {
+    grid-template-columns: 1fr 1fr;
+    padding: $space-3;
+  }
+}
+
+.filterActions {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  min-height: $touch-target;
+}
+
+.rangeNote {
+  margin: 0 0 $space-4;
+  color: $color-steel;
+  font-size: 0.875rem;
+}
+
+// ─── KPI strip: one large figure, smaller ones beside it ───────────────────
+.kpis {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+  gap: $space-3;
+
+  @include below-md {
+    grid-template-columns: 1fr 1fr;
+
+    > :first-child {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+// ─── Two columns: a wide main block and a narrow rail ──────────────────────
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: $space-6;
+  align-items: start;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  @include card;
+  padding: $space-4 $space-6;
+  min-width: 0;
+
+  @include below-md {
+    padding: $space-4;
+  }
+}
+
+.panelHead {
+  margin: 0 0 $space-1;
+  font-size: 1.125rem;
+  color: $color-navy;
+  letter-spacing: -0.01em;
+}
+
+.panelSub {
+  margin: 0 0 $space-4;
+  color: $color-steel;
+  font-size: 0.875rem;
+  max-width: 65ch;
+}
+
+// ─── Funnel table with bars ─────────────────────────────────────────────────
+.scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+
+  caption {
+    @include visually-hidden;
+  }
+
+  th,
+  td {
+    padding: $space-2 $space-3;
+    border-bottom: 1px solid $color-hairline;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  th {
+    color: $color-steel;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+.num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.stepCell {
+  min-width: 11rem;
+}
+
+.stepName {
+  display: block;
+  color: $color-charcoal;
+  font-weight: 500;
+}
+
+.stageTag {
+  display: block;
+  color: $color-muted;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: $font-mono;
+}
+
+.barCell {
+  width: 32%;
+  min-width: 7rem;
+
+  @include below-md {
+    min-width: 5rem;
+  }
+}
+
+.bar {
+  display: block;
+  width: 100%;
+  height: 12px;
+}
+
+.barTrack {
+  fill: $color-mist;
+}
+
+.barFill {
+  fill: $color-navy;
+}
+
+.barAccent {
+  fill: $color-accent;
+}
+
+.barSoft {
+  fill: $chart-4;
+}
+
+.loss {
+  color: $color-steel;
+}
+
+.hideMd {
+  @include below-md {
+    display: none;
+  }
+}
+
+// ─── Biggest leaks ──────────────────────────────────────────────────────────
+.leaks {
+  display: grid;
+  gap: $space-3;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: leak;
+}
+
+.leak {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: $space-3;
+  padding: $space-3 0;
+  border-bottom: 1px solid $color-hairline;
+  counter-increment: leak;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &::before {
+    content: counter(leak);
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid $color-hairline-strong;
+    border-radius: $radius-pill;
+    color: $color-navy;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+}
+
+.leakText {
+  margin: 0;
+  color: $color-charcoal;
+  line-height: 1.5;
+}
+
+.leakMeta {
+  margin: $space-1 0 0;
+  color: $color-steel;
+  font-size: 0.8125rem;
+}
+
+// ─── Inbound vs outbound ────────────────────────────────────────────────────
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-4;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  margin: 0 0 $space-3;
+  padding: 0;
+  list-style: none;
+  color: $color-steel;
+  font-size: 0.8125rem;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.keySwatch {
+  width: 14px;
+  height: 8px;
+}
+
+// ─── Time: median to p75 ────────────────────────────────────────────────────
+.rangeBar {
+  display: block;
+  width: 100%;
+  height: 14px;
+}
+
+// ─── Experiments ────────────────────────────────────────────────────────────
+.verdict {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  color: $color-navy;
+  font-weight: 600;
+  max-width: 60ch;
+  letter-spacing: -0.01em;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2 $space-6;
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+
+  dt {
+    font-weight: 600;
+    color: $color-charcoal;
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  div {
+    display: flex;
+    gap: $space-2;
+  }
+}
+
+.ci {
+  display: block;
+  width: 100%;
+  height: 22px;
+}
+
+.ciLine {
+  stroke: $color-navy;
+  stroke-width: 2;
+}
+
+.ciLineAccent {
+  stroke: $color-accent-ink;
+  stroke-width: 2;
+}
+
+.ciMark {
+  fill: $color-navy;
+}
+
+.ciMarkAccent {
+  fill: $color-accent;
+  stroke: $color-navy;
+  stroke-width: 1;
+}
+
+.ciControl {
+  stroke: $color-muted;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.back {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  min-height: $touch-target;
+  color: $color-steel;
+  text-decoration: none;
+  font-size: 0.9375rem;
+}
+
+.formGrid {
+  display: grid;
+  gap: $space-4;
+}
+
+.variantRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) 6rem auto;
+  gap: $space-3;
+  align-items: end;
+  padding: $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+
+  @include below-md {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.formError {
+  margin: 0;
+  color: $color-error;
+  font-size: 0.875rem;
+}
+
+.peopleTools {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: $space-3;
+  align-items: end;
+  margin-bottom: $space-3;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.who {
+  display: grid;
+}
+
+.whoSub {
+  color: $color-muted;
+  font-size: 0.8125rem;
+}
+
+.sk {
+  display: grid;
+  gap: $space-3;
+}
+
+.skChart {
+  height: 18rem;
+}
+
+.sr {
+  @include visually-hidden;
+}
