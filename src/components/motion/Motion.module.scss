@@ -23,6 +23,8 @@
   display: grid;
   place-items: center;
   overflow: hidden;
+  // Narrator bar up: keep the pinned text above it (--narrator-reserve).
+  padding-bottom: var(--narrator-reserve, 0px);
 }
 
 @media (prefers-reduced-motion: reduce) {

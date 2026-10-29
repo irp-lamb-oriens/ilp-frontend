@@ -54,7 +54,8 @@ $nav: 64px;
     min-height: 100dvh;
     display: flex;
     align-items: stretch;
-    padding-block: calc(#{$nav} + #{$space-8}) $space-8;
+    // Narrator bar up: keep the pinned text above it (--narrator-reserve).
+    padding-block: calc(#{$nav} + #{$space-8}) calc(#{$space-8} + var(--narrator-reserve, 0px));
   }
 }
 

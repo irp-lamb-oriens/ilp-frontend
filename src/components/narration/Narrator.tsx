@@ -18,6 +18,9 @@ import { aboutMinutes, cueIndexAt, cueProgress, cumulativeStarts } from "@/lib/n
 import { cueStartsFromTranscript, fillCueStarts } from "@/lib/narration/transcript";
 import { initialNarratorState, narratorReducer, type NarratorEvent, type NarratorState } from "@/lib/narration/machine";
 import { isUserScrollIntent } from "@/lib/narration/scroll";
+import { resumeGraph, voiceGraph, type VoiceGraph } from "@/lib/narration/audioGraph";
+import { speechLevel } from "@/lib/narration/wave";
+import VoiceWave from "./VoiceWave";
 import { markOfferSeen, offerSeen } from "@/lib/narration/session";
 import { NARRATOR_COPY as C, NARRATOR_TITLE } from "./content";
 import s from "./Narrator.module.scss";
@@ -35,6 +38,11 @@ import s from "./Narrator.module.scss";
  * viewport. Previous and next seek to a cue's start. A wheel, touch drag or
  * scroll key outside the player pauses the audio; Resume continues from the
  * same moment and returns to the cue's section.
+ *
+ * The voice wave (VoiceWave.tsx) sits in the player bar and is also the
+ * play/pause control. Its analyser is created only from the click on Start
+ * (lib/narration/audioGraph.ts). While the bar is up, its height is
+ * published as --narrator-reserve so pinned stories keep their text above it.
  *
  * The overlay renders only after mount (the server HTML and crawlers get the
  * plain page) and is answered once per session per landing. Nothing plays
@@ -116,6 +124,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
+  const graphRef = useRef<VoiceGraph | null>(null);
   const startRef = useRef<HTMLButtonElement | null>(null);
   const playRef = useRef<HTMLButtonElement | null>(null);
   const modeRef = useRef<"audio" | "timed">("audio");
@@ -251,8 +260,10 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     const a = audioRef.current;
     if (state.status === "playing") {
       if (before === "paused") scrollToSection(cues[state.index].anchor);
-      if (modeRef.current === "audio" && a) a.play().catch(() => fallBackToTimed());
-      else if (!clockRef.current.since) startClock(clockRef, clockRef.current.banked);
+      if (modeRef.current === "audio" && a) {
+        resumeGraph(graphRef.current);
+        a.play().catch(() => fallBackToTimed());
+      } else if (!clockRef.current.since) startClock(clockRef, clockRef.current.banked);
     } else if (state.status === "paused") {
       a?.pause();
       stopClock(clockRef);
@@ -324,8 +335,11 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     setTimed(modeRef.current === "timed");
     const a = audioRef.current;
     if (modeRef.current === "audio" && a) {
-      // Start the audio inside the click, so the browser allows sound.
+      // Start the audio inside the click, so the browser allows sound. The
+      // analyser graph is created here too, never before a click.
       if (!a.getAttribute("src")) a.src = script.audio;
+      if (!graphRef.current) graphRef.current = voiceGraph(a);
+      resumeGraph(graphRef.current);
       a.currentTime = 0;
       a.play().catch(() => fallBackToTimed());
     } else {
@@ -347,6 +361,41 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     track.click(`narration.exit.${page}.${cues[state.index].id}`);
     dispatch({ type: "exit" });
   };
+
+  /* ── Wave inputs ───────────────────────────────────────────── */
+  const waveAnalyser = useCallback(
+    () => (modeRef.current === "audio" && stateRef.current.status === "playing" ? (graphRef.current?.analyser ?? null) : null),
+    [],
+  );
+  const waveSimulated = useCallback(() => {
+    const t = time();
+    return { level: speechLevel(t, startsRef.current, totalRef.current), time: t };
+  }, [time]);
+
+  /* ── Reserve the bar's height for pinned stories ───────────── */
+  useEffect(() => {
+    const root = document.documentElement;
+    const el = barRef.current;
+    if (!active || !el) {
+      root.style.removeProperty("--narrator-reserve");
+      return;
+    }
+    let max = 0;
+    const set = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height);
+      if (h > max) {
+        max = h;
+        root.style.setProperty("--narrator-reserve", `${h}px`);
+      }
+    };
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--narrator-reserve");
+    };
+  }, [active, state.captions]);
 
   // Focus: the primary button when the overlay opens, play/pause once playing.
   useEffect(() => {
@@ -420,14 +469,18 @@ export default function Narrator({ page }: { page: NarrationPage }) {
           )}
           <div className={s.bar}>
             <div className={s.controls}>
-              {state.pausedBy === "user-scroll" ? (
-                <button ref={playRef} type="button" className={s.resume} onClick={() => dispatch({ type: "resume" })}>
-                  <PlayIcon />
-                  <span>{C.resume}</span>
-                </button>
-              ) : (
-                <button ref={playRef} type="button" className={s.icon} aria-label={playing ? C.pause : C.play} onClick={() => dispatch({ type: "toggle" })}>
-                  {playing ? <PauseIcon /> : <PlayIcon />}
+              <VoiceWave
+                ref={playRef}
+                playing={playing}
+                analyser={waveAnalyser}
+                simulated={waveSimulated}
+                label={playing ? C.pause : C.play}
+                glyph={playing ? <PauseIcon /> : <PlayIcon />}
+                onToggle={() => dispatch({ type: "toggle" })}
+              />
+              {state.pausedBy === "user-scroll" && (
+                <button type="button" className={s.resume} onClick={() => dispatch({ type: "resume" })}>
+                  {C.resume}
                 </button>
               )}
               <button type="button" className={s.icon} aria-label={C.prev} onClick={() => dispatch({ type: "prev" })}>
