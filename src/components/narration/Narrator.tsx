@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useReducer,
   useRef,
   useState,
@@ -14,10 +13,11 @@ import {
 } from "react";
 import { scrollPageTo } from "@/components/SmoothScroll";
 import { track } from "@/lib/journey";
-import { NARRATION, cueUrl, type NarrationCue, type NarrationPage } from "@/lib/narration/scripts";
-import { aboutMinutes, captionIndexAt, captionSegments } from "@/lib/narration/timing";
+import { NARRATION, type NarrationPage } from "@/lib/narration/scripts";
+import { aboutMinutes, cueIndexAt, cueProgress, cumulativeStarts } from "@/lib/narration/timing";
+import { cueStartsFromTranscript, fillCueStarts } from "@/lib/narration/transcript";
 import { initialNarratorState, narratorReducer, type NarratorEvent, type NarratorState } from "@/lib/narration/machine";
-import { DRIVE_SETTLE_S, isUserScrollIntent, throughRange, throughY } from "@/lib/narration/scroll";
+import { isUserScrollIntent } from "@/lib/narration/scroll";
 import { markOfferSeen, offerSeen } from "@/lib/narration/session";
 import { NARRATOR_COPY as C, NARRATOR_TITLE } from "./content";
 import s from "./Narrator.module.scss";
@@ -27,16 +27,20 @@ import s from "./Narrator.module.scss";
  * the page, a slim player bar, captions and a small "Play narration" button
  * to start it again.
  *
+ * One audio file per landing (public/narration/<page>.mp3) and its Whisper
+ * transcript (<page>.json). The transcript gives the time each cue's opening
+ * words are spoken (lib/narration/transcript.ts); when the audio reaches
+ * that time, the page scrolls to the cue's section, eased (instant with
+ * reduced motion). The sections' own animations play as they enter the
+ * viewport. Previous and next seek to a cue's start. A wheel, touch drag or
+ * scroll key outside the player pauses the audio; Resume continues from the
+ * same moment and returns to the cue's section.
+ *
  * The overlay renders only after mount (the server HTML and crawlers get the
  * plain page) and is answered once per session per landing. Nothing plays
- * until the visitor presses Start. Each cue plays its clip (one audio
- * element, the next clip preloaded) and scrolls to its section: "jump"
- * once, eased; "through" drives the page across a pinned story's scroll
- * range while the clip plays, so the beats move with the voice. A wheel,
- * touch drag or scroll key outside the player pauses audio and auto-scroll;
- * Resume continues the same cue from where it stopped. With reduced motion
- * every cue jumps, without smooth scroll. A missing clip falls back to
- * caption-only timing from its word count (lib/narration/timing.ts).
+ * until the visitor presses Start. Without the audio, the narrator runs
+ * caption-only, timed from the script (lib/narration/timing.ts); with the
+ * audio but no transcript, cue times are shared out over the audio's length.
  */
 
 type AudioState = "unknown" | "available" | "missing";
@@ -44,7 +48,7 @@ type AudioState = "unknown" | "available" | "missing";
 /** Timed clock: seconds banked before the last start, and when it started (0: stopped). */
 type Clock = MutableRefObject<{ banked: number; since: number }>;
 
-function startClock(clock: Clock, from = 0) {
+function startClock(clock: Clock, from: number) {
   clock.current = { banked: from, since: performance.now() };
 }
 
@@ -53,26 +57,21 @@ function stopClock(clock: Clock) {
   if (c.since) clock.current = { banked: c.banked + (performance.now() - c.since) / 1000, since: 0 };
 }
 
+const clockTime = (clock: Clock) => clock.current.banked + (clock.current.since ? (performance.now() - clock.current.since) / 1000 : 0);
+
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Page y of a section, respecting its scroll-margin-top. */
-function sectionTop(el: HTMLElement): number {
+/** Scroll to a section by id, respecting its scroll-margin-top. */
+function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
   const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
-  return Math.round(el.getBoundingClientRect().top + window.scrollY - margin);
+  const reduce = reducedMotion();
+  scrollPageTo(Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - margin)), !reduce);
 }
 
-/** Where cue `c` wants the page at `time` s into a clip of `duration` s (null: no anchor). */
-function cueY(c: NarrationCue, time: number, duration: number, reduce: boolean): number | null {
-  const el = document.getElementById(c.anchor);
-  if (!el) return null;
-  if (c.scroll === "jump" || reduce) return Math.max(0, sectionTop(el));
-  const r = el.getBoundingClientRect();
-  const range = throughRange({ top: r.top + window.scrollY, height: el.offsetHeight, viewport: window.innerHeight, startAt: c.startAt });
-  return throughY(range, time, duration);
-}
-
-/** Load a clip's metadata; resolves its duration (s), or null when it cannot load. */
-function probeDuration(url: string, timeoutMs = 4000): Promise<number | null> {
+/** Load an audio file's metadata; resolves its duration (s), or null when it cannot load. */
+function probeDuration(url: string, timeoutMs = 5000): Promise<number | null> {
   return new Promise((resolve) => {
     const a = new Audio();
     let done = false;
@@ -83,39 +82,97 @@ function probeDuration(url: string, timeoutMs = 4000): Promise<number | null> {
       resolve(v);
     };
     a.preload = "metadata";
-    a.addEventListener("loadedmetadata", () => finish(Number.isFinite(a.duration) ? a.duration : null));
+    a.addEventListener("loadedmetadata", () => finish(Number.isFinite(a.duration) && a.duration > 0 ? a.duration : null));
     a.addEventListener("error", () => finish(null));
     window.setTimeout(() => finish(null), timeoutMs);
     a.src = url;
   });
 }
 
+async function fetchJson(url: string): Promise<unknown | null> {
+  try {
+    const res = await fetch(url, { cache: "no-cache" });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function Narrator({ page }: { page: NarrationPage }) {
-  const cues = NARRATION[page];
+  const script = NARRATION[page];
+  const cues = script.cues;
   const count = cues.length;
   const [state, dispatch] = useReducer((st: NarratorState, e: NarratorEvent) => narratorReducer(st, e, count), initialNarratorState);
+
+  const estimates = cues.map((c) => c.estimate);
+  const estimateTotal = estimates.reduce((sum, v) => sum + v, 0);
 
   const [mounted, setMounted] = useState(false);
   const [offer, setOffer] = useState(false);
   const [audioState, setAudioState] = useState<AudioState>("unknown");
-  const [durations, setDurations] = useState<(number | null)[]>(() => cues.map(() => null));
-  const [progress, setProgress] = useState(0);
-  const [timedNote, setTimedNote] = useState(false);
+  const [total, setTotal] = useState(estimateTotal);
+  const [now, setNow] = useState(0);
+  const [timed, setTimed] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const preloadRef = useRef<HTMLAudioElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
   const startRef = useRef<HTMLButtonElement | null>(null);
   const playRef = useRef<HTMLButtonElement | null>(null);
-  /** Per-cue playback mode for the cue that is playing. */
   const modeRef = useRef<"audio" | "timed">("audio");
   const clockRef = useRef({ banked: 0, since: 0 });
-  const missingRef = useRef<Set<number>>(new Set());
-  const audioWorkedRef = useRef(false);
+  const startsRef = useRef<number[]>(cumulativeStarts(estimates));
+  const totalRef = useRef(estimateTotal);
   const audioStateRef = useRef<AudioState>("unknown");
-  const lastEpochRef = useRef(0);
+  const audioWorkedRef = useRef(false);
+  const loadRef = useRef<Promise<void> | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  /* ── Timeline: audio length and cue times, or caption-only ─── */
+  const load = useCallback(() => {
+    if (loadRef.current) return loadRef.current;
+    const weights = cues.map((c) => c.estimate);
+    loadRef.current = (async () => {
+      const [duration, json] = await Promise.all([probeDuration(script.audio), fetchJson(script.transcript)]);
+      if (audioStateRef.current === "missing") return; // playback already fell back
+      if (duration === null) {
+        audioStateRef.current = "missing";
+        setAudioState("missing");
+        return;
+      }
+      const matches = cues.map((c) => c.match);
+      startsRef.current = json
+        ? cueStartsFromTranscript(json, matches, weights, duration).starts
+        : fillCueStarts(cues.map((_, i) => (i === 0 ? 0 : null)), weights, duration);
+      totalRef.current = duration;
+      setTotal(duration);
+      audioStateRef.current = "available";
+      setAudioState("available");
+    })();
+    return loadRef.current;
+  }, [cues, script.audio, script.transcript]);
+
+  /** Seconds into the landing's narration. */
+  const time = useCallback(() => (modeRef.current === "audio" && audioRef.current ? audioRef.current.currentTime : clockTime(clockRef)), []);
+
+  /** Switch to caption-only timing (the audio did not load or play). */
+  const fallBackToTimed = useCallback(() => {
+    if (modeRef.current === "timed") return;
+    modeRef.current = "timed";
+    setTimed(true);
+    audioRef.current?.pause();
+    if (!audioWorkedRef.current) {
+      audioStateRef.current = "missing";
+      setAudioState("missing");
+    }
+    const weights = cues.map((c) => c.estimate);
+    startsRef.current = cumulativeStarts(weights);
+    totalRef.current = weights.reduce((sum, v) => sum + v, 0);
+    setTotal(totalRef.current);
+    const from = startsRef.current[stateRef.current.index] ?? 0;
+    if (stateRef.current.status === "playing") startClock(clockRef, from);
+    else clockRef.current = { banked: from, since: 0 };
+  }, [cues]);
 
   /* ── Mount: offer the overlay once per session ─────────────── */
   useEffect(() => {
@@ -123,79 +180,22 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     if (!offerSeen(page)) setOffer(true);
   }, [page]);
 
-  /* ── Probe the clips: real durations, or caption-only mode ─── */
   useEffect(() => {
-    if (!offer || audioStateRef.current !== "unknown") return;
-    let cancelled = false;
-    (async () => {
-      const first = await probeDuration(cueUrl(page, cues[0]));
-      if (cancelled) return;
-      if (first === null) {
-        audioStateRef.current = "missing";
-        setAudioState("missing");
-        return;
-      }
-      const rest = await Promise.all(cues.slice(1).map((c) => probeDuration(cueUrl(page, c))));
-      if (cancelled) return;
-      const all = [first, ...rest];
-      all.forEach((d, i) => d === null && missingRef.current.add(i));
-      setDurations(all);
-      audioStateRef.current = "available";
-      setAudioState("available");
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [offer, page, cues]);
+    if (offer) void load();
+  }, [offer, load]);
 
-  const totalSeconds = useMemo(() => cues.reduce((sum, c, i) => sum + (durations[i] ?? c.estimate), 0), [cues, durations]);
-
-  /** Length (s) of cue i in its current mode. */
-  const cueDuration = useCallback(
-    (i: number) => {
-      const a = audioRef.current;
-      if (modeRef.current === "audio" && a && Number.isFinite(a.duration) && a.duration > 0) return a.duration;
-      return durations[i] ?? cues[i].estimate;
-    },
-    [cues, durations],
-  );
-
-  /** Seconds into the current cue. */
-  const cueTime = useCallback(() => {
-    if (modeRef.current === "audio" && audioRef.current) return audioRef.current.currentTime;
-    const c = clockRef.current;
-    return c.banked + (c.since ? (performance.now() - c.since) / 1000 : 0);
-  }, []);
-
-  /** Switch the current cue to caption-only timing (its clip did not load). */
-  const fallBackToTimed = useCallback((index: number) => {
-    if (modeRef.current === "timed") return;
-    missingRef.current.add(index);
-    if (!audioWorkedRef.current) {
-      audioStateRef.current = "missing";
-      setAudioState("missing");
-    }
-    modeRef.current = "timed";
-    setTimedNote(true);
-    if (stateRef.current.status === "playing") startClock(clockRef, 0);
-    else clockRef.current = { banked: 0, since: 0 };
-  }, []);
-
-  /* ── One audio element for the whole run ───────────────────── */
+  /* ── One audio element for the landing ─────────────────────── */
   useEffect(() => {
     if (!mounted) return;
     const a = new Audio();
     a.preload = "auto";
     audioRef.current = a;
-    const pre = new Audio();
-    pre.preload = "auto";
-    preloadRef.current = pre;
     const onEnded = () => {
-      if (modeRef.current === "audio") dispatch({ type: "cue-end" });
+      if (modeRef.current === "audio") dispatch({ type: "end" });
     };
     const onError = () => {
       const st = stateRef.current;
-      if ((st.status === "playing" || st.status === "paused") && modeRef.current === "audio" && a.getAttribute("src")) fallBackToTimed(st.index);
+      if ((st.status === "playing" || st.status === "paused") && a.getAttribute("src")) fallBackToTimed();
     };
     const onPlaying = () => {
       audioWorkedRef.current = true;
@@ -209,97 +209,91 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       a.removeEventListener("error", onError);
       a.removeEventListener("playing", onPlaying);
       a.removeAttribute("src");
-      pre.removeAttribute("src");
       audioRef.current = null;
-      preloadRef.current = null;
     };
-  }, [mounted, dispatch, fallBackToTimed]);
+  }, [mounted, fallBackToTimed]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = state.muted;
   }, [state.muted]);
 
-  /* ── Cue start, pause and resume ───────────────────────────── */
+  /* ── Seek: start, previous, next ───────────────────────────── */
   useEffect(() => {
+    if (state.seek === 0) return;
+    const t0 = startsRef.current[state.index] ?? 0;
     const a = audioRef.current;
-    const reduce = reducedMotion();
-    const c = cues[state.index];
+    if (modeRef.current === "audio" && a) {
+      if (!a.getAttribute("src")) a.src = script.audio;
+      try {
+        a.currentTime = t0;
+      } catch {
+        // not seekable yet: plays from the start of the file
+      }
+    } else {
+      clockRef.current = { banked: t0, since: stateRef.current.status === "playing" ? performance.now() : 0 };
+    }
+    setNow(t0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.seek]);
 
-    if (state.status === "idle" || state.status === "done") {
+  /* ── Each cue scrolls the page to its section ──────────────── */
+  const active = state.status === "playing" || state.status === "paused";
+  useEffect(() => {
+    if (active) scrollToSection(cues[state.index].anchor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.index, state.seek]);
+
+  /* ── Play, pause, resume, stop ─────────────────────────────── */
+  const prevStatus = useRef(state.status);
+  useEffect(() => {
+    const before = prevStatus.current;
+    prevStatus.current = state.status;
+    const a = audioRef.current;
+    if (state.status === "playing") {
+      if (before === "paused") scrollToSection(cues[state.index].anchor);
+      if (modeRef.current === "audio" && a) a.play().catch(() => fallBackToTimed());
+      else if (!clockRef.current.since) startClock(clockRef, clockRef.current.banked);
+    } else if (state.status === "paused") {
       a?.pause();
       stopClock(clockRef);
-      setProgress(0);
-      return;
+    } else {
+      a?.pause();
+      stopClock(clockRef);
+      setNow(0);
     }
-
-    if (state.epoch !== lastEpochRef.current) {
-      // A new cue (or the same cue again): reset, scroll to its start, play.
-      lastEpochRef.current = state.epoch;
-      setProgress(0);
-      const timed = audioStateRef.current === "missing" || missingRef.current.has(state.index);
-      modeRef.current = timed ? "timed" : "audio";
-      setTimedNote(timed);
-      const y = cueY(c, 0, c.estimate, reduce);
-      if (y !== null) scrollPageTo(y, !reduce);
-      clockRef.current = { banked: 0, since: 0 };
-      if (timed) {
-        a?.pause();
-        if (state.status === "playing") startClock(clockRef, 0);
-      } else if (a) {
-        a.src = cueUrl(page, c);
-        a.currentTime = 0;
-        if (state.status === "playing") a.play().catch(() => fallBackToTimed(state.index));
-      }
-      // Preload the next clip while this one plays.
-      const next = cues[state.index + 1];
-      const pre = preloadRef.current;
-      if (pre && next && !timed && !missingRef.current.has(state.index + 1)) pre.src = cueUrl(page, next);
-      return;
-    }
-
-    if (state.status === "paused") {
-      if (modeRef.current === "audio") a?.pause();
-      else stopClock(clockRef);
-      return;
-    }
-
-    // Resume: put the page back where the cue is, then continue.
-    const y = cueY(c, cueTime(), cueDuration(state.index), reduce);
-    if (y !== null) scrollPageTo(y, !reduce);
-    if (modeRef.current === "audio" && a) a.play().catch(() => fallBackToTimed(state.index));
-    else startClock(clockRef, clockRef.current.banked);
-    // cueTime/cueDuration read refs; the effect runs on status and epoch changes only.
+    if (before !== "done" && state.status === "done") track.click(`narration.complete.${page}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status, state.epoch]);
+  }, [state.status]);
 
-  /* ── Frame loop: progress, timed cue end, "through" drive ──── */
+  /* ── Follow the time: reach cues, end in caption-only mode ─── */
+  const sync = useCallback(() => {
+    const st = stateRef.current;
+    if (st.status !== "playing") return;
+    const t = time();
+    setNow((prev) => (Math.abs(prev - t) > 0.05 ? t : prev));
+    if (modeRef.current === "timed" && t >= totalRef.current) {
+      dispatch({ type: "end" });
+      return;
+    }
+    const i = cueIndexAt(startsRef.current, t);
+    if (i !== st.index) dispatch({ type: "reach", index: i });
+  }, [time]);
+
   useEffect(() => {
     if (state.status !== "playing") return;
-    const c = cues[state.index];
-    const reduce = reducedMotion();
     let raf = 0;
-    let shown = -1;
     const tick = () => {
-      const t = cueTime();
-      const d = cueDuration(state.index);
-      const p = d > 0 ? Math.min(1, t / d) : 1;
-      if (Math.abs(p - shown) > 0.004) {
-        shown = p;
-        setProgress(p);
-      }
-      if (c.scroll === "through" && !reduce && t >= DRIVE_SETTLE_S) {
-        const y = cueY(c, t, d, reduce);
-        if (y !== null) scrollPageTo(y, false);
-      }
-      if (modeRef.current === "timed" && t >= d) {
-        dispatch({ type: "cue-end" });
-        return;
-      }
+      sync();
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [state.status, state.epoch, state.index, cues, cueTime, cueDuration, dispatch]);
+    const a = audioRef.current;
+    a?.addEventListener("timeupdate", sync);
+    return () => {
+      cancelAnimationFrame(raf);
+      a?.removeEventListener("timeupdate", sync);
+    };
+  }, [state.status, sync]);
 
   /* ── The visitor scrolls: pause ────────────────────────────── */
   useEffect(() => {
@@ -320,21 +314,29 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       window.removeEventListener("touchmove", onInput);
       window.removeEventListener("keydown", onInput);
     };
-  }, [state.status, dispatch]);
-
-  /* ── Analytics ─────────────────────────────────────────────── */
-  const prevStatus = useRef(state.status);
-  useEffect(() => {
-    if (prevStatus.current !== "done" && state.status === "done") track.click(`narration.complete.${page}`);
-    prevStatus.current = state.status;
-  }, [state.status, page]);
+  }, [state.status]);
 
   /* ── Actions ───────────────────────────────────────────────── */
+  const begin = () => {
+    track.click(`narration.start.${page}`);
+    void load();
+    modeRef.current = audioStateRef.current === "missing" ? "timed" : "audio";
+    setTimed(modeRef.current === "timed");
+    const a = audioRef.current;
+    if (modeRef.current === "audio" && a) {
+      // Start the audio inside the click, so the browser allows sound.
+      if (!a.getAttribute("src")) a.src = script.audio;
+      a.currentTime = 0;
+      a.play().catch(() => fallBackToTimed());
+    } else {
+      clockRef.current = { banked: 0, since: 0 };
+    }
+    dispatch({ type: "start" });
+  };
   const start = () => {
     markOfferSeen(page);
     setOffer(false);
-    track.click(`narration.start.${page}`);
-    dispatch({ type: "start" });
+    begin();
   };
   const readInstead = () => {
     markOfferSeen(page);
@@ -350,7 +352,6 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   useEffect(() => {
     if (offer) startRef.current?.focus();
   }, [offer]);
-  const active = state.status === "playing" || state.status === "paused";
   useEffect(() => {
     if (active) playRef.current?.focus({ preventScroll: true });
   }, [active]);
@@ -378,10 +379,9 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   if (!mounted) return null;
 
   const cue = cues[state.index];
-  const segments = captionSegments(cue.read);
-  const caption = segments[captionIndexAt(segments, progress)]?.text ?? "";
-  const about = aboutMinutes(totalSeconds);
   const playing = state.status === "playing";
+  const timedNote = timed || audioState === "missing";
+  const about = aboutMinutes(total);
 
   return (
     <>
@@ -392,7 +392,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
               {NARRATOR_TITLE[page]}
             </h2>
             <p id={`narrator-line-${page}`} className={s.overlayLine}>
-              {audioState === "missing" ? C.withCaptions(about) : C.withSound(about)}
+              {timedNote ? C.withCaptions(about) : C.withSound(about)}
             </p>
             <button ref={startRef} type="button" className={s.start} onClick={start}>
               {C.start}
@@ -405,14 +405,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       )}
 
       {!offer && !active && (
-        <button
-          type="button"
-          className={s.launcher}
-          onClick={() => {
-            track.click(`narration.start.${page}`);
-            dispatch({ type: "start" });
-          }}
-        >
+        <button type="button" className={s.launcher} onClick={begin}>
           <PlayIcon />
           <span>{C.launcher}</span>
         </button>
@@ -421,8 +414,8 @@ export default function Narrator({ page }: { page: NarrationPage }) {
       {active && (
         <div ref={barRef} className={s.player} role="region" aria-label={C.player}>
           {state.captions && (
-            <p key={`${state.epoch}-${caption}`} className={s.caption} aria-live={playing ? "polite" : "off"}>
-              {caption}
+            <p key={cue.id} className={s.caption} aria-live={playing ? "polite" : "off"}>
+              {cue.caption}
             </p>
           )}
           <div className={s.bar}>
@@ -454,7 +447,10 @@ export default function Narrator({ page }: { page: NarrationPage }) {
               <ol className={s.segments} aria-hidden="true">
                 {cues.map((c, i) => (
                   <li key={c.id} className={s.segment}>
-                    <span className={s.segmentFill} style={{ "--fill": i < state.index ? 1 : i === state.index ? progress : 0 } as CSSProperties} />
+                    <span
+                      className={s.segmentFill}
+                      style={{ "--fill": i < state.index ? 1 : i === state.index ? cueProgress(startsRef.current, totalRef.current, i, now) : 0 } as CSSProperties}
+                    />
                   </li>
                 ))}
               </ol>
