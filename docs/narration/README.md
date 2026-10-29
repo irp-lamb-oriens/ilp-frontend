@@ -2,56 +2,82 @@
 
 The three public landings (`/`, `/attorneys`, `/customer-success`) offer a narrated walk through the page. On the first visit in a browser session a full-screen overlay offers "Start the experience" or "Read the page instead". After either choice a small "Play narration" button (bottom left) starts it again. While it plays, a bar at the bottom has play/pause, previous and next section, mute, captions and Exit.
 
-Code: `src/lib/narration/` (scripts, timing, scroll, state machine, session) and `src/components/narration/Narrator.tsx`. Tests: `tests/narration.test.mjs`.
+Each landing has one audio file and one transcript. When the audio reaches the moment a section's opening words are spoken, the page scrolls to that section. The section's animations then play on their own as it enters the screen.
 
-## Audio from ElevenLabs
+Code: `src/lib/narration/` (scripts, transcript, timing, state machine, session) and `src/components/narration/Narrator.tsx`. Tests: `tests/narration.test.mjs`.
 
-1. Open `docs/narration/SCRIPTS.md`. Each `###` block is one clip: a short pitch of one or two sentences for its section. The page carries the detail.
-2. Paste only the text under "Read:" into ElevenLabs. Use the same voice and settings for every clip on a page.
-3. Download as MP3 and name it exactly as the block heading, for example `home-02-problem.mp3`.
-4. Put it in `frontend/public/narration/<page>/`, where `<page>` is `home`, `lawyers` or `csm`:
+## 1. Audio from ElevenLabs
+
+1. Open `docs/narration/SCRIPTS.md`. Each landing has one "ElevenLabs text" block and a cue table.
+2. Paste the whole block into ElevenLabs with the v3 model, tags included. v3 reads `[warm]`, `[short pause]`, `[pause]` and the other tags as directions, not words.
+3. Export one MP3 per landing: `home.mp3`, `lawyers.mp3`, `csm.mp3`.
+
+## 2. Timestamps from Whisper
+
+Run Whisper on each file with timestamps and JSON output. Any of these works.
+
+openai-whisper (Python, `pip install -U openai-whisper`), word timestamps:
 
 ```
-public/narration/home/home-01-hero.mp3 … home-09-final.mp3
-public/narration/lawyers/lawyers-01-hero.mp3 … lawyers-05-final.mp3
-public/narration/csm/csm-01-hero.mp3 … csm-05-final.mp3
+whisper home.mp3 --model medium --language en --word_timestamps True --output_format json
+whisper lawyers.mp3 --model medium --language en --word_timestamps True --output_format json
+whisper csm.mp3 --model medium --language en --word_timestamps True --output_format json
 ```
 
-You can add clips one at a time. A clip that is missing plays as captions only, timed from its word count, and the bar shows "Audio coming soon". When no clip exists for a page, the overlay says the walk has captions and that audio is coming soon. Once the clips are there, the overlay's "about N minutes" uses their real lengths.
+This writes `home.json`, `lawyers.json` and `csm.json` next to the audio.
 
-The homepage plays in page order, so `home-05-price` (What you get) plays before `home-04-costs` (What a missed date can cost you). The file names stay as they are.
+whisper.cpp (convert to 16 kHz WAV first; `-ml 1` gives one word per entry, `-of` sets the output name):
 
-## Changing a script and regenerating one clip
+```
+ffmpeg -i home.mp3 -ar 16000 -ac 1 home.wav
+./whisper-cli -m models/ggml-medium.en.bin -f home.wav -l en -oj -ml 1 -of home
+```
 
-1. Edit the block in `ilp/docs/narration/SCRIPTS.md` and copy the file to `frontend/docs/narration/SCRIPTS.md`. A test fails while the two differ.
-2. Paste the same new text into the `read` field of that cue in `src/lib/narration/scripts.ts`. The caption is the same text (if you ever add an ElevenLabs pause tag such as `<break time="0.5s" />`, the caption drops it and the timed fallback counts the pause).
-3. Run `npm test`. It fails if `scripts.ts` and `SCRIPTS.md` differ by one character, or if the new text breaks `copy-rules.md`.
-4. Regenerate only that clip in ElevenLabs and replace the file under the same name.
+(older builds call the program `./main`). Repeat for `lawyers` and `csm`.
 
-## Tuning the timing
+whisperX:
 
-Each cue in `src/lib/narration/scripts.ts` is tied to a section by `anchor` (its DOM id) and has a `scroll` mode:
+```
+whisperx home.mp3 --model medium --language en --output_format json
+```
 
-- `jump`: the page scrolls to the section once, as the clip starts.
-- `through`: for pinned scroll stories. The page lands on the story's start, then moves steadily to its end while the clip plays, so the beats change with the voice. Clips are short (about 5 to 8 seconds), so a tall story passes quickly; if it feels rushed, switch that cue to `jump` or lengthen the pitch. `startAt` must match the story: `0.35` for BeatStory and CostsStory, `0` for MorphStage (the problem, how ILP works).
+OpenAI API: `response_format=verbose_json` with `timestamp_granularities=["word","segment"]`, saved as `home.json`.
 
-Settings in `src/lib/narration/scroll.ts`:
+## 3. Where the files go
 
-- `DRIVE_SETTLE_S` (1.0 s): time at the start of a `through` clip spent landing on the section before the page starts moving.
-- `DRIVE_HOLD` (0.1): share of a `through` clip at the end that stays on the last beat while the voice finishes. Raise it when the last beat arrives too late.
+```
+frontend/public/narration/home.mp3      frontend/public/narration/home.json
+frontend/public/narration/lawyers.mp3   frontend/public/narration/lawyers.json
+frontend/public/narration/csm.mp3       frontend/public/narration/csm.json
+```
 
-Settings in `src/lib/narration/timing.ts` (caption-only mode, before the audio exists):
+How the narrator uses them:
 
-- `WPM` (150): reading speed used for timing.
-- `CUE_PAD` (0.6 s): silence after each clip.
+- Audio and JSON: each cue starts when its opening words (the cue table's last column) are heard. One misheard word is tolerated. A cue that is not found gets a time between its neighbours.
+- Audio but no JSON: the cues are spread over the audio by the length of their text. Usable, but add the JSON for exact timing.
+- No audio yet (current state): captions only, timed at 150 words a minute, `[short pause]` 0.5 s and `[pause]` 1 s. The bar shows "Audio coming soon", and the overlay says the walk has captions.
 
-If the beats run ahead of the voice in one section, lengthen that pitch (or add a pause tag) and regenerate that clip, or move the cue to `jump`. With audio present, the clip's own length sets the timing.
+The overlay's "about N minutes" uses the audio's length once the file is there.
+
+## Changing a script
+
+1. Edit `ilp/docs/narration/SCRIPTS.md` and copy it to `frontend/docs/narration/SCRIPTS.md`. A test fails while the two differ.
+2. Update the same landing in `src/lib/narration/scripts.ts`: the full `script` text and, per cue, `read` (that cue's lines) and `match` (the opening words from the cue table). Keep a `[pause]` line between cues. `npm test` fails if anything differs from SCRIPTS.md or breaks `copy-rules.md`.
+3. Opening words must be words Whisper writes the same way: no numbers or prices at the start of a cue.
+4. Regenerate the landing's audio, run Whisper again, and replace both files.
+
+## Tuning
+
+- If the page scrolls too early or late for a section, change that cue's opening words in the cue table to words that are clearly spoken at the start of it, or check the JSON for how Whisper wrote them.
+- The homepage cues follow the page order: "What you get" (`home-price`) comes before "What a missed date can cost you" (`home-costs`).
+- Section ids per cue are in `scripts.ts` (`anchor`).
 
 ## Behaviour to know about
 
 - Nothing plays until the visitor presses Start or "Play narration".
-- Scrolling with the wheel, touch or keyboard pauses the voice and the auto-scroll. "Resume" continues the same section from where it stopped.
-- With reduced motion turned on, the narrator jumps between sections without smooth scrolling.
+- Previous and next jump to the start of a cue in the audio.
+- Scrolling with the wheel, touch or keyboard pauses the audio. "Resume" goes back to the current section and continues from the same moment.
+- With reduced motion turned on, the narrator jumps to each section without smooth scrolling.
 - The overlay is not in the server HTML, so search engines and visitors without JavaScript read the plain page. Escape closes it.
 - To see the overlay again in the same tab, clear the session key `ilp_narration_offer_<page>` or open a new tab.
 - Journeys records `narration.start.<page>`, `narration.read.<page>`, `narration.complete.<page>` and `narration.exit.<page>.<cue id>` as clicks, only for visitors who allow measurement.
