@@ -2,36 +2,18 @@
 
 import Link from "next/link";
 import ValueChain from "@/components/ValueChain";
-import { PageIntro } from "@/components/ui";
 import { Reveal } from "@/components/motion/Motion";
 import { SectionHead } from "@/components/landing/SectionHead";
 import { TutorialBand } from "@/components/landing/TutorialBand";
 import l from "@/components/landing/landing.module.scss";
 import { APPLY_HREF, CHAIN_HEAD, LAWYER_BANDS, LAWYER_FAQ, LAWYER_FINAL, LAWYERS_HERO, PARTNERSHIP, SIGN_IN_HREF } from "./content";
+import { HowItWorksForYou, LawyersHero, PartnershipClose, WhyLawyersJoin } from "./LawyersStory";
 import s from "./lawyers.module.scss";
 
-/** Right side of the hero: a photo and what the portal gives a partner lawyer. */
-function HeroArt() {
-  return (
-    <div className={s.art}>
-      <div className={s.photo} role="img" aria-label={LAWYERS_HERO.imageAlt} />
-      <div className={s.portalCard}>
-        <h2 className={s.portalTitle}>{LAWYERS_HERO.cardTitle}</h2>
-        <ul className={s.portalList}>
-          {LAWYERS_HERO.cardItems.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-        <Link href={SIGN_IN_HREF} className={s.textLink}>
-          {LAWYERS_HERO.signIn}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 /**
- * Lawyers landing (T2). Order: why, how, what hero -> demo: your day in the
+ * Lawyers landing (T2). Order: hero (countries, promise, calls to action)
+ * -> why lawyers join (pinned story) -> how it works for you (pinned story
+ * with example screens) -> what the partnership is -> demo: your day in the
  * portal -> what happens around each call -> demo: during and after a call ->
  * the partnership in plain words -> demo: your hours and your fees ->
  * questions -> apply. Rendered by /attorneys (the Nav link); /lawyers
@@ -40,31 +22,10 @@ function HeroArt() {
 export default function LawyersLanding() {
   return (
     <main>
-      <div className={s.hero}>
-        <div className={l.wrap}>
-          <PageIntro
-            order="why-how-what"
-            eyebrow={LAWYERS_HERO.eyebrow}
-            title={LAWYERS_HERO.title}
-            why={LAWYERS_HERO.why}
-            how={LAWYERS_HERO.how}
-            what={LAWYERS_HERO.what}
-            labels={LAWYERS_HERO.labels}
-            className={s.intro}
-            illustration={<HeroArt />}
-            actions={
-              <>
-                <Link href={APPLY_HREF} className={s.primary}>
-                  {LAWYERS_HERO.primary}
-                </Link>
-                <a href={`#${LAWYER_BANDS.day.anchor}`} className={s.secondary}>
-                  {LAWYERS_HERO.secondary}
-                </a>
-              </>
-            }
-          />
-        </div>
-      </div>
+      <LawyersHero />
+      <WhyLawyersJoin />
+      <HowItWorksForYou />
+      <PartnershipClose />
 
       <TutorialBand band={LAWYER_BANDS.day} />
 

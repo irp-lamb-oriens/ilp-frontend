@@ -1,26 +1,9 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
-// Lawyers landing (T2): PageIntro hero with a photo and the portal card,
+// Lawyers landing (T2), below the scroll sections (LawyersStory.module.scss):
 // tutorial bands, the value chain, the partnership facts and a final call to
 // action. Light canvas, hairlines, one accent (rules.md).
-
-.hero {
-  background: $color-mist;
-  border-bottom: 1px solid $color-hairline;
-  padding-block: calc(64px + #{$space-12}) $space-16;
-
-  @include lg {
-    padding-block: calc(64px + #{$space-16}) $space-24;
-  }
-}
-
-.intro h1 {
-  font-size: clamp(2.1rem, 5vw, 3.6rem);
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-  color: $color-navy;
-}
 
 .primary {
   @include button-primary;
@@ -49,59 +32,6 @@
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-.art {
-  display: flex;
-  flex-direction: column;
-  gap: $space-4;
-}
-
-.photo {
-  display: none;
-  aspect-ratio: 4 / 3;
-  border-radius: $radius-lg;
-  background-color: $color-cool-gray;
-  background-image: url("https://images.pexels.com/photos/8112164/pexels-photo-8112164.jpeg?auto=compress&cs=tinysrgb&w=1400");
-  background-size: cover;
-  background-position: center;
-
-  @include md {
-    display: block;
-  }
-}
-
-.portalCard {
-  @include card;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: $space-3;
-
-  @include lg {
-    margin-inline-start: -$space-12;
-    margin-top: -$space-16;
-  }
-}
-
-.portalTitle {
-  margin: 0;
-  font-size: 1.125rem;
-  color: $color-navy;
-}
-
-.portalList {
-  margin: 0;
-  padding-inline-start: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  color: $color-charcoal;
-  line-height: 1.45;
-
-  li::marker {
-    color: $color-accent;
-  }
 }
 
 .chainSection {

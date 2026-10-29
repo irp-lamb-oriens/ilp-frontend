@@ -1,0 +1,505 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// The top of /attorneys (LawyersStory.tsx, LawyerVisuals.tsx): the hero, the
+// pictures beside the two pinned stories, and the closing partnership facts.
+// One accent, hairlines, flat surfaces (rules.md). Motion is transform and
+// opacity only.
+
+$nav: 64px;
+
+.srOnly {
+  @include visually-hidden;
+}
+
+/* ── Hero ────────────────────────────────────── */
+.hero {
+  background: $color-mist;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.heroInner {
+  @include container;
+  display: flex;
+  align-items: center;
+  min-height: 88dvh;
+  padding-block: calc(#{$nav} + #{$space-16}) $space-16;
+
+  @include lg {
+    min-height: 100dvh;
+    padding-block: calc(#{$nav} + #{$space-16}) $space-24;
+  }
+}
+
+.heroStage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-8;
+  max-width: 1100px;
+}
+
+.heroEyebrow {
+  flex-wrap: wrap;
+  row-gap: $space-2;
+}
+
+.heroCountry {
+  display: inline-block;
+}
+
+.h1 {
+  margin: 0;
+  max-width: 20ch;
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  color: $color-navy;
+}
+
+.h1Lead {
+  display: block;
+}
+
+.h1Key {
+  display: inline;
+}
+
+// One word of the promise: rises in, then its piece of the underline draws.
+.keyWord {
+  position: relative;
+  display: inline-block;
+}
+
+// Underline piece under a word; it reaches over the following space, so the
+// pieces join into one line on every visual line.
+.keyLine {
+  position: absolute;
+  left: 0;
+  right: -0.27em;
+  bottom: 0.02em;
+  height: 0.08em;
+  min-height: 3px;
+  background: $color-accent;
+  transform-origin: left center;
+}
+
+.keyLineLast {
+  right: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3 $space-4;
+}
+
+.primary {
+  @include button-primary;
+  @include focus-ring;
+  padding: $space-4 $space-8;
+  min-height: 52px;
+  font-size: 1.0625rem;
+  text-decoration: none;
+}
+
+.secondary {
+  @include button-ghost;
+  @include focus-ring;
+  padding: $space-3 $space-6;
+  min-height: $touch-target;
+  text-decoration: none;
+}
+
+.textLink {
+  @include focus-ring;
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  color: $color-navy;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Pictures beside the statements ─────────── */
+.vis {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-6;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.countryRow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.country {
+  position: relative;
+  display: inline-flex;
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+.countryFill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: $color-accent-soft;
+  box-shadow: inset 0 0 0 1px $color-accent;
+}
+
+.countryLabel {
+  position: relative;
+}
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.qCard {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  max-width: 34ch;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.qCardIndent {
+  align-self: flex-end;
+}
+
+.qMeta {
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: $color-steel;
+}
+
+.qText {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: $color-navy;
+}
+
+// The unpaid hours: a ledger of tasks, a bar per task and a running total.
+.ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ledgerRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: $space-1 $space-4;
+  align-items: baseline;
+  padding-block: $space-3;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.ledgerTask {
+  font-size: 0.95rem;
+  color: $color-navy;
+}
+
+.ledgerTime {
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $color-navy;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledgerBar {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: $color-neutral-soft;
+  overflow: hidden;
+}
+
+.ledgerFill {
+  display: block;
+  max-width: 100%;
+  height: 100%;
+  background: $color-hairline-strong;
+  transform-origin: left center;
+}
+
+.ledgerTag {
+  justify-self: end;
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: $notice-warning;
+}
+
+.ledgerTotal {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-4;
+}
+
+.ledgerTotalLabel {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-steel;
+}
+
+.ledgerTotalValue {
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: $color-navy;
+  font-variant-numeric: tabular-nums;
+}
+
+// A member: the question written before booking, then the follow-up.
+.member {
+  gap: $space-3;
+}
+
+.memberHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: $space-2 $space-3;
+  align-items: center;
+
+  @include md {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: $radius-pill;
+  background: $color-accent-soft;
+  border: 1px solid $color-accent;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.memberWho {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.memberName {
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.memberMeta {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.memberPill {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-navy;
+
+  @include md {
+    grid-column: auto;
+  }
+}
+
+.memberBlock {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.memberFollow {
+  border-color: $color-accent;
+  background: $color-accent-soft;
+}
+
+.blockLabel {
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: $color-steel;
+}
+
+.blockQuote {
+  font-size: 1rem;
+  line-height: 1.4;
+  color: $color-navy;
+}
+
+.blockText {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: $color-charcoal;
+}
+
+.sent {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  width: fit-content;
+  margin-top: $space-1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $color-success;
+  transform-origin: left center;
+}
+
+/* ── Example screens ─────────────────────────── */
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.screenLabel {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: $color-steel;
+}
+
+/* ── What the partnership is ─────────────────── */
+.what {
+  background: $color-canvas;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.whatInner {
+  @include container;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-8;
+  padding-block: $space-16;
+
+  @include md {
+    padding-block: $space-24;
+  }
+}
+
+.whatHeading {
+  @include heading-lg;
+  margin: 0;
+}
+
+.whatLead {
+  margin: 0;
+  max-width: 32ch;
+  font-size: clamp(1.375rem, 2.6vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: $color-navy;
+}
+
+.whatGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-8;
+  width: 100%;
+
+  @include lg {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: $space-16;
+    align-items: end;
+  }
+}
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.price {
+  margin: 0;
+  color: $color-navy;
+}
+
+.priceMark {
+  font-weight: inherit;
+}
+
+.priceFigure {
+  font-size: clamp(3.25rem, 11vw, 8rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+
+.calls {
+  margin: 0;
+  max-width: 40ch;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.4;
+  color: $color-navy;
+}
+
+.whatLines {
+  display: flex;
+  flex-direction: column;
+}
+
+.whatLine {
+  padding-block: $space-6;
+  border-top: 1px solid $color-hairline;
+
+  &:last-child {
+    border-bottom: 1px solid $color-hairline;
+  }
+}
+
+.whatText {
+  margin: 0;
+  max-width: 40ch;
+  font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+  line-height: 1.55;
+  color: $color-steel;
+}
