@@ -456,7 +456,9 @@ export function Board<T>(props: BoardProps<T>) {
                 collapsed={prefs.collapsed.includes(col.id)}
                 onCollapse={(c) => updatePrefs((p) => ({ ...p, collapsed: c ? [...p.collapsed, col.id] : p.collapsed.filter((x) => x !== col.id) }))}
                 report={report}
-                setCount={(n) => counts.current.set(col.id, n)}
+                setCount={(n) => {
+                  counts.current.set(col.id, n);
+                }}
                 over={over === col.id || lifted?.to === col.id}
                 lifted={lifted}
                 dragId={drag ? keyOf(drag.item) : null}
@@ -534,7 +536,9 @@ function Column<T>({ index, col, props, collapsed, onCollapse, report, setCount,
     report(col.id, { update, refresh, items: () => itemsRef.current });
     return () => report(col.id, null);
   }, [report, col.id, update, refresh]);
-  useEffect(() => setCount(items.length), [items.length, setCount]);
+  useEffect(() => {
+    setCount(items.length);
+  }, [items.length, setCount]);
   const firstVersion = useRef(version);
   useEffect(() => {
     if (version !== firstVersion.current) refresh();
