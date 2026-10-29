@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { track } from "@/lib/journey";
 import ValueChain from "@/components/ValueChain";
 import { Reveal } from "@/components/motion/Motion";
 import { SectionHead } from "@/components/landing/SectionHead";
@@ -20,6 +22,9 @@ import s from "./lawyers.module.scss";
  * redirects there and the form lives at /lawyers/apply.
  */
 export default function LawyersLanding() {
+  useEffect(() => {
+    track.step("lawyer_landing_view");
+  }, []);
   return (
     <main>
       <LawyersHero />
@@ -78,7 +83,7 @@ export default function LawyersLanding() {
             <p className={l.sub}>{LAWYER_FINAL.sub}</p>
           </div>
           <div className={s.finalActions}>
-            <Link href={APPLY_HREF} className={s.primary}>
+            <Link href={APPLY_HREF} className={s.primary} onClick={() => track.click("lawyers.final.apply")}>
               {LAWYERS_HERO.primary}
             </Link>
             <Link href={SIGN_IN_HREF} className={s.secondary}>

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui";
 import { TutorialEmbed } from "@/components/tutorial";
 import { funnelAnonId, funnelSource } from "@/lib/funnel";
+import { track } from "@/lib/journey";
 import { joinConsents } from "@/components/legal/consentApi";
 import {
   type CheckAnswers,
@@ -185,6 +186,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
   }
 
   function focusFirstError(e: Errors) {
+    track.formErrors("join", Object.keys(e));
     const first = Object.keys(e)[0];
     window.requestAnimationFrame(() => {
       const el = document.querySelector<HTMLElement>(

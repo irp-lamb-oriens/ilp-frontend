@@ -40,6 +40,12 @@
   color: $color-navy;
 }
 
+// JOURNEYS: the headline slot while the experiment variant loads (≤ 300 ms).
+// Same text and size as the control, not shown, so the layout does not move.
+.titlePending {
+  opacity: 0;
+}
+
 .lead {
   margin: 0;
   max-width: 40ch;

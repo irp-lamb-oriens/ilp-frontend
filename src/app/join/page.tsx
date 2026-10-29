@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { trackFunnel } from "@/lib/funnel";
+import { track } from "@/lib/journey";
 import FunnelHeader from "@/app/check/FunnelHeader";
 import { Notice, PageIntro } from "@/components/ui";
 import JoinForm from "@/components/join/JoinForm";
@@ -26,6 +27,7 @@ export default function JoinPage() {
     setCancelled(new URLSearchParams(window.location.search).get("cancelled") === "1");
     void getPlan().then((p) => setMode(p.mode));
     trackFunnel("join_started", { leadId: stored?.leadId });
+    track.step("join_start");
   }, []);
 
   const findings = check?.findings.length ?? 0;

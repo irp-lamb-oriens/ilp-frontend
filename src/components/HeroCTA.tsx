@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { EASE_OUT_EXPO, RevealTitle } from "@/components/motion/Motion";
 import { CHECK_CTA, HERO } from "@/components/landing/content";
+import { track, useExperiment } from "@/lib/journey";
 import styles from "./HeroCTA.module.scss";
 
 /**
@@ -14,6 +16,15 @@ import styles from "./HeroCTA.module.scss";
  */
 export default function HeroCTA() {
   const reduce = useReducedMotion();
+  // JOURNEYS experiment "hero-headline": A is HERO.title, B is HERO.titleB.
+  // Until the variant is known (at most 300 ms) the control holds the slot,
+  // invisible, so nothing below it moves.
+  const headline = useExperiment("hero-headline");
+  const title = headline.isControl ? HERO.title : HERO.titleB;
+
+  useEffect(() => {
+    track.step("landing_view");
+  }, []);
   const enter = (delay: number) =>
     reduce
       ? {}
@@ -29,17 +40,17 @@ export default function HeroCTA() {
         <motion.p className={styles.eyebrow} {...enter(0)}>
           {HERO.eyebrow}
         </motion.p>
-        <div id="hero-title">
-          <RevealTitle as="h1" text={HERO.title} className={styles.title} immediate={!!reduce} />
+        <div id="hero-title" className={headline.ready ? undefined : styles.titlePending}>
+          <RevealTitle key={headline.ready ? title : "pending"} as="h1" text={headline.ready ? title : HERO.title} className={styles.title} immediate={!!reduce} />
         </div>
         <motion.p className={styles.lead} {...enter(0.35)}>
           {HERO.lead}
         </motion.p>
         <motion.div className={styles.actions} {...enter(0.5)}>
-          <Link href="/check" className={styles.primary}>
+          <Link href="/check" className={styles.primary} onClick={() => track.click("home.hero.check")}>
             {CHECK_CTA}
           </Link>
-          <a href={`#${HERO.howAnchor}`} className={styles.secondary}>
+          <a href={`#${HERO.howAnchor}`} className={styles.secondary} onClick={() => track.click("home.hero.how")}>
             {HERO.secondary}
           </a>
         </motion.div>

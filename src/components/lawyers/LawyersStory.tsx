@@ -7,6 +7,7 @@ import CountUp from "@/components/motion/CountUp";
 import { BeatStory } from "@/components/motion/BeatStory";
 import { Eyebrow, Mark, RevealText, Stage, StageItem, useStoryLayout } from "@/components/motion/Story";
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
+import { track } from "@/lib/journey";
 import { APPLY_HREF, LAWYER_BANDS, LAWYERS_HERO, LAWYERS_INTRO, LAWYERS_WHAT, SIGN_IN_HREF } from "./content";
 import { HOW_BEATS, HOW_RANGES, HOW_SLOTS, HOW_TRACK_VH, WHY_BEATS, WHY_RANGES, WHY_SLOTS, WHY_TRACK_VH } from "./lawyersBeats";
 import { HoursVisual, MemberVisual, MembersVisual, StepScreen } from "./LawyerVisuals";
@@ -94,7 +95,7 @@ export function LawyersHero() {
           </h1>
 
           <StageItem level="body" className={s.actions}>
-            <Link href={APPLY_HREF} className={s.primary}>
+            <Link href={APPLY_HREF} className={s.primary} onClick={() => track.click("lawyers.hero.apply")}>
               {LAWYERS_HERO.primary}
             </Link>
             <a href={`#${LAWYER_BANDS.day.anchor}`} className={s.secondary}>
@@ -180,7 +181,7 @@ export function PartnershipClose() {
           </div>
         </div>
         <StageItem level="body" className={s.actions}>
-          <Link href={APPLY_HREF} className={s.primary}>
+          <Link href={APPLY_HREF} className={s.primary} onClick={() => track.click("lawyers.story.apply")}>
             {LAWYERS_HERO.primary}
           </Link>
           <a href={`#${LAWYER_BANDS.day.anchor}`} className={s.secondary}>

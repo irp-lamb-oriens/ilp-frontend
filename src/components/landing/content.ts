@@ -29,6 +29,11 @@ export const IMG = {
 export const HERO = {
   eyebrow: "Legal membership in six countries",
   title: "Keep your legal life abroad on track.",
+  /**
+   * JOURNEYS experiment "hero-headline", variant B (A is `title`). Draft:
+   * waiting for the owner's approval before the experiment is started.
+   */
+  titleB: "Know your legal dates abroad before they are due.",
   /** The one supporting line under the title: the first sentence of `what`. */
   lead: "ILP is a legal membership for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain.",
   why: "Living abroad or owning property there comes with legal dates and rules: residency renewals, company filings, property tax, yearly vehicle fees. They are written in Spanish or Portuguese, in a legal system you did not grow up with, and nobody reminds you when one is due.",

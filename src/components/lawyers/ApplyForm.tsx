@@ -20,6 +20,7 @@ import {
   type WeeklyWindowValue,
 } from "@/components/ui";
 import { API_URL } from "@/lib/api";
+import { track } from "@/lib/journey";
 import { COUNTRIES, isCountryCode } from "@/lib/contracts";
 import { COUNTRY_ZONE_OPTIONS, zoneLabelOf } from "@/lib/timeZones";
 import { LEGAL_VERSIONS } from "@/components/legal/versions";
@@ -169,9 +170,16 @@ export default function ApplyForm() {
   const last = step === STEP_IDS.length - 1;
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
+    if (!applyStarted.current) {
+      applyStarted.current = true;
+      track.step("lawyer_apply_start");
+    }
     setD((prev) => ({ ...prev, [key]: value }));
     if (errors[key as string]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   }
+
+  // JOURNEYS: the first answer starts the application (lawyer_apply_start).
+  const applyStarted = useRef(false);
 
   function go(to: number) {
     moved.current = true;
@@ -190,6 +198,7 @@ export default function ApplyForm() {
   }
 
   function focusFirstError(e: Errors) {
+    track.formErrors("lawyer_apply", Object.keys(e));
     const first = Object.keys(e)[0];
     window.requestAnimationFrame(() => {
       const el = document.querySelector<HTMLElement>(`[data-field="${first}"] input, [data-field="${first}"] select, [data-field="${first}"] textarea, [data-field="${first}"] button`);

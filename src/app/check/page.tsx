@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trackFunnel } from "@/lib/funnel";
+import { track, useExperiment } from "@/lib/journey";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
@@ -71,7 +72,21 @@ export default function CheckPage() {
   const [claimError, setClaimError] = useState<string | null>(null);
   const claimRef = useRef<HTMLHeadingElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const { questions, error: loadError, retry } = useCountryQuestions(country || null, "check");
+  const { questions: allQuestions, error: loadError, retry } = useCountryQuestions(country || null, "check");
+  // JOURNEYS experiment "check-length": the control asks every question; the
+  // other variant skips the questions marked optional. The control is used
+  // while the variant loads, and the exposure counts once a question shows.
+  const checkLength = useExperiment("check-length", { whileLoading: "control", exposeWhen: index > 0 && !!allQuestions });
+  const questions = useMemo(
+    () => (allQuestions && !checkLength.isControl ? allQuestions.filter((q) => !q.optional) : allQuestions),
+    [allQuestions, checkLength.isControl],
+  );
+  const started = useRef(false);
+  const markStarted = () => {
+    if (started.current) return;
+    started.current = true;
+    track.step("check_start");
+  };
   // While the dates are computed, the results page's placeholder replaces the last question.
   const sk = useSkeleton(busy);
   const countryName = country ? COUNTRIES[country].name : "";
@@ -83,10 +98,12 @@ export default function CheckPage() {
       if (isCountryCode(code)) {
         setCountry(code);
         setIndex(1);
+        markStarted();
       }
     } catch {
       // no query string
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const steps = useMemo<Step[]>(
@@ -101,6 +118,11 @@ export default function CheckPage() {
   useEffect(() => {
     trackFunnel("check_started");
   }, []);
+
+  // JOURNEYS: the results are on screen.
+  useEffect(() => {
+    if (done) track.step("results_view");
+  }, [done]);
 
   // Move focus to the new question so screen readers and keyboards follow along.
   useEffect(() => {
@@ -135,6 +157,7 @@ export default function CheckPage() {
       setClaimOpen(false);
       saveCheck({ answers: body, findings: res.findings });
       trackFunnel("check_completed");
+      track.step("check_finish");
       window.scrollTo({ top: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : "We could not run the check. Please try again.");
@@ -162,6 +185,7 @@ export default function CheckPage() {
     setCountry(code);
     setCountryContext(code);
     setIndex(1);
+    markStarted();
   }
 
   function back() {
@@ -173,6 +197,7 @@ export default function CheckPage() {
     setEmailError(null);
     const clean = email.trim().toLowerCase();
     if (!EMAIL_RE.test(clean)) {
+      track.formError("check.email");
       setEmailError("Enter a valid email address.");
       return;
     }
@@ -193,6 +218,7 @@ export default function CheckPage() {
 
   function openClaim() {
     setClaimOpen(true);
+    track.step("deadlines_select");
     // After the form renders: bring it into view and move focus to its heading.
     window.requestAnimationFrame(() => {
       claimRef.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
@@ -212,7 +238,11 @@ export default function CheckPage() {
     if (!ruleIds.length) errs.cards = "Include at least one item above.";
     setClaimErrors(errs);
     setClaimError(null);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      track.formErrors("check.claim", Object.keys(errs));
+      return;
+    }
+    track.step("signup_start");
     setClaimBusy(true);
     try {
       const res = await claimDeadlines({
@@ -394,7 +424,7 @@ export default function CheckPage() {
                   Join ILP for {PRICE.monthly} a month plus a {PRICE.activation} activation fee. A lawyer licensed in {countryName} goes
                   through these dates with you on a call, and your team follows up on each one. Your answers are filled in for you.
                 </p>
-                <Link href={leadId ? "/join?from=check" : "/join"} className={`${s.primary} ${s.primaryWide}`}>
+                <Link href={leadId ? "/join?from=check" : "/join"} className={`${s.primary} ${s.primaryWide}`} onClick={() => track.click("check.join")}>
                   Join ILP
                 </Link>
               </div>
