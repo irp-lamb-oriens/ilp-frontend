@@ -1,0 +1,80 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-6;
+}
+
+// Asymmetric: the average takes the wide column.
+.tiles {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: $space-4;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tileCell {
+  display: grid;
+}
+
+.h {
+  margin: 0 0 $space-3;
+  font-size: 1.125rem;
+  color: $color-navy;
+}
+
+.comments {
+  display: grid;
+  gap: $space-3;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 65ch;
+}
+
+.comment {
+  padding: $space-3 $space-4;
+  border-left: 2px solid $color-cool-gray;
+  color: $color-charcoal;
+  line-height: 1.6;
+}
+
+.table {
+  width: 100%;
+  max-width: 40rem;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: $space-2 $space-3;
+    border-bottom: 1px solid $color-hairline;
+    text-align: left;
+    font-weight: 400;
+    color: $color-charcoal;
+  }
+
+  thead th {
+    font-weight: 600;
+    color: $color-navy;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.muted {
+  margin: 0;
+  max-width: 65ch;
+  color: $color-steel;
+  font-size: 0.875rem;
+}
+
+.srOnly {
+  @include visually-hidden;
+}

@@ -34,6 +34,8 @@ export const DEFAULT_NAV: Record<ShellRole, NavItem[]> = {
     { href: "/lawyer/board", label: "Board", icon: createElement(IconNavBoard) },
     { href: "/lawyer/clients", label: "Clients", icon: createElement(IconNavList) },
     { href: "/lawyer/finance", label: "Finance", icon: createElement(IconNavMoney) },
+    { href: "/lawyer/work", label: "New work", icon: createElement(IconNavTag) },
+    { href: "/lawyer/feedback", label: "Feedback", icon: createElement(IconChat) },
     { href: "/lawyer/availability", label: "Availability", icon: createElement(IconNavCalendar) },
     { href: "/lawyer/profile", label: "Profile", icon: createElement(IconPerson) },
   ],

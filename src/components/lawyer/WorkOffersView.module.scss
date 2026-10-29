@@ -1,0 +1,84 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-8;
+}
+
+.h {
+  margin: 0 0 $space-3;
+  font-size: 1.125rem;
+  color: $color-navy;
+}
+
+.list {
+  display: grid;
+  gap: $space-4;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 48rem;
+}
+
+.offer {
+  @include card;
+  display: grid;
+  gap: $space-2;
+  padding: $space-4 $space-6;
+
+  @include below-md {
+    padding: $space-4;
+  }
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.meta {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+}
+
+.body {
+  margin: 0;
+  max-width: 65ch;
+  line-height: 1.6;
+  color: $color-charcoal;
+}
+
+.error {
+  margin: 0;
+  color: $color-error;
+  font-size: 0.875rem;
+}
+
+.decline {
+  display: grid;
+  gap: $space-3;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-top: $space-2;
+}
+
+.muted {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.875rem;
+}

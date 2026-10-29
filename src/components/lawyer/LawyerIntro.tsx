@@ -12,7 +12,7 @@ import s from "./LawyerIntro.module.scss";
  * (PageIntro `storageKey`). Today has a second version for lawyers whose
  * application is still in review.
  */
-export type LawyerScreen = "today" | "board" | "clients" | "call" | "finance" | "availability" | "profile";
+export type LawyerScreen = "today" | "board" | "clients" | "call" | "finance" | "availability" | "profile" | "work" | "feedback";
 
 interface IntroCopy {
   title: string;
@@ -116,6 +116,26 @@ export const LAWYER_INTROS: Record<LawyerScreen | "todayReview", IntroCopy> = {
       "Press Save profile. New members are matched with it from then on.",
     ],
     why: "Accurate specialties bring you members you can help, and capacity keeps your week manageable. Before each call you get the member's brief by email in the language you choose here.",
+  },
+  work: {
+    title: "Paid work offered to you",
+    what: "Legal work beyond the membership calls that ILP members need, offered to partner lawyers whose specialties and licence fit. Each offer shows the area, the country and a short description from the ILP team.",
+    how: [
+      "Read the offer and press Accept if you can take it, or Decline with an optional reason.",
+      "The first lawyer to accept takes the work. The others see that it is taken.",
+      "The ILP team introduces you to the member, and you scope the quote on their Quotes tab.",
+    ],
+    why: "Members get a lawyer who fits their matter quickly, and you get paid work in your own practice areas. We also email you each new offer.",
+  },
+  feedback: {
+    title: "What members say about your calls",
+    what: "Your own star average and the comments members left after your calls. Comments are edited to remove names and contact details, and they show only once there are enough reviews that no single member can be picked out.",
+    how: [
+      "Read the average and the comments from the last 90 days.",
+      "Check the months below to see how reviews change over time.",
+      "Each month we also email you a short summary. To talk it through, write to the ILP team.",
+    ],
+    why: "Members choose to stay with ILP when their calls are clear and useful, and this is what they tell us. Only you and the ILP team see it. Members never see star scores.",
   },
 };
 
