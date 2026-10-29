@@ -12,6 +12,7 @@ import Link from "next/link";
 import { recordConsent } from "@/components/legal/consentApi";
 import { dateLong, dayKey, displayTimeZone, timeOfDay, zoneName } from "./format";
 import { SlotPickerSkeleton } from "./StatusSkeletons";
+import ArrangingLawyer from "./ArrangingLawyer"; // ROUTING
 import s from "./BookingFlow.module.scss";
 
 /** Pick a 20-minute slot, say what you want to ask, see the minutes it uses. */
@@ -186,7 +187,8 @@ export default function BookingFlow() {
           {() => (
             <>
             {data?.lawyerName && <p className={s.lawyer}>With {data.lawyerName}</p>}
-            {data && data.slots.length === 0 && (
+            {data && data.slots.length === 0 && data.matching && <ArrangingLawyer salesCall={data.salesCall} reason={data.reason} />}
+            {data && data.slots.length === 0 && !data.matching && (
               <Notice
                 tone="info"
                 title={data.lawyerName ? "No open times in the next two weeks" : data.matching ? "We are matching you with a lawyer" : "No lawyer is assigned to you yet"}

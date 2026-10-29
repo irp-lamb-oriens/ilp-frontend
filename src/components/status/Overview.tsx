@@ -13,6 +13,7 @@ import MemberIntro from "./MemberIntro";
 import { ButtonLink, Notice, Stagger, StaggerItem } from "@/components/ui";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import { isFreeAccount } from "./api";
+import ArrangingLawyer from "./ArrangingLawyer"; // ROUTING
 import s from "./Overview.module.scss";
 
 /**
@@ -49,6 +50,11 @@ export default function Overview() {
           {welcome && (
             <StaggerItem index={0}>
               <WelcomeBanner />
+            </StaggerItem>
+          )}
+          {home.lawyerMatch?.status === "arranging" && (
+            <StaggerItem index={1}>
+              <ArrangingLawyer salesCall={home.lawyerMatch.salesCall} />
             </StaggerItem>
           )}
           <StaggerItem index={1}>

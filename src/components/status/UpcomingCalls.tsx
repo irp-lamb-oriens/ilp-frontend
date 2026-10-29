@@ -68,6 +68,28 @@ function CallItem({ call: c }: { call: UpcomingCall }) {
     }
   }
 
+  // ROUTING: the short call with the ILP team while we arrange a lawyer. No recording question, no change.
+  if (c.kind === "sales") {
+    return (
+      <li className={s.item}>
+        <p className={s.when}>
+          {dateLong(c.scheduledAt)}, {timeOfDay(c.scheduledAt)} <span className={s.rel}>({relativeDue(c.scheduledAt)})</span>
+        </p>
+        <p className={s.meta}>
+          {c.durationMin ?? 15} minutes with the ILP team · {zoneName()} · Google Meet
+        </p>
+        <p className={s.small}>A short call while we arrange your lawyer. It does not use your membership minutes or calls.</p>
+        <div className={s.actions}>
+          {c.meetUrl && state === "open" ? (
+            <a className={s.joinLink} href={c.meetUrl} target="_blank" rel="noopener noreferrer">Join call</a>
+          ) : c.meetUrl && state === "early" ? (
+            <Button variant="secondary" disabled>Join opens at {timeOfDay(opensAt)}</Button>
+          ) : null}
+        </div>
+      </li>
+    );
+  }
+
   return (
     <li className={s.item}>
       <p className={s.when}>

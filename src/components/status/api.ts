@@ -50,8 +50,18 @@ export interface Capacity {
   reason?: string;
 }
 
+/** ROUTING: a short call with the ILP sales team while no lawyer matches. */
+export interface SalesCallView {
+  id: string;
+  scheduledAt: string;
+  meetUrl: string | null;
+  durationMin: number;
+}
+
 export interface CallView {
   id: string;
+  /** ROUTING: "sales" = the short call with the ILP team (never uses membership minutes). */
+  kind?: "member" | "sales";
   matterId?: string;
   scheduledAt: string;
   durationMin?: number;
@@ -83,6 +93,8 @@ export interface MemberHome {
   pendingQuestions: string[];
   /** DEADLINES: "free" when the person saved deadlines from the free check and has no membership. Absent on older servers (member). */
   account?: { type: AccountType };
+  /** ROUTING: the member's lawyer, or "arranging" while no lawyer matches (with the sales call). Absent on older servers. */
+  lawyerMatch?: { status: "assigned" | "arranging" | "none"; lawyerName?: string | null; salesCall?: SalesCallView | null };
 }
 
 /** DEADLINES: a free account sees Overview, Deadlines, Profile and Privacy; the rest shows a join notice. */
@@ -93,9 +105,11 @@ export interface SlotsPayload {
   lawyerName: string | null;
   lengthMin?: number;
   reason?: string;
-  /** COUNTRIES: nobody licensed in the member's country yet; `reason` is the calm notice. */
+  /** COUNTRIES / ROUTING: no lawyer matches yet; `reason` is the calm notice. */
   matching?: boolean;
   country?: string;
+  /** ROUTING: the short call with the ILP team set while we arrange the lawyer. */
+  salesCall?: SalesCallView | null;
 }
 
 export interface MemberDocument {
