@@ -30,14 +30,12 @@ import {
   type CountryCode,
   LANGUAGE_LEVELS,
   LAWYER_CLIENT_TYPES,
-  type LawyerEmailLanguage,
   type LanguageLevel,
   type LawyerRoutingStatus,
   type Specialty,
 } from "@/lib/contracts";
 import {
   CLIENT_TYPE_LABEL,
-  EMAIL_LANGUAGE_LABEL,
   groupSpecialties,
   LANGUAGE_LABEL,
   LEVEL_LABEL,
@@ -301,14 +299,7 @@ export default function ProfileView({ adapter, intro, title }: { adapter: Profil
                 options={[{ value: "", label: "Choose a level" }, ...LANGUAGE_LEVELS.map((v) => ({ value: v, label: LEVEL_LABEL[v] }))]}
               />
             ))}
-            <Select
-              label="Language of ILP emails to you"
-              hint="Call briefs and reminders arrive in this language."
-              value={draft.emailLanguage}
-              onChange={(e) => patch({ emailLanguage: e.target.value as LawyerEmailLanguage })}
-              options={(["es", "pt", "en"] as const).map((v) => ({ value: v, label: EMAIL_LANGUAGE_LABEL[v] }))}
-              error={errors.emailLanguage}
-            />
+            <p className={s.note}>ILP emails to {staff ? "the lawyer" : "you"}, including call briefs and reminders, are in English.</p>
           </section>
         </div>
       </div>
