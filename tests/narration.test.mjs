@@ -383,3 +383,197 @@ test("narration analytics: click target ids are valid journey targets", async ()
     for (const c of NARRATION[p].cues) assert.equal(cleanTarget(`narration.exit.${p}.${c.id}`), `narration.exit.${p}.${c.id}`);
   }
 });
+
+/* ── Voice wave ──────────────────────────────────────────────── */
+
+const wave = await import("../src/lib/narration/wave.ts");
+const graph = await import("../src/lib/narration/audioGraph.ts");
+
+test("wave: bins map to bars over the voice range, log spaced", () => {
+  const sr = 48000;
+  const edges = wave.bandEdges(wave.WAVE_BARS, sr, wave.FFT_SIZE);
+  assert.equal(edges.length, wave.WAVE_BARS + 1);
+  const binHz = sr / wave.FFT_SIZE;
+  assert.ok(Math.abs(edges[0] * binHz - wave.VOICE_LO) <= binHz, "starts near 80 Hz");
+  assert.ok(edges.at(-1) * binHz <= wave.VOICE_HI + binHz * (wave.WAVE_BARS / 2), "ends near the top of the voice range");
+  for (let k = 1; k < edges.length; k++) assert.ok(edges[k] > edges[k - 1], "every bar has at least one bin");
+  assert.ok(edges.at(-1) <= wave.FFT_SIZE / 2);
+  // A 44.1 kHz context with a smaller FFT still gives valid bands.
+  const small = wave.bandEdges(24, 44100, 256);
+  for (let k = 1; k < small.length; k++) assert.ok(small[k] > small[k - 1] && small[k] <= 128);
+});
+
+test("wave: bar heights are normalized 0..1, louder bins give taller bars, the high bands get a lift", () => {
+  const edges = wave.bandEdges(wave.WAVE_BARS, 48000, wave.FFT_SIZE);
+  const out = new Float32Array(wave.WAVE_BARS);
+  wave.mapBars(new Uint8Array(256), edges, out);
+  assert.ok(out.every((v) => v === 0), "silence is flat");
+  wave.mapBars(new Uint8Array(256).fill(255), edges, out);
+  assert.ok(out.every((v) => v === 1), "full scale clamps to 1");
+  const mid = new Uint8Array(256).fill(60);
+  wave.mapBars(mid, edges, out);
+  assert.ok(out.every((v) => v > 0 && v < 1));
+  assert.ok(out.at(-1) > out[0], "same energy reads taller in the high bands");
+  // Energy only in the bins of bar 10.
+  const one = new Uint8Array(256);
+  for (let k = edges[10]; k < edges[11]; k++) one[k] = 200;
+  wave.mapBars(one, edges, out);
+  assert.ok(out[10] > 0.5);
+  assert.equal(out[9], 0);
+  assert.equal(out[11], 0);
+  // Bins above the voice range are ignored.
+  const high = new Uint8Array(256);
+  high.fill(255, edges.at(-1));
+  wave.mapBars(high, edges, out);
+  assert.ok(out.every((v) => v === 0));
+});
+
+test("wave: easing, settling to the calm line, simulated voice from caption timing", () => {
+  const cur = new Float32Array(4).fill(1);
+  const flat = new Float32Array(4).fill(wave.FLAT);
+  let frames = 0;
+  while (wave.easeBars(cur, flat) > wave.SETTLED) frames++;
+  assert.ok(frames > 3 && frames < 40, `settles in ${frames} frames`);
+  assert.ok(cur.every((v) => Math.abs(v - wave.FLAT) < 0.02));
+
+  const sim = new Float32Array(wave.WAVE_BARS);
+  wave.simulatedBars(1.3, 0.8, sim);
+  assert.ok(sim.every((v) => v >= 0 && v <= 0.8));
+  assert.ok(sim[wave.WAVE_BARS / 2] > sim[0], "taller in the middle");
+  wave.simulatedBars(1.3, 0, sim);
+  assert.ok(sim.every((v) => v === 0));
+
+  const starts = [0, 6, 13];
+  assert.equal(wave.speechLevel(2, starts, 20), 0.8, "speaking");
+  assert.equal(wave.speechLevel(5.5, starts, 20), 0.12, "the section pause before the next cue");
+  assert.equal(wave.speechLevel(15, starts, 20), 0.8);
+  assert.equal(wave.speechLevel(20, starts, 20), 0, "after the end");
+  assert.equal(wave.meterLevel([0.2, 0.4]), 0.30000000000000004);
+});
+
+test("wave: modes for playing, paused, caption-only and reduced motion", () => {
+  assert.equal(wave.waveMode({ playing: true, reduced: false, live: true }), "live");
+  assert.equal(wave.waveMode({ playing: true, reduced: false, live: false }), "simulated");
+  assert.equal(wave.waveMode({ playing: false, reduced: false, live: true }), "settle");
+  assert.equal(wave.waveMode({ playing: true, reduced: true, live: true }), "static");
+  assert.equal(wave.waveMode({ playing: false, reduced: true, live: false }), "static");
+});
+
+test("wave: the frame loop stops when paused (settled) and when stopped from outside", () => {
+  const queue = new Map();
+  let next = 1;
+  const raf = (cb) => {
+    queue.set(next, cb);
+    return next++;
+  };
+  const caf = (id) => queue.delete(id);
+  const flush = () => {
+    const cbs = [...queue.values()];
+    queue.clear();
+    cbs.forEach((cb) => cb(0));
+  };
+  let playing = true;
+  const cur = new Float32Array(8).fill(0.9);
+  const target = new Float32Array(8);
+  let frames = 0;
+  const loop = wave.createFrameLoop(() => {
+    frames++;
+    const mode = wave.waveMode({ playing, reduced: false, live: false });
+    if (mode === "settle") wave.fillBars(target, wave.FLAT);
+    else wave.simulatedBars(frames / 60, 0.8, target);
+    const change = wave.easeBars(cur, target);
+    return mode !== "settle" || change > wave.SETTLED;
+  }, raf, caf);
+  loop.start();
+  for (let i = 0; i < 30; i++) flush();
+  assert.ok(loop.running, "keeps running while playing");
+  assert.equal(frames, 30);
+  playing = false;
+  for (let i = 0; i < 200 && queue.size; i++) flush();
+  assert.equal(loop.running, false, "stops once the wave has settled");
+  assert.equal(queue.size, 0, "no frame left queued");
+  const settledAt = frames;
+  flush();
+  assert.equal(frames, settledAt);
+  playing = true;
+  loop.start();
+  flush();
+  loop.stop();
+  assert.equal(queue.size, 0, "stop (tab hidden) cancels the queued frame");
+  assert.equal(loop.running, false);
+});
+
+test("wave: the AudioContext is created only by the click on Start, once per element", () => {
+  let made = 0;
+  const calls = [];
+  class FakeCtx {
+    constructor() {
+      made++;
+      this.state = "suspended";
+      this.destination = { name: "out" };
+    }
+    createMediaElementSource(el) {
+      calls.push("source");
+      return { connect: (n) => calls.push(`source->${n.name}`) };
+    }
+    createAnalyser() {
+      return { name: "analyser", connect: (n) => calls.push(`analyser->${n.name}`) };
+    }
+    resume() {
+      calls.push("resume");
+      this.state = "running";
+      return Promise.resolve();
+    }
+  }
+  const el = {};
+  assert.equal(made, 0);
+  const g = graph.voiceGraph(el, FakeCtx);
+  assert.equal(made, 1);
+  assert.equal(g.analyser.fftSize, wave.FFT_SIZE);
+  assert.equal(g.analyser.smoothingTimeConstant, wave.SMOOTHING);
+  assert.deepEqual(calls, ["source", "source->analyser", "analyser->out"]);
+  assert.equal(graph.voiceGraph(el, FakeCtx), g, "one graph per audio element");
+  assert.equal(made, 1);
+  graph.resumeGraph(g);
+  assert.ok(calls.includes("resume"));
+  assert.equal(graph.voiceGraph({}, null), null, "no Web Audio: the audio plays on its own");
+  class Broken {
+    createMediaElementSource() {
+      throw new Error("no");
+    }
+  }
+  assert.equal(graph.voiceGraph({}, Broken), null);
+
+  // In the narrator, the graph is made only inside begin(), the Start and "Play narration" click handler.
+  const src = read("src/components/narration/Narrator.tsx");
+  const uses = [...src.matchAll(/voiceGraph\(/g)].map((m) => m.index);
+  assert.equal(uses.length, 1);
+  const beginAt = src.indexOf("const begin = () => {");
+  const beginEnd = src.indexOf("const start = () => {");
+  assert.ok(uses[0] > beginAt && uses[0] < beginEnd, "created in the click handler");
+  assert.ok(!/new (?:window\.)?(?:webkit)?AudioContext/.test(src), "no AudioContext anywhere else in the narrator");
+});
+
+test("wave: the control is a labelled toggle button, and pinned stories leave room for the bar", () => {
+  const w = read("src/components/narration/VoiceWave.tsx");
+  assert.match(w, /<button ref=\{ref\} type="button"/);
+  assert.match(w, /aria-label=\{label\}/);
+  assert.match(w, /aria-pressed=\{playing\}/);
+  assert.match(w, /<canvas ref=\{canvasRef\} className=\{s\.waveCanvas\} aria-hidden="true" \/>/);
+  assert.match(w, /devicePixelRatio/);
+  assert.match(w, /visibilitychange/);
+  assert.match(w, /setInterval\(meter, 250\)/, "reduced motion: a meter at most every 250 ms");
+  assert.ok(!/new (?:Float32Array|Uint8Array)\(/.test(w.slice(w.indexOf("const frame = () =>"), w.indexOf("const loop ="))), "no allocation per frame");
+  const n = read("src/components/narration/Narrator.tsx");
+  assert.match(n, /label=\{playing \? C\.pause : C\.play\}/);
+  const content = read("src/components/narration/content.ts");
+  assert.match(content, /play: "Play narration"/);
+  assert.match(content, /pause: "Pause narration"/);
+  const scss = read("src/components/narration/Narrator.module.scss");
+  assert.ok(!/blur|box-shadow|glow/.test(scss.replace(/\/\/.*$/gm, "")), "flat");
+  assert.match(scss, /\.wave \{[\s\S]*?color: \$color-accent;/);
+  for (const f of ["src/components/motion/BeatStory.module.scss", "src/components/landing/CostsStory.module.scss", "src/components/motion/Motion.module.scss"]) {
+    assert.match(read(f), /var\(--narrator-reserve, 0px\)/, f);
+  }
+  assert.match(n, /--narrator-reserve/);
+});
