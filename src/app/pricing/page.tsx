@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import PriceAnchor from "@/components/motion/PriceAnchor";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import m from "@/components/MarketingPage.module.scss";
 import s from "./pricing.module.scss";
@@ -12,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 const usd = (cents: number) => `US$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
-const MONTHLY = usd(PLAN_STANDARD.monthlyCents);
 const ACTIVATION = usd(PLAN_STANDARD.activationCents);
 
 const INCLUDED = [
@@ -59,10 +59,7 @@ export default function PricingPage() {
           <div className={s.layout}>
             <div className={s.plan}>
               <h2 className={s.planName}>ILP membership</h2>
-              <p className={s.price}>
-                {MONTHLY}
-                <span className={s.unit}> a month</span>
-              </p>
+              <PriceAnchor size="md" className={s.anchor} />
               <p className={s.activation}>plus a one-time {ACTIVATION} activation fee</p>
               <Link href="/check" className={m.primary}>Start with the free check</Link>
               <Link href="/join" className={s.joinLink}>Or join now</Link>

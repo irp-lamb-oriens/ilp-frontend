@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
-import CountUp from "@/components/motion/CountUp";
+import PriceAnchor from "@/components/motion/PriceAnchor";
 import { MorphStage, Reveal } from "@/components/motion/Motion";
-import { Mark, RevealText, Stage, StageItem } from "@/components/motion/Story";
+import { RevealText, Stage, StageItem } from "@/components/motion/Story";
 import { CHECK_CTA, HERO, PROBLEM, WHAT } from "./content";
 import { MockScene } from "@/components/tutorial/mock/MockScene";
 import { EMPTY_OVERRIDES, type Overrides } from "@/components/tutorial/sceneUtils";
@@ -507,8 +507,6 @@ export function StepsScroll() {
 
 /* ── What you get ────────────────────────────────────────────── */
 
-const formatPrice = (v: number) => `US$${v.toFixed(2)}`;
-
 export function WhatYouGet() {
   return (
     <section className={s.what} aria-labelledby="what-title">
@@ -518,12 +516,7 @@ export function WhatYouGet() {
         </StageItem>
         <div className={s.whatGrid}>
           <StageItem level="visual" className={s.priceBlock}>
-            <p className={s.price}>
-              <Mark className={s.priceMark}>
-                <CountUp value={WHAT.price} formatter={formatPrice} duration={0.9} className={s.priceFigure} />
-              </Mark>{" "}
-              <span className={s.priceUnit}>{WHAT.unit}</span>
-            </p>
+            <PriceAnchor size="lg" />
             <p className={s.activation}>{WHAT.activation}</p>
           </StageItem>
           <div className={s.whatLines}>

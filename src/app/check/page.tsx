@@ -12,6 +12,7 @@ import { DeadlineCards } from "@/components/deadlines/DeadlineCards";
 import { joinConsents } from "@/components/legal/consentApi";
 import { type DeadlineCardItem, defaultSelection, savePendingDeadlines } from "@/lib/deadlines";
 import { TutorialEmbed } from "@/components/tutorial";
+import PriceAnchor from "@/components/motion/PriceAnchor";
 import { CHECK_DISCLAIMER } from "@/components/legal/disclaimers";
 import { COUNTRIES, type CountryCode, isCountryCode } from "@/lib/contracts";
 import { type CountryAnswers, type CountryQuestion, DEFAULT_WHY, questionShown, visibleAnswers } from "@/lib/countryQuestions";
@@ -422,8 +423,9 @@ export default function CheckPage() {
             <div className={s.choices}>
               <div className={s.cta}>
                 <h3 className={s.choiceHead}>Have a lawyer review this</h3>
+                <PriceAnchor size="sm" className={s.ctaAnchor} />
                 <p className={s.ctaText}>
-                  Join ILP for {PRICE.monthly} a month plus a {PRICE.activation} activation fee. A lawyer licensed in {countryName} goes
+                  There is also a one-time {PRICE.activation} activation fee. A lawyer licensed in {countryName} goes
                   through these dates with you on a call, and your team follows up on each one. Your answers are filled in for you.
                 </p>
                 <Link href={leadId ? "/join?from=check" : "/join"} className={`${s.primary} ${s.primaryWide}`} onClick={() => track.click("check.join")}>

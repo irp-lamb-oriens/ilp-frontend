@@ -416,29 +416,6 @@ $nav-offset: 64px;
   gap: $space-3;
 }
 
-.price {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: $space-3;
-  color: $color-navy;
-}
-
-.priceFigure {
-  font-size: clamp(3.25rem, 11vw, 8rem);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 0.95;
-  font-variant-numeric: tabular-nums;
-}
-
-.priceUnit {
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
-  font-weight: 600;
-  color: $color-steel;
-}
-
 .activation {
   margin: 0;
   font-size: clamp(1.125rem, 2vw, 1.5rem);
@@ -448,10 +425,6 @@ $nav-offset: 64px;
 .whatLines {
   display: flex;
   flex-direction: column;
-}
-
-.priceMark {
-  font-weight: inherit;
 }
 
 .whatLine {

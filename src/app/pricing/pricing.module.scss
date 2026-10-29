@@ -29,20 +29,8 @@
   color: $color-navy;
 }
 
-.price {
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-  color: $color-navy;
-}
-
-.unit {
-  font-size: 1.125rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  color: $color-steel;
+.anchor {
+  margin-bottom: $space-2;
 }
 
 .activation {

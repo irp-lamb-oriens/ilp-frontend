@@ -17,6 +17,7 @@ import {
   TextInput,
 } from "@/components/ui";
 import { TutorialEmbed } from "@/components/tutorial";
+import PriceAnchor from "@/components/motion/PriceAnchor";
 import { funnelAnonId, funnelSource } from "@/lib/funnel";
 import { track } from "@/lib/journey";
 import { joinConsents } from "@/components/legal/consentApi";
@@ -541,10 +542,8 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
             <>
               <section className={s.plan} aria-labelledby="plan-name">
                 <h3 id="plan-name" className={s.planName}>ILP membership</h3>
-                <p className={s.priceLine}>
-                  <span className={s.price}>{PRICE.monthly}</span>
-                  <span className={s.priceUnit}> a month, plus a {PRICE.activation} one-time activation fee</span>
-                </p>
+                <PriceAnchor size="sm" />
+                <p className={s.priceUnit}>Plus a {PRICE.activation} one-time activation fee</p>
                 <ul className={s.includes}>
                   <li>
                     Up to {PRICE.calls} video calls a month of {PRICE.callLength} minutes each ({PRICE.minutes} minutes) with a lawyer licensed in {countryName || "your country"}

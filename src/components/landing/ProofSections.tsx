@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/motion/Motion";
-import { Eyebrow, Mark, RevealText, Stage, StageItem } from "@/components/motion/Story";
-import CountUp from "@/components/motion/CountUp";
+import { Eyebrow, RevealText, Stage, StageItem } from "@/components/motion/Story";
+import PriceAnchor from "@/components/motion/PriceAnchor";
 import { cx } from "@/components/ui/cx";
 import {
   COUNTRIES,
@@ -103,12 +103,10 @@ function priceValue(price: string): number | null {
   return Number.isFinite(v) && v > 0 ? v : null;
 }
 
-const formatUsd = (v: number) => `US$${v.toFixed(2)}`;
-
 /**
  * Pricing: the free check and the one membership, with extra legal work
  * below. Each plan card rises, then its tagline (eyebrow), name, price (the
- * membership figure counts up and is underlined), allowance and list.
+ * membership shows the PriceAnchor comparison), allowance and list.
  */
 export function Pricing() {
   return (
@@ -117,7 +115,6 @@ export function Pricing() {
 
       <div className={`${s.plansGrid} ${PLANS.length === 2 ? s.plansTwo : ""}`}>
         {PLANS.map((plan, i) => {
-          const value = priceValue(plan.price);
           return (
             <Stage
               key={plan.id}
@@ -131,16 +128,16 @@ export function Pricing() {
               <StageItem as="h3" level="title" className={s.planName}>
                 {plan.name}
               </StageItem>
-              <StageItem level="title" className={s.planPrice}>
-                {value !== null && plan.highlight ? (
-                  <Mark className={s.priceMark}>
-                    <CountUp value={value} formatter={formatUsd} duration={0.9} />
-                  </Mark>
-                ) : (
-                  plan.price
-                )}
-                {plan.unit && <span className={s.planUnit}> {plan.unit}</span>}
-              </StageItem>
+              {plan.highlight && priceValue(plan.price) !== null ? (
+                <StageItem level="title">
+                  <PriceAnchor size="md" />
+                </StageItem>
+              ) : (
+                <StageItem level="title" className={s.planPrice}>
+                  {plan.price}
+                  {plan.unit && <span className={s.planUnit}> {plan.unit}</span>}
+                </StageItem>
+              )}
               <StageItem level="body" className={s.planPerDay}>
                 {plan.activation}
               </StageItem>
