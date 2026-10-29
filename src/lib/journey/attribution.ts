@@ -55,7 +55,7 @@ export function resolveAttribution(
   const utm = readUtm(params);
   const o = params.get(OUTREACH_PARAM);
   if (o && OUTREACH_RE.test(o)) return { source: "outbound", channel: "email_outreach", outreachId: o, ...(utm ? { utm } : {}) };
-  if (stored && (stored.source === "outbound" || isOutboundChannel(stored.channel))) return stored;
+  // First touch: a stored attribution (outbound or inbound) is kept.
   if (stored) return stored;
   if (utm?.source || utm?.campaign) return { source: "inbound", channel: "campaign", utm };
   let refHost = "";

@@ -5,6 +5,7 @@ import LeadModal from "@/components/LeadModal";
 import SiteLegal from "@/components/legal/SiteLegal";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChanges";
 import TutorialRoot from "@/tutorials/TutorialRoot";
+import JourneyTracker from "@/lib/journey/JourneyTracker";
 import "@/styles/global.scss";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default async function RootLayout({
           <LeadModal />
           <SiteLegal />
           <UnsavedChangesGuard />
+          <JourneyTracker />
         </TutorialRoot>
       </body>
     </html>

@@ -14,6 +14,10 @@ export const MEASURE_EVENT = "ilp:measure-choice";
 export type MeasureChoice = "allow" | "deny";
 
 const FUNNEL_KEYS = ["ilp_funnel_id", "ilp_funnel_src"];
+/** JOURNEYS: the journey visitor id and first-touch source (contracts JOURNEY_VISITOR_KEY), removed on "No thanks". */
+const JOURNEY_KEYS = ["ilp_vid", "ilp_journey_src"];
+/** JOURNEYS: "1" = opted out of journey measurement (contracts JOURNEY_OPT_OUT_KEY). */
+const JOURNEY_OPT_OUT = "ilp_journey_optout";
 
 /** The browser asks sites not to track (Global Privacy Control). */
 export function gpcEnabled(): boolean {
@@ -36,7 +40,12 @@ export function getMeasureChoice(): MeasureChoice | null {
 export function setMeasureChoice(choice: MeasureChoice): void {
   try {
     window.localStorage.setItem(MEASURE_KEY, choice);
-    if (choice === "deny") for (const k of FUNNEL_KEYS) window.localStorage.removeItem(k);
+    if (choice === "deny") {
+      for (const k of [...FUNNEL_KEYS, ...JOURNEY_KEYS]) window.localStorage.removeItem(k);
+      window.localStorage.setItem(JOURNEY_OPT_OUT, "1");
+    } else {
+      window.localStorage.removeItem(JOURNEY_OPT_OUT);
+    }
   } catch {
     // storage blocked: nothing is stored either way
   }
