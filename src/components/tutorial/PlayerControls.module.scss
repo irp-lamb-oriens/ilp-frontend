@@ -340,9 +340,34 @@ $tip-gap: 6px;
 
 // ─── Step navigation ────────────────────────────────────────────────────────
 
+// Two regions stacked in normal flow: the step actions ("Show me on this
+// page") on their own row, then the step controls. Neither is positioned over
+// the other, so they can not collide at any width.
 .stepsWrap {
   container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
   min-width: 0;
+}
+
+.stepActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $space-2;
+  min-width: 0;
+
+  // Phones: the action spans the row, a full-width 44px target.
+  > * {
+    flex: 1 1 100%;
+  }
+
+  @container (min-width: 30rem) {
+    > * {
+      flex: 0 0 auto;
+    }
+  }
 }
 
 .steps {

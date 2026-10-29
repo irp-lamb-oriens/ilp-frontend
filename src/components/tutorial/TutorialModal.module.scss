@@ -22,9 +22,11 @@ div.footer {
   gap: $space-3;
   width: 100%;
 
+  // Bottom-aligned: the checkbox lines up with the step controls row, under
+  // the "Show me on this page" row when a step has one.
   @include md {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-end;
     gap: $space-4;
   }
 }

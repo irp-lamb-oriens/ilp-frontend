@@ -314,7 +314,12 @@ export interface StepNavProps {
   lastLabel?: string;
   /** The next button is the primary action (the modal). */
   primaryNext?: boolean;
-  /** Extra buttons placed before the next button (the modal's "Show me on this page"). */
+  /**
+   * Step actions (the modal's "Show me on this page"). They get their own row
+   * above the step controls, never a cell inside them, so a long label can not
+   * run into previous / next or the step segments at any width. In the DOM
+   * they come before the controls: content, actions, then controls.
+   */
   extra?: ReactNode;
   className?: string;
 }
@@ -325,7 +330,12 @@ export function StepNav({ index, count, titles, onPrev, onNext, onGo, lastLabel,
   const nextLabel = last && lastLabel ? lastLabel : "Next step";
   return (
     <div className={cx(s.stepsWrap, className)}>
-    <nav className={s.steps} aria-label="Steps">
+    {extra && (
+      <div className={s.stepActions} data-region="step-actions">
+        {extra}
+      </div>
+    )}
+    <nav className={s.steps} aria-label="Steps" data-region="step-controls">
       <button type="button" className={s.stepBtn} onClick={onPrev} disabled={index === 0}>
         <IconArrowLeft />
         <span>Previous step</span>
@@ -351,7 +361,6 @@ export function StepNav({ index, count, titles, onPrev, onNext, onGo, lastLabel,
         })}
       </ol>
       <div className={s.stepEnd}>
-        {extra}
         <button type="button" className={cx(s.stepBtn, primaryNext && s.stepPrimary)} onClick={onNext} disabled={last && !lastLabel} data-autofocus={primaryNext ? "" : undefined}>
           <span>{nextLabel}</span>
           {last && lastLabel === "Start over" ? <IconReplay /> : last && lastLabel ? <IconCheck /> : <IconArrowRight />}

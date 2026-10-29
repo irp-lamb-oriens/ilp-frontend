@@ -9,7 +9,8 @@
  *   close button.
  * - Body: the demo with its control bar (PlayerControls), the step text, and
  *   "What happens here".
- * - Footer: "Don't show again" and the step navigation (StepNav): previous
+ * - Footer: "Don't show again" and the step navigation (StepNav): a row of
+ *   step actions ("Show me on this page") above the controls row of previous
  *   step, labelled step segments, next step (Done on the last step).
  *
  * Keys: ← / → move between steps (while the demo is paused they step
