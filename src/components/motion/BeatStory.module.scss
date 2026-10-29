@@ -1,0 +1,361 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// A section told as beats (BeatStory.tsx). Pinned on wide screens with
+// motion allowed, staged blocks on tablets, stacked blocks on phones and with
+// reduced motion. The same media query decides the layout in CSS from the
+// first paint, so the switch in script after mount moves nothing.
+// Motion is transform and opacity only (rules.md 6).
+
+$nav: 64px;
+
+@mixin pinned {
+  @media (min-width: $bp-lg) and (prefers-reduced-motion: no-preference) {
+    @content;
+  }
+}
+
+.story {
+  position: relative;
+}
+
+.canvas {
+  background: $color-canvas;
+}
+
+.mist {
+  background: $color-mist;
+}
+
+.accent {
+  background: $color-accent-soft;
+}
+
+// The track height comes from the trackVh prop (--track-vh).
+.track {
+  position: relative;
+
+  @include pinned {
+    height: calc(var(--track-vh, 300) * 1vh);
+  }
+}
+
+.stage {
+  @include container;
+  padding-block: $space-16 $space-8;
+
+  @include md {
+    padding-block: $space-24 $space-12;
+  }
+
+  @include pinned {
+    position: sticky;
+    top: 0;
+    min-height: 100dvh;
+    display: flex;
+    align-items: stretch;
+    padding-block: calc(#{$nav} + #{$space-8}) $space-8;
+  }
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: $space-12;
+  width: 100%;
+
+  @include pinned {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: $space-8;
+  }
+}
+
+/* ── Head: heading left, rail right ─────────── */
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-6;
+  align-items: end;
+
+  @include md {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: $space-12;
+  }
+}
+
+.heading {
+  @include heading-xl;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  letter-spacing: -0.035em;
+}
+
+.railHost {
+  min-width: 0;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  width: 100%;
+}
+
+.railCount {
+  margin: 0;
+  font-family: $font-mono;
+  font-size: 0.8rem;
+  color: $color-steel;
+}
+
+.railList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--rail-n, 3), minmax(0, 1fr));
+  gap: $space-3;
+}
+
+.railLink {
+  @include focus-ring;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: $space-2;
+  min-height: $touch-target;
+  padding-block: $space-2;
+  border-radius: $radius-sm;
+  text-decoration: none;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $color-steel;
+
+  &[aria-current="step"] {
+    color: $color-navy;
+    font-weight: 600;
+  }
+
+  @include hover-only {
+    &:hover {
+      color: $color-navy;
+    }
+  }
+}
+
+.railLabel {
+  display: block;
+}
+
+.railBar {
+  display: block;
+  height: 2px;
+  border-radius: 1px;
+  background: $color-cool-gray;
+  overflow: hidden;
+}
+
+.railFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: $color-accent;
+  transform-origin: left center;
+}
+
+/* ── Beats ───────────────────────────────────── */
+.beats {
+  display: flex;
+  flex-direction: column;
+  gap: $space-16;
+  min-width: 0;
+
+  @include md {
+    gap: $space-24;
+  }
+
+  @include pinned {
+    display: grid;
+    gap: 0;
+    align-items: center;
+  }
+}
+
+// One beat: text and visual side by side (tablets up), stacked on phones.
+.beat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-6;
+  min-width: 0;
+  scroll-margin-top: calc(#{$nav} + #{$space-4});
+
+  @include md {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: $space-12;
+    align-items: center;
+  }
+
+  // Pinned: every beat sits in the same cell, on a 12-column grid. Text
+  // top left with the visual lower right, then the other way round: the
+  // Gutenberg Z (slots). The visual starts lower than the text.
+  @include pinned {
+    grid-area: 1 / 1;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: $space-8;
+    align-items: start;
+  }
+}
+
+.wideBeat {
+  @include md {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}
+
+/* Tablets: alternate the visual side from beat to beat. */
+.flip > .text {
+  @include md {
+    order: 2;
+  }
+}
+
+.beat > .text {
+  @include pinned {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+  }
+}
+
+.beat > .visual {
+  @include pinned {
+    grid-column: 7 / -1;
+    grid-row: 1;
+    margin-top: $space-16;
+  }
+}
+
+.textEnd > .text {
+  @include pinned {
+    grid-column: 7 / -1;
+  }
+}
+
+.textEnd > .visual {
+  @include pinned {
+    grid-column: 1 / span 6;
+  }
+}
+
+// Statement beats: the line is the beat, so the text takes seven columns.
+.statementBeat > .text {
+  @include pinned {
+    grid-column: 1 / span 7;
+  }
+}
+
+.statementBeat > .visual {
+  @include pinned {
+    grid-column: 8 / -1;
+  }
+}
+
+.statementBeat.textEnd > .text {
+  @include pinned {
+    grid-column: 6 / -1;
+  }
+}
+
+.statementBeat.textEnd > .visual {
+  @include pinned {
+    grid-column: 1 / span 5;
+  }
+}
+
+// Example screens: text five columns, the screen seven, no vertical offset;
+// the screen is never taller than the room left under the head.
+.wideBeat > .text {
+  @include pinned {
+    grid-column: 1 / span 5;
+    align-self: center;
+  }
+}
+
+.wideBeat > .visual {
+  @include pinned {
+    grid-column: 6 / -1;
+    margin-top: 0;
+    justify-self: end;
+    width: min(100%, calc((100dvh - 21rem) * 4 / 3));
+  }
+}
+
+.wideBeat.textEnd > .text {
+  @include pinned {
+    grid-column: 8 / -1;
+  }
+}
+
+.wideBeat.textEnd > .visual {
+  @include pinned {
+    grid-column: 1 / span 7;
+    justify-self: start;
+  }
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.title {
+  @include story-title;
+  max-width: 24ch;
+}
+
+.wideBeat .title {
+  font-size: clamp(1.5rem, 2.4vw, 2.25rem);
+}
+
+.text .body {
+  max-width: 52ch;
+}
+
+// The beat's main line when it has no title: large, navy, word by word.
+.statement {
+  margin: 0;
+  max-width: 30ch;
+  font-size: clamp(1.375rem, 2.5vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: $color-navy;
+}
+
+.visual {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+}
+
+.visualHost {
+  min-width: 0;
+}
+
+// Tertiary: what the visual shows, in words.
+.caption {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $color-steel;
+}
+
+.srOnly {
+  @include visually-hidden;
+}
