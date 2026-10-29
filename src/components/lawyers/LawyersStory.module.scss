@@ -8,10 +8,6 @@
 
 $nav: 64px;
 
-.srOnly {
-  @include visually-hidden;
-}
-
 /* ── Hero ────────────────────────────────────── */
 .hero {
   background: $color-mist;

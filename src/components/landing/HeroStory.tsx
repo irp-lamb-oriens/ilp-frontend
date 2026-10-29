@@ -29,8 +29,9 @@ import s from "./HeroStory.module.scss";
 /**
  * The hero story after the first screen: the problem, how ILP works and what
  * you get, one section each. On wide screens with motion allowed the first
- * two pin (MorphStage) and reveal their text word by word, from opacity 0 to 1,
- * as you scroll. On phones and with
+ * two pin (MorphStage). The problem shows its whole paragraph dim from the
+ * start and brightens it word by word in reading order as you scroll
+ * (RevealText from="dim"; one block, nothing stacked under it). On phones and with
  * reduced motion they are plain stacked blocks that fade in once. Each step of
  * "How ILP works" has an example screen (heroScreens.ts): beside the pinned
  * list on wide screens (one at a time, sliding in from alternating sides, with
@@ -66,28 +67,26 @@ const useSimpleLayout = () => useSimpleLayoutState()[0];
 
 /* ── The problem ─────────────────────────────────────────────── */
 
-/** Progress window in which the words of phrase i appear, from opacity 0 to 1. */
+/** Progress window in which the words of phrase i brighten from dim to 1. */
 const phraseWindow = (i: number): [number, number] => [0.04 + i * 0.2, 0.18 + i * 0.2];
 
 /** Phrase windows for RevealText: words of phrase i appear in window i. */
 const PHRASE_WINDOWS: Window[] = PROBLEM.phrases.map((_, i) => phraseWindow(i));
 
 /**
- * One label of the problem row: appears from opacity 0 (rising half a line)
- * while its words are read in the second phrase, then its accent fill fades in.
+ * One label of the problem row: a hairline chip that is there from the start,
+ * like the dim paragraph above it; its accent fill fades in while its words
+ * are read in the second phrase.
  */
 function ProblemChip({ progress, index, label }: { progress: MotionValue<number>; index: number; label: string }) {
   const [a] = phraseWindow(1);
-  const shown: Window = [a + index * 0.035, a + 0.035 + index * 0.035];
-  const lit: Window = [shown[1], shown[1] + 0.03];
-  const opacity = useTransform(progress, (v) => revealAt(v, shown));
-  const y = useTransform(progress, (v) => `${(1 - easeEnter(revealAt(v, shown))) * 0.5}em`);
+  const lit: Window = [a + index * 0.04, a + 0.04 + index * 0.04];
   const fill = useTransform(progress, (v) => revealAt(v, lit));
   return (
-    <motion.li className={s.chip} style={{ opacity, y }}>
+    <li className={s.chip}>
       <motion.span className={s.chipFill} style={{ opacity: fill }} />
       <span className={s.chipLabel}>{label}</span>
-    </motion.li>
+    </li>
   );
 }
 
@@ -128,6 +127,7 @@ export function ProblemScroll() {
               parts={PROBLEM.phrases}
               windows={PHRASE_WINDOWS}
               scrub={{ progress, window: [PHRASE_WINDOWS[0][0], PHRASE_WINDOWS[PHRASE_WINDOWS.length - 1][1]] }}
+              from="dim"
               bare
               className={s.problemText}
             />

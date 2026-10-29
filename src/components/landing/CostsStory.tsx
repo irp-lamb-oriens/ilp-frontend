@@ -70,9 +70,10 @@ import s from "./CostsStory.module.scss";
  *
  * The rail links (#costs-fines, #costs-doubt, #costs-retelling) scroll to the
  * point where that beat is fully read, in every layout. All text is in the
- * DOM from the first render; the pictures are aria-hidden. Pinned beats are
- * hidden whenever they are off stage, so the pinned layout keeps a visually
- * hidden copy of the three beats for assistive tech.
+ * DOM from the first render; the pictures are aria-hidden. Off stage a pinned
+ * beat is at opacity 0 with no pointer events but stays readable, so screen
+ * readers read the three beats once each, in order, and there is no hidden
+ * copy to paste twice.
  */
 export function CostsStory() {
   const layout = useStoryLayout();
@@ -108,17 +109,6 @@ export function CostsStory() {
                 ),
               )}
             </div>
-            {pinned && (
-              <div className={s.srOnly}>
-                {COSTS.map((cost) => (
-                  <article key={cost.id}>
-                    <p>{cost.eyebrow}</p>
-                    <h3>{cost.title}</h3>
-                    <p>{cost.body}</p>
-                  </article>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -263,7 +253,7 @@ function PinnedBeat({ index, progress }: { index: number; progress: MotionValue<
       progress={progress}
       range={range}
       id={costAnchorId(index)}
-      hidden
+      labelledBy={titleId}
       className={cx(s.beat, slot.text === "end" && s.textEnd)}
     >
       <Drift

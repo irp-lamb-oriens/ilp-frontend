@@ -228,11 +228,6 @@ $nav: 64px;
   }
 }
 
-/* Pinned: the three beats for assistive tech (the visible ones are hidden off stage). */
-.srOnly {
-  @include visually-hidden;
-}
-
 /* Tablets: alternate the picture side from beat to beat. */
 .beatFlip .beatText {
   @include md {

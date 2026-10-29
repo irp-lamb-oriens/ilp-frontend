@@ -13,6 +13,9 @@
  *   body     supporting line, about 60ch. Words appear in reading order from
  *            opacity 0 to 1 with a small rise (0.5em) and stay at 1. <RevealText>,
  *            with one optional key phrase underlined in the accent (<Mark>).
+ *            `from="dim"` instead shows the whole line at REVEAL_DIM_OPACITY
+ *            from the start and brightens each word to 1 in place (no rise);
+ *            only for a single block nothing else is stacked under.
  *
  * Two drivers:
  *
@@ -27,9 +30,10 @@
  *            beatParts() in storyMath.ts gives each level its window.
  *
  * Phones and reduced motion: reduced motion gets whole blocks that fade in,
- * no per-word reveal and no movement. Split text keeps the full sentence as
- * visually hidden text and hides the word spans from assistive tech, so
- * screen readers read one normal sentence. Word spans are inline-block from
+ * no per-word reveal and no movement. Split text has no hidden copy: the word
+ * spans are the text, real text nodes in reading order with plain spaces
+ * between them, so screen readers read one sentence and copy and paste gives
+ * it once. Word spans are inline-block from
  * the first render and only change opacity and transform, so nothing moves
  * the layout. Lenis drives the native scroll position, so framer-motion's
  * useScroll sees it without a separate Lenis callback.
@@ -48,14 +52,17 @@ import {
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 import { cx } from "@/components/ui/cx";
 import {
+  REVEAL_DIM_OPACITY,
   beatOpacity,
   easeEnter,
   revealAt,
+  revealOpacity,
   splitMark,
   splitPhrases,
   splitWindow,
   wordWindows,
   type BeatRange,
+  type RevealFrom,
   type Window,
 } from "./storyMath";
 import s from "./Story.module.scss";
@@ -130,6 +137,11 @@ const EYEBROW_LABEL: Variants = {
 const WORD: Variants = {
   hidden: { opacity: 0, y: "0.5em" },
   show: { opacity: 1, y: "0em", transition: { duration: 0.55, ease } },
+};
+/** One word of a staged line with `from="dim"`: dim to 1 in place. */
+const WORD_DIM: Variants = {
+  hidden: { opacity: REVEAL_DIM_OPACITY },
+  show: { opacity: 1, transition: { duration: 0.55, ease } },
 };
 /** Seconds between two words of a staged line (a phrase lands in about 0.2s). */
 const WORD_STAGGER = 0.035;
@@ -279,8 +291,10 @@ export function ScrubItem({
 /**
  * One step of a pinned story. Its layers enter on their own windows from
  * opacity 0; the beat itself is at opacity 0 before its window, fades to 0 on
- * exit (beatOpacity), and is visibility hidden with no pointer events
- * whenever it is at 0. The last beat (c = d) never exits.
+ * exit (beatOpacity), and has no pointer events whenever it is at 0. It stays
+ * in the accessibility tree (no visibility hidden, no hidden copy elsewhere),
+ * so screen readers read every beat once, in order, and copying the story
+ * gives each beat once. The last beat (c = d) never exits.
  */
 export function Beat({
   progress,
@@ -288,7 +302,6 @@ export function Beat({
   id,
   className,
   labelledBy,
-  hidden,
   children,
 }: {
   progress: MotionValue<number>;
@@ -296,21 +309,12 @@ export function Beat({
   id?: string;
   className?: string;
   labelledBy?: string;
-  /** Hide from assistive tech (the story keeps an accessible copy elsewhere). */
-  hidden?: boolean;
   children: ReactNode;
 }) {
   const opacity = useTransform(progress, (v) => beatOpacity(v, range));
-  const visibility = useTransform(opacity, (o) => (o > 0 ? "visible" : "hidden"));
   const pointerEvents = useTransform(opacity, (o) => (o > 0 ? "auto" : "none"));
   return (
-    <motion.article
-      id={id}
-      className={className}
-      aria-labelledby={hidden ? undefined : labelledBy}
-      aria-hidden={hidden ? "true" : undefined}
-      style={{ opacity, visibility, pointerEvents }}
-    >
+    <motion.article id={id} className={className} aria-labelledby={labelledBy} style={{ opacity, pointerEvents }}>
       {children}
     </motion.article>
   );
@@ -400,9 +404,15 @@ const wordCount = (runs: Run[]) => runs.reduce((n, r) => n + r.toks.filter((t) =
 
 /**
  * Body copy that appears word by word from opacity 0 to 1, in reading order,
- * phrase after phrase. The full sentence is visually hidden text for
- * assistive tech; the word spans are aria-hidden and reserve their space from
- * the first render. `mark` underlines one key phrase once it has appeared.
+ * phrase after phrase. The word spans are the text itself (no hidden copy):
+ * real text nodes with plain spaces between them, so the sentence reads and
+ * copies once; they reserve their space from the first render. `mark`
+ * underlines one key phrase once it has appeared.
+ *
+ * `from="dim"`: the whole line is there from the start at
+ * REVEAL_DIM_OPACITY and each word brightens to 1 in place (no rise). Use it
+ * only for a single block with nothing stacked under it; stories whose beats
+ * share a stage keep the default `from="hidden"` (0 to 1).
  *
  * Scrubbed: `scrub.window` is split evenly over the phrases, or pass `parts`
  * and `windows` to give each phrase its own window. Reduced motion (tone
@@ -416,6 +426,7 @@ export function RevealText({
   className,
   bare = false,
   mark,
+  from = "hidden",
   scrub,
 }: {
   text: string;
@@ -428,15 +439,17 @@ export function RevealText({
   /** Skip the shared body style (the caller styles the line). */
   bare?: boolean;
   mark?: string;
+  /** Start state of each word: "hidden" (opacity 0, rises) or "dim" (REVEAL_DIM_OPACITY, in place). */
+  from?: RevealFrom;
   scrub?: Scrub;
 }) {
   const parts = givenParts ?? splitPhrases(text);
   const cls = cx(!bare && s.body, className);
   if (scrub) {
     const windows = givenWindows ?? splitWindow(scrub.window, parts.length);
-    return <ScrubText as={as} className={cls} text={text} parts={parts} windows={windows} mark={mark} progress={scrub.progress} />;
+    return <ScrubText as={as} className={cls} parts={parts} windows={windows} mark={mark} from={from} progress={scrub.progress} />;
   }
-  return <StagedText as={as} className={cls} text={text} parts={parts} mark={mark} />;
+  return <StagedText as={as} className={cls} text={text} parts={parts} mark={mark} from={from} />;
 }
 
 function StagedText({
@@ -445,12 +458,14 @@ function StagedText({
   text,
   parts,
   mark,
+  from,
 }: {
   as: "p" | "span" | "div";
   className?: string;
   text: string;
   parts: readonly string[];
   mark?: string;
+  from: RevealFrom;
 }) {
   const tone = useContext(ToneContext);
   const Comp = motion[as];
@@ -464,24 +479,21 @@ function StagedText({
   const box: Variants = { hidden: {}, show: { transition: { staggerChildren: WORD_STAGGER, delayChildren: 0.05 } } };
   return (
     <Comp className={className} variants={box}>
-      <span className={s.srOnly}>{text}</span>
-      <span aria-hidden="true">
-        {parts.map((part, k) => (
-          <span key={`${k}-${part}`}>
-            {textRuns(part, mark).map((run, r) => {
-              const words = run.toks.map((tok, i) =>
-                tok === " " ? " " : (
-                  <motion.span key={i} className={s.word} variants={WORD}>
-                    {tok}
-                  </motion.span>
-                ),
-              );
-              return run.mark ? <Mark key={r}>{words}</Mark> : <span key={r}>{words}</span>;
-            })}
-            {k < parts.length - 1 ? " " : null}
-          </span>
-        ))}
-      </span>
+      {parts.map((part, k) => (
+        <span key={`${k}-${part}`}>
+          {textRuns(part, mark).map((run, r) => {
+            const words = run.toks.map((tok, i) =>
+              tok === " " ? " " : (
+                <motion.span key={i} className={s.word} variants={from === "dim" ? WORD_DIM : WORD}>
+                  {tok}
+                </motion.span>
+              ),
+            );
+            return run.mark ? <Mark key={r}>{words}</Mark> : <span key={r}>{words}</span>;
+          })}
+          {k < parts.length - 1 ? " " : null}
+        </span>
+      ))}
     </Comp>
   );
 }
@@ -489,18 +501,18 @@ function StagedText({
 function ScrubText({
   as,
   className,
-  text,
   parts,
   windows,
   mark,
+  from,
   progress,
 }: {
   as: "p" | "span" | "div";
   className?: string;
-  text: string;
   parts: readonly string[];
   windows: readonly Window[];
   mark?: string;
+  from: RevealFrom;
   progress: MotionValue<number>;
 }) {
   const runs = parts.map((part) => textRuns(part, mark));
@@ -508,39 +520,39 @@ function ScrubText({
   const Comp = as;
   return (
     <Comp className={className}>
-      <span className={s.srOnly}>{text}</span>
-      <span aria-hidden="true">
-        {runs.map((partRuns, k) => {
-          let w = 0;
-          return (
-            <span key={`${k}-${parts[k]}`}>
-              {partRuns.map((run, r) => {
-                const first = w;
-                const words = run.toks.map((tok, i) =>
-                  tok === " " ? " " : <ScrubWord key={i} progress={progress} window={perWord[k][w++]} text={tok} />,
-                );
-                if (!run.mark) return <span key={r}>{words}</span>;
-                const [, end] = perWord[k][Math.max(first, w - 1)];
-                const [start] = perWord[k][first];
-                return (
-                  <Mark key={r} scrub={{ progress, window: [end, end + (end - start)] }}>
-                    {words}
-                  </Mark>
-                );
-              })}
-              {k < parts.length - 1 ? " " : null}
-            </span>
-          );
-        })}
-      </span>
+      {runs.map((partRuns, k) => {
+        let w = 0;
+        return (
+          <span key={`${k}-${parts[k]}`}>
+            {partRuns.map((run, r) => {
+              const first = w;
+              const words = run.toks.map((tok, i) =>
+                tok === " " ? " " : <ScrubWord key={i} progress={progress} window={perWord[k][w++]} from={from} text={tok} />,
+              );
+              if (!run.mark) return <span key={r}>{words}</span>;
+              const [, end] = perWord[k][Math.max(first, w - 1)];
+              const [start] = perWord[k][first];
+              return (
+                <Mark key={r} scrub={{ progress, window: [end, end + (end - start)] }}>
+                  {words}
+                </Mark>
+              );
+            })}
+            {k < parts.length - 1 ? " " : null}
+          </span>
+        );
+      })}
     </Comp>
   );
 }
 
-/** One word: opacity 0 to 1 over its window, rising 0.5em, eased out. Stays at 1. */
-function ScrubWord({ progress, window, text }: Scrub & { text: string }) {
-  const opacity = useTransform(progress, (v) => revealAt(v, window));
-  const y = useTransform(progress, (v) => `${(1 - easeEnter(revealAt(v, window))) * 0.5}em`);
+/**
+ * One word over its window, eased out, then stays at 1. "hidden": opacity 0
+ * to 1, rising 0.5em. "dim": REVEAL_DIM_OPACITY to 1 in place.
+ */
+function ScrubWord({ progress, window, from, text }: Scrub & { from: RevealFrom; text: string }) {
+  const opacity = useTransform(progress, (v) => revealOpacity(revealAt(v, window), from));
+  const y = useTransform(progress, (v) => (from === "dim" ? "0em" : `${(1 - easeEnter(revealAt(v, window))) * 0.5}em`));
   return (
     <motion.span className={s.word} style={{ opacity, y }}>
       {text}

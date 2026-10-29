@@ -355,7 +355,3 @@ $nav: 64px;
   line-height: 1.5;
   color: $color-steel;
 }
-
-.srOnly {
-  @include visually-hidden;
-}

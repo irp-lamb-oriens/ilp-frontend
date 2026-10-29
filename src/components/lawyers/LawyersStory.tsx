@@ -58,8 +58,7 @@ export function LawyersHero() {
       <motion.div className={s.heroInner} style={pinned ? { opacity, y, visibility } : undefined}>
         <Stage className={s.heroStage} amount={0.1} stagger={0.16}>
           <Eyebrow className={s.heroEyebrow}>
-            <span className={s.srOnly}>{LAWYERS_HERO.eyebrow}</span>
-            <motion.span aria-hidden="true" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.35 } } }}>
+            <motion.span variants={{ hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.35 } } }}>
               {LAWYERS_INTRO.eyebrowLead}{" "}
               {LAWYERS_INTRO.countries.map((c, i) => (
                 <span key={c}>
@@ -73,8 +72,7 @@ export function LawyersHero() {
           </Eyebrow>
 
           <h1 id="lawyers-hero-title" className={s.h1}>
-            <span className={s.srOnly}>{LAWYERS_HERO.title}</span>
-            <span aria-hidden="true">
+            <span>
               <StageItem as="span" level="title" className={s.h1Lead}>
                 {LAWYERS_INTRO.titleLead}
               </StageItem>{" "}

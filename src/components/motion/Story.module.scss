@@ -57,11 +57,6 @@
   }
 }
 
-/* Full sentence for assistive tech; the word spans beside it are aria-hidden. */
-.srOnly {
-  @include visually-hidden;
-}
-
 /* One revealed word: inline-block so it can rise (transform), and it holds
  * its place from the first render, so nothing reflows as words appear. */
 .word {

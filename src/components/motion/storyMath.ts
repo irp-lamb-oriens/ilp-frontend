@@ -174,6 +174,22 @@ export function revealAt(p: number, [from, to]: Window): number {
   return clamp01((p - from) / (to - from));
 }
 
+/**
+ * Where a revealed word starts. "hidden": opacity 0 (the default; stories
+ * with beats that share a stage). "dim": the whole line shows from the start
+ * at REVEAL_DIM_OPACITY and brightens in place (the homepage problem block).
+ */
+export type RevealFrom = "hidden" | "dim";
+
+/** Base opacity of a `from="dim"` line before its words are read (the pre-0-to-1 value). */
+export const REVEAL_DIM_OPACITY = 0.22;
+
+/** Opacity of a word at reveal progress k (0..1). */
+export function revealOpacity(k: number, from: RevealFrom = "hidden"): number {
+  const base = from === "dim" ? REVEAL_DIM_OPACITY : 0;
+  return base + (1 - base) * k;
+}
+
 /** A cubic-bezier easing as a plain function of t in 0..1 (CSS semantics). */
 export function bezier(x1: number, y1: number, x2: number, y2: number): (t: number) => number {
   const cx = 3 * x1;

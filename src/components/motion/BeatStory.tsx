@@ -34,9 +34,10 @@ import s from "./BeatStory.module.scss";
  * opacity 0 to 1 only after the level above has landed. The visual slides in
  * from its side and plays its timeline once the title is complete. Then the
  * beat fades to 0 drifting toward its corner, and only after an empty gap
- * does the next one start (beatRanges). Off stage a beat is visibility
- * hidden with no pointer events (<Beat>), and a visually hidden copy of all
- * beats is kept for assistive tech.
+ * does the next one start (beatRanges). Off stage a beat is at opacity 0
+ * with no pointer events (<Beat>) but stays readable, so screen readers read
+ * every beat once, in order, and copying gives each beat once (no hidden
+ * copy).
  *
  * Staged (tablets): no pin; each beat is a block that plays once when it
  * enters, levels in order, visual sides alternating, the visual's timeline
@@ -128,18 +129,6 @@ export function BeatStory(props: BeatStoryProps) {
                 ),
               )}
             </div>
-            {pinned && (
-              <div className={s.srOnly}>
-                {beats.map((beat) => (
-                  <article key={beat.id}>
-                    <p>{beat.eyebrow}</p>
-                    {beat.title ? <h3>{beat.title}</h3> : null}
-                    {beat.body ? <p>{beat.body}</p> : null}
-                    {beat.caption ? <p>{beat.caption}</p> : null}
-                  </article>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -289,7 +278,6 @@ function PinnedBeat({ beat, index, range, slot, progress, statement, wideVisual,
       progress={progress}
       range={range}
       id={beat.id}
-      hidden
       className={cx(s.beat, statement && s.statementBeat, wideVisual && s.wideBeat, slot.text === "end" && s.textEnd)}
     >
       <Drift progress={progress} range={range} enter={textIn} drift={zigzagDrift(slot.text, "top")} className={s.text}>
