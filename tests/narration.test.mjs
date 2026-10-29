@@ -273,7 +273,7 @@ test("transcript: normalizing text, numbers and spelled numbers", () => {
 });
 
 test("transcript: unknown JSON and audio without a transcript share the audio by cue length", () => {
-  assert.deepEqual(tr.parseTranscript({ nope: true }), { words: [], end: null });
+  assert.deepEqual(tr.parseTranscript({ nope: true }), { words: [], segments: [], end: null });
   assert.deepEqual(tr.parseTranscript(null).words, []);
   const w = [2, 1, 1];
   assert.deepEqual(tr.fillCueStarts([0, null, null], w, 40), [0, 20, 30]);
@@ -576,4 +576,148 @@ test("wave: the control is a labelled toggle button, and pinned stories leave ro
     assert.match(read(f), /var\(--narrator-reserve, 0px\)/, f);
   }
   assert.match(n, /--narrator-reserve/);
+});
+
+/* ── Scroll follows the voice ────────────────────────────────── */
+
+const follow = await import("../src/lib/narration/follow.ts");
+
+test("follow: a section's range is its height minus the visible area above the bar, clamped", () => {
+  const view = { height: 800, reserve: 60, docHeight: 10000 };
+  // Tall section: ends where its bottom meets the top of the bar.
+  assert.deepEqual(follow.sectionRange({ top: 2000, height: 3000 }, view), { topY: 2000, endY: 2000 + 3000 - 740 });
+  // Short section: no range, top-aligned.
+  assert.deepEqual(follow.sectionRange({ top: 1000, height: 500 }, view), { topY: 1000, endY: 1000 });
+  // Exactly one visible area tall: no range.
+  assert.deepEqual(follow.sectionRange({ top: 1000, height: 740 }, view), { topY: 1000, endY: 1000 });
+  // Near the end of the document: both clamp to the largest scroll.
+  assert.deepEqual(follow.sectionRange({ top: 9600, height: 900 }, view), { topY: 9200, endY: 9200 });
+  assert.deepEqual(follow.sectionRange({ top: 8000, height: 3000 }, view), { topY: 8000, endY: 9200 });
+  // Above the top: clamps to 0.
+  assert.deepEqual(follow.sectionRange({ top: -20, height: 400 }, view), { topY: 0, endY: 0 });
+  assert.equal(follow.maxScroll({ height: 900, reserve: 0, docHeight: 500 }), 0);
+});
+
+test("follow: time windows use the transcript's segment end, else the next start minus a tail; the last ends before the audio", () => {
+  const w = follow.createWindows(3);
+  follow.fillWindows(w, [0, 6, 13], [5.2, 13, null], 20);
+  assert.deepEqual([...w.tStart], [0, 6, 13]);
+  assert.equal(w.tEnd[0], 5.2, "segment end before the next cue");
+  assert.equal(w.tEnd[1], 13 - follow.SPEECH_TAIL_S, "segment end equal to the next start: tail");
+  assert.equal(w.tEnd[2], 20 - follow.LAST_TAIL_S, "last cue");
+  // Moves between cues: the pause when shorter than 0.5 s, never under 0.25 s.
+  assert.equal(w.tMove[0], 0);
+  assert.ok(Math.abs(w.tMove[1] - (6 - 0.5)) < 1e-9, "0.8 s pause: a 0.5 s move");
+  assert.ok(Math.abs(w.tMove[2] - (13 - follow.SPEECH_TAIL_S)) < 1e-9, "0.35 s pause: the whole pause");
+  follow.fillWindows(w, [0, 6, 13], null, 20);
+  assert.ok(Math.abs(w.tEnd[0] - 5.65) < 1e-9);
+  // No pause at all: a 0.25 s move that starts just before the cue.
+  follow.fillWindows(w, [0, 6, 13], [6, 13, 19.9], 20);
+  assert.ok(Math.abs(w.tEnd[0] - 5.65) < 1e-9);
+  const ends = follow.speechEnds([{ start: 0, end: 4 }, { start: 4.1, end: 5.5 }, { start: 6, end: 12 }], [0, 6]);
+  assert.deepEqual(ends, [5.5, 12]);
+});
+
+/** A page: hero (short), a tall pinned story, a short block, a gap of other sections, a tall section. */
+function fixture(viewport = { height: 800, reserve: 60, docHeight: 12000 }) {
+  const boxes = [
+    { top: 0, height: 800 },
+    { top: 800, height: 3200 },
+    { top: 4000, height: 700 },
+    { top: 6500, height: 2600 },
+  ];
+  const r = follow.createRanges(boxes.length);
+  boxes.forEach((b, i) => {
+    const g = follow.sectionRange(b, viewport);
+    r.topY[i] = g.topY;
+    r.endY[i] = g.endY;
+  });
+  const w = follow.fillWindows(follow.createWindows(4), [0, 4, 12, 16], [3.2, 11.5, 15, null], 24);
+  return { r, w, boxes };
+}
+
+test("follow: the page is at a section's top when its narration starts and at its end when it ends", () => {
+  const { r, w } = fixture();
+  for (let i = 0; i < 4; i++) {
+    assert.equal(follow.followY(r, w, w.tStart[i]), r.topY[i], `cue ${i} starts at the top`);
+    assert.ok(Math.abs(follow.followY(r, w, w.tEnd[i]) - r.endY[i]) < 1e-6, `cue ${i} ends at the bottom`);
+  }
+  // Halfway through the tall story: halfway down its range (sine ease is symmetric).
+  const mid = (w.tStart[1] + w.tEnd[1]) / 2;
+  assert.ok(Math.abs(follow.followY(r, w, mid) - (r.topY[1] + r.endY[1]) / 2) < 1e-6);
+  // Monotonic inside a cue.
+  let prev = -1;
+  for (let t = w.tStart[1]; t <= w.tEnd[1]; t += 0.1) {
+    const y = follow.followY(r, w, t);
+    assert.ok(y >= prev - 1e-9);
+    prev = y;
+  }
+  assert.equal(follow.followY(r, w, 0), 0);
+  assert.equal(follow.easeInOutSine(0), 0);
+  assert.equal(follow.easeInOutSine(1), 1);
+});
+
+test("follow: frame to frame the page never jumps, including across skipped sections", () => {
+  const { r, w } = fixture();
+  let prev = follow.followY(r, w, 0);
+  let maxStep = 0;
+  for (let t = 0; t <= 24; t += 1 / 60) {
+    const y = follow.followY(r, w, t);
+    maxStep = Math.max(maxStep, Math.abs(y - prev));
+    prev = y;
+  }
+  // The longest move: from the short block (4000) over 1800 px of other sections to 6500 in 0.5 s.
+  // easeInOutSine peaks at pi/2 times the average speed: 2500 / 0.5 / 60 * pi / 2 = 131 px a frame.
+  assert.ok(maxStep < 140, `largest step ${maxStep.toFixed(1)} px`);
+  // Reduced motion: tops only, a jump at each cue start.
+  assert.equal(follow.jumpY(r, w, 5), r.topY[1]);
+  assert.equal(follow.jumpY(r, w, 3.9), r.topY[0]);
+});
+
+test("follow: resume and seek ease from where the page is to where the time says", () => {
+  assert.equal(follow.resyncY(5000, 1000, 0), 5000);
+  assert.equal(follow.resyncY(5000, 1000, follow.RESYNC_S), 1000);
+  let prev = 5000;
+  for (let e = 0; e <= follow.RESYNC_S; e += 1 / 60) {
+    const y = follow.resyncY(5000, 1000, e);
+    assert.ok(Math.abs(y - prev) < 4000 / (follow.RESYNC_S * 60) * 1.6 + 1);
+    prev = y;
+  }
+});
+
+test("follow: after a resize the page keeps the same progress through the section", () => {
+  const wide = fixture({ height: 900, reserve: 53, docHeight: 12000 });
+  const phone = { height: 760, reserve: 120, docHeight: 15000 };
+  // On a phone the stacked layout makes the story taller and further down.
+  const boxes = [
+    { top: 0, height: 760 },
+    { top: 760, height: 4100 },
+    { top: 4860, height: 900 },
+    { top: 8000, height: 3400 },
+  ];
+  const r = follow.createRanges(4);
+  boxes.forEach((b, i) => {
+    const g = follow.sectionRange(b, phone);
+    r.topY[i] = g.topY;
+    r.endY[i] = g.endY;
+  });
+  const t = 7;
+  const p = follow.cueProgressAt(wide.w, 1, t);
+  const before = follow.followY(wide.r, wide.w, t);
+  const after = follow.followY(r, wide.w, t);
+  const share = (y, rr) => (y - rr.topY[1]) / (rr.endY[1] - rr.topY[1]);
+  assert.ok(Math.abs(share(before, wide.r) - share(after, r)) < 1e-9, "same share of the range");
+  assert.ok(Math.abs(share(after, r) - follow.easeInOutSine(p)) < 1e-9);
+});
+
+test("follow: the narrator drives scroll every frame from the time, not from timeupdate", () => {
+  const n = read("src/components/narration/Narrator.tsx");
+  assert.match(n, /if \(!reduce && stateRef\.current\.status === "playing"\) drive\(\);/);
+  assert.match(n, /followY\(rangesRef\.current, winRef\.current, time\(\)\)/);
+  assert.match(n, /scrollPageTo\(y, false\)/, "immediate scroll through Lenis");
+  assert.match(n, /visualViewport/);
+  assert.match(n, /orientationchange/);
+  assert.match(n, /new ResizeObserver\(dirty\)/);
+  const drive = n.slice(n.indexOf("const drive = () =>"), n.indexOf("/* ── Follow the time"));
+  assert.ok(!/new |\[\]|\{\s*\}/.test(drive.replace(/rs\.active = false/, "")), "no allocation per frame");
 });

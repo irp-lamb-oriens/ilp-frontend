@@ -2,7 +2,7 @@
 
 The three public landings (`/`, `/attorneys`, `/customer-success`) offer a narrated walk through the page. On the first visit in a browser session a full-screen overlay offers "Start the experience" or "Read the page instead". After either choice a small "Play narration" button (bottom left) starts it again. While it plays, a bar at the bottom has play/pause, previous and next section, mute, captions and Exit.
 
-Each landing has one audio file and one transcript. When the audio reaches the moment a section's opening words are spoken, the page scrolls to that section. The section's animations then play on their own as it enters the screen.
+Each landing has one audio file and one transcript. The transcript says when each section's narration starts; the page then scrolls through that section while it is narrated (see "How the page follows the voice"). The section's animations play on their own as it moves through the screen. A voice wave in the bar is also the play/pause control.
 
 Code: `src/lib/narration/` (scripts, transcript, timing, state machine, session) and `src/components/narration/Narrator.tsx`. Tests: `tests/narration.test.mjs`.
 
@@ -59,6 +59,25 @@ How the narrator uses them:
 
 The overlay's "about N minutes" uses the audio's length once the file is there.
 
+## How the page follows the voice
+
+Code: `src/lib/narration/follow.ts`.
+
+- Each narrated section has a scroll range. It starts at the section's top (topY) and ends where the section's bottom meets the top of the narrator bar: endY = section bottom minus the visible height, with the bar's height (`--narrator-reserve`) taken off the visible height. The visible height is the visual viewport on phones, so the address bar is counted. Both are kept within the page's scroll range.
+- A section shorter than the visible area has no range (endY = topY). It stays top-aligned for its whole cue, like the hero.
+- Each cue's narration runs from its start in the transcript to the end of its speech: the transcript's segment end when that comes before the next cue, otherwise 0.35 s before the next cue. The last cue ends 0.3 s before the audio does.
+- While a cue is narrated, the page moves from topY to endY in proportion to the time (with a gentle sine ease at both ends), so pinned stories advance with the voice and the section's last line arrives as its narration ends.
+- Between two cues, the page moves to the next section's top in a short eased move: 0.5 s, or the pause between the cues when shorter (never under 0.25 s). Sections without narration in between are passed over in that move:
+  - Home: after "What a missed date can cost you": the free check demo and the first photo band. After "What the membership includes": the member home demo. After "Real situations": the lawyer call demo and the second photo band. After "Six countries": the example situations, pricing, the "what you pay" demo and the questions.
+  - Lawyers: after "What the partnership is": the portal demo, "What happens around each call", the call demo, the partnership facts, the hours and fees demo and "Questions lawyers ask".
+  - Customer success: after "What the role is": the CSM portal demo, the role facts and "Questions about the role".
+- The position is computed every frame from the audio's current time (or the caption-only clock) and applied through Lenis as an immediate scroll, so Lenis's own smoothing does not pull against it.
+- Ranges are measured when the narrator starts and again after a resize, an orientation change, a visual viewport resize (phone address bar) or any change in the sections' or the page's height (fonts, images, demos opening, the switch between pinned and stacked layouts). The next frame places the page for the current time in the new layout, so it stays in step.
+- Resume and previous/next ease from where the page is to the position for the current time in 0.5 s.
+- Reduced motion: the page jumps to each section's top when its cue starts and does not move in between.
+
+To tune a section: if it finishes too early or late, its narration is too short or long for its height. Lengthen or shorten that cue's text, or check that the transcript's segment for it ends where the speech ends.
+
 ## Changing a script
 
 1. Edit `ilp/docs/narration/SCRIPTS.md` and copy it to `frontend/docs/narration/SCRIPTS.md`. A test fails while the two differ.
@@ -76,8 +95,7 @@ The overlay's "about N minutes" uses the audio's length once the file is there.
 
 - Nothing plays until the visitor presses Start or "Play narration".
 - Previous and next jump to the start of a cue in the audio.
-- Scrolling with the wheel, touch or keyboard pauses the audio. "Resume" goes back to the current section and continues from the same moment.
-- With reduced motion turned on, the narrator jumps to each section without smooth scrolling.
+- Scrolling with the wheel, touch or keyboard pauses the audio and the scroll. "Resume" or a click on the wave eases back to where the narration is and continues from the same moment.
 - The overlay is not in the server HTML, so search engines and visitors without JavaScript read the plain page. Escape closes it.
 - To see the overlay again in the same tab, clear the session key `ilp_narration_offer_<page>` or open a new tab.
 - Journeys records `narration.start.<page>`, `narration.read.<page>`, `narration.complete.<page>` and `narration.exit.<page>.<cue id>` as clicks, only for visitors who allow measurement.
