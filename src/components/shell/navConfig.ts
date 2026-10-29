@@ -35,6 +35,7 @@ export const DEFAULT_NAV: Record<ShellRole, NavItem[]> = {
     { href: "/lawyer/clients", label: "Clients", icon: createElement(IconNavList) },
     { href: "/lawyer/finance", label: "Finance", icon: createElement(IconNavMoney) },
     { href: "/lawyer/availability", label: "Availability", icon: createElement(IconNavCalendar) },
+    { href: "/lawyer/profile", label: "Profile", icon: createElement(IconPerson) },
   ],
   // The live staff nav is staffNav() in components/dashboard/staff/StaffSession.tsx (same icons).
   staff: [

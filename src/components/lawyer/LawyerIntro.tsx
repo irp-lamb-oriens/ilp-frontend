@@ -12,14 +12,14 @@ import s from "./LawyerIntro.module.scss";
  * (PageIntro `storageKey`). Today has a second version for lawyers whose
  * application is still in review.
  */
-export type LawyerScreen = "today" | "board" | "clients" | "call" | "finance" | "availability";
+export type LawyerScreen = "today" | "board" | "clients" | "call" | "finance" | "availability" | "profile";
 
 interface IntroCopy {
   title: string;
   what: string;
   how: string[];
   why: string;
-  tutorialId: string;
+  tutorialId?: string;
   /** Start collapsed the first time (the call page keeps the brief on one screen). */
   collapsed?: boolean;
 }
@@ -97,14 +97,25 @@ export const LAWYER_INTROS: Record<LawyerScreen | "todayReview", IntroCopy> = {
   },
   availability: {
     title: "When members can book you",
-    what: "Your weekly hours, days off, notice, daily limit and the legal areas you take, in your own time zone (the one of the country where you are licensed, unless you change it).",
+    what: "Your weekly hours, days off, notice and daily limit, in your own time zone (the one of the country where you are licensed, unless you change it). Your specialties are on your Profile page.",
     how: [
       "Turn on the days you take calls and set the hours for each one.",
       "Add days off, the minimum notice and the most calls you take in one day.",
       "Press Save hours. From then on members see only times inside these hours.",
     ],
-    why: "You only get calls you can take, and members without a lawyer are routed to you by the areas you choose.",
+    why: "You only get calls you can take. Which members reach you depends on your profile: specialties, languages and capacity.",
     tutorialId: "lawyer.availability",
+  },
+  profile: {
+    title: "Your profile for member matching",
+    what: "The specialties, languages, regions and weekly capacity ILP uses to give you members. Members do not choose a lawyer: the system matches each one to a lawyer licensed in their country who takes their kind of question and has free time.",
+    how: [
+      "Choose every specialty you take. Search the list or open each area.",
+      "Add the languages you hold calls in, the regions you cover and the most calls you take in a week.",
+      "List anyone you cannot act for or against, so they are never matched to you.",
+      "Press Save profile. New members are matched with it from then on.",
+    ],
+    why: "Accurate specialties bring you members you can help, and capacity keeps your week manageable. Before each call you get the member's brief by email in the language you choose here.",
   },
 };
 

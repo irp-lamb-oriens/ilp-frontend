@@ -18,6 +18,7 @@ const TITLES: Array<[RegExp, string]> = [
   [/^\/lawyer\/clients/, "Clients"],
   [/^\/lawyer\/finance/, "Finance"],
   [/^\/lawyer\/availability/, "Availability"],
+  [/^\/lawyer\/profile/, "Profile"],
   [/^\/lawyer\/calls\//, "Call"],
   [/^\/lawyer\/?$/, "Today"],
 ];

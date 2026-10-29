@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Button,
-  ChipSelect,
   DateListInput,
   ErrorNotice,
   IconCheck,
@@ -21,14 +20,12 @@ import {
   validateWindows,
   IconArrowLeft,
 } from "@/components/ui";
-import { AREA_LABEL, errorText } from "./lawyerApi";
+import { errorText } from "./lawyerApi";
 import { callsApi, type AvailabilitySettings, type WeeklyWindow } from "./callsApi";
 import { LawyerAvailabilitySkeleton } from "./LawyerSkeletons";
 import { COUNTRY_ZONE_OPTIONS, zoneLabelOf } from "@/lib/timeZones";
 import s from "./AvailabilityView.module.scss";
 
-const SPECIALTIES = ["real_estate", "corporate", "immigration", "tax", "vehicle", "notary"];
-const SPECIALTY_OPTIONS = SPECIALTIES.map((k) => ({ value: k, label: AREA_LABEL[k] ?? k }));
 const LEAD_PRESETS = [0, 2, 4, 12, 18, 24, 48, 72, 168] as const;
 const todayCr = () => new Date(Date.now() - 6 * 3_600_000).toISOString().slice(0, 10);
 
@@ -95,6 +92,8 @@ export default function AvailabilityView({
   unsavedMessage = "Your hours have changes that are not saved yet. If you leave now, they will be lost.",
   audience = "lawyer",
   intro,
+  hideSpecialties = false,
+  sub,
 }: {
   adapter?: AvailabilityAdapter;
   title?: string;
@@ -106,6 +105,10 @@ export default function AvailabilityView({
   audience?: "lawyer" | "staff";
   /** Page intro shown under the breadcrumb (the lawyer route passes LawyerIntro). */
   intro?: ReactNode;
+  /** ROUTING: the sales team hours have no specialties. */
+  hideSpecialties?: boolean;
+  /** Replaces the line under the title. */
+  sub?: ReactNode;
 } = {}) {
   const [data, setData] = useState<AvailabilitySettings | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -207,7 +210,7 @@ export default function AvailabilityView({
       {intro}
       <header className={s.head}>
         <h2 className={s.h}>{title}</h2>
-        <p className={s.sub}>Members book 20-minute calls inside these hours, in {zoneLabelOf(draft.timezone)}. Each member sees the times in their own time zone.</p>
+        <p className={s.sub}>{sub ?? <>Members book 20-minute calls inside these hours, in {zoneLabelOf(draft.timezone)}. Each member sees the times in their own time zone.</>}</p>
       </header>
       <div data-field="timezone">
         <Select
@@ -298,17 +301,17 @@ export default function AvailabilityView({
             </div>
           </section>
 
-          <section aria-labelledby="spec-h" className={s.block}>
+          {!hideSpecialties && <section aria-labelledby="spec-h" className={s.block}>
             <h3 id="spec-h" className={s.sectionH}>Specialties</h3>
-            <ChipSelect
-              label="Legal areas you take"
-              hint="Members without an assigned lawyer are routed by these."
-              options={SPECIALTY_OPTIONS}
-              value={draft.specialties}
-              onChange={(specialties) => patch({ specialties })}
-              id="spec"
-            />
-          </section>
+            {/* ROUTING: specialties moved to the profile (one list, from Settings → Specialties). */}
+            {audience === "staff" ? (
+              <p className={s.sub}>Edit this lawyer&apos;s specialties from their profile: Lawyers, Capacity, then Profile on their row.</p>
+            ) : (
+              <p className={s.sub}>
+                Members are matched to you by the specialties on your <Link href="/lawyer/profile">profile</Link>, together with these hours.
+              </p>
+            )}
+          </section>}
 
           <section aria-labelledby="cal-h" className={s.block}>
             <h3 id="cal-h" className={s.sectionH}>Google Calendar</h3>

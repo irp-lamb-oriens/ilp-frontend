@@ -1,0 +1,161 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  display: grid;
+  gap: $space-4;
+  max-width: 72rem;
+}
+
+.head {
+  display: grid;
+  gap: $space-1;
+}
+
+.h {
+  @include heading-lg;
+  margin: 0;
+}
+
+.sub,
+.note {
+  margin: 0;
+  color: $color-steel;
+  max-width: 65ch;
+}
+
+.note {
+  font-size: 0.9375rem;
+}
+
+.err {
+  margin: 0;
+  color: $color-error;
+  font-size: 0.9375rem;
+}
+
+// Asymmetric two columns (rules.md: no equal card rows); one column on phones.
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: $space-4;
+  align-items: start;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.side,
+.stack,
+.groups {
+  display: grid;
+  gap: $space-4;
+  min-width: 0;
+}
+
+.block {
+  display: grid;
+  gap: $space-3;
+  margin: 0;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+  min-width: 0;
+}
+
+.sectionH {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.details {
+  display: grid;
+  gap: $space-3;
+
+  summary {
+    min-height: $touch-target;
+    display: flex;
+    align-items: center;
+    color: $color-navy;
+    cursor: pointer;
+    @include focus-ring;
+  }
+}
+
+.list {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.licence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  padding: $space-2 0;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.licenceEdit {
+  display: grid;
+  gap: $space-2;
+  padding-bottom: $space-3;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saveBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid $color-hairline;
+  background: $color-canvas;
+
+  @include below-md {
+    position: sticky;
+    bottom: calc(#{$shell-bottombar-height} + env(safe-area-inset-bottom));
+    z-index: $z-sticky;
+    margin: 0 (-$space-4);
+    padding: $space-3 $space-4;
+  }
+}
+
+.saveMsg {
+  flex: 1 1 auto;
+  min-width: 0;
+
+  p {
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+}
+
+.saved {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  color: $color-success;
+}
+
+.pending {
+  color: $color-steel;
+}

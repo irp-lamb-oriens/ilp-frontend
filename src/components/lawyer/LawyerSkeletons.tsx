@@ -12,6 +12,7 @@ import insp from "./InspectorTabs.module.scss";
 import notes from "./notesTab.module.scss";
 import fq from "./FeeQuotesTab.module.scss";
 import dl from "./DeadlineEditor.module.scss";
+import { ProfileSkeleton } from "@/components/routing/ProfileView";
 import introCss from "./LawyerIntro.module.scss";
 
 /** The compact intro a lawyer screen opens with (LawyerIntro), as a placeholder. */
@@ -335,6 +336,7 @@ export default function LawyerRouteSkeleton({ pathname }: { pathname: string }) 
   if (pathname.startsWith("/lawyer/clients")) return <><IntroSkeleton screen="clients" /><LawyerClientsSkeleton /></>;
   if (pathname.startsWith("/lawyer/finance")) return <><IntroSkeleton screen="finance" /><LawyerFinanceSkeleton /></>;
   if (pathname.startsWith("/lawyer/availability")) return <LawyerAvailabilitySkeleton withIntro />;
+  if (pathname.startsWith("/lawyer/profile")) return <><IntroSkeleton screen="profile" /><ProfileSkeleton /></>;
   if (pathname.startsWith("/lawyer/calls/")) return <LawyerCallSkeleton />;
   return <><IntroSkeleton screen="today" /><LawyerTodaySkeleton /></>;
 }
