@@ -65,12 +65,16 @@ export function holdsEmail(v: unknown): boolean {
   }
 }
 
+/** Experiment and variant keys keep their case ("A", "B"); anything else is dropped. */
+const KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+const cleanKey = (v: unknown): string | undefined => (typeof v === "string" && KEY_RE.test(v) ? v : undefined);
+
 function cleanVariants(v: unknown): Record<string, string> {
   const out: Record<string, string> = {};
   if (!v || typeof v !== "object") return out;
   for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-    const key = cleanSlug(k, 64);
-    const variant = cleanSlug(val, 64);
+    const key = cleanKey(k);
+    const variant = cleanKey(val);
     if (key && variant) out[key] = variant;
   }
   return out;
