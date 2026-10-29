@@ -1,37 +1,505 @@
 {
   "language": "en",
-  "duration": 31.0,
+  "duration": 31,
   "source": "Segment start times from the owner's Whisper run (2026-10-29); text is the English script for each segment.",
   "segments": [
     {
       "id": 0,
-      "start": 0.0,
-      "end": 5.0,
+      "start": 0,
+      "end": 5,
       "text": " ILP brings you prepared clients and handles the follow-up after each call."
     },
     {
       "id": 1,
-      "start": 5.0,
-      "end": 12.0,
+      "start": 5,
+      "end": 12,
       "text": " Members arrive with their question written down, and our team does the booking and chasing you would otherwise do unpaid."
     },
     {
       "id": 2,
-      "start": 12.0,
-      "end": 19.0,
+      "start": 12,
+      "end": 19,
       "text": " You set your hours and read a one-screen brief before each call. Afterwards you confirm the summary, and we take it from there."
     },
     {
       "id": 3,
-      "start": 19.0,
-      "end": 26.0,
+      "start": 19,
+      "end": 26,
       "text": " Joining is free and you keep your own practice. Work beyond a call is quoted by you and accepted by the member."
     },
     {
       "id": 4,
-      "start": 26.0,
-      "end": 31.0,
+      "start": 26,
+      "end": 31,
       "text": " The application has seven short steps, and you can save a draft and finish it later."
+    }
+  ],
+  "wordsSource": "estimated-syllables",
+  "words": [
+    {
+      "word": "ILP",
+      "start": 0.1,
+      "end": 0.737
+    },
+    {
+      "word": "brings",
+      "start": 0.737,
+      "end": 1.01
+    },
+    {
+      "word": "you",
+      "start": 1.01,
+      "end": 1.283
+    },
+    {
+      "word": "prepared",
+      "start": 1.283,
+      "end": 1.738
+    },
+    {
+      "word": "clients",
+      "start": 1.738,
+      "end": 2.011
+    },
+    {
+      "word": "and",
+      "start": 2.011,
+      "end": 2.284
+    },
+    {
+      "word": "handles",
+      "start": 2.284,
+      "end": 2.739
+    },
+    {
+      "word": "the",
+      "start": 2.739,
+      "end": 3.012
+    },
+    {
+      "word": "follow-up",
+      "start": 3.012,
+      "end": 3.649
+    },
+    {
+      "word": "after",
+      "start": 3.649,
+      "end": 4.104
+    },
+    {
+      "word": "each",
+      "start": 4.104,
+      "end": 4.377
+    },
+    {
+      "word": "call.",
+      "start": 4.377,
+      "end": 4.65
+    },
+    {
+      "word": "Members",
+      "start": 5.1,
+      "end": 5.472
+    },
+    {
+      "word": "arrive",
+      "start": 5.472,
+      "end": 5.844
+    },
+    {
+      "word": "with",
+      "start": 5.844,
+      "end": 6.067
+    },
+    {
+      "word": "their",
+      "start": 6.067,
+      "end": 6.29
+    },
+    {
+      "word": "question",
+      "start": 6.29,
+      "end": 6.662
+    },
+    {
+      "word": "written",
+      "start": 6.662,
+      "end": 7.033
+    },
+    {
+      "word": "down,",
+      "start": 7.033,
+      "end": 7.256
+    },
+    {
+      "word": "and",
+      "start": 8.006,
+      "end": 8.229
+    },
+    {
+      "word": "our",
+      "start": 8.229,
+      "end": 8.453
+    },
+    {
+      "word": "team",
+      "start": 8.453,
+      "end": 8.676
+    },
+    {
+      "word": "does",
+      "start": 8.676,
+      "end": 8.899
+    },
+    {
+      "word": "the",
+      "start": 8.899,
+      "end": 9.122
+    },
+    {
+      "word": "booking",
+      "start": 9.122,
+      "end": 9.494
+    },
+    {
+      "word": "and",
+      "start": 9.494,
+      "end": 9.717
+    },
+    {
+      "word": "chasing",
+      "start": 9.717,
+      "end": 10.088
+    },
+    {
+      "word": "you",
+      "start": 10.088,
+      "end": 10.312
+    },
+    {
+      "word": "would",
+      "start": 10.312,
+      "end": 10.535
+    },
+    {
+      "word": "otherwise",
+      "start": 10.535,
+      "end": 11.055
+    },
+    {
+      "word": "do",
+      "start": 11.055,
+      "end": 11.278
+    },
+    {
+      "word": "unpaid.",
+      "start": 11.278,
+      "end": 11.65
+    },
+    {
+      "word": "You",
+      "start": 12.1,
+      "end": 12.293
+    },
+    {
+      "word": "set",
+      "start": 12.293,
+      "end": 12.487
+    },
+    {
+      "word": "your",
+      "start": 12.487,
+      "end": 12.68
+    },
+    {
+      "word": "hours",
+      "start": 12.68,
+      "end": 12.873
+    },
+    {
+      "word": "and",
+      "start": 12.873,
+      "end": 13.067
+    },
+    {
+      "word": "read",
+      "start": 13.067,
+      "end": 13.26
+    },
+    {
+      "word": "a",
+      "start": 13.26,
+      "end": 13.454
+    },
+    {
+      "word": "one-screen",
+      "start": 13.454,
+      "end": 13.776
+    },
+    {
+      "word": "brief",
+      "start": 13.776,
+      "end": 13.969
+    },
+    {
+      "word": "before",
+      "start": 13.969,
+      "end": 14.292
+    },
+    {
+      "word": "each",
+      "start": 14.292,
+      "end": 14.485
+    },
+    {
+      "word": "call.",
+      "start": 14.485,
+      "end": 14.678
+    },
+    {
+      "word": "Afterwards",
+      "start": 15.628,
+      "end": 16.08
+    },
+    {
+      "word": "you",
+      "start": 16.08,
+      "end": 16.273
+    },
+    {
+      "word": "confirm",
+      "start": 16.273,
+      "end": 16.595
+    },
+    {
+      "word": "the",
+      "start": 16.595,
+      "end": 16.789
+    },
+    {
+      "word": "summary,",
+      "start": 16.789,
+      "end": 17.24
+    },
+    {
+      "word": "and",
+      "start": 17.49,
+      "end": 17.683
+    },
+    {
+      "word": "we",
+      "start": 17.683,
+      "end": 17.877
+    },
+    {
+      "word": "take",
+      "start": 17.877,
+      "end": 18.07
+    },
+    {
+      "word": "it",
+      "start": 18.07,
+      "end": 18.263
+    },
+    {
+      "word": "from",
+      "start": 18.263,
+      "end": 18.457
+    },
+    {
+      "word": "there.",
+      "start": 18.457,
+      "end": 18.65
+    },
+    {
+      "word": "Joining",
+      "start": 19.1,
+      "end": 19.45
+    },
+    {
+      "word": "is",
+      "start": 19.45,
+      "end": 19.66
+    },
+    {
+      "word": "free",
+      "start": 19.66,
+      "end": 19.87
+    },
+    {
+      "word": "and",
+      "start": 19.87,
+      "end": 20.08
+    },
+    {
+      "word": "you",
+      "start": 20.08,
+      "end": 20.29
+    },
+    {
+      "word": "keep",
+      "start": 20.29,
+      "end": 20.5
+    },
+    {
+      "word": "your",
+      "start": 20.5,
+      "end": 20.71
+    },
+    {
+      "word": "own",
+      "start": 20.71,
+      "end": 20.92
+    },
+    {
+      "word": "practice.",
+      "start": 20.92,
+      "end": 21.27
+    },
+    {
+      "word": "Work",
+      "start": 22.22,
+      "end": 22.43
+    },
+    {
+      "word": "beyond",
+      "start": 22.43,
+      "end": 22.78
+    },
+    {
+      "word": "a",
+      "start": 22.78,
+      "end": 22.99
+    },
+    {
+      "word": "call",
+      "start": 22.99,
+      "end": 23.2
+    },
+    {
+      "word": "is",
+      "start": 23.2,
+      "end": 23.41
+    },
+    {
+      "word": "quoted",
+      "start": 23.41,
+      "end": 23.76
+    },
+    {
+      "word": "by",
+      "start": 23.76,
+      "end": 23.97
+    },
+    {
+      "word": "you",
+      "start": 23.97,
+      "end": 24.18
+    },
+    {
+      "word": "and",
+      "start": 24.18,
+      "end": 24.39
+    },
+    {
+      "word": "accepted",
+      "start": 24.39,
+      "end": 24.88
+    },
+    {
+      "word": "by",
+      "start": 24.88,
+      "end": 25.09
+    },
+    {
+      "word": "the",
+      "start": 25.09,
+      "end": 25.3
+    },
+    {
+      "word": "member.",
+      "start": 25.3,
+      "end": 25.65
+    },
+    {
+      "word": "The",
+      "start": 26.1,
+      "end": 26.318
+    },
+    {
+      "word": "application",
+      "start": 26.318,
+      "end": 26.97
+    },
+    {
+      "word": "has",
+      "start": 26.97,
+      "end": 27.188
+    },
+    {
+      "word": "seven",
+      "start": 27.188,
+      "end": 27.55
+    },
+    {
+      "word": "short",
+      "start": 27.55,
+      "end": 27.768
+    },
+    {
+      "word": "steps,",
+      "start": 27.768,
+      "end": 27.985
+    },
+    {
+      "word": "and",
+      "start": 28.235,
+      "end": 28.453
+    },
+    {
+      "word": "you",
+      "start": 28.453,
+      "end": 28.67
+    },
+    {
+      "word": "can",
+      "start": 28.67,
+      "end": 28.888
+    },
+    {
+      "word": "save",
+      "start": 28.888,
+      "end": 29.105
+    },
+    {
+      "word": "a",
+      "start": 29.105,
+      "end": 29.323
+    },
+    {
+      "word": "draft",
+      "start": 29.323,
+      "end": 29.54
+    },
+    {
+      "word": "and",
+      "start": 29.54,
+      "end": 29.758
+    },
+    {
+      "word": "finish",
+      "start": 29.758,
+      "end": 30.12
+    },
+    {
+      "word": "it",
+      "start": 30.12,
+      "end": 30.338
+    },
+    {
+      "word": "later.",
+      "start": 30.338,
+      "end": 30.7
     }
   ]
 }
