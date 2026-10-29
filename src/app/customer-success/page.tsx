@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import CsmLanding from "@/components/customerSuccess/CsmLanding";
+import Narrator from "@/components/narration/Narrator";
 
 export const metadata: Metadata = {
   title: "Customer success at ILP: look after members in six countries | ILP",
@@ -14,6 +15,7 @@ export default function CustomerSuccessPage() {
     <>
       <Nav />
       <CsmLanding />
+      <Narrator page="csm" />
     </>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "@/components/landing/ProofSections";
 import { BANDS, FOOTER, IMG, TUTORIAL_BANDS } from "@/components/landing/content";
 import s from "@/components/landing/landing.module.scss";
+import Narrator from "@/components/narration/Narrator";
 
 export const metadata: Metadata = {
   title: "International Legal Partner: legal membership in six countries",
@@ -84,6 +85,7 @@ export default function HomePage() {
           </div>
         </footer>
       </main>
+      <Narrator page="home" />
     </>
   );
 }

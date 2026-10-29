@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import LawyersLanding from "@/components/lawyers/LawyersLanding";
+import Narrator from "@/components/narration/Narrator";
 
 export const metadata: Metadata = {
   title: "For lawyers: take ILP member calls in your country | ILP",
@@ -14,6 +15,7 @@ export default function AttorneysPage() {
     <>
       <Nav />
       <LawyersLanding />
+      <Narrator page="lawyers" />
     </>
   );
 }

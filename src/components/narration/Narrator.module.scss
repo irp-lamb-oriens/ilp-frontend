@@ -1,0 +1,247 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// Landing narrator (Narrator.tsx). Flat: white surfaces, hairline borders,
+// the one light-blue accent on the primary button and the progress fill.
+// No blur, no heavy shadow. Motion is opacity only.
+
+@keyframes narrator-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── First-visit overlay ─────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: $z-dialog;
+  display: grid;
+  place-items: center;
+  padding: $space-6 $space-4;
+  background: $color-canvas;
+  overscroll-behavior: contain;
+  animation: narrator-fade $duration-drawer $ease-out-strong both;
+}
+
+.overlayInner {
+  display: grid;
+  justify-items: center;
+  gap: $space-6;
+  max-width: 36rem;
+  text-align: center;
+}
+
+.overlayTitle {
+  @include heading-lg;
+  margin: 0;
+}
+
+.overlayLine {
+  margin: 0;
+  max-width: 32rem;
+  color: $color-steel;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.start {
+  @include button-primary;
+  @include touch-target;
+  margin-top: $space-2;
+  padding: $space-4 $space-8;
+  font-size: 1.0625rem;
+  white-space: nowrap;
+}
+
+.readInstead {
+  @include touch-target;
+  @include focus-ring;
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $radius-pill;
+  background: none;
+  color: $color-steel;
+  font: inherit;
+  font-size: 0.9375rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  @include hover-only {
+    &:hover {
+      color: $color-navy;
+    }
+  }
+}
+
+/* ── "Play narration" (after the overlay) ────────────────────── */
+
+.launcher {
+  @include button-ghost;
+  @include touch-target;
+  position: fixed;
+  left: $space-4;
+  bottom: $space-4;
+  z-index: $z-sticky;
+  padding: $space-2 $space-4;
+  color: $color-navy;
+  font-size: 0.875rem;
+  animation: narrator-fade $duration-fast $ease-out-strong both;
+}
+
+/* ── Player ──────────────────────────────────────────────────── */
+
+.player {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $z-popover;
+  display: grid;
+  gap: $space-3;
+  pointer-events: none;
+}
+
+.caption {
+  justify-self: center;
+  max-width: min(46rem, calc(100% - #{$space-8}));
+  margin: 0;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-ink;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  text-align: center;
+  animation: narrator-fade $duration-fast $ease-out-strong both;
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $space-4;
+  padding: $space-2 $space-4;
+  border-top: 1px solid $color-hairline;
+  background: $color-surface;
+  pointer-events: auto;
+
+  @include below-md {
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    gap: $space-2;
+
+    .where {
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+  }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.icon,
+.cc,
+.exit {
+  @include touch-target;
+  @include press;
+  @include focus-ring;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 $space-2;
+  border: none;
+  border-radius: $radius-pill;
+  background: none;
+  color: $color-navy;
+  font: inherit;
+  cursor: pointer;
+
+  &:disabled {
+    color: $color-muted;
+    cursor: default;
+  }
+
+  @include hover-only {
+    &:hover:not(:disabled) {
+      background: $color-mist;
+    }
+  }
+}
+
+.cc {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+
+  &[aria-pressed="false"] {
+    color: $color-muted;
+  }
+}
+
+.exit {
+  padding: 0 $space-4;
+  border: 1px solid $color-hairline;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.resume {
+  @include button-primary;
+  @include touch-target;
+  padding: $space-2 $space-4;
+  font-size: 0.875rem;
+}
+
+.where {
+  display: grid;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.section {
+  margin: 0;
+  overflow: hidden;
+  color: $color-navy;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.note {
+  color: $color-steel;
+}
+
+.segments {
+  display: flex;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.segment {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: $color-cool-gray;
+}
+
+.segmentFill {
+  display: block;
+  height: 100%;
+  background: $color-accent;
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+}
+
