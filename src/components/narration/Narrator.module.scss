@@ -119,7 +119,38 @@
   font-size: 1.125rem;
   line-height: 1.5;
   text-align: center;
-  animation: narrator-fade $duration-fast $ease-out-strong both;
+  transition: opacity $duration-fast $ease-out-strong;
+}
+
+// Before the first word of a line: the box waits, invisible.
+.captionIdle {
+  opacity: 0;
+}
+
+// Word by word: each word fades in and rises 4px at its start time.
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity $duration-fast $ease-out-strong,
+    transform $duration-fast $ease-out-strong;
+}
+
+.wordOn {
+  opacity: 1;
+  transform: none;
+}
+
+@include reduced-motion {
+  .word {
+    transform: none;
+  }
+}
+
+// The whole cue for screen readers, announced once per cue.
+.liveText {
+  @include visually-hidden;
 }
 
 // Slim bar: one row of 44px controls. On phones the section label hides

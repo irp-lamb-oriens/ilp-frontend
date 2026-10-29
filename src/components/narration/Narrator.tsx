@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  Fragment,
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState,
@@ -15,7 +17,8 @@ import { scrollPageTo } from "@/components/SmoothScroll";
 import { track } from "@/lib/journey";
 import { NARRATION, type NarrationPage } from "@/lib/narration/scripts";
 import { aboutMinutes, cueIndexAt, cueProgress, cumulativeStarts } from "@/lib/narration/timing";
-import { cueStartsFromTranscript, fillCueStarts } from "@/lib/narration/transcript";
+import { cueStartsFromTranscript, fillCueStarts, parseTranscript, type TimedWord } from "@/lib/narration/transcript";
+import { alignCueWords, captionWords, lineOf, lineStarts, revealedCount } from "@/lib/narration/wordTiming";
 import { estimateSeconds } from "@/lib/narration/timing";
 import {
   RESYNC_S,
@@ -159,10 +162,19 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  /** Recompute the cue time windows from the current starts, speech ends and length. */
+  /** Caption words and their lines, per cue (static). */
+  const wordsOf = useMemo(() => cues.map((c) => captionWords(c.caption)), [cues]);
+  const linesOf = useMemo(() => wordsOf.map((w) => lineStarts(w)), [wordsOf]);
+  /** Start time of every caption word, per cue. */
+  const wordStartsRef = useRef<Float64Array[]>([]);
+  /** Timed words of the transcript (Whisper or the estimate in the JSON), or null. */
+  const timedWordsRef = useRef<TimedWord[] | null>(null);
+
+  /** Recompute the cue time windows and the caption word times from the current timeline. */
   const retime = useCallback(() => {
-    fillWindows(winRef.current, startsRef.current, endsRef.current, totalRef.current);
-  }, []);
+    const w = fillWindows(winRef.current, startsRef.current, endsRef.current, totalRef.current);
+    wordStartsRef.current = cues.map((c, i) => alignCueWords(c.read, wordsOf[i], w.tStart[i], w.tEnd[i], timedWordsRef.current));
+  }, [cues, wordsOf]);
   /** Caption-only speech ends: each cue's words and inner pauses, without the section pause. */
   const timedEnds = useCallback(() => startsRef.current.map((st, i) => st + estimateSeconds(cues[i].read)), [cues]);
 
@@ -183,9 +195,11 @@ export default function Narrator({ page }: { page: NarrationPage }) {
         const out = cueStartsFromTranscript(json, matches, weights, duration);
         startsRef.current = out.starts;
         endsRef.current = speechEnds(out.segments, out.starts);
+        timedWordsRef.current = parseTranscript(json).words;
       } else {
         startsRef.current = fillCueStarts(cues.map((_, i) => (i === 0 ? 0 : null)), weights, duration);
         endsRef.current = null;
+        timedWordsRef.current = null;
       }
       totalRef.current = duration;
       retime();
@@ -213,6 +227,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     startsRef.current = cumulativeStarts(weights);
     totalRef.current = weights.reduce((sum, v) => sum + v, 0);
     endsRef.current = timedEnds();
+    timedWordsRef.current = null;
     retime();
     setTotal(totalRef.current);
     const from = startsRef.current[stateRef.current.index] ?? 0;
@@ -577,11 +592,11 @@ export default function Narrator({ page }: { page: NarrationPage }) {
 
       {active && (
         <div ref={barRef} className={s.player} role="region" aria-label={C.player}>
-          {state.captions && (
-            <p key={cue.id} className={s.caption} aria-live={playing ? "polite" : "off"}>
-              {cue.caption}
-            </p>
-          )}
+          {/* Screen readers get each cue's whole text once; the word-by-word line is visual only. */}
+          <p key={`live-${cue.id}`} className={s.liveText} aria-live={playing ? "polite" : "off"}>
+            {state.captions ? cue.caption : ""}
+          </p>
+          {state.captions && <CaptionLine words={wordsOf[state.index]} lines={linesOf[state.index]} starts={wordStartsRef.current[state.index]} time={now} cueId={cue.id} />}
           <div className={s.bar}>
             <div className={s.controls}>
               <VoiceWave
@@ -652,6 +667,35 @@ export default function Narrator({ page }: { page: NarrationPage }) {
         </div>
       )}
     </>
+  );
+}
+
+/* ── Caption line, word by word ────────────────────────────── */
+
+/**
+ * The current line of the cue's caption. All words of the line are laid out
+ * from the start (so the line never reflows), unspoken ones invisible; each
+ * word fades in, rising a few pixels, at its start time. Earlier words of the
+ * line stay fully visible without a highlight on the word being spoken,
+ * which reads calmer than a moving highlight. A new line (punctuation after
+ * 5 words, or 12 words) or a new cue clears the box. Before the line's first
+ * word the box is hidden.
+ */
+function CaptionLine({ words, lines, starts, time, cueId }: { words: string[]; lines: number[]; starts: Float64Array | undefined; time: number; cueId: string }) {
+  const shown = starts ? revealedCount(starts, time) : words.length;
+  const line = lineOf(lines, Math.max(0, shown - 1));
+  const from = lines[line];
+  const to = line + 1 < lines.length ? lines[line + 1] : words.length;
+  const idle = shown <= from;
+  return (
+    <p key={`${cueId}-${line}`} className={idle ? `${s.caption} ${s.captionIdle}` : s.caption} aria-hidden="true">
+      {words.slice(from, to).map((w, k) => (
+        <Fragment key={k}>
+          {k > 0 ? " " : null}
+          <span className={from + k < shown ? `${s.word} ${s.wordOn}` : s.word}>{w}</span>
+        </Fragment>
+      ))}
+    </p>
   );
 }
 
