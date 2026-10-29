@@ -20,7 +20,7 @@ import {
   type WeeklyWindowValue,
 } from "@/components/ui";
 import { API_URL } from "@/lib/api";
-import { track } from "@/lib/journey";
+import { journeyVisitorId, track } from "@/lib/journey";
 import { COUNTRIES, isCountryCode } from "@/lib/contracts";
 import { COUNTRY_ZONE_OPTIONS, zoneLabelOf } from "@/lib/timeZones";
 import { LEGAL_VERSIONS } from "@/components/legal/versions";
@@ -198,7 +198,7 @@ export default function ApplyForm() {
   }
 
   function focusFirstError(e: Errors) {
-    track.formErrors("lawyer_apply", Object.keys(e));
+    track.formErrors("lawyer_apply", Object.keys(e), "lawyer_apply_start");
     const first = Object.keys(e)[0];
     window.requestAnimationFrame(() => {
       const el = document.querySelector<HTMLElement>(`[data-field="${first}"] input, [data-field="${first}"] select, [data-field="${first}"] textarea, [data-field="${first}"] button`);
@@ -225,7 +225,7 @@ export default function ApplyForm() {
     let res: Response;
     let json: { error?: string; errors?: Errors } = {};
     try {
-      res = await fetch(`${API_URL}/api/providers/apply`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      res = await fetch(`${API_URL}/api/providers/apply`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, visitorId: journeyVisitorId() }) });
       json = await res.json().catch(() => ({}));
     } catch {
       setSend({ kind: "error", message: "We could not reach ILP. Check your connection and press Send application again. Your answers are still here." });

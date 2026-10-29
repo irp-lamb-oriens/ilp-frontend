@@ -6,6 +6,7 @@
  * page stores for the client role.
  */
 
+import { journeyVisitorId } from "@/lib/journey/tracker";
 import { API_URL, ApiError } from "@/lib/api";
 import { type CountryCode, PLAN_STANDARD, type LeadFinding } from "@/lib/contracts";
 import type { JoinConsent } from "@/components/legal/consentApi";
@@ -47,7 +48,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
 export function runCheck(answers: CheckAnswers, email?: string, name?: string) {
   return call<{ findings: CheckFinding[]; saved: boolean; leadId?: string }>(
     "/api/leads/deadline-check",
-    { method: "POST", body: JSON.stringify({ answers, email, name }) },
+    { method: "POST", body: JSON.stringify({ answers, email, name, visitorId: journeyVisitorId() }) },
   );
 }
 
@@ -76,7 +77,7 @@ export interface ClaimResponse {
 }
 
 export function claimDeadlines(body: ClaimBody) {
-  return call<ClaimResponse>("/api/leads/claim", { method: "POST", body: JSON.stringify(body) });
+  return call<ClaimResponse>("/api/leads/claim", { method: "POST", body: JSON.stringify({ ...body, visitorId: journeyVisitorId() }) });
 }
 
 export async function getPlan(): Promise<{ mode: PaymentsMode }> {
@@ -112,7 +113,7 @@ export function joinFieldErrors(err: unknown): Record<string, string> | null {
 export function join(body: JoinBody) {
   return call<{ mode: PaymentsMode; token: string; status: string; checkoutUrl?: string }>(
     "/api/payments/join",
-    { method: "POST", body: JSON.stringify(body) },
+    { method: "POST", body: JSON.stringify({ ...body, visitorId: journeyVisitorId() }) },
   );
 }
 

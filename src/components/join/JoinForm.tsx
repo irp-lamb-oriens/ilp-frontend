@@ -186,7 +186,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
   }
 
   function focusFirstError(e: Errors) {
-    track.formErrors("join", Object.keys(e));
+    track.formErrors("join", Object.keys(e), "join_start");
     const first = Object.keys(e)[0];
     window.requestAnimationFrame(() => {
       const el = document.querySelector<HTMLElement>(

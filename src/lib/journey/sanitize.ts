@@ -111,6 +111,8 @@ export function sanitizeEvent(e: Partial<JourneyEventInput> & Record<string, unk
     if (!step) return null;
     out.step = step;
   }
+  // On a click or form error, `step` names the step the form belongs to (any funnel step).
+  if ((type === "click" || type === "form_error") && isFunnelStepId(e.step)) out.step = e.step;
   if (type === "click" || type === "form_error" || (type === "heartbeat" && e.target !== undefined)) {
     const target = cleanTarget(e.target);
     if (!target) return null;

@@ -168,6 +168,8 @@ export default function CheckPage() {
 
   /** Save an answer (or remove it with undefined) and go to the next shown question, or finish. */
   function answer(key: string, value: string | string[] | undefined) {
+    // JOURNEYS: question n answered (target "q<n>"), so staff can see which question people leave at.
+    track.click(`check.q${index}`, "check_start");
     const raw = { ...answers };
     if (value === undefined || (Array.isArray(value) && !value.length)) delete raw[key];
     else raw[key] = value;
@@ -197,7 +199,7 @@ export default function CheckPage() {
     setEmailError(null);
     const clean = email.trim().toLowerCase();
     if (!EMAIL_RE.test(clean)) {
-      track.formError("check.email");
+      track.formError("check.email", "results_view");
       setEmailError("Enter a valid email address.");
       return;
     }
@@ -239,7 +241,7 @@ export default function CheckPage() {
     setClaimErrors(errs);
     setClaimError(null);
     if (Object.keys(errs).length) {
-      track.formErrors("check.claim", Object.keys(errs));
+      track.formErrors("check.claim", Object.keys(errs), "deadlines_select");
       return;
     }
     track.step("signup_start");

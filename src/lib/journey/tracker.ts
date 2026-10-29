@@ -180,18 +180,18 @@ export const track = {
     return emit("step", { step: id });
   },
   /** A click on a primary control, by its stable id ("home.hero.check"). */
-  click(targetId: string): boolean {
+  click(targetId: string, step?: FunnelStepId): boolean {
     const t = cleanTarget(targetId);
-    return t ? emit("click", { target: t }) : false;
+    return t ? emit("click", { target: t, ...(step ? { step } : {}) }) : false;
   },
   /** A validation error on a field, by field id only ("join.email"). Never the value. */
-  formError(fieldId: string): boolean {
+  formError(fieldId: string, step?: FunnelStepId): boolean {
     const t = cleanTarget(fieldId);
-    return t ? emit("form_error", { target: t }) : false;
+    return t ? emit("form_error", { target: t, ...(step ? { step } : {}) }) : false;
   },
-  /** Several field errors from one failed submit. */
-  formErrors(prefix: string, fieldIds: string[]): void {
-    for (const f of fieldIds) track.formError(`${prefix}.${f}`);
+  /** Several field errors from one failed submit, on the form of `step`. */
+  formErrors(prefix: string, fieldIds: string[], step?: FunnelStepId): void {
+    for (const f of fieldIds) track.formError(`${prefix}.${f}`, step);
   },
   /** Active time on the current page since the last heartbeat. */
   heartbeat(durationMs: number, path?: string): boolean {
@@ -246,3 +246,16 @@ export const track = {
 };
 
 export type Track = typeof track;
+
+/**
+ * The visitor id to send with the free check, the claim, join and the lawyer
+ * application (`visitorId` in the body, contracts JOURNEY_VISITOR_HEADER), so
+ * the server can link the visit to the lead or account. Undefined without consent.
+ */
+export function journeyVisitorId(): string | undefined {
+  try {
+    return trackingAllowed() ? getVisitorId() : undefined;
+  } catch {
+    return undefined;
+  }
+}
