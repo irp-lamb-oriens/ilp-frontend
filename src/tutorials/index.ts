@@ -11,6 +11,7 @@ import { staffOpportunities } from "./staff/opportunities";
 import { staffLawyers } from "./staff/lawyers";
 import { staffFinance } from "./staff/finance";
 import { staffReports } from "./staff/reports";
+import { staffJourneys } from "./staff/journeys";
 import { staffSettings } from "./staff/settings";
 import { staffPrivacy } from "./staff/privacy";
 
@@ -38,6 +39,7 @@ export const STAFF_TUTORIALS: Tutorial[] = [
   staffLawyers,
   staffFinance,
   staffReports,
+  staffJourneys,
   staffSettings,
   staffPrivacy,
 ];

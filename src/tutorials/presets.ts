@@ -89,7 +89,7 @@ export function dayIn(days: number): string {
 // ─── Shells ─────────────────────────────────────────────────────────────────
 
 export const NAV: Record<TutorialRole, string[]> = {
-  staff: ["Today", "Members", "Pipeline", "Opportunities", "Lawyers", "Finance", "Reports", "Settings", "Privacy"],
+  staff: ["Today", "Members", "Pipeline", "Opportunities", "Lawyers", "Finance", "Reports", "Journeys", "Settings", "Privacy"],
   lawyer: ["Today", "Board", "Clients", "Finance", "Availability"],
   client: ["Overview", "Deadlines", "Profile", "Money", "Messages"],
 };

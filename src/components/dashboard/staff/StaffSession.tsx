@@ -9,6 +9,7 @@ import {
   IconNavBoard,
   IconNavBriefcase,
   IconNavChart,
+  IconNavFunnel,
   IconNavMoney,
   IconNavPeople,
   IconNavShield,
@@ -53,6 +54,7 @@ export function staffNav(role: StaffRole): NavItem[] {
     { href: "/dashboard/lawyers", label: "Lawyers", icon: <IconNavBriefcase /> },
     { href: "/dashboard/finance", label: "Finance", icon: <IconNavMoney />, admin: true },
     { href: "/dashboard/reports", label: "Reports", icon: <IconNavChart /> },
+    { href: "/dashboard/journeys", label: "Journeys", icon: <IconNavFunnel /> },
     { href: "/dashboard/settings", label: "Settings", icon: <IconNavSliders />, admin: true },
     { href: "/dashboard/privacy", label: "Privacy", icon: <IconNavShield />, admin: true },
   ];

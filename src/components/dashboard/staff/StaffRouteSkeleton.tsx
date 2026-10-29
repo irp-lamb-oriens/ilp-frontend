@@ -64,7 +64,7 @@ export default function StaffRouteSkeleton({ pathname }: { pathname: string }) {
 }
 
 /** Staff routes wrapped in StaffScreen (each has a ScreenIntro). */
-const STAFF_ROUTE = /^\/dashboard(?:\/(?:members|pipeline|opportunities|lawyers|finance|reports|settings|privacy))?\/?(?:$|[?#/])/;
+const STAFF_ROUTE = /^\/dashboard(?:\/(?:members|pipeline|opportunities|lawyers|finance|reports|journeys|settings|privacy))?\/?(?:$|[?#/])/;
 
 function routeBody(pathname: string) {
   if (pathname === "/dashboard" || pathname === "/dashboard/") {
@@ -155,6 +155,15 @@ function routeBody(pathname: string) {
             <PmfSkeleton />
           </div>
         </TabsSkeleton>
+      </>
+    );
+  }
+  if (pathname.startsWith("/dashboard/journeys")) {
+    return (
+      <>
+        <PageHeader title="Journeys" />
+        <SkeletonStatStrip small={4} />
+        <SkeletonTable columns={[{ header: "Step", width: "wide" }, { header: "Share of start", width: "wide" }, { header: "People", align: "end" }, { header: "From previous", align: "end" }]} rows={10} />
       </>
     );
   }

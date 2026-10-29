@@ -5,6 +5,7 @@ import {
   IconNavBriefcase,
   IconNavCalendar,
   IconNavChart,
+  IconNavFunnel,
   IconNavList,
   IconNavMoney,
   IconNavPeople,
@@ -44,6 +45,7 @@ export const DEFAULT_NAV: Record<ShellRole, NavItem[]> = {
     { href: "/dashboard/lawyers", label: "Lawyers", icon: createElement(IconNavBriefcase) },
     { href: "/dashboard/finance", label: "Finance", icon: createElement(IconNavMoney) },
     { href: "/dashboard/reports", label: "Reports", icon: createElement(IconNavChart) },
+    { href: "/dashboard/journeys", label: "Journeys", icon: createElement(IconNavFunnel) },
     { href: "/dashboard/settings", label: "Settings", icon: createElement(IconNavSliders) },
   ],
 };

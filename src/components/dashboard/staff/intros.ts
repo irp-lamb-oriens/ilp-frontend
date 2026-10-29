@@ -117,6 +117,19 @@ export const STAFF_INTROS = {
     tutorialId: "staff.reports",
     terms: ["funnel", "freeCheck", "nps", "stage"],
   },
+  journeys: {
+    title: "Journeys",
+    what: "How people move through the ILP website and app: how many reach each step from first visit to renewal, where they stop, how long each page takes, how outbound campaigns convert, and the A/B tests the team runs.",
+    how: [
+      "Pick the dates and, if you want, a source, channel, country, device or test. The filters stay in the link, so you can share the view.",
+      "Start with Overview. Biggest leaks names the three steps that lose the most future members.",
+      "Open Stuck to see who is stuck now and create a follow-up task for them.",
+      "Use Experiments to compare versions of a page. Admins create, start and stop tests; everyone can read results.",
+    ],
+    why: "Knowing where people stop shows what to fix first so more visitors become members, instead of guessing.",
+    tutorialId: "staff.journeys",
+    terms: ["funnel", "dropOff", "dwellTime", "experiment", "variant", "confidence", "srm"],
+  },
   settings: {
     title: "Settings",
     what: "Settings shared by the whole team: the name and time limit of each matter stage, the queue of emails waiting to go out, and the vendor list.",

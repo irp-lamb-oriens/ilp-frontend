@@ -575,6 +575,42 @@ export const GLOSSARY = {
     match: /\bfunnels?\b/i,
     group: "Money and numbers",
   },
+  dropOff: {
+    word: "Drop-off",
+    meaning: "The people who reached one step and did not reach the next. A big drop-off shows where people give up.",
+    match: /\bdrop-?offs?\b/i,
+    group: "Money and numbers",
+  },
+  dwellTime: {
+    word: "Dwell time",
+    meaning: "How long people stay on a page or at a step before they move on or leave. We count only time when the page is open and in use.",
+    match: /\bdwell time\b|\btime at (?:the )?step\b/i,
+    group: "Money and numbers",
+  },
+  experiment: {
+    word: "Experiment",
+    meaning: "A test that shows two or more versions of a page to different visitors, then counts which version gets more people to the next step. Also called an A/B test.",
+    match: /\bexperiments?\b|\bA\/B tests?\b/i,
+    group: "Money and numbers",
+  },
+  variant: {
+    word: "Variant",
+    meaning: "One version of the page in an experiment. The first one, called the control, is what visitors see today.",
+    match: /\bvariants?\b|\bcontrol version\b/i,
+    group: "Money and numbers",
+  },
+  confidence: {
+    word: "Confidence",
+    meaning: "How sure we can be that a difference between versions is real and not luck. With few visitors it stays low, so wait before you pick a winner.",
+    match: /\bconfidence\b|\bchance to be best\b|\b95% interval\b/i,
+    group: "Money and numbers",
+  },
+  srm: {
+    word: "Sample ratio mismatch",
+    meaning: "The versions got a different share of visitors than the test asked for, for example 60 to 40 instead of 50 to 50. It usually means something is broken, so the result cannot be trusted.",
+    match: /\bsample ratio mismatch\b|\bSRM\b/i,
+    group: "Money and numbers",
+  },
   winRate: {
     word: "Win rate",
     meaning: "Out of all offers of paid work that were decided, the share members said yes to.",

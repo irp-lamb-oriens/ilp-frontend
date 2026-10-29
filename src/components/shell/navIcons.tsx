@@ -91,6 +91,13 @@ export const IconNavChart = (p: IconProps) => (
   </Svg>
 );
 
+/** Journeys: a narrowing funnel. */
+export const IconNavFunnel = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M2.25 2.75h11.5L9.25 8.5v4.25l-2.5 1V8.5z" />
+  </Svg>
+);
+
 /** Settings: a set of sliders. */
 export const IconNavSliders = (p: IconProps) => (
   <Svg {...p}>
