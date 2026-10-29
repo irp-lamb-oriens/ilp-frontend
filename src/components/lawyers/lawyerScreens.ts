@@ -10,38 +10,18 @@
  */
 import type { MockNode, StateChange } from "../tutorial/types";
 import { applyChanges, EMPTY_OVERRIDES, type Overrides } from "../tutorial/sceneUtils";
-import {
-  MEMBERS as M,
-  TEAM,
-  btn,
-  card,
-  chip,
-  dateIn,
-  deflist,
-  divider,
-  grid,
-  hidden,
-  list,
-  mark,
-  message,
-  meta,
-  mockShell,
-  p,
-  pill,
-  progress,
-  row,
-  set,
-  show,
-  stack,
-  text,
-  timeRange,
-} from "../../tutorials/presets";
+import { MEMBERS as M, TEAM, btn, card, chip, dateIn, hidden, mark, meta, pill, progress, row, set, show, stack, text, timeRange } from "../../tutorials/presets";
 
+/**
+ * Every screen is drawn as one page at its natural size (visualFit.ts) and
+ * scaled to the same box, so the content is cut to fit that size at full
+ * type size: no portal shell (its nav column took a third of the width),
+ * pills at the medium size and no definition lists (their 11px labels).
+ * The smallest text on a screen is 12px (labels, pills, chips).
+ */
 export interface LawyerScreen {
   /** Short description for tests and code readers (the screen is aria-hidden). */
   name: string;
-  /** Lawyer portal page around the body (wide only); none for a public page. */
-  shell?: { active: string; title: string };
   /** The page content; `compact` is the one-column version for phones. */
   body: (compact: boolean) => MockNode;
   /** State changes, each applied once the step's timeline (0..1) passes `at`. */
@@ -50,36 +30,35 @@ export interface LawyerScreen {
 
 export const APPLICANT = { name: "Lic. Daniela Chaves", email: "daniela.chaves@example.com", carne: "28417" };
 
-const publicBar = (where: string): MockNode[] => [row([text("ILP", "strong"), meta(where)], "between"), divider()];
+/** The top line of a screen: where in ILP it is, and an optional item on the right. */
+const bar = (where: string, right?: MockNode): MockNode => row([row([text("ILP", "strong"), meta(where)], "start", 2), ...(right ? [right] : [])], "between");
+
+/** A pill at the readable size (the small one is 11px). */
+const tag = (label: string, tone: Parameters<typeof pill>[1] = "neutral", id?: string) => pill(label, tone, id, "md");
 
 const apply: LawyerScreen = {
   name: "Application: licence checked with the Colegio, pending then verified, and the reply email",
   body: (compact) =>
     stack(
       [
-        ...publicBar("Partner lawyer application"),
+        bar("Partner lawyer application · Costa Rica"),
         card("Your licence", [
-          deflist([
-            { term: "Country", value: "Costa Rica" },
-            { term: "Issued by", value: "Colegio de Abogados y Abogadas de Costa Rica" },
-            { term: "Carné number", value: APPLICANT.carne },
-            { term: "Name on the licence", value: "Daniela Chaves Mora" },
-          ]),
-          row([text("Licence check", "strong"), pill("Pending: checking with the Colegio", "neutral", "lic")], compact ? "start" : "between"),
+          meta("Colegio de Abogados y Abogadas de Costa Rica"),
+          row([text("Carné number", "label"), text(APPLICANT.carne, "strong")], "start", 2),
+          row([text("Licence check", "strong"), tag("Pending: checking with the Colegio", "neutral", "lic")], compact ? "start" : "between"),
         ]),
         hidden(
           card(
             undefined,
             [
               row([text(`To ${APPLICANT.email}`, "strong"), meta(dateIn(1))], compact ? "start" : "between"),
-              text("We checked your carné with the Colegio de Abogados y Abogadas de Costa Rica. Your licence is verified, and you can now set your hours.", "body"),
-              meta("ILP partner team"),
+              text("We checked your carné with the Colegio. Your licence is verified, and you can now set your hours.", "body"),
             ],
             { id: "mail", tone: "accent" },
           ),
         ),
       ],
-      4,
+      3,
     ),
   timeline: [
     { at: 0.3, changes: [set("lic", { label: "Verified", tone: "success" })] },
@@ -89,20 +68,26 @@ const apply: LawyerScreen = {
 
 const hours: LawyerScreen = {
   name: "Availability: weekly hours with a day added, and the legal areas you take",
-  shell: { active: "Availability", title: "Your hours" },
-  body: (compact) => {
-    const weekly = card("Weekly hours", [
-      row([text("Tuesday", "strong"), timeRange("9:00 am", "12:00 pm")], "start", 3),
-      row([text("Wednesday", "strong"), meta("Unavailable", "wedoff"), hidden(timeRange("2:00 pm", "5:00 pm", undefined, "wed"))], "start", 3),
-      row([text("Thursday", "strong"), timeRange("2:00 pm", "6:00 pm")], "start", 3),
-      meta("Members book 20-minute calls inside these hours. Costa Rica time."),
-    ]);
-    const areas = card("Legal areas you take", [
-      row([chip("Property", true, "a_prop"), chip("Company", false, "a_corp"), chip("Residency", false, "a_res"), chip("Vehicles", false, "a_car")], "start", 1),
-      row([hidden(pill("Saved", "success", "saved"))], "start"),
-    ]);
-    return compact ? stack([weekly, areas], 3) : grid("3-2", [weekly, areas]);
-  },
+  body: () =>
+    stack(
+      [
+        bar("Lawyer portal · Your hours", hidden(tag("Saved", "success", "saved"))),
+        card("Weekly hours", [
+          stack(
+            [
+              row([text("Tuesday", "strong"), timeRange("9:00 am", "12:00 pm")], "between", 3),
+              row([text("Wednesday", "strong"), meta("Unavailable", "wedoff"), hidden(timeRange("2:00 pm", "5:00 pm", undefined, "wed"))], "between", 3),
+              row([text("Thursday", "strong"), timeRange("2:00 pm", "6:00 pm")], "between", 3),
+            ],
+            2,
+          ),
+        ]),
+        card("Legal areas you take", [
+          row([chip("Property", true, "a_prop"), chip("Company", false, "a_corp"), chip("Residency", false, "a_res"), chip("Vehicles", false, "a_car")], "start", 1),
+        ]),
+      ],
+      3,
+    ),
   timeline: [
     { at: 0.2, changes: [set("wedoff", { hidden: true }), show("wed")] },
     { at: 0.4, changes: [set("a_corp", { selected: true })] },
@@ -111,29 +96,31 @@ const hours: LawyerScreen = {
   ],
 };
 
+const fact = (term: string, value: string) => row([meta(term), text(value, "strong")], "start", 2);
+
 const brief: LawyerScreen = {
-  name: "Pre-call brief: the member's question, profile facts and dates, for a 20-minute call",
-  shell: { active: "Today", title: `Call with ${M.hiroshi}` },
+  name: "Pre-call brief: the member's question, profile facts and a date, for a 20-minute call",
   body: () =>
-    card(
-      `Pre-call brief for ${M.hiroshi}`,
+    stack(
       [
-        row([pill("Costa Rica", "info"), pill("Today, 9:30 am · 20 min", "neutral"), pill("Recording allowed", "success")], "start"),
-        text("Their question", "label"),
-        text("Can I sell the house before the S.A. books are fixed?", "body", "question"),
-        deflist(
-          [
-            { term: "Household", value: "Married, no children at home" },
-            { term: "Residency", value: `Pensionado, renews ${dateIn(74)}` },
-            { term: "Property", value: "House in Nosara, Guanacaste, held by an S.A." },
-            { term: "Company", value: "S.A., not trading" },
-          ],
-          "facts",
-        ),
-        list([{ title: "Corporate tax return (D-101)", meta: `Due ${dateIn(6)}`, pill: p("May require review", "warning") }], "plain", "due"),
-        progress("Profile completeness", 0.82, "82%", "success"),
+        bar(`Pre-call brief for ${M.hiroshi}`),
+        card(undefined, [
+          row([tag("Today, 9:30 am · 20 min"), tag("Recording allowed", "success")], "start", 2),
+          stack([text("Their question", "label"), text("Can I sell the house before the S.A. books are fixed?", "body", "question")], 1),
+          stack(
+            [
+              fact("Residency", `Pensionado, renews ${dateIn(74)}`),
+              fact("Property", "House in Nosara, held by an S.A."),
+              fact("Company", "S.A., not trading"),
+            ],
+            1,
+            "facts",
+          ),
+          row([text("Corporate tax return (D-101)", "body"), meta(`Due ${dateIn(6)}`), tag("May require review", "warning")], "between", 2, "due"),
+          progress("Profile completeness", 0.82, "82%", "success"),
+        ]),
       ],
-      { id: "brief" },
+      3,
     ),
   timeline: [
     { at: 0.15, changes: [mark("question")] },
@@ -146,34 +133,34 @@ const SUMMARY = "You can sell once the S.A. books are updated. Send the books an
 
 const after: LawyerScreen = {
   name: "After the call: the suggested summary and next steps confirmed, then ILP's follow-up and a quote",
-  shell: { active: "Today", title: `Call with ${M.hiroshi}` },
-  body: (compact) => {
-    const summary = card("Summary for the member", [
-      row([pill("Suggested: check it", "warning", "sugg")], "start"),
-      text(SUMMARY, "body"),
-      text("Next steps", "label"),
-      list(
-        [
-          { title: "Send the S.A. minute books", meta: `${M.hiroshi} · by ${dateIn(7)}`, pill: p("Member", "info") },
-          { title: "Review the books and list what is missing", meta: `You · by ${dateIn(14)}`, pill: p("Lawyer") },
-        ],
-        "plain",
-      ),
-      row([meta("Minutes used 20"), btn("Confirm", "primary", "confirm", "sm")], "between"),
-    ]);
-    const follow = hidden(
-      card(
-        "ILP follow-up",
-        [
-          message("team", `${TEAM.csm} · ILP customer success`, "I sent Hiroshi the next steps and asked for the minute books. I will prepare the quote once you list the work.", dateIn(0)),
-          row([text("S.A. clean-up before sale", "strong"), pill("Quote in progress", "info")], "between"),
-          meta("You set the scope and your fee. The member accepts before work starts."),
-        ],
-        { id: "follow" },
-      ),
-    );
-    return compact ? stack([summary, follow], 3) : grid("1-1", [summary, follow]);
-  },
+  body: (compact) =>
+    stack(
+      [
+        row([text("Summary for the member", "strong"), row([tag("Suggested: check it", "warning", "sugg"), btn("Confirm", "primary", "confirm", "sm")], "end", 2)], compact ? "start" : "between"),
+        card(undefined, [
+          text(SUMMARY, "body"),
+          stack(
+            [
+              text("Next steps", "label"),
+              text(`${M.hiroshi}: send the S.A. minute books by ${dateIn(7)}`, "body"),
+              text(`You: review the books and list what is missing by ${dateIn(14)}`, "body"),
+            ],
+            1,
+          ),
+        ]),
+        hidden(
+          card(
+            undefined,
+            [
+              text(`${TEAM.csm} · ILP customer success`, "strong"),
+              row([text("S.A. clean-up before sale", "body"), tag("Quote in progress", "info")], compact ? "start" : "between"),
+            ],
+            { id: "follow", tone: "accent" },
+          ),
+        ),
+      ],
+      3,
+    ),
   timeline: [
     { at: 0.3, changes: [set("sugg", { label: "Confirmed by you", tone: "success" }), set("confirm", { label: "Confirmed", variant: "secondary" })] },
     { at: 0.55, changes: [show("follow")] },
@@ -183,11 +170,9 @@ const after: LawyerScreen = {
 /** One screen per LAWYERS_HOW step, same order. */
 export const LAWYER_SCREENS: LawyerScreen[] = [apply, hours, brief, after];
 
-/** The mock tree to draw: the lawyer shell around the body (wide), or the body as a page. */
+/** The mock tree to draw (the same page in both layouts; `compact` lets rows wrap from the start). */
 export function lawyerScreenRoot(screen: LawyerScreen, compact: boolean): MockNode {
-  const body = screen.body(compact);
-  if (!screen.shell || compact) return body;
-  return mockShell("lawyer", screen.shell.active, body, { title: screen.shell.title, search: null });
+  return screen.body(compact);
 }
 
 /** How many timeline states have applied at timeline point t (0..1). */

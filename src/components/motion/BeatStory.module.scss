@@ -229,11 +229,13 @@ $nav: 64px;
   }
 }
 
+// The visual sits lower than the text where there is height to spare:
+// nothing at 720px tall, 4rem from 784px (lawyers/visualFit.ts whyDropPx).
 .beat > .visual {
   @include pinned {
     grid-column: 7 / -1;
     grid-row: 1;
-    margin-top: $space-16;
+    margin-top: clamp(0px, 100dvh - 45rem, 4rem);
   }
 }
 
@@ -274,8 +276,10 @@ $nav: 64px;
   }
 }
 
-// Example screens: text five columns, the screen seven, no vertical offset;
-// the screen is never taller than the room left under the head.
+// Example screens: text five columns, the screen seven, no vertical offset.
+// The screen's 4:3 box is never wider than its columns or 600px, nor taller
+// than the room left under the head and above its caption (20rem in all;
+// lawyers/visualFit.ts SCREEN_BOX).
 .wideBeat > .text {
   @include pinned {
     grid-column: 1 / span 5;
@@ -288,7 +292,7 @@ $nav: 64px;
     grid-column: 6 / -1;
     margin-top: 0;
     justify-self: end;
-    width: min(100%, calc((100dvh - 21rem) * 4 / 3));
+    width: min(100%, calc((100dvh - 20rem) * 4 / 3), 600px);
   }
 }
 

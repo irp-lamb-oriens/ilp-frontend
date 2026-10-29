@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { motion, useMotionValueEvent, useTransform, type MotionValue } from "framer-motion";
 import { MockFrame } from "@/components/landing/HeroStory";
+import MockScene from "@/components/tutorial/mock/MockScene";
 import { easeEnter, revealAt, type Window } from "@/components/motion/storyMath";
 import type { StoryLayout } from "@/components/motion/Story";
 import { cx } from "@/components/ui/cx";
 import { LAWYER_SCREENS, lawyerScreenRoot, screenOverrides, screenStateAt } from "./lawyerScreens";
 import { HOURS_ROWS, MEMBER_CARD, MEMBER_QUESTIONS, VISUAL_COUNTRIES, minutesLabel } from "./visualData";
+import { SCREEN_SIZES, WHY_SIZES, type Size } from "./visualFit";
 import s from "./LawyersStory.module.scss";
 
 /**
@@ -20,6 +22,58 @@ import s from "./LawyersStory.module.scss";
 
 /** 0..1 through window w of the timeline, eased out. */
 const useIn = (t: MotionValue<number>, w: Window) => useTransform(t, (v) => easeEnter(revealAt(v, w)));
+
+/**
+ * A picture laid out at its natural size and scaled to fit its box
+ * (visualFit.ts): k = min(boxW / naturalW, boxH / contentH), where contentH
+ * is the natural height, or the measured height if the content came out
+ * taller. The box is sized in CSS, so every picture of a story gets the same
+ * one; nothing inside can spill over the text beside it.
+ */
+function FitFrame({ natural, kind, children }: { natural: Size; kind: "screen" | "why"; children: ReactNode }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const box = boxRef.current;
+    const stage = stageRef.current;
+    if (!box || !stage) return;
+    const fit = () => {
+      const contentH = Math.max(natural.h, stage.offsetHeight);
+      const k = Math.min(box.clientWidth / natural.w, box.clientHeight / contentH);
+      if (k > 0) stage.style.setProperty("--fit-k", String(k));
+    };
+    fit();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
+    ro.observe(stage);
+    return () => ro.disconnect();
+  }, [natural.w, natural.h]);
+  return (
+    <div
+      ref={boxRef}
+      className={cx(s.fit, kind === "screen" ? s.fitScreen : s.fitWhy)}
+      style={{ "--nat-w": natural.w, "--nat-h": natural.h } as CSSProperties}
+      aria-hidden="true"
+      inert
+    >
+      <div ref={stageRef} className={s.fitStage} style={{ width: natural.w, minHeight: natural.h }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** The "Why" pictures: fitted to the shared box when pinned, fluid otherwise. */
+export function WhyVisual({ index, t, layout }: { index: number; t: MotionValue<number>; layout: StoryLayout }) {
+  const V = [MembersVisual, HoursVisual, MemberVisual][index];
+  if (layout !== "pinned") return <V t={t} />;
+  return (
+    <FitFrame natural={WHY_SIZES[index]} kind="why">
+      <V t={t} />
+    </FitFrame>
+  );
+}
 
 /* ── Why 1: the members and their questions ──────────────────── */
 
@@ -55,13 +109,13 @@ function CountryChip({ t, index, label }: { t: MotionValue<number>; index: numbe
 
 const questionWindow = (i: number): Window => [0.3 + i * 0.2, 0.46 + i * 0.2];
 
-function QuestionCard({ t, index, who, country, area, q }: { t: MotionValue<number>; index: number; who: string; country: string; area: string; q: string }) {
+function QuestionCard({ t, index, who, country, q }: { t: MotionValue<number>; index: number; who: string; country: string; q: string }) {
   const k = useIn(t, questionWindow(index));
   const x = useTransform(k, (v) => (1 - v) * (index % 2 ? 24 : -24));
   return (
     <motion.div className={cx(s.qCard, index % 2 === 1 && s.qCardIndent)} style={{ opacity: k, x }}>
       <span className={s.qMeta}>
-        {who} · {country} · {area}
+        {who} · {country}
       </span>
       <span className={s.qText}>{q}</span>
     </motion.div>
@@ -162,7 +216,8 @@ export function MemberVisual({ t }: { t: MotionValue<number> }) {
  * Step i's example screen. Its timeline applies the screen's state changes
  * in order (the licence turning verified, hours being added, the brief being
  * read, the summary confirmed); the frame re-renders only when a state is
- * crossed. Phones and reduced motion get the compact end state.
+ * crossed. Wide screens draw it at its natural size, fitted to the shared
+ * box (visualFit.ts); phones and reduced motion get the compact end state.
  */
 export function StepScreen({ index, t, layout }: { index: number; t: MotionValue<number>; layout: StoryLayout }) {
   const screen = LAWYER_SCREENS[index];
@@ -172,17 +227,14 @@ export function StepScreen({ index, t, layout }: { index: number; t: MotionValue
     const next = screenStateAt(screen, v);
     setN((prev) => (prev === next ? prev : next));
   });
+  const root = lawyerScreenRoot(screen, compact);
+  const overrides = screenOverrides(screen, n);
+  if (compact) return <MockFrame root={root} framed={false} compact overrides={overrides} />;
   return (
-    <div className={s.screen}>
-      <span className={s.screenLabel} aria-hidden="true">
-        Example screen
-      </span>
-      <MockFrame
-        root={lawyerScreenRoot(screen, compact)}
-        framed={!!screen.shell && !compact}
-        compact={compact}
-        overrides={screenOverrides(screen, n)}
-      />
-    </div>
+    <FitFrame natural={SCREEN_SIZES[index]} kind="screen">
+      <div className={s.screenPage}>
+        <MockScene root={root} overrides={overrides} />
+      </div>
+    </FitFrame>
   );
 }

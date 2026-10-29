@@ -11,7 +11,7 @@ export default function ApplyIntro() {
       <PageIntro
         eyebrow="Partner lawyers"
         title="Apply as a partner lawyer"
-        what="An application to take 20-minute video calls with ILP members through the lawyer portal. It has seven short steps."
+        what="An application to take 20-minute video calls with ILP members through the lawyer portal. Applying is free, and the form has seven short steps."
         how={[
           "Tell us about you, your practice, your areas, your hours and your fees.",
           "Send the application. You get a confirmation email and can sign in to the lawyer portal.",

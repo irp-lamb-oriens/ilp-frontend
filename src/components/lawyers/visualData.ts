@@ -7,10 +7,10 @@ import { MEMBERS as M, TEAM } from "../../tutorials/presets";
 
 export const VISUAL_COUNTRIES = ["Colombia", "Costa Rica", "Mexico", "Panama", "Portugal", "Spain"];
 
+/** Two questions, so the picture fits its box at full type size (visualFit.ts). */
 export const MEMBER_QUESTIONS = [
-  { who: M.genevieve, country: "Mexico", area: "Property", q: "Can I hold the condo in Tulum through a Mexican company?" },
-  { who: M.russell, country: "Panama", area: "Residency", q: "My pensionado card expires in May. When do I start the renewal?" },
-  { who: M.colleen, country: "Portugal", area: "Cars", q: "Can I keep driving on my Ohio licence after my first year?" },
+  { who: M.genevieve, country: "Mexico", q: "Can I hold the condo in Tulum through a Mexican company?" },
+  { who: M.russell, country: "Panama", q: "My pensionado card expires in May. When do I start the renewal?" },
 ];
 
 /** An example week of unbilled work around calls, in minutes. */
@@ -37,6 +37,6 @@ export const MEMBER_CARD = {
   questionLabel: "Question written before booking",
   question: "Can I sell the house before the S.A. books are fixed?",
   followLabel: `${TEAM.csm} · Customer success manager`,
-  follow: "Sent Hiroshi the next steps from your call and asked for the S.A. minute books.",
+  follow: "Sent Hiroshi the next steps and asked for the S.A. minute books.",
   sent: "Follow-up sent",
 };

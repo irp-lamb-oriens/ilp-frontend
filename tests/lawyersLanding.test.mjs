@@ -32,7 +32,7 @@ const COPY = {
     "Before each 20-minute video call, read a one-screen brief with the member's question and profile.",
     "After the call, confirm the suggested summary and next steps. ILP follows up with the member, including quotes for paid work.",
   ],
-  what: "ILP is a legal membership for North Americans in six countries: US$79.99 a month, with up to three 20-minute video calls a month with a lawyer licensed in the member's country. Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal. Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
+  what: "ILP is a legal membership for North Americans in six countries. Joining is free for lawyers. ILP does not charge you to apply or to use the lawyer portal. Members pay US$79.99 a month for up to three 20-minute video calls a month with a lawyer licensed in their country. Partner lawyers are independent lawyers who take those calls through the portal. Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
   labels: { why: "Why lawyers join", how: "How it works for you", what: "What the partnership is" },
   primary: "Apply as a partner lawyer",
   secondary: "See the portal",
@@ -51,7 +51,7 @@ test("lawyers landing: every split piece joins back into the hero copy", () => {
   assert.equal(LAWYERS_WHY.beats.map((b) => b.text).join(" "), COPY.why);
   LAWYERS_HOW.steps.forEach((st, i) => assert.equal(st.body ? `${st.title} ${st.body}` : st.title, COPY.how[i], `step ${i + 1}`));
   const w = LAWYERS_WHAT;
-  assert.equal(`${w.lead} US$${w.price.toFixed(2)} ${w.calls} ${w.partners} ${w.extra}`, COPY.what);
+  assert.equal(`${w.lead} ${w.free} ${w.freeDetail} ${w.members} ${w.partners} ${w.extra}`, COPY.what);
   // The beats carry the same strings.
   assert.deepEqual(beats.WHY_BEATS.map((b) => b.body), LAWYERS_WHY.beats.map((b) => b.text));
   assert.deepEqual(
@@ -64,7 +64,8 @@ test("lawyers landing: each key phrase sits once inside one phrase of its line",
   const pairs = [
     ...beats.WHY_BEATS.map((b) => [b.body, b.mark]),
     ...beats.HOW_BEATS.flatMap((b) => [[b.title, b.titleMark], [b.body, b.mark]]),
-    [LAWYERS_WHAT.calls, LAWYERS_WHAT.callsMark],
+    [LAWYERS_WHAT.free, LAWYERS_WHAT.freeMark],
+    [LAWYERS_WHAT.members, LAWYERS_WHAT.membersMark],
     [LAWYERS_WHAT.extra, LAWYERS_WHAT.extraMark],
   ].filter(([, m]) => m);
   assert.ok(pairs.length >= 8);
@@ -144,7 +145,7 @@ test("lawyers screens: one realistic screen per step, placeholder data only", ()
   const { LAWYER_SCREENS, lawyerScreenRoot, screenOverrides, screenStateAt } = screens;
   assert.equal(LAWYER_SCREENS.length, LAWYERS_HOW.steps.length);
   const expect = [
-    ["Colegio de Abogados y Abogadas de Costa Rica", "Pending: checking with the Colegio", "daniela.chaves@example.com", "Carné number"],
+    ["Colegio de Abogados y Abogadas de Costa Rica", "Pending: checking with the Colegio", "daniela.chaves@example.com", "Carné number", "28417"],
     ["Weekly hours", "Legal areas you take", "Property", "Residency", "2:00 pm"],
     ["Pre-call brief for Hiroshi Tanaka", "Today, 9:30 am · 20 min", "Can I sell the house before the S.A. books are fixed?", "Profile completeness"],
     ["Summary for the member", "Suggested: check it", "Next steps", "Confirm", "Quote in progress", "Sofía Campos · ILP customer success"],
@@ -186,6 +187,98 @@ test("lawyers screens: one realistic screen per step, placeholder data only", ()
   const vis = src("components/lawyers/LawyerVisuals.tsx");
   assert.ok((vis.match(/aria-hidden="true"/g) ?? []).length >= 4, "pictures are aria-hidden");
   assert.ok(beats.HOW_BEATS.every((b) => b.caption) && beats.WHY_BEATS.every((b) => b.caption), "every picture has a text caption");
+});
+
+/* ── Sizing of the pictures in the pinned stories (visualFit.ts) ── */
+
+const fit = await import("../src/components/lawyers/visualFit.ts");
+const VIEWPORTS = [
+  [1024, 700],
+  [1280, 720],
+  [1440, 900],
+  [1920, 1080],
+];
+const close = (a, b) => Math.abs(a - b) < 0.5;
+
+test("lawyers screens: one box for every step, inside its column and the pinned stage, at a readable scale", () => {
+  assert.equal(fit.SCREEN_SIZES.length, screens.LAWYER_SCREENS.length);
+  assert.ok(fit.MIN_SCALE >= 1, "the smallest text (12px) renders at 12px or more");
+  // Step 2 is the anchor; step 1 draws a little larger, steps 3 and 4 like step 2.
+  const [s1, s2, s3, s4] = fit.SCREEN_SIZES;
+  assert.ok(s1.w < s2.w && s1.w >= s2.w * 0.9, "step 1 slightly larger than step 2");
+  assert.deepEqual(s3, s2);
+  assert.deepEqual(s4, s2);
+  assert.equal(fit.SCREEN_BOX.span + 5, 12, "the text keeps its five columns");
+  for (const [vw, vh] of VIEWPORTS) {
+    const box = fit.screenBox(vw, vh);
+    assert.ok(box.w <= fit.spanPx(vw, fit.SCREEN_BOX.span) + 1e-9, `${vw}x${vh}: box inside its seven columns`);
+    const caption = Math.max(...beats.HOW_BEATS.map((b) => fit.captionPx(b.caption, box.w)));
+    assert.ok(caption <= fit.STAGE.captionGapPx + fit.STAGE.captionLines * fit.STAGE.captionLinePx, `${vw}x${vh}: captions fit two lines`);
+    assert.ok(box.h + caption <= fit.beatsRowPx(vh), `${vw}x${vh}: screen and caption inside the stage (${Math.round(box.h + caption)} of ${fit.beatsRowPx(vh)}px)`);
+    fit.SCREEN_SIZES.forEach((n, i) => {
+      const k = fit.fitScale(box, n);
+      assert.ok(close(n.w / n.h, fit.SCREEN_BOX.aspect * 1), `step ${i + 1}: natural size has the box's aspect`);
+      assert.ok(n.w * k <= box.w + 1e-9 && n.h * k <= box.h + 1e-9, `${vw}x${vh} step ${i + 1}: fits the box`);
+      assert.ok(k >= fit.MIN_SCALE, `${vw}x${vh} step ${i + 1}: scale ${k.toFixed(3)} >= ${fit.MIN_SCALE}`);
+      assert.ok(fit.MIN_TEXT_PX * k >= fit.MIN_RENDERED_TEXT_PX, `${vw}x${vh} step ${i + 1}: smallest text ${(fit.MIN_TEXT_PX * k).toFixed(1)}px`);
+    });
+  }
+});
+
+test("lawyers why pictures: same rule, inside five columns and the pinned stage", () => {
+  assert.equal(fit.WHY_SIZES.length, beats.WHY_BEATS.length);
+  for (const [vw, vh] of VIEWPORTS) {
+    fit.WHY_SIZES.forEach((n, i) => {
+      const box = fit.whyBox(vw, vh, n);
+      const k = fit.fitScale(box, n);
+      const caption = fit.captionPx(beats.WHY_BEATS[i].caption, box.w);
+      assert.ok(box.w <= fit.spanPx(vw, fit.WHY_BOX.span) + 1e-9, `${vw}x${vh} why ${i + 1}: inside its five columns`);
+      assert.ok(fit.whyDropPx(vh) + box.h + caption <= fit.beatsRowPx(vh), `${vw}x${vh} why ${i + 1}: inside the stage`);
+      assert.ok(k >= fit.MIN_SCALE, `${vw}x${vh} why ${i + 1}: scale ${k.toFixed(3)}`);
+    });
+  }
+});
+
+test("lawyers pictures: the CSS boxes repeat the sizing config", () => {
+  const story = src("components/lawyers/LawyersStory.module.scss");
+  const beat = src("components/motion/BeatStory.module.scss");
+  const { reserveRem, maxPx } = fit.SCREEN_BOX;
+  assert.ok(beat.includes(`width: min(100%, calc((100dvh - ${reserveRem}rem) * 4 / 3), ${maxPx}px);`), "screen box width");
+  assert.ok(story.includes("aspect-ratio: 4 / 3;"), "screen box aspect");
+  assert.ok(
+    story.includes(`width: min(100%, calc((100dvh - ${fit.WHY_BOX.reserveRem}rem - clamp(0px, 100dvh - 45rem, 4rem)) * var(--nat-w) / var(--nat-h)), ${fit.WHY_BOX.maxPx}px);`),
+    "why box width",
+  );
+  assert.ok(beat.includes("margin-top: clamp(0px, 100dvh - 45rem, 4rem);"), "why drop");
+  assert.equal(fit.whyDropPx(720), 0);
+  assert.equal(fit.whyDropPx(900), 64);
+  assert.equal(
+    fit.SCREEN_BOX.reserveRem * fit.STAGE.rootPx,
+    fit.STAGE.navPx + fit.STAGE.padTopPx + fit.STAGE.headPx + fit.STAGE.headGapPx + fit.STAGE.padBottomPx + fit.STAGE.captionGapPx + fit.STAGE.captionLines * fit.STAGE.captionLinePx + fit.STAGE.sparePx,
+    "the reserve is the stage chrome plus a two-line caption",
+  );
+  // No text under 12px in the pictures: medium pills, no definition lists, no 0.6875rem labels.
+  const json = JSON.stringify(screens.LAWYER_SCREENS.map((sc) => sc.body(false)));
+  assert.ok(!json.includes('"type":"deflist"'), "no definition lists (11px labels)");
+  for (const m of json.matchAll(/"type":"pill"[^}]*"size":"(\w+)"/g)) assert.equal(m[1], "md", "pills at the medium size");
+  assert.ok(!/0\.6875rem/.test(story), "no 11px labels in the why pictures");
+});
+
+/* ── Lawyers do not pay ─────────────────────────────────────────── */
+
+test("lawyers pages: the price is what members pay, and joining is free for lawyers", () => {
+  const w = LAWYERS_WHAT;
+  assert.ok(!("price" in w), "no big price figure on the lawyers page");
+  assert.match(w.members, /^Members pay US\$79\.99 a month/);
+  assert.match(w.free, /free for lawyers/);
+  assert.match(w.freeDetail, /does not charge you to apply or to use the lawyer portal/);
+  assert.ok(content.PARTNERSHIP.facts.some((f) => /no fee to apply and no fee to use the lawyer portal/.test(f.body)));
+  assert.ok(content.LAWYER_FAQ.some((f) => /^Do I pay anything to join\?$/.test(f.q) && /^No\. Applying is free/.test(f.a)));
+  assert.match(src("components/lawyers/ApplyIntro.tsx"), /Applying is free/);
+  // Every mention of the membership price says who pays it.
+  const all = [src("components/lawyers/content.ts"), src("components/lawyers/ApplyIntro.tsx"), src("components/lawyers/ApplyForm.tsx"), src("tutorials/public/lawyerDay.ts"), src("tutorials/public/lawyerCall.ts"), src("tutorials/public/lawyerHours.ts")].join("\n");
+  for (const line of all.split("\n").filter((l) => l.includes("79.99"))) assert.match(line, /[Mm]embers pay/, `price without its payer: ${line.trim().slice(0, 80)}`);
+  assert.ok(!src("components/lawyers/LawyersStory.tsx").includes("CountUp"), "no counting price figure");
 });
 
 test("lawyers landing: sections in order, pinned stories on the shared primitives", () => {

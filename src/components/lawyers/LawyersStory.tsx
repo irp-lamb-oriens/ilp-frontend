@@ -3,14 +3,13 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from "framer-motion";
-import CountUp from "@/components/motion/CountUp";
 import { BeatStory } from "@/components/motion/BeatStory";
-import { Eyebrow, Mark, RevealText, Stage, StageItem, useStoryLayout } from "@/components/motion/Story";
+import { Eyebrow, RevealText, Stage, StageItem, useStoryLayout } from "@/components/motion/Story";
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 import { track } from "@/lib/journey";
 import { APPLY_HREF, LAWYER_BANDS, LAWYERS_HERO, LAWYERS_INTRO, LAWYERS_WHAT, SIGN_IN_HREF } from "./content";
 import { HOW_BEATS, HOW_RANGES, HOW_SLOTS, HOW_TRACK_VH, WHY_BEATS, WHY_RANGES, WHY_SLOTS, WHY_TRACK_VH } from "./lawyersBeats";
-import { HoursVisual, MemberVisual, MembersVisual, StepScreen } from "./LawyerVisuals";
+import { StepScreen, WhyVisual } from "./LawyerVisuals";
 import s from "./LawyersStory.module.scss";
 
 /**
@@ -22,8 +21,8 @@ import s from "./LawyersStory.module.scss";
  *      are, the unpaid hours, what ILP members do), each with a picture.
  *   3. HowItWorksForYou: a pinned story of the four steps, each with an
  *      example lawyer-portal screen that plays its own short timeline.
- *   4. PartnershipClose: the membership facts in order of weight, then the
- *      calls to action again.
+ *   4. PartnershipClose: that joining is free for lawyers in large type,
+ *      then what members pay and the other facts, then the calls to action.
  *
  * The pinned stories use BeatStory (motion/BeatStory.tsx): one beat on stage
  * at a time, an empty gap between two, text and picture changing sides.
@@ -110,8 +109,6 @@ export function LawyersHero() {
 
 /* ── 2. Why lawyers join ─────────────────────────────────────── */
 
-const WHY_VISUALS = [MembersVisual, HoursVisual, MemberVisual];
-
 export function WhyLawyersJoin() {
   return (
     <BeatStory
@@ -123,10 +120,7 @@ export function WhyLawyersJoin() {
       trackVh={WHY_TRACK_VH}
       statement
       tone="canvas"
-      visual={(i, t) => {
-        const V = WHY_VISUALS[i];
-        return <V t={t} />;
-      }}
+      visual={(i, t, layout) => <WhyVisual index={i} t={t} layout={layout} />}
     />
   );
 }
@@ -151,8 +145,6 @@ export function HowItWorksForYou() {
 
 /* ── 4. What the partnership is ──────────────────────────────── */
 
-const formatPrice = (v: number) => `US$${v.toFixed(2)}`;
-
 export function PartnershipClose() {
   const w = LAWYERS_WHAT;
   return (
@@ -163,15 +155,14 @@ export function PartnershipClose() {
         </StageItem>
         <RevealText text={w.lead} bare className={s.whatLead} />
         <div className={s.whatGrid}>
-          <StageItem level="visual" className={s.priceBlock}>
-            <p className={s.price}>
-              <Mark className={s.priceMark}>
-                <CountUp value={w.price} formatter={formatPrice} duration={0.9} className={s.priceFigure} />
-              </Mark>
-            </p>
-            <RevealText text={w.calls} mark={w.callsMark} bare className={s.calls} />
+          <StageItem level="visual" className={s.freeBlock}>
+            <RevealText text={w.free} mark={w.freeMark} bare className={s.free} />
+            <RevealText text={w.freeDetail} bare className={s.freeDetail} />
           </StageItem>
           <div className={s.whatLines}>
+            <StageItem level="body" className={s.whatLine}>
+              <RevealText text={w.members} mark={w.membersMark} bare className={s.whatText} />
+            </StageItem>
             <StageItem level="body" className={s.whatLine}>
               <RevealText text={w.partners} bare className={s.whatText} />
             </StageItem>

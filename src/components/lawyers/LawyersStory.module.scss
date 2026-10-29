@@ -174,7 +174,7 @@ $nav: 64px;
   display: flex;
   flex-direction: column;
   gap: $space-1;
-  max-width: 34ch;
+  max-width: 40ch;
   padding: $space-3 $space-4;
   border: 1px solid $color-hairline;
   border-radius: $radius-md;
@@ -187,7 +187,7 @@ $nav: 64px;
 
 .qMeta {
   font-family: $font-mono;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: $color-steel;
@@ -213,7 +213,7 @@ $nav: 64px;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: $space-1 $space-4;
   align-items: baseline;
-  padding-block: $space-3;
+  padding-block: $space-2;
   border-bottom: 1px solid $color-hairline;
 }
 
@@ -248,7 +248,7 @@ $nav: 64px;
 .ledgerTag {
   justify-self: end;
   font-family: $font-mono;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: $notice-warning;
@@ -287,10 +287,6 @@ $nav: 64px;
   grid-template-columns: auto minmax(0, 1fr);
   gap: $space-2 $space-3;
   align-items: center;
-
-  @include md {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
 }
 
 .avatar {
@@ -332,10 +328,6 @@ $nav: 64px;
   font-size: 0.75rem;
   font-weight: 600;
   color: $color-navy;
-
-  @include md {
-    grid-column: auto;
-  }
 }
 
 .memberBlock {
@@ -355,7 +347,7 @@ $nav: 64px;
 
 .blockLabel {
   font-family: $font-mono;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: $color-steel;
@@ -385,19 +377,54 @@ $nav: 64px;
   transform-origin: left center;
 }
 
-/* ── Example screens ─────────────────────────── */
-.screen {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  min-width: 0;
+/* ── Fitted pictures (visualFit.ts) ─────────── */
+// A picture laid out at its natural size (--nat-w x --nat-h) and scaled by
+// --fit-k (set in LawyerVisuals.tsx) to fill its box. The box numbers repeat
+// SCREEN_BOX and WHY_BOX in visualFit.ts; the test checks they match.
+.fit {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--nat-w) / var(--nat-h);
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
-.screenLabel {
-  font-family: $font-mono;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  color: $color-steel;
+// Example screens: every step in the same 4:3 box, anchored on step 2.
+// Its width comes from the beat's visual column (BeatStory.module.scss).
+.fitScreen {
+  aspect-ratio: 4 / 3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+  box-shadow: $shadow-card;
+}
+
+// "Why" pictures: their own aspect, at most the height left under the head
+// and the top margin, and 440px wide.
+.fitWhy {
+  width: min(100%, calc((100dvh - 20rem - clamp(0px, 100dvh - 45rem, 4rem)) * var(--nat-w) / var(--nat-h)), 440px);
+}
+
+.fitStage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  transform: scale(var(--fit-k, 1));
+  transform-origin: 0 0;
+}
+
+// An example screen's page: the mock frame's type, on white.
+.screenPage {
+  flex: 1;
+  padding: $space-4;
+  background: $color-canvas;
+  font-family: $font-sans;
+  font-size: 13px;
+  line-height: 1.45;
+  color: $color-charcoal;
 }
 
 /* ── What the partnership is ─────────────────── */
@@ -447,32 +474,26 @@ $nav: 64px;
   }
 }
 
-.priceBlock {
+.freeBlock {
   display: flex;
   flex-direction: column;
   gap: $space-4;
 }
 
-.price {
+// What it costs a lawyer to join: the largest line in the section.
+.free {
   margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
   color: $color-navy;
 }
 
-.priceMark {
-  font-weight: inherit;
-}
-
-.priceFigure {
-  font-size: clamp(3.25rem, 11vw, 8rem);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 0.95;
-  font-variant-numeric: tabular-nums;
-}
-
-.calls {
+.freeDetail {
   margin: 0;
-  max-width: 40ch;
+  max-width: 36ch;
   font-size: clamp(1.125rem, 2vw, 1.5rem);
   line-height: 1.4;
   color: $color-navy;

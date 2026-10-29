@@ -18,7 +18,7 @@ export const LAWYERS_HERO = {
     "Before each 20-minute video call, read a one-screen brief with the member's question and profile.",
     "After the call, confirm the suggested summary and next steps. ILP follows up with the member, including quotes for paid work.",
   ],
-  what: "ILP is a legal membership for North Americans in six countries: US$79.99 a month, with up to three 20-minute video calls a month with a lawyer licensed in the member's country. Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal. Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
+  what: "ILP is a legal membership for North Americans in six countries. Joining is free for lawyers. ILP does not charge you to apply or to use the lawyer portal. Members pay US$79.99 a month for up to three 20-minute video calls a month with a lawyer licensed in their country. Partner lawyers are independent lawyers who take those calls through the portal. Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
   labels: { why: "Why lawyers join", how: "How it works for you", what: "What the partnership is" },
   primary: "Apply as a partner lawyer",
   secondary: "See the portal",
@@ -108,13 +108,19 @@ export const LAWYERS_HOW = {
   ],
 };
 
-/** LAWYERS_HERO.what as the closing statement: lead, price, then the three facts. */
+/**
+ * LAWYERS_HERO.what as the closing statement: the lead, then what it costs a
+ * lawyer (nothing) in large type, then what members pay and the other facts
+ * at body size, so the price never reads as the lawyer's fee.
+ */
 export const LAWYERS_WHAT = {
-  lead: "ILP is a legal membership for North Americans in six countries:",
-  price: 79.99,
-  calls: "a month, with up to three 20-minute video calls a month with a lawyer licensed in the member's country.",
-  callsMark: "up to three 20-minute video calls",
-  partners: "Partner lawyers are independent lawyers who take those calls through the ILP lawyer portal.",
+  lead: "ILP is a legal membership for North Americans in six countries.",
+  free: "Joining is free for lawyers.",
+  freeMark: "free for lawyers",
+  freeDetail: "ILP does not charge you to apply or to use the lawyer portal.",
+  members: "Members pay US$79.99 a month for up to three 20-minute video calls a month with a lawyer licensed in their country.",
+  membersMark: "Members pay US$79.99 a month",
+  partners: "Partner lawyers are independent lawyers who take those calls through the portal.",
   extra: "Work beyond a call, like a filing or a transfer, is quoted separately and the member decides.",
   extraMark: "the member decides",
 };
@@ -138,7 +144,7 @@ export const LAWYER_BANDS = {
     id: "public.lawyer-hours",
     anchor: "hours-and-fees",
     title: "Your hours and your fees",
-    lead: "You choose when members can book you and which areas you take. Finance shows your own fees for paid work.",
+    lead: "You choose when members can book you and which areas you take. Finance shows the fees paid to you for quoted work.",
     caption: "Weekly hours, notice, legal areas and the Finance page. The figures are an example.",
   },
 } as const;
@@ -153,6 +159,7 @@ export const PARTNERSHIP = {
   why: "Read this before you apply. The partner terms are a draft, and ILP's counsel is still reviewing them.",
   facts: [
     { term: "You stay independent", body: "You keep your own practice and your professional duties. ILP does not direct your legal judgment." },
+    { term: "Free to join", body: "There is no fee to apply and no fee to use the lawyer portal. The US$79.99 a month is what members pay for their membership." },
     { term: "Member calls", body: "Members book 20-minute video calls inside your hours. Their membership includes up to three calls a month." },
     { term: "Paid work", body: "If a member needs more than a call, you set the scope and your fee in a quote. The member accepts before work starts." },
     { term: "How you are paid", body: "How fees for calls and for quoted work are set, split and paid is in the partner terms. That part is pending review by ILP's counsel." },
@@ -167,6 +174,10 @@ export const LAWYER_FAQ = [
   {
     q: "Do I have to stop working with my own clients?",
     a: "No. ILP calls fit inside the hours you set, and you keep your practice.",
+  },
+  {
+    q: "Do I pay anything to join?",
+    a: "No. Applying is free, and so is using the lawyer portal. The US$79.99 a month on this page is what members pay ILP for their membership.",
   },
   {
     q: "What happens after I apply?",
