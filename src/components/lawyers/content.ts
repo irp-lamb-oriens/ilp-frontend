@@ -48,7 +48,7 @@ export const LAWYERS_WHY = {
       eyebrow: "Who the members are",
       rail: "The members",
       text: "Many North Americans live in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or own property there, and they have legal questions about residency, property, companies and cars.",
-      mark: "residency, property, companies and cars",
+      mark: "legal questions",
       caption: "Example member questions, one per country.",
     },
     {
