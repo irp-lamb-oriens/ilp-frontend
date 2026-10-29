@@ -24,6 +24,8 @@ import { MembershipPanel } from "./MembershipPanel";
 import { JoinAnswers } from "./JoinAnswers";
 import { NextActions } from "./NextActions";
 import MemberSkeleton from "./MemberSkeleton";
+import { CsmMemberPanel } from "../../csm/CsmMemberPanel"; // COMMS-P3
+import { CSM_INTROS } from "../../csm/intros"; // COMMS-P3
 import s from "./member.module.scss";
 
 const SECTION_LABEL: Record<ProfileSection, string> = {
@@ -62,7 +64,10 @@ function show(v: unknown): string {
 }
 
 /** Full-page member record: profile left, one timeline centre, next actions right. */
-export default function MemberPage({ clientId }: { clientId: string }) {
+export default function MemberPage({ clientId, portal = "staff" }: { clientId: string; portal?: "staff" | "csm" }) {
+  // COMMS-P3: the CSM portal reuses this page; links and the intro follow the portal.
+  const listHref = portal === "csm" ? "/csm/book" : "/dashboard/members";
+  const listLabel = portal === "csm" ? "My book" : "All members";
   const [bundle, setBundle] = useState<MemberBundle | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Timeline: newest first, a page at a time, filtered and searched on the server.
@@ -139,7 +144,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
   if (error) {
     return (
       <>
-        <PageHeader title="Member" actions={<ButtonLink href="/dashboard/members" variant="secondary">All members</ButtonLink>} />
+        <PageHeader title="Member" actions={<ButtonLink href={listHref} variant="secondary">{listLabel}</ButtonLink>} />
         <StaggerItem>
           <ErrorText>{error}</ErrorText>
         </StaggerItem>
@@ -160,7 +165,7 @@ export default function MemberPage({ clientId }: { clientId: string }) {
   const ready = bundle.completeness.consultationReady;
   return (
     <Stagger>
-      <ScreenIntro intro={STAFF_INTROS.member} title={name} storageKey="/dashboard/members/[id]" />
+      <ScreenIntro intro={portal === "csm" ? CSM_INTROS.member : STAFF_INTROS.member} title={name} storageKey={portal === "csm" ? "/csm/book/[id]" : "/dashboard/members/[id]"} />
       <IntroTitleContext.Provider value={true}>
         <PageHeader
           sub={[String(bundle.client?.email ?? ""), String(bundle.client?.persona ?? "")].filter(Boolean).join(" · ") || undefined}
@@ -169,8 +174,8 @@ export default function MemberPage({ clientId }: { clientId: string }) {
             <>
               {bundle.client?.placeholder === true && <StatusPill label="Placeholder" tone="warning" />}
               {bundle.client?.accountType === "free" && <StatusPill label="Free account" tone="info" />}
-              <ButtonLink href="/dashboard/members" variant="secondary">
-                All members
+              <ButtonLink href={listHref} variant="secondary">
+                {listLabel}
               </ButtonLink>
             </>
           }
@@ -277,6 +282,9 @@ export default function MemberPage({ clientId }: { clientId: string }) {
         </div>
 
         <div className={s.col}>
+          <StaggerItem index={0}>
+            <CsmMemberPanel clientId={clientId} openTasks={openTasks} onChanged={load} />
+          </StaggerItem>
           <StaggerItem index={1}>
             <NextActions
               bundle={bundle}

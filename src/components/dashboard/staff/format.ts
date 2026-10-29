@@ -81,3 +81,9 @@ export function memberName(client: Record<string, unknown> | null | undefined, f
   const p = (client.clientFields as Record<string, unknown> | undefined) ?? {};
   return n || (typeof p.fullName === "string" ? p.fullName : "") || (typeof client.email === "string" ? client.email : "") || fallback;
 }
+
+/** COMMS-P3: a member's page in the portal being used (/csm/book/<id> on the CSM portal, else /dashboard/members/<id>). */
+export function memberHref(clientId: string): string {
+  const csm = typeof window !== "undefined" && (window.location.pathname === "/csm" || window.location.pathname.startsWith("/csm/"));
+  return `${csm ? "/csm/book" : "/dashboard/members"}/${encodeURIComponent(clientId)}`;
+}

@@ -16,12 +16,14 @@ const ENDPOINTS: Record<PortalRole, string> = {
   staff: "/api/dashboard/auth",
   lawyer: "/api/provider/auth",
   client: "/api/client-status/auth",
+  csm: "/api/dashboard/auth",
 };
 
 const COPY: Record<PortalRole, { title: string; sub: string }> = {
   staff: { title: "ILP staff sign in", sub: "Enter your ILP work email to receive a sign-in code." },
   lawyer: { title: "Lawyer sign in", sub: "Enter the email ILP has on file for you to receive a sign-in code." },
   client: { title: "Sign in to ILP", sub: "Enter your email to receive a secure sign-in code." },
+  csm: { title: "Customer success sign in", sub: "Enter your ILP work email to receive a sign-in code." },
 };
 
 export interface PortalLoginResult {
@@ -154,7 +156,7 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
       onSuccess({
         email: clean,
         projectId: role === "client" ? emailToProjectId(clean) : undefined,
-        staffRole: role === "staff" ? res?.role : undefined,
+        staffRole: role === "staff" || role === "csm" ? res?.role : undefined,
       });
     } catch (err) {
       setError(describe(err, "code"));

@@ -17,7 +17,7 @@ import {
   IconNavTag,
   IconNavToday,
 } from "@/components/shell/navIcons";
-import { ApiError, getRoleToken, staffApi } from "@/lib/api";
+import { ApiError, getRoleToken, setRoleToken, staffApi } from "@/lib/api";
 import { Button, Notice, SkeletonRegion, useSkeleton } from "@/components/ui";
 import StaffRouteSkeleton from "./StaffRouteSkeleton";
 import type { StaffRole } from "./types";
@@ -31,6 +31,9 @@ export interface StaffSession {
 }
 
 const Ctx = createContext<StaffSession | null>(null);
+
+/** COMMS-P3: the CSM portal provides the same session so the reused member page works there. */
+export const StaffSessionProvider = Ctx.Provider;
 
 /** The signed-in staff member. Only valid inside /dashboard (StaffFrame). */
 export function useStaff(): StaffSession {
@@ -66,6 +69,13 @@ function normalizeRole(v: unknown): StaffRole {
   return v === "csm" || v === "admin" ? v : "staff";
 }
 
+/** COMMS-P3: a CSM who opens /dashboard goes to the CSM portal with the same session. */
+function toCsmPortal(): void {
+  const token = getRoleToken("staff");
+  if (token) setRoleToken("csm", token);
+  window.location.replace("/csm");
+}
+
 function safeNext(): string | null {
   if (typeof window === "undefined") return null;
   const next = new URLSearchParams(window.location.search).get("next");
@@ -92,6 +102,11 @@ export function StaffFrame({ children }: { children: ReactNode }) {
     try {
       const r = await staffApi.get<{ email: string; role?: string }>("/api/dashboard/auth/check", { on401: "throw" });
       const role = normalizeRole(r.role);
+      // COMMS-P3: CSMs work in their own portal. Carry the session over and open /csm.
+      if (role === "csm") {
+        toCsmPortal();
+        return;
+      }
       setSession({ email: r.email, role, isAdmin: role === "admin" });
       setState("ready");
     } catch (e) {
@@ -179,6 +194,10 @@ export function StaffFrame({ children }: { children: ReactNode }) {
         sub="Enter your ILP team email to get a sign-in code."
         onSuccess={(r) => {
           const role = normalizeRole(r.staffRole);
+          if (role === "csm") {
+            toCsmPortal();
+            return;
+          }
           setSession({ email: r.email, role, isAdmin: role === "admin" });
           setState("ready");
           const next = safeNext();

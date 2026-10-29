@@ -32,7 +32,7 @@ export class ApiError extends Error {
   }
 }
 
-export type ApiRole = "staff" | "lawyer" | "client" | "customer";
+export type ApiRole = "staff" | "lawyer" | "client" | "customer" | "csm";
 
 interface RoleConfig {
   /** Where a 401 sends the user. */
@@ -67,7 +67,31 @@ export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
   customer: {
     loginPath: "/",
   },
+  // COMMS-P3: the CSM portal signs in with the staff email code (same server
+  // session kind, role from CSM_EMAILS) but keeps its own token and login page.
+  csm: {
+    loginPath: "/csm",
+    tokenKey: "ilp_csm_token",
+    logoutPath: "/api/dashboard/auth/logout",
+    logoutAllPath: "/api/dashboard/auth/logout-all",
+  },
 };
+
+/** True on a /csm page (the CSM portal). */
+export function onCsmPortal(): boolean {
+  if (typeof window === "undefined") return false;
+  const p = window.location.pathname;
+  return p === "/csm" || p.startsWith("/csm/");
+}
+
+/**
+ * COMMS-P3: on the CSM portal the staff client (staffApi, used by the member
+ * page and task drawer the portal reuses) sends the CSM session, and a 401
+ * there leads back to /csm. Everywhere else a role is itself.
+ */
+export function resolveRole(role: ApiRole): ApiRole {
+  return role === "staff" && onCsmPortal() ? "csm" : role;
+}
 
 // ── Session tokens (one per role) ───────────────────────────────────────────
 
@@ -75,7 +99,8 @@ export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
 const memoryTokens: Partial<Record<ApiRole, string>> = {};
 
 /** The stored session token for a role, or null. Never throws. */
-export function getRoleToken(role: ApiRole): string | null {
+export function getRoleToken(asked: ApiRole): string | null {
+  const role = resolveRole(asked);
   const key = ROLE_CONFIG[role].tokenKey;
   if (!key) return null;
   if (typeof window !== "undefined") {
@@ -103,7 +128,8 @@ export function setRoleToken(role: ApiRole, token: string): void {
 }
 
 /** Forget a role's token (logout, 401). Never throws. */
-export function clearRoleToken(role: ApiRole): void {
+export function clearRoleToken(asked: ApiRole): void {
+  const role = resolveRole(asked);
   const key = ROLE_CONFIG[role].tokenKey;
   delete memoryTokens[role];
   if (!key || typeof window === "undefined") return;
@@ -240,7 +266,7 @@ export function createApiClient(role: ApiRole): ApiClient {
       if (res.status === 401 && !isAuthPath(path)) {
         // The token is missing, expired or ended elsewhere: forget it.
         if (token && getRoleToken(role) === token) clearRoleToken(role);
-        if (on401 === "redirect") redirectToLogin(cfg.loginPath);
+        if (on401 === "redirect") redirectToLogin(ROLE_CONFIG[resolveRole(role)].loginPath);
       }
       throw new ApiError(message, res.status, data);
     }
@@ -274,8 +300,9 @@ export function createApiClient(role: ApiRole): ApiClient {
 
     async logout() {
       try {
-        if (cfg.logoutPath && getRoleToken(role)) {
-          await client.request(cfg.logoutPath, { method: "POST", on401: "throw" });
+        const logoutPath = ROLE_CONFIG[resolveRole(role)].logoutPath;
+        if (logoutPath && getRoleToken(role)) {
+          await client.request(logoutPath, { method: "POST", on401: "throw" });
         }
       } catch {
         // already signed out or offline
@@ -285,8 +312,9 @@ export function createApiClient(role: ApiRole): ApiClient {
     },
 
     async logoutAll() {
-      if (!cfg.logoutAllPath) return { ended: 0 };
-      const res = await client.request<{ ended?: number }>(cfg.logoutAllPath, { method: "POST", on401: "throw" });
+      const logoutAllPath = ROLE_CONFIG[resolveRole(role)].logoutAllPath;
+      if (!logoutAllPath) return { ended: 0 };
+      const res = await client.request<{ ended?: number }>(logoutAllPath, { method: "POST", on401: "throw" });
       clearRoleToken(role);
       return { ended: Number(res?.ended ?? 0) };
     },
@@ -331,6 +359,8 @@ export async function ticketUrl(role: ApiRole, path: string): Promise<string> {
 }
 
 export const staffApi = createApiClient("staff");
+/** COMMS-P3: the CSM portal's own client (the CSM token on every page). */
+export const csmApi = createApiClient("csm");
 export const customerApi = createApiClient("customer");
 
 /**

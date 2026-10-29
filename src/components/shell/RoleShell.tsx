@@ -42,6 +42,8 @@ export interface RoleShellProps {
   showCountry?: boolean;
   /** Override the brand link target. */
   homeHref?: string;
+  /** Override the role name beside the brand (e.g. "Customer success" on /csm). */
+  roleLabel?: string;
   /** Render inside a frame (the /ui gallery) instead of the full viewport. */
   embedded?: boolean;
   children: ReactNode;
@@ -81,6 +83,7 @@ export function RoleShell({
   onCountryChange,
   showCountry = true,
   homeHref,
+  roleLabel: roleLabelOverride,
   embedded = false,
   children,
 }: RoleShellProps) {
@@ -130,7 +133,7 @@ export function RoleShell({
   const bottomItems = overflow ? items.slice(0, BOTTOM_MAX - 1) : items;
   const moreItems = overflow ? items.slice(BOTTOM_MAX - 1) : [];
   const moreActive = moreItems.some((i) => isActive(pathname, i));
-  const roleLabel = ROLE_LABEL[role];
+  const roleLabel = roleLabelOverride ?? ROLE_LABEL[role];
   const home = homeHref ?? items[0]?.href ?? "/";
 
   return (

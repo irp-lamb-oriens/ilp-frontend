@@ -7,7 +7,7 @@ import type { CsmTask } from "@/lib/contracts";
 import { Drawer, Loadable, ProgressBar, StatusPill } from "@/components/ui";
 import { ErrorText } from "../staff/PageHeader";
 import { MemberGlanceSkeleton } from "../member/MemberSkeleton";
-import { dueLabel, memberName, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
+import { dueLabel, memberHref, memberName, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import { isLawyerApplicationTask, isLawyerTask, lawyerTaskLabel, type MemberBundle, type QueueTask } from "../staff/types";
 import { CloseTaskForm } from "../member/CloseTaskForm";
 import { HandoffReview } from "../member/HandoffReview";
@@ -84,7 +84,7 @@ export function TaskDrawer({
                 Open lawyers
               </Link>
             ) : (
-              <Link className={s.linkBtn} href={`/dashboard/members/${encodeURIComponent(task.clientId)}`}>
+              <Link className={s.linkBtn} href={memberHref(task.clientId)}>
                 Open member page
               </Link>
             )}

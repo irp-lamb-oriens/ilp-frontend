@@ -67,6 +67,7 @@ const SESSION_CHECK: Record<PortalRole, string> = {
   staff: "/api/dashboard/auth/check",
   lawyer: "/api/provider/auth/check",
   client: "/api/client-status/auth/check",
+  csm: "/api/dashboard/auth/check",
 };
 
 /** True when the server accepts this browser's stored token for the role. */

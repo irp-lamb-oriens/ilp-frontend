@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { staffApi } from "@/lib/api";
+import { onCsmPortal, staffApi } from "@/lib/api";
 import type { CsmTask } from "@/lib/contracts";
 import { Button, TextArea, useUnsavedChanges } from "@/components/ui";
 import s from "./member.module.scss";
@@ -22,7 +22,9 @@ export function CloseTaskForm({ task, onClosed }: { task: CsmTask; onClosed: (t:
     setBusy(true);
     setError(null);
     try {
-      const t = await staffApi.post<CsmTask>(`/api/staff/csm-tasks/${encodeURIComponent(task.id)}/close`, { outcome: outcome.trim() });
+      // COMMS-P3: on the CSM portal the scoped CSM route closes it (another CSM's task is refused).
+      const path = onCsmPortal() ? `/api/csm/tasks/${encodeURIComponent(task.id)}/close` : `/api/staff/csm-tasks/${encodeURIComponent(task.id)}/close`;
+      const t = await staffApi.post<CsmTask>(path, { outcome: outcome.trim() });
       onClosed(t ?? { ...task, status: "done", outcome: outcome.trim() });
     } catch (err) {
       setError(err instanceof Error ? err.message : "The task could not be closed.");
