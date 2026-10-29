@@ -28,9 +28,10 @@ const useIn = (t: MotionValue<number>, w: Window) => useTransform(t, (v) => ease
  * (visualFit.ts): k = min(boxW / naturalW, boxH / contentH), where contentH
  * is the natural height, or the measured height if the content came out
  * taller. The box is sized in CSS, so every picture of a story gets the same
- * one; nothing inside can spill over the text beside it.
+ * one; nothing inside can spill over the text beside it. Shared with the
+ * customer success landing (customerSuccess/CsmVisuals.tsx).
  */
-function FitFrame({ natural, kind, children }: { natural: Size; kind: "screen" | "why"; children: ReactNode }) {
+export function FitFrame({ natural, kind, children }: { natural: Size; kind: "screen" | "why"; children: ReactNode }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

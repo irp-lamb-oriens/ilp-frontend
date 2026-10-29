@@ -1,0 +1,98 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// The parts of /customer-success that /attorneys does not have: the member
+// rows, the follow-up gaps and the first-month checklist beside "Why the
+// role matters". Everything else uses LawyersStory.module.scss and
+// lawyers.module.scss, so both landings look the same. One accent,
+// hairlines, flat surfaces (rules.md). Motion is transform and opacity only.
+
+/* ── Why 1: members ──────────────────────────── */
+.members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.memberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.memberMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.memberName {
+  font-weight: 700;
+  color: $color-navy;
+}
+
+.callsPill {
+  flex: none;
+  padding: $space-1 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-navy;
+}
+
+/* ── Why 2: gaps with no owner ───────────────── */
+.gapRow {
+  align-items: center;
+}
+
+/* ── Why 3: the first month with a CSM ───────── */
+.loop {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid $color-hairline;
+}
+
+.loopStep {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: $space-3;
+  align-items: center;
+  padding-block: $space-1;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid $color-hairline-strong;
+  border-radius: $radius-pill;
+  color: $color-success;
+}
+
+.loopLabel {
+  font-size: 0.9rem;
+  color: $color-navy;
+}
+
+.loopDetail {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  color: $color-steel;
+  font-variant-numeric: tabular-nums;
+}
