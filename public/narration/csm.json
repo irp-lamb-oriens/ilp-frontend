@@ -1,0 +1,37 @@
+{
+  "language": "en",
+  "duration": 34.0,
+  "source": "Segment start times from the owner's Whisper run (2026-10-29); text is the English script for each segment.",
+  "segments": [
+    {
+      "id": 0,
+      "start": 0.0,
+      "end": 8.0,
+      "text": " A customer success manager makes sure every lawyer call ends with a next step the member acts on."
+    },
+    {
+      "id": 1,
+      "start": 8.0,
+      "end": 16.0,
+      "text": " Lawyer calls work when the member arrives prepared and someone follows through afterwards, and at ILP that someone is you."
+    },
+    {
+      "id": 2,
+      "start": 16.0,
+      "end": 22.0,
+      "text": " Each morning the portal puts the members who need you most at the top, with a playbook for each situation."
+    },
+    {
+      "id": 3,
+      "start": 22.0,
+      "end": 27.0,
+      "text": " You own the relationship with each member, and the lawyer keeps the legal advice."
+    },
+    {
+      "id": 4,
+      "start": 27.0,
+      "end": 34.0,
+      "text": " There is no online application yet. Write to the ILP team about your client experience and the languages you speak."
+    }
+  ]
+}

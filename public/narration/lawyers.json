@@ -1,0 +1,37 @@
+{
+  "language": "en",
+  "duration": 31.0,
+  "source": "Segment start times from the owner's Whisper run (2026-10-29); text is the English script for each segment.",
+  "segments": [
+    {
+      "id": 0,
+      "start": 0.0,
+      "end": 5.0,
+      "text": " ILP brings you prepared clients and handles the follow-up after each call."
+    },
+    {
+      "id": 1,
+      "start": 5.0,
+      "end": 12.0,
+      "text": " Members arrive with their question written down, and our team does the booking and chasing you would otherwise do unpaid."
+    },
+    {
+      "id": 2,
+      "start": 12.0,
+      "end": 19.0,
+      "text": " You set your hours and read a one-screen brief before each call. Afterwards you confirm the summary, and we take it from there."
+    },
+    {
+      "id": 3,
+      "start": 19.0,
+      "end": 26.0,
+      "text": " Joining is free and you keep your own practice. Work beyond a call is quoted by you and accepted by the member."
+    },
+    {
+      "id": 4,
+      "start": 26.0,
+      "end": 31.0,
+      "text": " The application has seven short steps, and you can save a draft and finish it later."
+    }
+  ]
+}
