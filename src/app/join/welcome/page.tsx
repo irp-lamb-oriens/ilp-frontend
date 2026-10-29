@@ -38,7 +38,7 @@ export default function WelcomePage() {
         // role (sent as Authorization: Bearer). loginRequired = existing
         // client, sign in by code.
         if (res.token && res.projectId && !res.loginRequired) {
-          setRoleToken("client", res.token);
+          setRoleToken("client", res.token, res.expiresAt);
           router.push(`/status/${encodeURIComponent(res.projectId)}?welcome=1`);
           return;
         }

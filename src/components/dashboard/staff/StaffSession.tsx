@@ -17,7 +17,7 @@ import {
   IconNavTag,
   IconNavToday,
 } from "@/components/shell/navIcons";
-import { ApiError, getRoleToken, setRoleToken, staffApi } from "@/lib/api";
+import { ApiError, clearRoleToken, staffApi } from "@/lib/api";
 import { Button, Notice, SkeletonRegion, useSkeleton } from "@/components/ui";
 import StaffRouteSkeleton from "./StaffRouteSkeleton";
 import type { StaffRole } from "./types";
@@ -69,10 +69,13 @@ function normalizeRole(v: unknown): StaffRole {
   return v === "csm" || v === "admin" ? v : "staff";
 }
 
-/** COMMS-P3: a CSM who opens /dashboard goes to the CSM portal with the same session. */
+/**
+ * COMMS-P3: a CSM who opens /dashboard goes to the CSM portal with the same
+ * session: /csm falls back to the staff token (ROLE_CONFIG.csm.fallbackRoles),
+ * so an older CSM token is dropped to let the fresh staff session through.
+ */
 function toCsmPortal(): void {
-  const token = getRoleToken("staff");
-  if (token) setRoleToken("csm", token);
+  clearRoleToken("csm");
   window.location.replace("/csm");
 }
 
@@ -99,23 +102,25 @@ export function StaffFrame({ children }: { children: ReactNode }) {
   const boot = useSkeleton(state === "loading" && hasToken);
 
   const check = useCallback(async () => {
-    try {
-      const r = await staffApi.get<{ email: string; role?: string }>("/api/dashboard/auth/check", { on401: "throw" });
-      const role = normalizeRole(r.role);
-      // COMMS-P3: CSMs work in their own portal. Carry the session over and open /csm.
-      if (role === "csm") {
-        toCsmPortal();
-        return;
-      }
-      setSession({ email: r.email, role, isAdmin: role === "admin" });
-      setState("ready");
-    } catch (e) {
-      setState(e instanceof ApiError && (e.status === 401 || e.status === 403) ? "login" : "error");
+    // AUTH: no token, no request (lib/api.ts); 401 and 403 show the login.
+    const res = await staffApi.session<{ email: string; role?: string }>("/api/dashboard/auth/check");
+    if (res.state !== "ready" || !res.me) {
+      setState(res.state === "error" ? "error" : "login");
+      return;
     }
+    const r = res.me;
+    const role = normalizeRole(r.role);
+    // COMMS-P3: CSMs work in their own portal. Carry the session over and open /csm.
+    if (role === "csm") {
+      toCsmPortal();
+      return;
+    }
+    setSession({ email: r.email, role, isAdmin: role === "admin" });
+    setState("ready");
   }, []);
 
   useEffect(() => {
-    setHasToken(!!getRoleToken("staff"));
+    setHasToken(staffApi.hasSession());
     check();
   }, [check]);
 

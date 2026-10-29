@@ -6,9 +6,9 @@ import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
 import type { MenuLink, NavItem } from "@/components/shell";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { Button, SkeletonRegion, useSkeleton, Notice } from "@/components/ui";
-import { ApiError, getRoleToken } from "@/lib/api";
+import { checkSession, hasRoleSession } from "@/lib/api";
 import { projectIdToEmail } from "@/lib/status";
-import { isFreeAccount, memberApi, type MemberHome } from "./api";
+import { isFreeAccount, MEMBER_MOCKS, memberApi, type MemberHome } from "./api";
 import { loadPendingDeadlines, type PendingDeadlines } from "@/lib/deadlines";
 import { MemberContext } from "./MemberContext";
 import MatterSwitcher from "./MatterSwitcher";
@@ -65,25 +65,26 @@ export default function StatusApp({ children }: { children: ReactNode }) {
   const boot = useSkeleton(phase === "loading" && hasToken);
 
   const load = useCallback(async () => {
-    try {
-      const h = await memberApi.home();
-      // Times on every member page follow the member's own time zone.
-      setDisplayTimeZone(h.profile?.timezone);
-      setHome(h);
-      setPhase("ready");
-      setMatterIdState((cur) => {
-        const want = cur ?? readMatter();
-        if (want && h.matters.some((m) => m.id === want)) return want;
-        return h.matters.find((m) => !m.closedAt)?.id ?? h.matters[0]?.id ?? null;
-      });
-    } catch (err) {
-      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) setPhase("signedOut");
-      else setPhase("error");
+    // AUTH: no member token, no /home call (demo mocks need none); 401 and 403 sign out.
+    const res = await checkSession("client", () => memberApi.home(), { requireToken: !MEMBER_MOCKS });
+    if (res.state !== "ready" || !res.me) {
+      setPhase(res.state === "error" ? "error" : "signedOut");
+      return;
     }
+    const h = res.me;
+    // Times on every member page follow the member's own time zone.
+    setDisplayTimeZone(h.profile?.timezone);
+    setHome(h);
+    setPhase("ready");
+    setMatterIdState((cur) => {
+      const want = cur ?? readMatter();
+      if (want && h.matters.some((m) => m.id === want)) return want;
+      return h.matters.find((m) => !m.closedAt)?.id ?? h.matters[0]?.id ?? null;
+    });
   }, []);
 
   useEffect(() => {
-    setHasToken(!!getRoleToken("client"));
+    setHasToken(hasRoleSession("client"));
     setPending(loadPendingDeadlines());
     void load();
   }, [load]);

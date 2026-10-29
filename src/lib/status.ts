@@ -15,8 +15,8 @@ export function getClientToken(): string | null {
 }
 
 /** Store the member session token returned by verify-otp or the join portal-session route. */
-export function setClientToken(token?: string): void {
-  if (token) setRoleToken("client", token);
+export function setClientToken(token?: string, expiresAt?: string | null): void {
+  if (token) setRoleToken("client", token, expiresAt);
 }
 
 /** Forget the member token (prefer `clientApi.logout()`, which also ends the server session). */

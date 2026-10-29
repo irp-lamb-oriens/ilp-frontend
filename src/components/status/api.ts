@@ -202,7 +202,10 @@ const liveApi: MemberApi = {
   logout: () => clientApi.logout(),
 };
 
-export const memberApi: MemberApi = process.env.NEXT_PUBLIC_W4_MOCK === "1" ? mockMemberApi : liveApi;
+/** Demo data (NEXT_PUBLIC_W4_MOCK=1): needs no session token. */
+export const MEMBER_MOCKS = process.env.NEXT_PUBLIC_W4_MOCK === "1";
+
+export const memberApi: MemberApi = MEMBER_MOCKS ? mockMemberApi : liveApi;
 
 // ── LISTS: paged, streamed sources (docs/workstreams/LISTS.md) ─────────────
 const MOCK = process.env.NEXT_PUBLIC_W4_MOCK === "1";

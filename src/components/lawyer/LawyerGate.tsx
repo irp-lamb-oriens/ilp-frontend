@@ -4,12 +4,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PortalLogin from "@/components/auth/PortalLogin";
 import { LEGAL_MENU_LINKS, RoleShell } from "@/components/shell";
-import { ApiError, providerApi } from "@/lib/provider";
+import { providerApi } from "@/lib/provider";
 import { NotificationCenter } from "@/components/shell/NotificationCenter";
 import { bellSource } from "@/lib/notifications";
 import { SkeletonRegion, useSkeleton, ErrorNotice, Notice } from "@/components/ui";
 import { APPLIED_EMAIL_KEY } from "@/components/lawyers/applyModel";
-import { getRoleToken } from "@/lib/api";
+import { checkSession } from "@/lib/api";
 import { lawyerApi, type LawyerMe, USING_MOCKS } from "./lawyerApi";
 import { LawyerContext } from "./LawyerContext";
 import LawyerRouteSkeleton from "./LawyerSkeletons";
@@ -61,17 +61,15 @@ export default function LawyerGate({ children }: { children: ReactNode }) {
   const boot = useSkeleton(state.kind === "loading" && hasToken);
 
   const check = useCallback(async () => {
-    try {
-      const me = await lawyerApi.me();
-      setState({ kind: "ready", me });
-    } catch (err) {
-      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) setState({ kind: "login" });
-      else setState({ kind: "error", message: "Could not reach ILP. Check your connection and try again." });
-    }
+    // AUTH: no lawyer token, no /api/provider/me call (demo mocks need none).
+    const res = await checkSession("lawyer", () => lawyerApi.me(), { requireToken: !USING_MOCKS });
+    if (res.state === "ready" && res.me) setState({ kind: "ready", me: res.me });
+    else if (res.state === "anonymous" || res.state === "denied") setState({ kind: "login" });
+    else setState({ kind: "error", message: "Could not reach ILP. Check your connection and try again." });
   }, []);
 
   useEffect(() => {
-    setHasToken(!!getRoleToken("lawyer"));
+    setHasToken(providerApi.hasSession());
     setApplied(readApplied());
     check();
   }, [check]);

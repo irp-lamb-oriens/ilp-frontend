@@ -3,7 +3,7 @@
  * Portal sessions are Bearer tokens kept per role in localStorage (see api.ts).
  */
 
-import { clearRoleToken, createApiClient, getRoleToken, type ApiRole } from "./api";
+import { clearRoleToken, createApiClient, hasRoleSession, type ApiRole } from "./api";
 
 export type Role = "customer" | "provider" | "staff";
 
@@ -72,18 +72,12 @@ const SESSION_CHECK: Record<PortalRole, string> = {
 
 /** True when the server accepts this browser's stored token for the role. */
 export async function hasPortalSession(role: PortalRole): Promise<boolean> {
-  if (!getRoleToken(role)) return false;
-  try {
-    await createApiClient(role).get(SESSION_CHECK[role], { on401: "throw" });
-    return true;
-  } catch {
-    return false;
-  }
+  return (await createApiClient(role).session(SESSION_CHECK[role])).state === "ready";
 }
 
-/** True when a token is stored for the role (it may still be expired; see hasPortalSession). */
+/** True when a usable token is stored for the role or a fallback role (the server may still refuse it; see hasPortalSession). */
 export function hasPortalToken(role: PortalRole): boolean {
-  return !!getRoleToken(role);
+  return hasRoleSession(role);
 }
 
 /** End the role's session on the server and forget the token. Never throws. */

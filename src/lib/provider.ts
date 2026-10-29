@@ -16,8 +16,8 @@ export function getProviderToken(): string | null {
 }
 
 /** Store the lawyer session token returned by verify-otp. */
-export function setProviderToken(token?: string): void {
-  if (token) setRoleToken("lawyer", token);
+export function setProviderToken(token?: string, expiresAt?: string | null): void {
+  if (token) setRoleToken("lawyer", token, expiresAt);
 }
 
 /** Forget the lawyer token (prefer `providerApi.logout()`, which also ends the server session). */

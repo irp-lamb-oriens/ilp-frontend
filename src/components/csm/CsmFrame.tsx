@@ -16,7 +16,7 @@ import {
 } from "@/components/shell/navIcons";
 import { IconChat, IconDeadlines } from "@/components/status/navIcons";
 import { NotificationCenter } from "@/components/shell/NotificationCenter";
-import { ApiError, csmApi, getRoleToken } from "@/lib/api";
+import { ApiError, csmApi } from "@/lib/api";
 import { scopeQuery, type CsmMe } from "@/lib/csm";
 import { bellSource } from "@/lib/notifications";
 import { Button, Notice, Select, SkeletonRegion, useSkeleton } from "@/components/ui";
@@ -88,19 +88,16 @@ export function CsmFrame({ children }: { children: ReactNode }) {
   const boot = useSkeleton(state === "loading" && hasToken);
 
   const check = useCallback(async () => {
-    try {
-      const r = await csmApi.get<CsmMe>("/api/csm/me", { on401: "throw", query: scope.csm ? { csm: scope.csm } : {} });
-      setMe(r);
+    // AUTH: no CSM (or staff) token means the login, without calling /api/csm/me.
+    const res = await csmApi.session<CsmMe>("/api/csm/me", { query: scope.csm ? { csm: scope.csm } : {} });
+    if (res.state === "ready" && res.me) {
+      setMe(res.me);
       setState("ready");
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 401) setState("login");
-      else if (e instanceof ApiError && e.status === 403) setState("denied");
-      else setState("error");
-    }
+    } else setState(res.state === "anonymous" ? "login" : res.state);
   }, [scope.csm]);
 
   useEffect(() => {
-    setHasToken(!!getRoleToken("csm"));
+    setHasToken(csmApi.hasSession());
     check();
   }, [check]);
 

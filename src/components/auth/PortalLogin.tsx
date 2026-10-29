@@ -151,7 +151,7 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
       );
       if (!res?.token) throw new ApiError("Sign-in did not complete. Request a new code and try again.", 500);
       // Kept per role in localStorage and sent as `Authorization: Bearer` (lib/api.ts).
-      setRoleToken(role, res.token);
+      setRoleToken(role, res.token, res.expiresAt);
       const clean = email.trim().toLowerCase();
       onSuccess({
         email: clean,

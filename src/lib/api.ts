@@ -14,6 +14,21 @@
  *     `credentials: "omit"`;
  *   - a 401 clears that role's token (and, by default, sends the user to the
  *     role's login page); logout clears it and ends the server session.
+ *
+ * Session rules (AUTH, 2026-10-29), all here so every portal follows them:
+ *   - No token, no request: a role with a token key and no usable token does
+ *     not call a non-public path; it throws ApiError 401 `{ local: true }`
+ *     with the same on401 handling as a server 401 (no console 401 noise).
+ *     Public paths: PUBLIC_API_PATHS below; per call: `auth` in RequestOptions.
+ *   - Expiry: setRoleToken(role, token, expiresAt) also keeps `<key>_exp`; an
+ *     expired token counts as absent (and is cleared). Tokens stored before
+ *     this change have no expiry and keep working until the server says 401.
+ *   - Fallbacks: ROLE_CONFIG[role].fallbackRoles lists roles whose session
+ *     this role may use when it has none of its own (csm -> staff). A 401 on
+ *     a fallback session never clears the other role's token.
+ *   - Portal frames check the session with `client.session(mePath)` or
+ *     `checkSession(role, load)`, which return a state and never call the
+ *     server without a token.
  * Files the API streams (documents, data export, contract PDFs) are fetched as
  * blobs with the same header: see `downloadFile`.
  */
@@ -43,6 +58,12 @@ interface RoleConfig {
   logoutPath?: string;
   /** Server route that ends every session of this email ("sign out everywhere"). */
   logoutAllPath?: string;
+  /**
+   * Roles whose session this role may use when it has no token of its own,
+   * tried in order. The server must accept that session on this role's
+   * routes. A 401 on a fallback session leaves the other role's token alone.
+   */
+  fallbackRoles?: ApiRole[];
 }
 
 export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
@@ -69,11 +90,14 @@ export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
   },
   // COMMS-P3: the CSM portal signs in with the staff email code (same server
   // session kind, role from CSM_EMAILS) but keeps its own token and login page.
+  // Staff and admins already signed in to /dashboard open /csm with that
+  // session (the server lets any staff session read the CSM portal).
   csm: {
     loginPath: "/csm",
     tokenKey: "ilp_csm_token",
     logoutPath: "/api/dashboard/auth/logout",
     logoutAllPath: "/api/dashboard/auth/logout-all",
+    fallbackRoles: ["staff"],
   },
 };
 
@@ -97,31 +121,110 @@ export function resolveRole(role: ApiRole): ApiRole {
 
 /** Fallback when localStorage throws (private mode, blocked storage). */
 const memoryTokens: Partial<Record<ApiRole, string>> = {};
+const memoryExpiry: Partial<Record<ApiRole, string>> = {};
 
-/** The stored session token for a role, or null. Never throws. */
-export function getRoleToken(asked: ApiRole): string | null {
-  const role = resolveRole(asked);
+/** localStorage key holding the expiry (ISO) of a role's token. */
+export function expiryKey(tokenKey: string): string {
+  return `${tokenKey}_exp`;
+}
+
+/** ISO string for an expiry, or null when there is none or it cannot be read. */
+function toIso(expiresAt: string | number | Date | null | undefined): string | null {
+  if (expiresAt === null || expiresAt === undefined || expiresAt === "") return null;
+  const ms = expiresAt instanceof Date ? expiresAt.getTime() : typeof expiresAt === "number" ? expiresAt : Date.parse(expiresAt);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
+}
+
+/** True when a stored expiry is in the past. No expiry (legacy token) never expires here. */
+function isExpired(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) && ms <= Date.now();
+}
+
+/** Remove a concrete role's token and expiry (no resolveRole). Never throws. */
+function dropToken(role: ApiRole): void {
+  const key = ROLE_CONFIG[role].tokenKey;
+  delete memoryTokens[role];
+  delete memoryExpiry[role];
+  if (!key || typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(key);
+    window.localStorage.removeItem(expiryKey(key));
+  } catch {
+    // storage unavailable
+  }
+}
+
+/** A concrete role's own live token (no resolveRole, no fallbacks). Clears it when expired. */
+function ownToken(role: ApiRole): string | null {
   const key = ROLE_CONFIG[role].tokenKey;
   if (!key) return null;
+  let token: string | null = null;
+  let exp: string | null = null;
   if (typeof window !== "undefined") {
     try {
-      const v = window.localStorage.getItem(key);
-      if (v) return v;
+      token = window.localStorage.getItem(key);
+      exp = token ? window.localStorage.getItem(expiryKey(key)) : null;
     } catch {
       // storage unavailable: use the in-memory copy
     }
   }
-  return memoryTokens[role] ?? null;
+  if (!token) {
+    token = memoryTokens[role] ?? null;
+    exp = memoryExpiry[role] ?? null;
+  }
+  if (!token) return null;
+  if (isExpired(exp)) {
+    dropToken(role);
+    return null;
+  }
+  return token;
 }
 
-/** Store the token returned by verify-otp / portal-session for a role. Never throws. */
-export function setRoleToken(role: ApiRole, token: string): void {
+/** The stored, unexpired session token for a role (its own, no fallbacks), or null. Never throws. */
+export function getRoleToken(asked: ApiRole): string | null {
+  return ownToken(resolveRole(asked));
+}
+
+/**
+ * The session a request of this role sends: the role's own token, else the
+ * first live token of its fallbackRoles. `role` says whose token it is.
+ */
+export function getSessionToken(asked: ApiRole): { token: string; role: ApiRole } | null {
+  const role = resolveRole(asked);
+  const own = ownToken(role);
+  if (own) return { token: own, role };
+  for (const fb of ROLE_CONFIG[role].fallbackRoles ?? []) {
+    if (fb === role) continue;
+    const t = ownToken(fb);
+    if (t) return { token: t, role: fb };
+  }
+  return null;
+}
+
+/** True when the role has a usable session token (its own or a fallback). Never throws. */
+export function hasRoleSession(role: ApiRole): boolean {
+  return getSessionToken(role) !== null;
+}
+
+/**
+ * Store the token returned by verify-otp / portal-session for a role, with its
+ * expiry when the server sent one (`expiresAt`). Never throws.
+ */
+export function setRoleToken(role: ApiRole, token: string, expiresAt?: string | number | Date | null): void {
   const key = ROLE_CONFIG[role].tokenKey;
   if (!key || !token) return;
+  const exp = toIso(expiresAt);
   memoryTokens[role] = token;
+  if (exp) memoryExpiry[role] = exp;
+  else delete memoryExpiry[role];
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(key, token);
+    // A new token never inherits the expiry of the one it replaces.
+    if (exp) window.localStorage.setItem(expiryKey(key), exp);
+    else window.localStorage.removeItem(expiryKey(key));
   } catch {
     // storage unavailable: the in-memory copy lasts until the tab closes
   }
@@ -129,15 +232,55 @@ export function setRoleToken(role: ApiRole, token: string): void {
 
 /** Forget a role's token (logout, 401). Never throws. */
 export function clearRoleToken(asked: ApiRole): void {
-  const role = resolveRole(asked);
-  const key = ROLE_CONFIG[role].tokenKey;
-  delete memoryTokens[role];
-  if (!key || typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(key);
-  } catch {
-    // storage unavailable
-  }
+  dropToken(resolveRole(asked));
+}
+
+// ── Public paths ────────────────────────────────────────────────────────────
+
+/**
+ * Paths a role client may call without a session (the "no token, no request"
+ * rule skips them). Audited 2026-10-29 against every call made through a role
+ * client and the raw fetches next to them:
+ *   - sign-in codes: /api/{dashboard,provider,client-status}/auth/request-otp
+ *     and verify-otp (staff, CSM, lawyer, client: PortalLogin);
+ *   - join: /api/payments/join, /api/payments/join/:token and its
+ *     /portal-session, /api/payments/plan, /api/payments/checkout (joinApi);
+ *   - free deadline check and leads: /api/leads, /api/leads/* (joinApi);
+ *   - journeys: /api/journey/* (tracker, experiments);
+ *   - anything under /api/public/;
+ *   - lawyer application: /api/providers/apply;
+ *   - push key: /api/push/vapid-public-key; legal versions:
+ *     /api/privacy/versions; email unsubscribe: /api/retention/unsubscribe.
+ * A single call can also say `auth: "none" | "optional"` (RequestOptions).
+ */
+export const PUBLIC_API_PATHS: readonly RegExp[] = [
+  /^\/api\/[a-z-]+\/auth\/(request-otp|verify-otp)$/,
+  /^\/api\/payments\/(join|plan|checkout)$/,
+  /^\/api\/payments\/join\/[^/]+(\/portal-session)?$/,
+  /^\/api\/leads(\/.*)?$/,
+  /^\/api\/journey\//,
+  /^\/api\/public\//,
+  /^\/api\/providers\/apply$/,
+  /^\/api\/push\/vapid-public-key$/,
+  /^\/api\/privacy\/versions$/,
+  /^\/api\/retention\/unsubscribe$/,
+];
+
+/** True when a path (query and API_URL prefix ignored) needs no session. */
+export function isPublicPath(path: string): boolean {
+  let p = path.startsWith(API_URL) ? path.slice(API_URL.length) : path;
+  p = p.split(/[?#]/)[0] ?? "";
+  return PUBLIC_API_PATHS.some((re) => re.test(p));
+}
+
+/** The ApiError thrown, without a request, when a role has no session token. */
+export function notSignedInError(): ApiError {
+  return new ApiError("Not signed in", 401, { error: "Not signed in", local: true });
+}
+
+/** True for the "no token, no request" 401 (nothing was sent to the server). */
+export function isLocal401(e: unknown): boolean {
+  return e instanceof ApiError && e.status === 401 && !!(e.body as { local?: unknown } | undefined)?.local;
 }
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
@@ -148,9 +291,27 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   /**
    * On 401: "redirect" sends the user to the role's login page; "throw" only
    * throws ApiError. Typed helpers default to "redirect", the legacy *Fetch
-   * wrappers to "throw".
+   * wrappers to "throw". Also applies to the local "Not signed in" 401.
    */
   on401?: "redirect" | "throw";
+  /**
+   * Session use for this call. "required" (default for roles with a token):
+   * send the session token; with none, and a non-public path, throw a local
+   * 401 without calling the server. "optional": send the token when there is
+   * one, call the server either way. "none" (default for customer): never
+   * send a session token.
+   */
+  auth?: "required" | "optional" | "none";
+}
+
+/** What a portal's session check found. */
+export type SessionState = "anonymous" | "ready" | "denied" | "error";
+
+export interface SessionResult<T> {
+  /** anonymous: no token, or the server said 401. denied: 403. error: anything else. */
+  state: SessionState;
+  me: T | null;
+  error?: unknown;
 }
 
 export interface ApiClient {
@@ -175,6 +336,35 @@ export interface ApiClient {
   logout(): Promise<void>;
   /** Ends every session of this email for the role, on every device. Throws ApiError on failure. */
   logoutAll(): Promise<{ ended: number }>;
+  /** True when this role has a usable session token (its own or a fallback role's). */
+  hasSession(): boolean;
+  /**
+   * Portal session check: GET `mePath` (401s throw, never redirect) and map
+   * the answer to a state. Sends nothing when there is no token.
+   */
+  session<T = unknown>(mePath: string, options?: RequestOptions): Promise<SessionResult<T>>;
+}
+
+/**
+ * Run a portal's session check (`load`, e.g. the /me call) only when the role
+ * has a session token, and map the outcome: 401 = anonymous, 403 = denied,
+ * anything else = error. `requireToken: false` always runs `load` (demo
+ * mocks that need no session).
+ */
+export async function checkSession<T>(
+  role: ApiRole,
+  load: () => Promise<T>,
+  opts: { requireToken?: boolean } = {},
+): Promise<SessionResult<T>> {
+  const needsToken = opts.requireToken !== false && !!ROLE_CONFIG[resolveRole(role)].tokenKey;
+  if (needsToken && !hasRoleSession(role)) return { state: "anonymous", me: null };
+  try {
+    return { state: "ready", me: await load() };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) return { state: "anonymous", me: null, error };
+    if (error instanceof ApiError && error.status === 403) return { state: "denied", me: null, error };
+    return { state: "error", me: null, error };
+  }
 }
 
 function withQuery(path: string, query?: RequestOptions["query"]): string {
@@ -240,10 +430,17 @@ export function createApiClient(role: ApiRole): ApiClient {
 
   /** fetch with the role's Bearer token; throws ApiError (after 401 handling) on a non-2xx. */
   async function send(path: string, options: RequestOptions = {}): Promise<Response> {
-    const { body, query, on401 = "redirect", headers: rawHeaders, ...init } = options;
+    const { body, query, on401 = "redirect", auth, headers: rawHeaders, ...init } = options;
     const headers = new Headers(rawHeaders);
+    const mode = auth ?? (cfg.tokenKey ? "required" : "none");
+    const session = mode === "none" ? null : getSessionToken(role);
+    const token = session?.token ?? null;
+    if (mode === "required" && !token && !headers.has("Authorization") && !isPublicPath(path)) {
+      // No token, no request: answer as the server would, without the network call.
+      if (on401 === "redirect") redirectToLogin(ROLE_CONFIG[resolveRole(role)].loginPath);
+      throw notSignedInError();
+    }
     const encoded = encodeBody(body, headers);
-    const token = getRoleToken(role);
     if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
 
     const res = await fetch(`${API_URL}${withQuery(path, query)}`, {
@@ -264,8 +461,9 @@ export function createApiClient(role: ApiRole): ApiClient {
         // ignore parse failures
       }
       if (res.status === 401 && !isAuthPath(path)) {
-        // The token is missing, expired or ended elsewhere: forget it.
-        if (token && getRoleToken(role) === token) clearRoleToken(role);
+        // The token is missing, expired or ended elsewhere: forget it. A
+        // fallback role's token (csm using staff) is left for its own portal.
+        if (session && session.role === resolveRole(role) && getRoleToken(role) === session.token) clearRoleToken(role);
         if (on401 === "redirect") redirectToLogin(ROLE_CONFIG[resolveRole(role)].loginPath);
       }
       throw new ApiError(message, res.status, data);
@@ -298,26 +496,36 @@ export function createApiClient(role: ApiRole): ApiClient {
     patch: (path, body, options) => client.request(path, { ...options, method: "PATCH", body }),
     del: (path, options) => client.request(path, { ...options, method: "DELETE" }),
 
+    // Signing out ends the session this role is using. When that is a
+    // fallback session (staff on /csm), it ended on the server too, so its
+    // token is forgotten as well.
     async logout() {
+      const used = getSessionToken(role);
       try {
-        const logoutPath = ROLE_CONFIG[resolveRole(role)].logoutPath;
-        if (logoutPath && getRoleToken(role)) {
-          await client.request(logoutPath, { method: "POST", on401: "throw" });
-        }
+        const logoutPath = used ? ROLE_CONFIG[used.role].logoutPath : undefined;
+        if (logoutPath) await client.request(logoutPath, { method: "POST", on401: "throw" });
       } catch {
         // already signed out or offline
       } finally {
         clearRoleToken(role);
+        if (used) dropToken(used.role);
       }
     },
 
     async logoutAll() {
-      const logoutAllPath = ROLE_CONFIG[resolveRole(role)].logoutAllPath;
+      const used = getSessionToken(role);
+      const logoutAllPath = ROLE_CONFIG[used?.role ?? resolveRole(role)].logoutAllPath;
       if (!logoutAllPath) return { ended: 0 };
       const res = await client.request<{ ended?: number }>(logoutAllPath, { method: "POST", on401: "throw" });
       clearRoleToken(role);
+      if (used) dropToken(used.role);
       return { ended: Number(res?.ended ?? 0) };
     },
+
+    hasSession: () => hasRoleSession(role),
+
+    session: <T,>(mePath: string, options: RequestOptions = {}) =>
+      checkSession<T>(role, () => client.get<T>(mePath, { ...options, on401: "throw" })),
   };
 
   return client;
@@ -384,9 +592,9 @@ export function getDashboardToken(): string | null {
   return getRoleToken("staff");
 }
 
-/** Store the staff session token returned by verify-otp. */
-export function setDashboardToken(token?: string): void {
-  if (token) setRoleToken("staff", token);
+/** Store the staff session token returned by verify-otp (with its expiry when given). */
+export function setDashboardToken(token?: string, expiresAt?: string | null): void {
+  if (token) setRoleToken("staff", token, expiresAt);
 }
 
 /** Forget the staff session token (prefer `staffApi.logout()`, which also ends the server session). */
