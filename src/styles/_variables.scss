@@ -93,11 +93,12 @@ $duration-drawer: 280ms;
 // steps, so a full page lands in about 570ms.
 $duration-reveal: 300ms;
 $duration-fade: 150ms;
-// Price anchor sequence (components/motion/PriceAnchor.module.scss): the
-// strike line draws in $duration-strike; each step starts $price-anchor-beat
-// after the one before.
+// Price anchor sequence (components/motion/priceAnchorTimeline.ts mirrors
+// these): the count down from US$1,500, the strike line, the throw of the
+// struck figure into its slot.
+$duration-count: 1100ms;
 $duration-strike: 420ms;
-$price-anchor-beat: 360ms;
+$duration-throw: 500ms;
 $stagger-step: 45ms;
 $stagger-max: 6;
 $reveal-distance: 10px;

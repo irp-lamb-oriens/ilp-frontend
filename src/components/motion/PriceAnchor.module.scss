@@ -1,15 +1,30 @@
 @use "../../styles/variables" as *;
 @use "../../styles/mixins" as *;
 
-// PriceAnchor: the struck comparison price, then the membership price.
-// Only transform and opacity animate. Every element is laid out from the
-// first paint (idle only hides it), so the block never shifts.
+// PriceAnchor: a big US$1,500 counts down to US$79.99, a ghost US$1,500 is
+// slashed in red and thrown into the small struck slot, US$79.99 grows back.
+// Phases come from priceAnchorTimeline.ts (data-phase). Only transform and
+// opacity animate. Both slots are laid out from the first paint; the counter
+// and the ghost are absolutely positioned over the figure, so the count and
+// the throw never move the layout.
+//
+// Base rules are the final state; the phase rules below override them.
 
-$step-1: 0ms; // comparison rises in
-$step-2: $price-anchor-beat; // strike draws
-$step-dim: $price-anchor-beat + $duration-strike * 0.5; // struck figure dims
-$step-3: $price-anchor-beat * 2 + $duration-strike * 0.5; // our price
-$step-4: $step-3 + $price-anchor-beat * 0.5; // "a month" and the calls line
+$count-scale: 0.92; // mirrors COUNT_SCALE
+$struck-dim: 0.55;
+$fig-line: 0.95;
+$fig-track: -0.04em;
+
+@mixin strike-line {
+  position: absolute;
+  left: -0.06em;
+  right: -0.06em;
+  top: 50%;
+  height: max(2px, 0.09em);
+  margin-top: max(-1px, -0.045em);
+  background: $color-strike;
+  transform-origin: left center;
+}
 
 .anchor {
   display: flex;
@@ -23,9 +38,6 @@ $step-4: $step-3 + $price-anchor-beat * 0.5; // "a month" and the calls line
   flex-wrap: wrap;
   align-items: baseline;
   gap: $space-2;
-  transition:
-    opacity $duration-reveal $ease-out-strong $step-1,
-    transform $duration-reveal $ease-out-strong $step-1;
 }
 
 .compareLabel,
@@ -36,32 +48,38 @@ $step-4: $step-3 + $price-anchor-beat * 0.5; // "a month" and the calls line
   color: $color-steel;
 }
 
+.compareLabel {
+  transition:
+    opacity $duration-reveal $ease-out-strong,
+    transform $duration-reveal $ease-out-strong;
+}
+
+.oursLabel {
+  transition: opacity $duration-reveal $ease-out-strong;
+}
+
+// The struck slot. Same weight, tracking and line height as the figure, so
+// the ghost (a scaled copy of the figure) lands on it exactly.
 .struck {
   position: relative;
   display: inline-block;
   text-decoration: none; // the line is .strike, so it can animate
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: $fig-track;
+  line-height: $fig-line;
   font-variant-numeric: tabular-nums;
   color: $color-navy;
+  transition: opacity $duration-fade $ease-out-strong;
 }
 
 .struckText {
   display: inline-block;
-  opacity: 0.55;
-  transition: opacity $duration-reveal $ease-out-strong $step-dim;
+  opacity: $struck-dim;
 }
 
 .strike {
-  position: absolute;
-  left: -0.08em;
-  right: -0.08em;
-  top: 50%;
-  height: max(2px, 0.09em);
-  margin-top: max(-1px, -0.045em);
-  background: $color-strike;
-  transform-origin: left center;
-  transform: rotate(-6deg) scaleX(1);
-  transition: transform $duration-strike $ease-out-strong $step-2;
+  @include strike-line;
+  transform: rotate(-6deg);
 }
 
 .ours {
@@ -77,16 +95,68 @@ $step-4: $step-3 + $price-anchor-beat * 0.5; // "a month" and the calls line
   gap: $space-2;
 }
 
+.figureWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.figure,
+.counter,
+.ghost {
+  font-weight: 800;
+  letter-spacing: $fig-track;
+  line-height: $fig-line;
+  font-variant-numeric: tabular-nums;
+  transform-origin: 0 0;
+}
+
 .figure {
   display: inline-block;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-  font-variant-numeric: tabular-nums;
-  transform-origin: left bottom;
   transition:
-    opacity $duration-reveal $ease-out-strong $step-3,
-    transform $duration-reveal $ease-out-strong $step-3;
+    opacity $duration-throw $ease-out-strong,
+    transform $duration-throw $ease-out-strong;
+}
+
+// The counting figure and the slashed ghost: drawn from data-text, so they
+// are not in the text a screen reader reads or a visitor copies.
+.counter,
+.ghost {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+
+  &::before {
+    content: attr(data-text);
+  }
+}
+
+.counter {
+  transform: scale($count-scale);
+  transition:
+    opacity $duration-fade $ease-out-strong,
+    transform $duration-count $ease-out-strong;
+}
+
+.ghost {
+  transform: translate(var(--throw-x, 0px), var(--throw-y, 0px)) scale(var(--throw-k, 0.4));
+  transition:
+    opacity $duration-fade $ease-out-strong,
+    transform $duration-throw $ease-out-strong;
+
+  &::before {
+    opacity: $struck-dim;
+    transition: opacity $duration-throw $ease-out-strong;
+  }
+}
+
+.ghostStrike {
+  @include strike-line;
+  transform: rotate(-6deg) scaleX(1);
+  transition: transform $duration-strike $ease-out-strong $duration-fade;
 }
 
 .unit {
@@ -94,59 +164,94 @@ $step-4: $step-3 + $price-anchor-beat * 0.5; // "a month" and the calls line
   font-weight: 600;
   color: $color-steel;
   transition:
-    opacity $duration-reveal $ease-out-strong $step-4,
-    transform $duration-reveal $ease-out-strong $step-4;
+    opacity $duration-reveal $ease-out-strong,
+    transform $duration-reveal $ease-out-strong;
 }
 
 .calls {
   margin: 0;
   color: $color-steel;
   transition:
-    opacity $duration-reveal $ease-out-strong $step-4,
-    transform $duration-reveal $ease-out-strong $step-4;
-}
-
-.oursLabel {
-  transition: opacity $duration-reveal $ease-out-strong $step-3;
+    opacity $duration-reveal $ease-out-strong,
+    transform $duration-reveal $ease-out-strong;
 }
 
 .srOnly {
   @include visually-hidden;
 }
 
-// Before the block is in view: everything hidden, space kept.
+// ── Phases (data-phase from priceAnchorTimeline.ts) ──────────────────────
+
+// Before view: everything hidden, both slots reserved.
 .anchor[data-phase="idle"] {
-  .compare { opacity: 0; transform: translateY(0.5em); }
-  .struckText { opacity: 1; }
-  .strike { transform: rotate(-6deg) scaleX(0); }
+  .compareLabel { opacity: 0; transform: translateY(0.5em); }
+  .counter { opacity: 0; transform: translateY(0.2em) scale(1); }
+}
+
+// Until the ghost lands, the struck slot, our label, the unit and the calls
+// line stay hidden.
+.anchor:is([data-phase="idle"], [data-phase="intro"], [data-phase="count"], [data-phase="slash"], [data-phase="split"]) {
+  .struck { opacity: 0; }
   .oursLabel { opacity: 0; }
-  .figure { opacity: 0; transform: scale(0.96); }
   .unit,
   .calls { opacity: 0; transform: translateY(0.4em); }
 }
 
-// Final state without motion (reduced motion, or already played).
-.anchor[data-phase="done"] * {
+// The real figure stays hidden (at the counted-down size) until the split.
+.anchor:is([data-phase="idle"], [data-phase="intro"], [data-phase="count"], [data-phase="slash"]) {
+  .figure { opacity: 0; transform: scale($count-scale); }
+  .ghost { transform: translate(0px, 0px) scale($count-scale); }
+  .ghost::before { opacity: 1; }
+}
+
+.anchor:is([data-phase="idle"], [data-phase="intro"], [data-phase="count"]) {
+  .ghostStrike { transform: rotate(-6deg) scaleX(0); }
+}
+
+// Intro: a big US$1,500.
+.anchor[data-phase="intro"] .counter {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity $duration-reveal $ease-out-strong,
+    transform $duration-reveal $ease-out-strong;
+}
+
+// Count: down to US$79.99, shrinking to $count-scale.
+.anchor[data-phase="count"] .counter { opacity: 1; transform: scale($count-scale); }
+
+// Slash: the ghost US$1,500 takes the figure's place; the line draws.
+.anchor[data-phase="slash"] .ghost { opacity: 1; }
+
+// Split: the ghost flies to the struck slot and dims; US$79.99 grows back.
+.anchor[data-phase="split"] .ghost { opacity: 1; }
+
+// Final state without motion (reduced motion, or the sequence is over).
+.anchor[data-phase="done"] *,
+.anchor[data-phase="done"] .ghost::before {
   transition: none;
 }
 
-// Reduced motion: the final state even before hydration, no transitions.
+// Reduced motion: the final state even before hydration, no count, no throw.
 @include reduced-motion {
   .anchor[data-phase] {
-    .compare,
+    .compareLabel,
     .unit,
     .calls { opacity: 1; transform: none; transition: none; }
-    .oursLabel { opacity: 1; transition: none; }
+    .oursLabel,
+    .struck { opacity: 1; transition: none; }
     .figure { opacity: 1; transform: none; transition: none; }
-    .struckText { opacity: 0.55; transition: none; }
-    .strike { transform: rotate(-6deg) scaleX(1); transition: none; }
+    .counter,
+    .ghost { opacity: 0; transition: none; }
   }
 }
 
 // Sizes. The struck figure is a fraction of the price so the eye lands on ours.
 .lg {
   .struck { font-size: clamp(1.5rem, 3.2vw, 2.5rem); }
-  .figure { font-size: clamp(3.25rem, 11vw, 8rem); }
+  .figure,
+  .counter,
+  .ghost { font-size: clamp(3.25rem, 11vw, 8rem); }
   .unit { font-size: clamp(1.25rem, 2.4vw, 1.75rem); }
   .compareLabel,
   .oursLabel { font-size: clamp(0.875rem, 1.4vw, 1rem); }
@@ -155,13 +260,17 @@ $step-4: $step-3 + $price-anchor-beat * 0.5; // "a month" and the calls line
 
 .md {
   .struck { font-size: 1.25rem; }
-  .figure { font-size: clamp(2.25rem, 4vw, 3rem); }
+  .figure,
+  .counter,
+  .ghost { font-size: clamp(2.25rem, 4vw, 3rem); }
   .unit { font-size: 1rem; }
 }
 
 .sm {
   gap: $space-1;
   .struck { font-size: 1.125rem; }
-  .figure { font-size: 2rem; letter-spacing: -0.02em; }
+  .figure,
+  .counter,
+  .ghost { font-size: 2rem; }
   .unit { font-size: 1rem; }
 }
