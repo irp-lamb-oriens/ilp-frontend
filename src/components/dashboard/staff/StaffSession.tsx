@@ -21,6 +21,7 @@ import { ApiError, getRoleToken, staffApi } from "@/lib/api";
 import { Button, Notice, SkeletonRegion, useSkeleton } from "@/components/ui";
 import StaffRouteSkeleton from "./StaffRouteSkeleton";
 import type { StaffRole } from "./types";
+import { StaffBell } from "../routing/StaffBell"; // ROUTING
 import s from "./staff.module.scss";
 
 export interface StaffSession {
@@ -118,6 +119,7 @@ export function StaffFrame({ children }: { children: ReactNode }) {
         }}
         onSearch={(q) => router.push(`/dashboard/members?q=${encodeURIComponent(q)}`)}
         searchPlaceholder="Search members by name or email"
+        bell={current ? <StaffBell /> : null}
       >
         {body}
       </RoleShell>

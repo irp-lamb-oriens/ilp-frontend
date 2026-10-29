@@ -11,6 +11,7 @@ import { ErrorText } from "../staff/PageHeader";
 import { dueLabel, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import type { MemberBundle } from "../staff/types";
 import { useLawyers } from "../staff/useLawyers";
+import { AssignedLawyer } from "../routing/AssignedLawyer"; // ROUTING
 import s from "./member.module.scss";
 
 type Quote = Record<string, unknown>;
@@ -29,7 +30,7 @@ export function NextActions({
   onChanged: () => void;
 }) {
   const clientId = String(bundle.client?.id ?? "");
-  const { lawyers, nameOf } = useLawyers();
+  const { lawyers } = useLawyers();
   const openMatters = bundle.matters.filter((m) => !m.closedAt);
   const assigned = openMatters.find((m) => m.assignedProviderId)?.assignedProviderId ?? (bundle.client?.assignedProviderId as string | undefined);
   const quotes = useMemo(
@@ -79,7 +80,8 @@ export function NextActions({
 
       <Quotes clientId={clientId} quotes={quotes} onChanged={onChanged} />
 
-      <AssignLawyer clientId={clientId} current={assigned} currentName={assigned ? nameOf(assigned) : null} lawyers={lawyers} onAssigned={onChanged} />
+      {/* ROUTING: assigned lawyer, Why this lawyer, run routing again, staff override. */}
+      <AssignedLawyer clientId={clientId} lawyers={lawyers} onChanged={onChanged} />
     </>
   );
 }
@@ -260,70 +262,6 @@ function Quotes({ clientId, quotes, onChanged }: { clientId: string; quotes: Quo
           Draft quote
         </Button>
       </form>
-      {msg && (
-        <p className={s.ok} role="status">
-          {msg}
-        </p>
-      )}
-      {error && <ErrorText>{error}</ErrorText>}
-    </section>
-  );
-}
-
-function AssignLawyer({
-  clientId,
-  current,
-  currentName,
-  lawyers,
-  onAssigned,
-}: {
-  clientId: string;
-  current?: string;
-  currentName: string | null;
-  lawyers: Array<{ id: string; name: string; legalAreas?: string[] }>;
-  onAssigned: () => void;
-}) {
-  const [pick, setPick] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  async function assign() {
-    if (!pick) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const r = await staffApi.post<{ matterIds: string[] }>(`/api/dashboard/staff/members/${encodeURIComponent(clientId)}/assign-lawyer`, { providerId: pick });
-      setMsg(`Assigned ${lawyers.find((l) => l.id === pick)?.name ?? "lawyer"}${r.matterIds.length ? ` to ${r.matterIds.length} open matter${r.matterIds.length === 1 ? "" : "s"}` : ""}.`);
-      setPick("");
-      onAssigned();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "The lawyer could not be assigned.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <section className={s.block} aria-label="Lawyer">
-      <div className={s.blockHead}>
-        <h2 className={s.blockTitle}>Lawyer</h2>
-        <StatusPill size="sm" tone={current ? "neutral" : "warning"} label={currentName ?? "Unassigned"} />
-      </div>
-      <Select label={current ? "Reassign to" : "Assign"} value={pick} onChange={(e) => setPick(e.target.value)}>
-        <option value="">Choose a lawyer</option>
-        {lawyers
-          .filter((l) => l.id !== current)
-          .map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-              {l.legalAreas?.length ? ` (${l.legalAreas.join(", ").replace(/_/g, " ")})` : ""}
-            </option>
-          ))}
-      </Select>
-      <Button variant="secondary" disabled={!pick} busy={busy} onClick={assign}>
-        Assign lawyer
-      </Button>
       {msg && (
         <p className={s.ok} role="status">
           {msg}

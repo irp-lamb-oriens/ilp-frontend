@@ -6,7 +6,9 @@ import { apiListSource } from "@/lib/listSource";
 import { LIST_SCHEMAS } from "@/lib/listSchemas";
 import { useStaff } from "../staff/StaffSession";
 import { useSchemaList, useSchemaListWithUrl } from "@/lib/useSchemaList";
-import { DataTable, EmptyState, FilterBar, ListFooter, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
+import { Button, DataTable, EmptyState, FilterBar, ListFooter, Notice, Select, Skeleton, SkeletonRegion, StatusPill, Tabs, confirmLeave, useSkeleton, type Column, type TabItem } from "@/components/ui";
+import { LawyerProfileDrawer } from "../routing/LawyerProfileDrawer"; // ROUTING
+import { CoverageView } from "../routing/CoverageView"; // ROUTING
 import { AssignmentView, ProvidersList } from "@/components/dashboard/AdminViews";
 import AvailabilityView, { type AvailabilityAdapter } from "@/components/lawyer/AvailabilityView";
 import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons";
@@ -52,6 +54,8 @@ export default function LawyersView() {
   const waiting = apps.items.filter((a) => a.status === "pending_review").length;
   const tabs: TabItem[] = [
     { id: "capacity", label: "Capacity", content: () => <Capacity /> },
+    // ROUTING: country × specialty coverage and members waiting for a match.
+    { id: "coverage", label: "Coverage", content: () => <CoverageView /> },
     { id: "applications", label: "Applications", count: waiting || undefined, content: () => <LawyerApplications sl={appsList} /> },
     { id: "hours", label: "Hours", content: () => <Hours /> },
     {
@@ -100,13 +104,38 @@ function Capacity() {
     viewer: email,
   });
   const list = sl.list;
-  const areaOptions = useMemo(() => ({ legalAreas: prettyOptions(sl.schema.fields.find((f) => f.key === "legalAreas")?.options) }), [sl.schema]);
+  const areaOptions = useMemo(() => ({
+    legalAreas: prettyOptions(sl.schema.fields.find((f) => f.key === "legalAreas")?.options),
+    specialties: prettyOptions(sl.schema.fields.find((f) => f.key === "specialties")?.options),
+  }), [sl.schema]);
+  const [open, setOpen] = useState<LawyerCapacity | null>(null);
+  const reload = list.refresh;
   const unassignedMatters = Number(list.meta.unassignedMatters ?? 0);
 
   const columns = useMemo<Column<LawyerCapacity>[]>(() => [
     { key: "name", header: "Lawyer", render: (l) => l.name, sortable: true, width: "wide" },
     { key: "email", header: "Email", render: (l) => l.email, hideOnMobile: true },
-    { key: "legalAreas", header: "Areas", render: (l) => l.legalAreas.join(", ").replace(/_/g, " ") || "None set", hideOnMobile: true },
+    {
+      key: "specialties",
+      header: "Specialties",
+      render: (l) => (l.specialtyLabels?.length ? `${l.specialtyLabels.slice(0, 3).join(", ")}${l.specialtyLabels.length > 3 ? ` and ${l.specialtyLabels.length - 3} more` : ""}` : l.legalAreas.join(", ").replace(/_/g, " ") || "None set"),
+      hideOnMobile: true,
+      width: "wide",
+    },
+    { key: "countries", header: "Countries", render: (l) => (l.countries ?? []).join(", "), hideOnMobile: true },
+    {
+      key: "ratingScore",
+      header: "Rating (staff only)",
+      render: (l) => (l.reviewCount ? l.ratingLabel : <StatusPill size="sm" tone="neutral" label="No reviews yet" />),
+      sortable: true,
+      align: "end",
+    },
+    {
+      key: "routingStatus",
+      header: "Routing",
+      render: (l) => (l.routingStatus === "active" ? "Takes new members" : l.routingStatus === "paused" ? <StatusPill size="sm" tone="warning" label="Paused" /> : <StatusPill size="sm" tone="neutral" label="Onboarding" />),
+      hideOnMobile: true,
+    },
     { key: "openMatters", header: "Open matters", render: (l) => l.openMatters, sortable: true, align: "end" },
     {
       key: "agingMatters",
@@ -115,11 +144,20 @@ function Capacity() {
       sortable: true,
     },
     { key: "callsNext7d", header: "Calls next 7 days", render: (l) => l.callsNext7d, sortable: true, align: "end" },
+    {
+      key: "profile",
+      header: "Profile",
+      render: (l) => (
+        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setOpen(l); }}>
+          Profile
+        </Button>
+      ),
+    },
   ], []);
 
   return (
     <div className={s.stack}>
-      <TabNote>How busy each partner lawyer is. Aging counts their matters that have stayed 14 days or more in one stage. Give new members to someone with room.</TabNote>
+      <TabNote>How busy each partner lawyer is, what they take and their rating. Members are matched automatically by country, specialty, language and free time; the rating (staff only) only changes the order. Open Profile to change a lawyer&apos;s specialties or verify a licence.</TabNote>
       {unassignedMatters > 0 && (
         <Notice
           tone="warning"
@@ -154,6 +192,7 @@ function Capacity() {
         empty={list.activeQuery || sl.activeCount ? "No lawyer matches these filters." : "No active lawyers."}
       />
       <ListFooter list={list} audience="staff" />
+      <LawyerProfileDrawer providerId={open?.id ?? null} name={open?.name} onClose={() => setOpen(null)} onSaved={reload} />
     </div>
   );
 }

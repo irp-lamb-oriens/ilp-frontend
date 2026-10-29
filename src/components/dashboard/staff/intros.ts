@@ -82,14 +82,15 @@ export const STAFF_INTROS = {
   },
   lawyers: {
     title: "Lawyers",
-    what: "The partner lawyers who take member calls: how much work each one has, who has applied to join, their weekly hours, and which members still need a lawyer.",
+    what: "The partner lawyers who take member calls: how much work each one has, what they take, their rating (staff only), who has applied to join, their weekly hours, and where no lawyer covers a specialty.",
     how: [
-      "Check Capacity to see who has room. Aging counts matters that have stayed 14 days or more in one stage.",
+      "Check Capacity to see who has room. Open Profile on a row to change a lawyer's specialties or verify a licence.",
+      "Check Coverage for countries and specialties with no lawyer, and the members waiting because of it.",
       "Review new lawyers in Applications: approve, ask for changes or decline.",
       "Give members without a lawyer one in Assignment, picking someone with room.",
       "Change a lawyer's weekly hours in Hours when they ask you to.",
     ],
-    why: "A member cannot book a call until they have a lawyer, and an overloaded lawyer answers late. Spreading the work here keeps calls on time.",
+    why: "Members are matched to a lawyer automatically, so a missing specialty or an unverified licence leaves someone waiting. Fixing it here lets the system assign them on its next try.",
     tutorialId: "staff.lawyers",
     terms: ["partnerLawyer", "capacity", "matter", "daysInStage"],
   },
@@ -132,9 +133,11 @@ export const STAFF_INTROS = {
   },
   settings: {
     title: "Settings",
-    what: "Settings shared by the whole team: the name and time limit of each matter stage, the queue of emails waiting to go out, and the vendor list.",
+    what: "Settings shared by the whole team: the name and time limit of each matter stage, the specialties lawyers pick from, the sales team's hours, the queue of emails waiting to go out, and the vendor list.",
     how: [
       "In Stages, rename a stage or change its SLA days, then press Save on that row.",
+      "In Specialties, add, rename, turn off or merge the specialties members are matched by.",
+      "In Sales calls, set the hours when a member nobody can take yet gets a short call with the sales team.",
       "In Email queue, check the emails the system has written before they are sent.",
       "In Vendors, keep the list of outside suppliers up to date.",
     ],

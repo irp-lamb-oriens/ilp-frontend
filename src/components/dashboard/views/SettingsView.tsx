@@ -6,12 +6,17 @@ import { Button, Skeleton, SkeletonRegion, Tabs, TextInput, useSkeleton, type Ta
 import { VendorsList } from "@/components/dashboard/AdminViews";
 import EmailsTab from "@/components/dashboard/EmailsTab";
 import { PageHeader, ErrorText, TabNote } from "../staff/PageHeader";
+import { SpecialtiesEditor } from "../routing/SpecialtiesEditor"; // ROUTING
+import { SalesHours } from "../routing/SalesHours"; // ROUTING
 import s from "./views.module.scss";
 
-/** Admin settings: pipeline stages, email queue, vendors. */
+/** Admin settings: pipeline stages, specialties, sales hours, email queue, vendors. */
 export default function SettingsView() {
   const tabs: TabItem[] = [
     { id: "stages", label: "Stages", content: () => <StageConfig /> },
+    // ROUTING: the specialty list lawyers pick from, and the sales team's hours.
+    { id: "specialties", label: "Specialties", content: () => <SpecialtiesEditor /> },
+    { id: "sales", label: "Sales calls", content: () => <SalesHours /> },
     {
       id: "emails",
       label: "Email queue",

@@ -1,0 +1,306 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+.stack {
+  display: grid;
+  gap: $space-4;
+}
+
+.note,
+.meta {
+  margin: 0;
+  color: $color-steel;
+  font-size: 0.9375rem;
+  max-width: 65ch;
+}
+
+.meta {
+  font-size: 0.875rem;
+}
+
+.ok {
+  margin: 0;
+  color: $color-success;
+}
+
+.err {
+  margin: 0;
+  color: $color-error;
+}
+
+.sr {
+  @include visually-hidden;
+}
+
+.h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.bar,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3;
+}
+
+// Member page block (matches member.module.scss blocks).
+.block {
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-canvas;
+}
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: 1rem;
+  color: $color-navy;
+}
+
+.why,
+.details,
+.merge {
+  display: grid;
+  gap: $space-2;
+
+  summary {
+    min-height: $touch-target;
+    display: flex;
+    align-items: center;
+    color: $color-navy;
+    cursor: pointer;
+    @include focus-ring;
+  }
+}
+
+.cands {
+  display: grid;
+  gap: $space-3;
+  margin: 0;
+  padding-left: $space-6;
+}
+
+.candHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  align-items: baseline;
+}
+
+.reasons {
+  margin: $space-1 0 0;
+  padding-left: $space-6;
+  color: $color-charcoal;
+  font-size: 0.9375rem;
+}
+
+// Drawer: rating above the profile editor.
+.drawerBody {
+  display: grid;
+  gap: $space-4;
+}
+
+.rating {
+  display: grid;
+  gap: $space-2;
+  padding: $space-4;
+  border: 1px dashed $color-hairline;
+  border-radius: $radius-md;
+}
+
+.ratingHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.reviews {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: $space-2 0;
+    border-top: 1px solid $color-hairline;
+  }
+}
+
+.stars {
+  color: $color-navy;
+}
+
+.comment {
+  margin: $space-1 0 0;
+}
+
+// Coverage matrix: scrolls inside its own box on narrow screens (never the page).
+.matrixWrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  @include focus-ring;
+}
+
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+
+  th,
+  td {
+    padding: $space-2 $space-3;
+    border-bottom: 1px solid $color-hairline;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead th {
+    color: $color-navy;
+    background: $color-mist;
+  }
+
+  tbody th[scope="row"] {
+    font-weight: 400;
+    white-space: normal;
+    min-width: 14rem;
+  }
+}
+
+.groupRow th {
+  color: $color-navy;
+  background: $color-accent-soft;
+  font-weight: 600;
+}
+
+.count {
+  color: $color-navy;
+  font-weight: 600;
+}
+
+.gapList {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding-left: $space-6;
+}
+
+// Specialties editor.
+.specGroup {
+  display: grid;
+  gap: $space-2;
+}
+
+.specList {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.specItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: $space-3;
+  align-items: start;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+
+  @include below-md {
+    grid-template-columns: 1fr;
+  }
+}
+
+.specMain,
+.specActions {
+  display: grid;
+  gap: $space-2;
+  min-width: 0;
+}
+
+.specActions {
+  grid-auto-flow: row;
+}
+
+.addForm {
+  display: grid;
+  gap: $space-3;
+  max-width: 40rem;
+}
+
+// Bell.
+.bellLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.bellCount {
+  min-width: 1.25rem;
+  padding: 0 $space-1;
+  border-radius: $radius-pill;
+  background: $color-accent;
+  color: $color-accent-ink;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.bellPanel {
+  display: grid;
+  gap: $space-3;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.bellHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.bellList {
+  display: grid;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    gap: $space-1;
+    padding: $space-2 0;
+    border-top: 1px solid $color-hairline;
+  }
+
+  a {
+    color: $color-navy;
+    @include focus-ring;
+  }
+}
+
+.unread a,
+.unread span:first-child {
+  font-weight: 600;
+}
+
+.read {
+  opacity: 0.85;
+}

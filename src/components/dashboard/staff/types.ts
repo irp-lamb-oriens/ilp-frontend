@@ -137,4 +137,13 @@ export interface LawyerCapacity {
   openMatters: number;
   agingMatters: number;
   callsNext7d: number;
+  // ROUTING (staff only)
+  specialties: string[];
+  specialtyLabels: string[];
+  countries: string[];
+  ratingScore: number;
+  reviewCount: number;
+  ratingLabel: string;
+  routingStatus: "active" | "paused" | "onboarding";
+  bookable: boolean;
 }
