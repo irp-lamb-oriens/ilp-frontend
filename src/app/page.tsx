@@ -14,7 +14,9 @@ import {
   FaqSplit,
   FinalCta,
 } from "@/components/landing/ProofSections";
-import { BANDS, FOOTER, IMG, TUTORIAL_BANDS } from "@/components/landing/content";
+import { BANDS, FAQ, FOOTER, IMG, TUTORIAL_BANDS } from "@/components/landing/content";
+import JsonLd from "@/components/seo/JsonLd";
+import { faqLd, membershipLd, organizationLd, websiteLd } from "@/lib/seo/jsonLd";
 import s from "@/components/landing/landing.module.scss";
 import Narrator from "@/components/narration/Narrator";
 
@@ -83,6 +85,7 @@ export default function HomePage() {
         </footer>
       </main>
       <Narrator page="home" />
+      <JsonLd data={[organizationLd(), websiteLd(), membershipLd(), faqLd(FAQ)]} />
     </>
   );
 }

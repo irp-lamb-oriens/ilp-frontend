@@ -4,6 +4,8 @@ import Nav from "@/components/Nav";
 import { RevealTitle } from "@/components/motion/Motion";
 import DraftBanner from "@/components/legal/DraftBanner";
 import { LEGAL_DOCS } from "@/components/legal/versions";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbLd } from "@/lib/seo/jsonLd";
 import s from "./LegalPage.module.scss";
 
 export interface LegalSection {
@@ -105,6 +107,9 @@ export default function LegalPage({
           </nav>
         </div>
       </main>
+      {current && (
+        <JsonLd data={breadcrumbLd(current === "/legal" ? [["Legal", "/legal"]] : [["Legal", "/legal"], [title, current]])} />
+      )}
     </>
   );
 }

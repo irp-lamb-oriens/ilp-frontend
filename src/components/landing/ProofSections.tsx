@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { EASE_OUT_EXPO } from "@/components/motion/Motion";
 import { Eyebrow, RevealText, Stage, StageItem } from "@/components/motion/Story";
 import PriceAnchor from "@/components/motion/PriceAnchor";
@@ -205,19 +205,17 @@ export function FaqSplit() {
                   <span className={open === i ? `${s.faqIcon} ${s.faqIconOpen}` : s.faqIcon} aria-hidden="true">+</span>
                 </button>
               </h3>
-              <AnimatePresence initial={false}>
-                {open === i && (
-                  <motion.div
-                    id={panelId}
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
-                  >
-                    <p className={s.faqAnswer}>{item.a}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Every answer is in the server HTML (search engines and the
+                  FAQPage data read it); closed answers are hidden, not removed. */}
+              <motion.div
+                id={panelId}
+                hidden={open !== i}
+                initial={false}
+                animate={open === i ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
+              >
+                <p className={s.faqAnswer}>{item.a}</p>
+              </motion.div>
             </StageItem>
           );
         })}

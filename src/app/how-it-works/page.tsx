@@ -37,7 +37,7 @@ export default function HowItWorksPage() {
         <section className={`${s.wrap} ${s.section}`}>
           <div className={s.sectionHead}>
             <p className={s.eyebrow}>How it works</p>
-            <RevealTitle text="From the free check to your next step." className={s.headingXl} />
+            <RevealTitle as="h1" text="From the free check to your next step." className={s.headingXl} />
             <p className={s.sub}>
               The membership covers your calls with a lawyer and the follow-up after them. Legal work such as
               drafting or filings is quoted separately, and you decide whether to go ahead.

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbLd, faqLd, membershipLd } from "@/lib/seo/jsonLd";
 import PriceAnchor from "@/components/motion/PriceAnchor";
 import { PLAN_STANDARD } from "@/lib/contracts";
 import m from "@/components/MarketingPage.module.scss";
@@ -89,6 +91,7 @@ export default function PricingPage() {
           </div>
         </footer>
       </main>
+      <JsonLd data={[membershipLd(), faqLd(FAQ), breadcrumbLd([["Pricing", "/pricing"]])]} />
     </>
   );
 }

@@ -9,6 +9,7 @@ export default function LiabilityProtectionPage() {
     <LegalPage
       title="Professional liability protection terms"
       updated="October 2026"
+      current="/liability-protection"
       sections={[
         {
           heading: "What it is",

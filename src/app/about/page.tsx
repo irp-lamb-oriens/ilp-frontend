@@ -33,7 +33,7 @@ export default function AboutPage() {
         <section className={`${s.wrap} ${s.section}`}>
           <div className={s.sectionHead}>
             <p className={s.eyebrow}>About us</p>
-            <RevealTitle text="Your legal life abroad, kept in one place." className={s.headingXl} />
+            <RevealTitle as="h1" text="Your legal life abroad, kept in one place." className={s.headingXl} />
             <p className={s.sub}>
               International Legal Partner (ILP) is a legal membership for North Americans who live in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain, or
               own property there. ILP keeps your legal profile, books your calls with a lawyer licensed in your country
