@@ -11,23 +11,34 @@
  * time, with a gentle sine ease at both ends, so pinned beats advance with
  * the voice and the section's last line is reached as its narration ends.
  *
- * Between two cues the page moves from where the previous section stopped
- * to the next section's top in a short eased transition (TRANSITION_S, or
- * the pause between them when shorter, never under MIN_TRANSITION_S); any
- * section without narration in between is passed over. A section shorter
+ * Between two cues the page teleports: at the moment the next cue starts it
+ * jumps to that section's top in one frame (sections without narration in
+ * between are skipped). The jump is masked by a quick fade-through in the
+ * page colour (MASK_IN_MS up, the jump while opaque, MASK_OUT_MS down),
+ * timed from the cue start so the mask is opaque exactly when the cue
+ * starts; TELEPORT_MASK = false gives a raw jump. A section shorter
  * than the visible area has no range: endY = topY, it stays top-aligned for
  * its whole cue (top-aligned rather than centred, so it starts where its
  * heading is, like every other section).
  */
 
-export const TRANSITION_S = 0.5;
-export const MIN_TRANSITION_S = 0.25;
+/** Mask the jump between sections with a fade-through (false: a raw jump). */
+export const TELEPORT_MASK = true;
+/** Fade-through: up (ease-in), then down (ease-out), in ms. */
+export const MASK_IN_MS = 110;
+export const MASK_OUT_MS = 180;
+/** Jumps shorter than this (px) need no mask. */
+export const MASK_MIN_JUMP = 2;
 /** Speech is taken to end this long before the next cue when the transcript has no better end. */
 export const SPEECH_TAIL_S = 0.35;
 /** The last cue's speech ends this long before the audio does. */
 export const LAST_TAIL_S = 0.3;
-/** Re-sync after resume or seek (s). */
-export const RESYNC_S = 0.5;
+/** Ease-in and ease-out for the mask (cubic). */
+export const easeInCubic = (p: number) => {
+  const c = p <= 0 ? 0 : p >= 1 ? 1 : p;
+  return c * c * c;
+};
+export const easeOutCubic = (p: number) => 1 - easeInCubic(1 - p);
 
 /** easeInOutSine: 0 at 0, 1 at 1, nearly linear in the middle. */
 export function easeInOutSine(p: number): number {
@@ -70,12 +81,10 @@ export function sectionRange(s: SectionBox, v: ViewportBox): { topY: number; end
 export interface CueWindows {
   tStart: Float64Array;
   tEnd: Float64Array;
-  /** When the move from the previous section to this one begins. */
-  tMove: Float64Array;
 }
 
 export function createWindows(n: number): CueWindows {
-  return { tStart: new Float64Array(n), tEnd: new Float64Array(n), tMove: new Float64Array(n) };
+  return { tStart: new Float64Array(n), tEnd: new Float64Array(n) };
 }
 
 /**
@@ -96,15 +105,6 @@ export function fillWindows(w: CueWindows, starts: readonly number[], ends: read
     else b = i + 1 < n ? next - SPEECH_TAIL_S : total - LAST_TAIL_S;
     w.tStart[i] = a;
     w.tEnd[i] = Math.max(a + 0.1, b);
-  }
-  for (let i = 0; i < n; i++) {
-    if (i === 0) {
-      w.tMove[i] = w.tStart[0];
-      continue;
-    }
-    const gap = w.tStart[i] - w.tEnd[i - 1];
-    const span = Math.min(TRANSITION_S, Math.max(MIN_TRANSITION_S, gap));
-    w.tMove[i] = Math.max(w.tStart[i - 1], w.tStart[i] - span);
   }
   return w;
 }
@@ -133,22 +133,68 @@ export function cueY(r: CueRanges, w: CueWindows, i: number, t: number): number 
   return r.topY[i] + (r.endY[i] - r.topY[i]) * easeInOutSine(cueProgressAt(w, i, t));
 }
 
+/** The cue narrating at time t: the last one whose start is at or before t (0 before the first). */
+export function cueAt(w: CueWindows, t: number): number {
+  let i = 0;
+  for (let k = 1; k < w.tStart.length; k++) if (w.tStart[k] <= t) i = k;
+  return i;
+}
+
 /**
- * Page y at time t: the section range of the cue that is narrating, or the
- * eased move from the previous section's position to the next section's top
- * just before a cue starts. Before the first cue: its top.
+ * Page y at time t: inside the range of the cue that is narrating. After its
+ * speech ends it holds at the bottom; at the next cue's start it jumps to
+ * that section's top (no glide). Before the first cue: its top.
  */
 export function followY(r: CueRanges, w: CueWindows, t: number): number {
-  const n = w.tStart.length;
-  if (!n) return 0;
-  let i = 0;
-  for (let k = 1; k < n; k++) if (w.tMove[k] <= t) i = k;
-  if (i > 0 && t < w.tStart[i]) {
-    const from = cueY(r, w, i - 1, w.tMove[i]);
-    const k = (t - w.tMove[i]) / (w.tStart[i] - w.tMove[i] || 1);
-    return from + (r.topY[i] - from) * easeInOutSine(k);
+  if (!w.tStart.length) return 0;
+  return cueY(r, w, cueAt(w, t), t);
+}
+
+/**
+ * Mask opacity (0..1) at time t: rising over MASK_IN_MS before a cue start
+ * (ease-in), opaque at the start, when the page jumps, then falling over
+ * MASK_OUT_MS (ease-out). Only for cues after the first and jumps longer
+ * than MASK_MIN_JUMP.
+ */
+export function boundaryMask(r: CueRanges, w: CueWindows, t: number): number {
+  const up = MASK_IN_MS / 1000;
+  const down = MASK_OUT_MS / 1000;
+  for (let k = 1; k < w.tStart.length; k++) {
+    const a = w.tStart[k];
+    if (t < a - up || t >= a + down) continue;
+    const from = cueY(r, w, k - 1, a);
+    if (Math.abs(r.topY[k] - from) < MASK_MIN_JUMP) return 0;
+    return t < a ? easeInCubic((t - (a - up)) / up) : 1 - easeOutCubic((t - a) / down);
   }
-  return cueY(r, w, i, t);
+  return 0;
+}
+
+/**
+ * Resume and seek: the mask rises over MASK_IN_MS while the page holds
+ * still, the page jumps to where the time says once it is opaque, then the
+ * mask falls over MASK_OUT_MS. `elapsed` in ms since the resume or seek.
+ */
+export interface ResyncPhase {
+  mask: number;
+  jumped: boolean;
+  done: boolean;
+}
+
+export function resyncPhase(elapsed: number, out: ResyncPhase = { mask: 0, jumped: false, done: false }): ResyncPhase {
+  if (elapsed < MASK_IN_MS) {
+    out.mask = easeInCubic(elapsed / MASK_IN_MS);
+    out.jumped = false;
+    out.done = false;
+  } else if (elapsed - MASK_IN_MS < MASK_OUT_MS) {
+    out.mask = 1 - easeOutCubic((elapsed - MASK_IN_MS) / MASK_OUT_MS);
+    out.jumped = true;
+    out.done = false;
+  } else {
+    out.mask = 0;
+    out.jumped = true;
+    out.done = true;
+  }
+  return out;
 }
 
 /** Reduced motion: the top of the cue that is narrating, no movement within it. */
@@ -156,11 +202,6 @@ export function jumpY(r: CueRanges, w: CueWindows, t: number): number {
   let i = 0;
   for (let k = 1; k < w.tStart.length; k++) if (w.tStart[k] <= t) i = k;
   return r.topY[i] ?? 0;
-}
-
-/** Eased re-sync after resume or seek: from `from` toward the live target over RESYNC_S. */
-export function resyncY(from: number, target: number, elapsed: number, span = RESYNC_S): number {
-  return from + (target - from) * easeInOutSine(elapsed / span);
 }
 
 /**

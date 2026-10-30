@@ -22,12 +22,13 @@ import { cueStartsFromTranscript, fillCueStarts, parseTranscript, type TimedWord
 import { alignCueWords, captionWords, lineOf, lineStarts, revealedCount } from "@/lib/narration/wordTiming";
 import { estimateSeconds } from "@/lib/narration/timing";
 import {
-  RESYNC_S,
+  TELEPORT_MASK,
+  boundaryMask,
   createRanges,
   createWindows,
   fillWindows,
   followY,
-  resyncY,
+  resyncPhase,
   sectionRange,
   speechEnds,
 } from "@/lib/narration/follow";
@@ -165,6 +166,10 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   const dirtyRef = useRef(true);
   const lastYRef = useRef(-1);
   const resyncRef = useRef({ active: false, from: 0, at: 0 });
+  const phaseRef = useRef({ mask: 0, jumped: false, done: false });
+  /** Fade-through layer that hides the jump between sections. */
+  const maskRef = useRef<HTMLDivElement | null>(null);
+  const maskOpacityRef = useRef(0);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -330,7 +335,8 @@ export default function Narrator({ page }: { page: NarrationPage }) {
 
   /** Ease from where the page is now to the position for the current time (resume, seek). */
   const beginResync = () => {
-    resyncRef.current = { active: true, from: window.scrollY, at: performance.now() };
+    // With the mask: hold, fade up, jump, fade down. Without it: jump on the next frame.
+    resyncRef.current = { active: TELEPORT_MASK && !reducedMotion(), from: window.scrollY, at: performance.now() };
   };
 
   /* ── Reduced motion: each section's top at its cue start ───── */
@@ -381,6 +387,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     } else if (state.status === "paused") {
       a?.pause();
       stopClock(clockRef);
+      setMaskOpacity(0);
     } else {
       a?.pause();
       stopClock(clockRef);
@@ -391,15 +398,27 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   }, [state.status]);
 
   /* ── Scroll with the voice, every frame ────────────────────── */
+  /** The fade-through layer's opacity, written straight to the element (no render). */
+  const setMaskOpacity = (m: number) => {
+    const el = maskRef.current;
+    if (!el || Math.abs(m - maskOpacityRef.current) < 0.002) return;
+    maskOpacityRef.current = m;
+    el.style.opacity = m.toFixed(3);
+  };
+
   const drive = () => {
     if (dirtyRef.current) measure();
-    let y = followY(rangesRef.current, winRef.current, time());
+    const t = time();
+    let y = followY(rangesRef.current, winRef.current, t);
+    let m = TELEPORT_MASK ? boundaryMask(rangesRef.current, winRef.current, t) : 0;
     const rs = resyncRef.current;
     if (rs.active) {
-      const elapsed = (performance.now() - rs.at) / 1000;
-      if (elapsed >= RESYNC_S) rs.active = false;
-      else y = resyncY(rs.from, y, elapsed);
+      const ph = resyncPhase(performance.now() - rs.at, phaseRef.current);
+      if (!ph.jumped) y = rs.from;
+      if (ph.mask > m) m = ph.mask;
+      if (ph.done) rs.active = false;
     }
+    setMaskOpacity(m);
     y = Math.round(y);
     if (y !== lastYRef.current) {
       lastYRef.current = y;
@@ -647,6 +666,8 @@ export default function Narrator({ page }: { page: NarrationPage }) {
           <span>{C.launcher}</span>
         </button>
       )}
+
+      {active && <div ref={maskRef} className={s.teleportMask} aria-hidden="true" />}
 
       {active && (
         <div ref={barRef} className={s.player} role="region" aria-label={C.player}>

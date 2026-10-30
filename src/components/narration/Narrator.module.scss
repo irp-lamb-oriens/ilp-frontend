@@ -212,12 +212,25 @@
 
 /* ── Player ──────────────────────────────────────────────────── */
 
+// Between sections the page jumps; this layer in the page colour fades up
+// before the jump and down after it (lib/narration/follow.ts drives its
+// opacity every frame). It covers the page and the nav; the player bar and
+// captions stay above it.
+.teleportMask {
+  position: fixed;
+  inset: 0;
+  z-index: $z-drawer;
+  background: $color-canvas;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .player {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: $z-popover;
+  z-index: $z-drawer + 5;
   display: grid;
   gap: $space-3;
   pointer-events: none;

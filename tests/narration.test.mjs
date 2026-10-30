@@ -611,13 +611,8 @@ test("follow: time windows use the transcript's segment end, else the next start
   assert.equal(w.tEnd[0], 5.2, "segment end before the next cue");
   assert.equal(w.tEnd[1], 13 - follow.SPEECH_TAIL_S, "segment end equal to the next start: tail");
   assert.equal(w.tEnd[2], 20 - follow.LAST_TAIL_S, "last cue");
-  // Moves between cues: the pause when shorter than 0.5 s, never under 0.25 s.
-  assert.equal(w.tMove[0], 0);
-  assert.ok(Math.abs(w.tMove[1] - (6 - 0.5)) < 1e-9, "0.8 s pause: a 0.5 s move");
-  assert.ok(Math.abs(w.tMove[2] - (13 - follow.SPEECH_TAIL_S)) < 1e-9, "0.35 s pause: the whole pause");
   follow.fillWindows(w, [0, 6, 13], null, 20);
   assert.ok(Math.abs(w.tEnd[0] - 5.65) < 1e-9);
-  // No pause at all: a 0.25 s move that starts just before the cue.
   follow.fillWindows(w, [0, 6, 13], [6, 13, 19.9], 20);
   assert.ok(Math.abs(w.tEnd[0] - 5.65) < 1e-9);
   const ends = follow.speechEnds([{ start: 0, end: 4 }, { start: 4.1, end: 5.5 }, { start: 6, end: 12 }], [0, 6]);
@@ -663,32 +658,77 @@ test("follow: the page is at a section's top when its narration starts and at it
   assert.equal(follow.easeInOutSine(1), 1);
 });
 
-test("follow: frame to frame the page never jumps, including across skipped sections", () => {
+test("follow: within a section the page moves smoothly; between sections it jumps exactly at the cue start", () => {
   const { r, w } = fixture();
+  const dt = 1 / 60;
   let prev = follow.followY(r, w, 0);
-  let maxStep = 0;
-  for (let t = 0; t <= 24; t += 1 / 60) {
+  for (let t = dt; t <= 24; t += dt) {
     const y = follow.followY(r, w, t);
-    maxStep = Math.max(maxStep, Math.abs(y - prev));
+    const crossed = [1, 2, 3].find((k) => t - dt < w.tStart[k] && t >= w.tStart[k]);
+    if (crossed === undefined) {
+      // Continuity inside a cue (and while holding after its speech): small steps only.
+      assert.ok(Math.abs(y - prev) < 20, `step ${Math.abs(y - prev).toFixed(1)} px at ${t.toFixed(2)} s`);
+    } else {
+      // The frame that crosses a cue start lands on that section's top (plus at most one frame of its own scroll): no glide frames.
+      assert.ok(y >= r.topY[crossed] && y - r.topY[crossed] < 20, `cue ${crossed}: ${y} vs ${r.topY[crossed]}`);
+    }
     prev = y;
   }
-  // The longest move: from the short block (4000) over 1800 px of other sections to 6500 in 0.5 s.
-  // easeInOutSine peaks at pi/2 times the average speed: 2500 / 0.5 / 60 * pi / 2 = 131 px a frame.
-  assert.ok(maxStep < 140, `largest step ${maxStep.toFixed(1)} px`);
+  for (const k of [1, 2, 3]) {
+    const a = w.tStart[k];
+    assert.equal(follow.followY(r, w, a), r.topY[k], `cue ${k}: the top at its start`);
+    assert.ok(Math.abs(follow.followY(r, w, a - 1e-6) - r.endY[k - 1]) < 1e-3, `cue ${k}: the previous section's end just before`);
+  }
   // Reduced motion: tops only, a jump at each cue start.
   assert.equal(follow.jumpY(r, w, 5), r.topY[1]);
   assert.equal(follow.jumpY(r, w, 3.9), r.topY[0]);
+  assert.equal(follow.cueAt(w, 3.99), 0);
+  assert.equal(follow.cueAt(w, 4), 1);
 });
 
-test("follow: resume and seek ease from where the page is to where the time says", () => {
-  assert.equal(follow.resyncY(5000, 1000, 0), 5000);
-  assert.equal(follow.resyncY(5000, 1000, follow.RESYNC_S), 1000);
-  let prev = 5000;
-  for (let e = 0; e <= follow.RESYNC_S; e += 1 / 60) {
-    const y = follow.resyncY(5000, 1000, e);
-    assert.ok(Math.abs(y - prev) < 4000 / (follow.RESYNC_S * 60) * 1.6 + 1);
-    prev = y;
+test("follow: the fade-through mask is opaque exactly when the page jumps", () => {
+  const { r, w } = fixture();
+  const up = follow.MASK_IN_MS / 1000;
+  const down = follow.MASK_OUT_MS / 1000;
+  assert.equal(follow.TELEPORT_MASK, true);
+  assert.equal(follow.boundaryMask(r, w, 0.05), 0, "none for the first cue");
+  for (const k of [1, 2, 3]) {
+    const a = w.tStart[k];
+    assert.equal(follow.boundaryMask(r, w, a - up - 0.001), 0, "clear before it rises");
+    const rising = [0.25, 0.5, 0.75].map((f) => follow.boundaryMask(r, w, a - up + f * up));
+    assert.ok(rising[0] < rising[1] && rising[1] < rising[2], "rises (ease-in)");
+    assert.ok(rising[0] < 0.25, "ease-in starts slowly");
+    assert.equal(follow.boundaryMask(r, w, a), 1, "opaque at the jump");
+    const falling = [0.25, 0.5, 0.75].map((f) => follow.boundaryMask(r, w, a + f * down));
+    assert.ok(falling[0] > falling[1] && falling[1] > falling[2], "falls (ease-out)");
+    assert.ok(falling[0] < 0.6, "ease-out drops quickly");
+    assert.equal(follow.boundaryMask(r, w, a + down), 0, "clear after");
   }
+  // No mask when there is nothing to hide (the next section starts where the last one ended).
+  const flat = follow.createRanges(2);
+  flat.topY[0] = 0;
+  flat.endY[0] = 500;
+  flat.topY[1] = 500;
+  flat.endY[1] = 900;
+  const fw = follow.fillWindows(follow.createWindows(2), [0, 5], null, 10);
+  assert.equal(follow.boundaryMask(flat, fw, 5), 0);
+  // Timeline order: up, then down, about 0.3 s in all.
+  assert.ok(follow.MASK_IN_MS < follow.MASK_OUT_MS);
+  assert.equal(follow.MASK_IN_MS + follow.MASK_OUT_MS, 290);
+});
+
+test("follow: resume and seek hold, fade up, jump while opaque, fade down", () => {
+  const out = { mask: 0, jumped: false, done: false };
+  const at = (ms) => ({ ...follow.resyncPhase(ms, out) });
+  assert.deepEqual(at(0), { mask: 0, jumped: false, done: false });
+  const mid = at(follow.MASK_IN_MS / 2);
+  assert.equal(mid.jumped, false, "holds while the mask rises");
+  assert.ok(mid.mask > 0 && mid.mask < 1);
+  assert.deepEqual(at(follow.MASK_IN_MS), { mask: 1, jumped: true, done: false }, "jumps when opaque");
+  const down = at(follow.MASK_IN_MS + follow.MASK_OUT_MS / 2);
+  assert.ok(down.jumped && down.mask > 0 && down.mask < 1);
+  assert.deepEqual(at(follow.MASK_IN_MS + follow.MASK_OUT_MS), { mask: 0, jumped: true, done: true });
+  assert.equal(follow.resyncPhase(50, out), out, "fills the object it is given (no allocation per frame)");
 });
 
 test("follow: after a resize the page keeps the same progress through the section", () => {
@@ -719,7 +759,13 @@ test("follow: after a resize the page keeps the same progress through the sectio
 test("follow: the narrator drives scroll every frame from the time, not from timeupdate", () => {
   const n = read("src/components/narration/Narrator.tsx");
   assert.match(n, /if \(!reduce && stateRef\.current\.status === "playing"\) drive\(\);/);
-  assert.match(n, /followY\(rangesRef\.current, winRef\.current, time\(\)\)/);
+  assert.match(n, /followY\(rangesRef\.current, winRef\.current, t\)/);
+  assert.match(n, /TELEPORT_MASK \? boundaryMask\(rangesRef\.current, winRef\.current, t\) : 0/);
+  assert.match(n, /active: TELEPORT_MASK && !reducedMotion\(\)/, "reduced motion or no mask: a raw jump");
+  assert.match(n, /<div ref=\{maskRef\} className=\{s\.teleportMask\} aria-hidden="true" \/>/);
+  const scss = read("src/components/narration/Narrator.module.scss");
+  assert.match(scss, /\.teleportMask \{[\s\S]*?z-index: \$z-drawer;[\s\S]*?background: \$color-canvas;/);
+  assert.match(scss, /\.player \{[\s\S]*?z-index: \$z-drawer \+ 5;/, "the bar and captions stay above the mask");
   assert.match(n, /scrollPageTo\(y, false\)/, "immediate scroll through Lenis");
   assert.match(n, /visualViewport/);
   assert.match(n, /orientationchange/);

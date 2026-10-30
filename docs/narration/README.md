@@ -67,14 +67,14 @@ Code: `src/lib/narration/follow.ts`.
 - A section shorter than the visible area has no range (endY = topY). It stays top-aligned for its whole cue, like the hero.
 - Each cue's narration runs from its start in the transcript to the end of its speech: the transcript's segment end when that comes before the next cue, otherwise 0.35 s before the next cue. The last cue ends 0.3 s before the audio does.
 - While a cue is narrated, the page moves from topY to endY in proportion to the time (with a gentle sine ease at both ends), so pinned stories advance with the voice and the section's last line arrives as its narration ends.
-- Between two cues, the page moves to the next section's top in a short eased move: 0.5 s, or the pause between the cues when shorter (never under 0.25 s). Sections without narration in between are passed over in that move:
+- Between two cues, the page jumps: at the moment the next cue starts it moves to that section's top in one frame (an immediate Lenis scroll), with no glide. A fade-through hides the jump: a layer in the page colour fades up for 110 ms (ease-in) before the cue starts, the jump happens while it is opaque, and it fades down for 180 ms (ease-out). The player bar and captions stay above it. To get a raw jump, set `TELEPORT_MASK = false` in `src/lib/narration/follow.ts`. The arriving section's scroll-reveal animations and pinned stories still run: the jump fires a normal scroll event, so their viewport checks and scroll progress update on the next frame. Sections without narration in between are skipped by the jump:
   - Home: after "What a missed date can cost you": the free check demo and the first photo band. After "What the membership includes": the member home demo. After "Real situations": the lawyer call demo and the second photo band. After "Six countries": the example situations, pricing, the "what you pay" demo and the questions.
   - Lawyers: after "What the partnership is": the portal demo, "What happens around each call", the call demo, the partnership facts, the hours and fees demo and "Questions lawyers ask".
   - Customer success: after "What the role is": the CSM portal demo, the role facts and "Questions about the role".
 - The position is computed every frame from the audio's current time (or the caption-only clock) and applied through Lenis as an immediate scroll, so Lenis's own smoothing does not pull against it.
 - Ranges are measured when the narrator starts and again after a resize, an orientation change, a visual viewport resize (phone address bar) or any change in the sections' or the page's height (fonts, images, demos opening, the switch between pinned and stacked layouts). The next frame places the page for the current time in the new layout, so it stays in step.
-- Resume and previous/next ease from where the page is to the position for the current time in 0.5 s.
-- Reduced motion: the page jumps to each section's top when its cue starts and does not move in between.
+- Resume and previous/next use the same fade-through: the page holds while the layer fades up, jumps to the position for the current time, and the layer fades down.
+- Reduced motion: the page jumps to each section's top when its cue starts, without the fade-through, and does not move in between.
 
 To tune a section: if it finishes too early or late, its narration is too short or long for its height. Lengthen or shorten that cue's text, or check that the transcript's segment for it ends where the speech ends.
 
