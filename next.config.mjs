@@ -33,6 +33,21 @@ const nextConfig = {
       },
     ],
   },
+  // SEO: one canonical host and permanent (308) redirects for old paths.
+  // The page-level redirect() calls in /lawyers, /attorneys/apply and /app
+  // stay as a fallback; these run first.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.internationallegalpartner.com" }],
+        destination: "https://internationallegalpartner.com/:path*",
+        permanent: true,
+      },
+      { source: "/lawyers", destination: "/attorneys", permanent: true },
+      { source: "/attorneys/apply", destination: "/lawyers/apply", permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
