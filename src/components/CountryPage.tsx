@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import Nav from "@/components/Nav";
 import ParallaxBand from "@/components/ParallaxBand";
 import GutenbergList, { type GutenbergItem } from "@/components/GutenbergList";
 import { MorphStage, MorphItem, Reveal, RevealTitle } from "@/components/motion/Motion";
 import { renderGlossary } from "@/components/Term";
 import { fetchUpdates, type PublicUpdate } from "@/lib/public";
-import { useRouter } from "next/navigation";
 import { CLAIM, CHECK_CTA } from "@/components/landing/content";
 import { COUNTRIES, isCountryCode } from "@/lib/contracts";
 import { setCountryContext } from "@/lib/countryContext";
+import { COUNTRY_ORDER, COUNTRY_SEO } from "@/components/countries/countrySeo";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbLd, faqLd, membershipLd } from "@/lib/seo/jsonLd";
 import s from "./CountryPage.module.scss";
 
 export interface CountryStory {
@@ -34,8 +38,9 @@ interface CountryPageProps {
 
 export default function CountryPage({ country, countryCode, story, variant = "zigzag" }: CountryPageProps) {
   const [updates, setUpdates] = useState<PublicUpdate[] | null>(null);
-  const router = useRouter();
   const info = isCountryCode(countryCode) ? COUNTRIES[countryCode] : null;
+  const seo = isCountryCode(countryCode) ? COUNTRY_SEO[countryCode] : null;
+  const checkHref = `/check?country=${countryCode}`;
 
   useEffect(() => {
     let active = true;
@@ -47,30 +52,46 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
     };
   }, [countryCode]);
 
-  // COUNTRIES: every country is open; the check starts on this country's questions.
-  const start = () => {
-    setCountryContext(countryCode);
-    router.push(`/check?country=${countryCode}`);
-  };
+  // COUNTRIES: every country is open; the check starts on this country's
+  // questions. A real link (crawlable), with the country remembered on click.
+  const start = () => setCountryContext(countryCode);
 
   return (
     <>
       <Nav />
       <main>
         <section className={`${s.hero} ${variant === "pinned" ? s.heroRight : ""}`}>
-          <div className={s.heroBg} role="img" aria-label={story.heroAlt} style={{ backgroundImage: `url("${story.heroImage}")` }} />
+          <div className={s.heroBg}>
+            <Image src={story.heroImage} alt={story.heroAlt} fill priority sizes="100vw" className={s.heroImg} />
+          </div>
           <div className={s.heroInner}>
             <Reveal className={s.heroGlass} from={variant === "pinned" ? "right" : "left"}>
               <p className={s.eyebrow}>{countryCode} · {country}</p>
               <RevealTitle as="h1" text={story.headline} className={s.headline} glossary={story.glossary} />
               <p className={s.claim}>{CLAIM}</p>
               <p className={s.sub}>{renderGlossary(story.sub, story.glossary)}</p>
-              <button type="button" className={s.primary} onClick={start}>
+              <Link href={checkHref} className={s.primary} onClick={start}>
                 {CHECK_CTA}
-              </button>
+              </Link>
             </Reveal>
           </div>
         </section>
+
+        {seo && (
+          <section className={s.section} aria-labelledby="country-intro">
+            <div className={`${s.wrap} ${s.intro}`}>
+              <h2 id="country-intro" className={s.introTitle}>{`Legal dates that may apply to you in ${country}`}</h2>
+              {seo.intro.map((p) => (
+                <p key={p} className={s.introText}>{renderGlossary(p, story.glossary)}</p>
+              ))}
+              <p className={s.introLinks}>
+                <Link href={checkHref} onClick={start}>{`Run the free check for ${country}`}</Link>
+                <Link href="/pricing">See what the membership includes</Link>
+                <Link href="/join">Join ILP</Link>
+              </p>
+            </div>
+          </section>
+        )}
 
         {variant === "zigzag" ? (
           <section className={s.section}>
@@ -141,18 +162,64 @@ export default function CountryPage({ country, countryCode, story, variant = "zi
           </section>
         )}
 
+        {seo && (
+          <section className={s.section} aria-labelledby="country-faq">
+            <div className={s.wrap}>
+              <div className={s.sectionHead}>
+                <p className={s.eyebrowDark}>Questions</p>
+                <h2 id="country-faq" className={s.headingXl}>{`Questions about ${country}`}</h2>
+              </div>
+              <div className={s.faq}>
+                {seo.faq.map((item) => (
+                  <details key={item.q} className={s.faqItem}>
+                    <summary className={s.faqQ}>{item.q}</summary>
+                    <p className={s.faqA}>{item.a}</p>
+                  </details>
+                ))}
+              </div>
+              <p className={s.closeHint}>
+                These answers come from our research of official and professional sources and may require review. A
+                lawyer licensed in {country} confirms what applies to you.
+              </p>
+            </div>
+          </section>
+        )}
+
         <section className={s.close}>
           <div className={s.wrap}>
             <Reveal className={s.closeInner}>
               <RevealTitle text={`Your next ${country} deadline, on your calendar first.`} className={s.closeTitle} />
-              <button type="button" className={s.primary} onClick={start}>
+              <Link href={checkHref} className={s.primary} onClick={start}>
                 {CHECK_CTA}
-              </button>
+              </Link>
               <p className={s.closeHint}>The check is free and takes about two minutes. You do not need an account.</p>
             </Reveal>
           </div>
         </section>
+        {seo && (
+          <nav className={s.section} aria-labelledby="other-countries">
+            <div className={s.wrap}>
+              <h2 id="other-countries" className={s.introTitle}>ILP in other countries</h2>
+              <ul className={s.related}>
+                {COUNTRY_ORDER.filter((c) => c !== seo.code).map((c) => (
+                  <li key={c}>
+                    <Link href={COUNTRY_SEO[c].path}>{`Legal dates in ${COUNTRY_SEO[c].name}`}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </nav>
+        )}
       </main>
+      {seo && (
+        <JsonLd
+          data={[
+            breadcrumbLd([[country, seo.path]]),
+            faqLd(seo.faq),
+            membershipLd(country),
+          ]}
+        />
+      )}
     </>
   );
 }
