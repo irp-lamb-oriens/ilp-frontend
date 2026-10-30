@@ -35,6 +35,7 @@ import { isUserScrollIntent } from "@/lib/narration/scroll";
 import { resumeGraph, voiceGraph, type VoiceGraph } from "@/lib/narration/audioGraph";
 import { speechLevel } from "@/lib/narration/wave";
 import VoiceWave from "./VoiceWave";
+import Isotype from "./Isotype";
 import { markOfferSeen, offerSeen } from "@/lib/narration/session";
 import { NARRATOR_COPY as C, NARRATOR_TITLE } from "./content";
 import s from "./Narrator.module.scss";
@@ -77,6 +78,9 @@ import s from "./Narrator.module.scss";
  */
 
 type AudioState = "unknown" | "available" | "missing";
+
+/** Overlay fade-out after Start (ms); kept in step with $narrator-leave in the scss. */
+const LEAVE_MS = 280;
 
 /** Timed clock: seconds banked before the last start, and when it started (0: stopped). */
 type Clock = MutableRefObject<{ banked: number; since: number }>;
@@ -476,10 +480,21 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     }
     dispatch({ type: "start" });
   };
+  /** Start: the narration begins inside the click; the overlay fades out (the button grows and fades) and then unmounts. */
+  const [leaving, setLeaving] = useState(false);
   const start = () => {
+    if (leaving) return;
     markOfferSeen(page);
-    setOffer(false);
     begin();
+    if (reducedMotion()) {
+      setOffer(false);
+      return;
+    }
+    setLeaving(true);
+    window.setTimeout(() => {
+      setOffer(false);
+      setLeaving(false);
+    }, LEAVE_MS);
   };
   const readInstead = () => {
     markOfferSeen(page);
@@ -565,17 +580,20 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   return (
     <>
       {offer && (
-        <div className={s.overlay} role="dialog" aria-modal="true" aria-labelledby={`narrator-title-${page}`} aria-describedby={`narrator-line-${page}`} onKeyDown={onOverlayKey}>
+        <div className={leaving ? `${s.overlay} ${s.overlayLeaving}` : s.overlay} role="dialog" aria-modal="true" aria-labelledby={`narrator-title-${page}`} onKeyDown={onOverlayKey}>
           <div className={s.overlayInner}>
             <h2 id={`narrator-title-${page}`} className={s.overlayTitle}>
               {NARRATOR_TITLE[page]}
             </h2>
-            <p id={`narrator-line-${page}`} className={s.overlayLine}>
-              {timedNote ? C.withCaptions(about) : C.withSound(about)}
-            </p>
-            <button ref={startRef} type="button" className={s.start} onClick={start}>
-              {C.start}
+            <button ref={startRef} type="button" className={s.start} aria-label={C.startLabel(about, !timedNote)} onClick={start}>
+              <Isotype size={46} animated />
             </button>
+            <div className={s.startText} aria-hidden="true">
+              <p className={s.startName}>{C.start}</p>
+              <p id={`narrator-line-${page}`} className={s.overlayLine}>
+                {timedNote ? C.withCaptions(about) : C.withSound(about)}
+              </p>
+            </div>
             <button type="button" className={s.readInstead} onClick={readInstead}>
               {C.read}
             </button>
@@ -585,7 +603,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
 
       {!offer && !active && (
         <button type="button" className={s.launcher} onClick={begin}>
-          <PlayIcon />
+          <Isotype size={24} />
           <span>{C.launcher}</span>
         </button>
       )}

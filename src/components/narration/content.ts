@@ -7,12 +7,16 @@ export const NARRATOR_TITLE: Record<NarrationPage, string> = {
   csm: "Customer success at ILP",
 };
 
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
 export const NARRATOR_COPY = {
-  start: "Start the experience",
+  start: "Play the narrated tour",
   read: "Read the page instead",
-  /** Overlay line; `about` is "about N minutes". */
-  withSound: (about: string) => `A narrated walk through this page, ${about}, with sound.`,
-  withCaptions: (about: string) => `A narrated walk through this page, ${about}, with captions. The audio is coming soon.`,
+  /** Detail under the play button; `about` is "about N minutes". */
+  withSound: (about: string) => `${cap(about)}, with sound.`,
+  withCaptions: (about: string) => `${cap(about)}, with captions. The audio is coming soon.`,
+  /** The play button's accessible name. */
+  startLabel: (about: string, sound: boolean) => `Play the narrated tour of this page, ${about}, ${sound ? "with sound" : "with captions"}`,
   launcher: "Play narration",
   resume: "Resume",
   pausedByScroll: "Paused while you scroll.",

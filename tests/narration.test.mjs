@@ -372,7 +372,7 @@ test("narration overlay and player: dialog semantics, no sound before a click, f
   assert.equal((src.match(/new Audio\(\)/g) ?? []).length, 2, "one playback element plus the metadata probe");
   assert.ok(!/autoplay/i.test(src.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "")), "no autoplay");
   const content = read("src/components/narration/content.ts");
-  assert.match(content, /start: "Start the experience"/);
+  assert.match(content, /start: "Play the narrated tour"/);
   assert.match(content, /read: "Read the page instead"/);
 });
 
@@ -851,4 +851,39 @@ test("word timing: the caption line is visual only; screen readers get the whole
   assert.match(scss, /@include reduced-motion \{\s*\.word \{\s*transform: none;/);
   assert.match(read("scripts/whisperWords.mjs"), /process\.env\.OPENAI_API_KEY/);
   assert.ok(!/console\.(log|error)\([^)]*key\b/.test(read("scripts/whisperWords.mjs")), "the key is never printed");
+});
+
+/* ── Overlay play button and isotype ─────────────────────────── */
+
+test("overlay: a round play button with the isotype, labelled with what happens", async () => {
+  const n = read("src/components/narration/Narrator.tsx");
+  assert.match(n, /<button ref=\{startRef\} type="button" className=\{s\.start\} aria-label=\{C\.startLabel\(about, !timedNote\)\} onClick=\{start\}>\s*<Isotype size=\{46\} animated \/>/);
+  assert.match(n, /if \(offer\) startRef\.current\?\.focus\(\)/, "focus lands on the play button");
+  assert.match(n, /<Isotype size=\{24\} \/>/, "the small Play narration button uses the same glyph");
+  const iso = read("src/components/narration/Isotype.tsx");
+  assert.match(iso, /aria-hidden="true"/);
+  assert.match(iso, /focusable="false"/);
+  assert.match(iso, /stroke="currentColor"/);
+  const { NARRATOR_COPY: C } = await import("../src/components/narration/content.ts");
+  assert.equal(C.startLabel("about 1 minute", true), "Play the narrated tour of this page, about 1 minute, with sound");
+  assert.equal(C.withSound("about 2 minutes"), "About 2 minutes, with sound.");
+  for (const text of [C.start, C.read, C.withSound("about 1 minute"), C.withCaptions("about 1 minute"), C.startLabel("about 1 minute", true), C.startLabel("about 1 minute", false)]) {
+    assert.deepEqual(lintText(text), [], text);
+  }
+});
+
+test("overlay: the isotype loop stops with reduced motion; motion is transform and opacity only", () => {
+  const scss = read("src/components/narration/Narrator.module.scss");
+  assert.match(scss, /@include reduced-motion \{\s*\.isoAnimated \{\s*\.isoArc1,\s*\.isoArc2,\s*\.isoChevron \{\s*animation: none;/);
+  const keyframes = [...scss.matchAll(/@keyframes [\w-]+ \{([\s\S]*?)\n\}/g)].map((m) => m[1]);
+  assert.ok(keyframes.length >= 3);
+  for (const k of keyframes) {
+    const props = [...k.matchAll(/^\s*([a-z-]+):/gm)].map((m) => m[1]);
+    assert.ok(props.every((p) => p === "opacity" || p === "transform"), props.join(","));
+  }
+  assert.match(scss, /\.start \{[\s\S]*?width: 112px;[\s\S]*?border: 1px solid \$color-accent;[\s\S]*?border-radius: 50%;/);
+  assert.match(scss, /width: 96px;/, "phone size");
+  assert.match(scss, /outline-offset: 4px;/, "offset focus ring");
+  assert.match(scss, /\$narrator-leave: 280ms;/);
+  assert.match(read("src/components/narration/Narrator.tsx"), /const LEAVE_MS = 280;/);
 });

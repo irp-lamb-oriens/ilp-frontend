@@ -5,6 +5,9 @@
 // the one light-blue accent on the primary button and the progress fill.
 // No blur, no heavy shadow. Motion is opacity only.
 
+// Overlay fade-out after Start; kept in step with LEAVE_MS in Narrator.tsx.
+$narrator-leave: 280ms;
+
 @keyframes narrator-fade {
   from {
     opacity: 0;
@@ -49,13 +52,149 @@
   line-height: 1.6;
 }
 
+// Round play button with the isotype (Isotype.tsx): white, hairline accent
+// ring; hover and focus grow it a little and tint the ring; press shrinks.
 .start {
-  @include button-primary;
-  @include touch-target;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
   margin-top: $space-2;
-  padding: $space-4 $space-8;
-  font-size: 1.0625rem;
-  white-space: nowrap;
+  padding: 0;
+  border: 1px solid $color-accent;
+  border-radius: 50%;
+  background: $color-surface;
+  color: $color-accent;
+  cursor: pointer;
+  transition:
+    transform $duration-fast $ease-out-strong,
+    opacity $narrator-leave $ease-out-strong;
+
+  // The ring fills to a light accent tint on hover and focus (opacity only).
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: $color-accent;
+    opacity: 0;
+    transition: opacity $duration-fast $ease-out-strong;
+  }
+
+  svg {
+    position: relative;
+    // Optical centre: the triangle sits a little right of the circle's centre.
+    transform: translateX(2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 4px;
+  }
+
+  &:focus-visible {
+    transform: scale(1.04);
+
+    &::before {
+      opacity: 0.12;
+    }
+  }
+
+  @include hover-only {
+    &:hover {
+      transform: scale(1.04);
+
+      &::before {
+        opacity: 0.12;
+      }
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  @include below-md {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+.startText {
+  display: grid;
+  gap: $space-1;
+}
+
+.startName {
+  margin: 0;
+  color: $color-navy;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* ── Isotype motion (overlay button only) ──────────────────────── */
+
+@keyframes narrator-arc {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.94);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes narrator-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.isoAnimated {
+  .isoArc1,
+  .isoArc2 {
+    transform-box: view-box;
+    transform-origin: 31px 21px; // the triangle's tip
+    animation: narrator-arc 1.8s $ease-out-strong infinite;
+  }
+
+  .isoArc2 {
+    animation-delay: 0.22s;
+  }
+
+  .isoChevron {
+    animation: narrator-drift 1.8s ease-in-out infinite;
+  }
+}
+
+@include reduced-motion {
+  .isoAnimated {
+    .isoArc1,
+    .isoArc2,
+    .isoChevron {
+      animation: none;
+    }
+  }
+}
+
+// After Start: the button grows and fades while the overlay fades out.
+.overlayLeaving {
+  animation: none;
+  opacity: 0;
+  transition: opacity $narrator-leave $ease-out-strong;
+  pointer-events: none;
+
+  .start {
+    opacity: 0;
+    transform: scale(1.15);
+  }
 }
 
 .readInstead {
@@ -92,6 +231,10 @@
   color: $color-navy;
   font-size: 0.875rem;
   animation: narrator-fade $duration-fast $ease-out-strong both;
+
+  svg {
+    color: $color-accent;
+  }
 }
 
 /* ── Player ──────────────────────────────────────────────────── */
