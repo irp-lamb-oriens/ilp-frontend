@@ -93,7 +93,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
   },
   {
     path: "/panama",
-    title: "Panama legal deadlines for expats: tasa única, residency | ILP",
+    title: "Panama expat legal deadlines: tasa única, residency | ILP",
     description:
       "Provisional residency cards, the yearly tasa única, records with your resident agent and property tax installments: Panama dates that may apply to you.",
     priority: 0.9,
@@ -101,7 +101,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
   },
   {
     path: "/colombia",
-    title: "Colombia legal deadlines for expats: visa, cédula, DIAN | ILP",
+    title: "Colombia legal deadlines for expats: visa, DIAN | ILP",
     description:
       "Visa registration, cédula de extranjería, DIAN returns, predial and matrícula mercantil: the Colombia dates that may apply to you, with a lawyer to ask.",
     priority: 0.9,
@@ -117,7 +117,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
   },
   {
     path: "/spain",
-    title: "Spain legal deadlines for expats: NLV renewal, IBI, 720 | ILP",
+    title: "Spain legal deadlines for expats: NLV, IBI, 720 | ILP",
     description:
       "Non-lucrative visa and TIE renewal, IRPF, Modelo 720, IBI and the non-resident return: the Spain dates that may apply to you, with a lawyer to ask.",
     priority: 0.9,
@@ -127,7 +127,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
     path: "/attorneys",
     title: "For lawyers: advise ILP members in your country",
     description:
-      "Lawyers licensed in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain take 20-minute member calls with a brief before each one. ILP does the follow-up.",
+      "Lawyers licensed in Colombia, Costa Rica, Mexico, Panama, Portugal or Spain take 20-minute member calls with a brief first. ILP does the follow-up.",
     priority: 0.6,
     changeFrequency: "monthly",
   },
@@ -222,7 +222,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
   {
     path: "/legal/partner-terms",
     title: "Partner lawyer terms (draft) | ILP",
-    description: "The draft terms for independent lawyers who take calls with ILP members: your independence, calls and the portal, paid work and fees, and ending the partnership.",
+    description: "The draft terms for independent lawyers who take calls with ILP members: independence, calls, paid work and fees, and ending the partnership.",
     priority: 0.2,
     changeFrequency: "yearly",
   },
