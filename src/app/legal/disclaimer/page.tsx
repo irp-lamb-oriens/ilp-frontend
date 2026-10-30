@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import LegalPage from "@/components/LegalPage";
 import { DISCLAIMER_SECTIONS } from "@/components/legal/content/other";
 import { LEGAL_UPDATED, LEGAL_VERSIONS } from "@/components/legal/versions";
 
-export const metadata: Metadata = { title: "Legal information disclaimer | ILP" };
+export const metadata: Metadata = pageMetadata("/legal/disclaimer");
 
 export default function DisclaimerPage() {
   return (

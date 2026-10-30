@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import LegalPage from "@/components/LegalPage";
 import { ACCESSIBILITY_SECTIONS } from "@/components/legal/content/other";
 import { LEGAL_UPDATED, LEGAL_VERSIONS } from "@/components/legal/versions";
 
-export const metadata: Metadata = { title: "Accessibility statement | ILP" };
+export const metadata: Metadata = pageMetadata("/legal/accessibility");
 
 export default function AccessibilityPage() {
   return (

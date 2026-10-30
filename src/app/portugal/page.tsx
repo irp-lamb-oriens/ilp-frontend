@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import CountryPage, { type CountryStory } from "@/components/CountryPage";
+
+export const metadata: Metadata = pageMetadata("/portugal", { ownOgImage: true });
 
 const IMG = (id: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=2000`;

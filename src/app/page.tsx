@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Nav from "@/components/Nav";
 import HeroCTA from "@/components/HeroCTA";
 import ParallaxBand from "@/components/ParallaxBand";
@@ -17,11 +18,7 @@ import { BANDS, FOOTER, IMG, TUTORIAL_BANDS } from "@/components/landing/content
 import s from "@/components/landing/landing.module.scss";
 import Narrator from "@/components/narration/Narrator";
 
-export const metadata: Metadata = {
-  title: "International Legal Partner: legal membership in six countries",
-  description:
-    "A legal membership for North Americans in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain: US$79.99 a month plus a US$100 activation fee, up to three 20-minute video calls a month with a lawyer licensed in your country, and a free deadline check.",
-};
+export const metadata: Metadata = pageMetadata("/", { ownOgImage: true });
 
 /**
  * Homepage order (STORY, 2026-10-28): hero (title and the two actions, one

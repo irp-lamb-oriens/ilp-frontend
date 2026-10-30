@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import LegalPage from "@/components/LegalPage";
 import { COOKIES_INTRO, COOKIES_SECTIONS } from "@/components/legal/content/other";
 import MeasurementChoice from "@/components/legal/MeasurementChoice";
 import { LEGAL_UPDATED, LEGAL_VERSIONS } from "@/components/legal/versions";
 
-export const metadata: Metadata = { title: "Cookie and storage notice | ILP" };
+export const metadata: Metadata = pageMetadata("/legal/cookies");
 
 export default function CookiesPage() {
   return (

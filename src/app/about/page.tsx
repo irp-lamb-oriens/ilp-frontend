@@ -1,6 +1,10 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Nav from "@/components/Nav";
 import { Reveal, RevealTitle } from "@/components/motion/Motion";
 import s from "@/components/MarketingPage.module.scss";
+
+export const metadata: Metadata = pageMetadata("/about");
 
 const PILLARS = [
   {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import PriceAnchor from "@/components/motion/PriceAnchor";
@@ -6,11 +7,7 @@ import { PLAN_STANDARD } from "@/lib/contracts";
 import m from "@/components/MarketingPage.module.scss";
 import s from "./pricing.module.scss";
 
-export const metadata: Metadata = {
-  title: "Pricing | International Legal Partner",
-  description:
-    "One ILP membership: US$79.99 a month plus a one-time US$100 activation fee. Up to three 20-minute calls a month with a lawyer licensed in your country. Other legal work is quoted separately.",
-};
+export const metadata: Metadata = pageMetadata("/pricing", { ownOgImage: true });
 
 const usd = (cents: number) => `US$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`;
 const ACTIVATION = usd(PLAN_STANDARD.activationCents);

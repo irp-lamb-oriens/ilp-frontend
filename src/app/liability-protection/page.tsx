@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import LegalPage from "@/components/LegalPage";
+
+export const metadata: Metadata = pageMetadata("/liability-protection");
 
 export default function LiabilityProtectionPage() {
   return (
