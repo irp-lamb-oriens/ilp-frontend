@@ -21,6 +21,11 @@
   will-change: transform;
 }
 
+.img {
+  object-fit: cover;
+  object-position: center;
+}
+
 .inner {
   @include container;
   width: 100%;

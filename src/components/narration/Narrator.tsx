@@ -250,9 +250,9 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
-  useEffect(() => {
-    if (offer) void load();
-  }, [offer, load]);
+  // No fetch on offer: the transcript JSON and the audio load only inside the
+  // Start click (unlock), so a visitor who never plays downloads neither
+  // (SEO / Core Web Vitals). The overlay shows the estimated length meanwhile.
 
   /* ── One audio element for the landing ─────────────────────── */
   useEffect(() => {

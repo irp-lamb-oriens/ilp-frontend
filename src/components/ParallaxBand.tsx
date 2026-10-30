@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { RevealTitle } from "@/components/motion/Motion";
 import { RevealText, Stage } from "@/components/motion/Story";
@@ -19,7 +20,7 @@ interface ParallaxBandProps {
 }
 
 /**
- * Full-bleed legal-imagery band. The photo is a CSS background on an
+ * Full-bleed legal-imagery band. The photo (next/image, fill) sits in an
  * oversized layer that parallaxes slower than the page; a frosted-glass panel
  * floats over it. The image is decorative (role=img + aria-label for the
  * subject), motion is transform/opacity only and collapses under reduced
@@ -45,15 +46,10 @@ export default function ParallaxBand({
 
   return (
     <section ref={ref} className={`${s.band} ${s[align]}`}>
-      <motion.div
-        className={s.bg}
-        role="img"
-        aria-label={alt}
-        style={{
-          backgroundImage: `url("${image}")`,
-          ...(reduce ? {} : { y, scale }),
-        }}
-      />
+      <motion.div className={s.bg} style={reduce ? undefined : { y, scale }}>
+        {/* next/image: resized and served as WebP/AVIF, lazy below the fold (SEO, Core Web Vitals). */}
+        <Image src={image} alt={alt} fill sizes="100vw" className={s.img} />
+      </motion.div>
       <div className={s.inner}>
         <Stage className={s.glass} enter="visual" amount={0.4}>
           {eyebrow && <p className={s.eyebrow}>{eyebrow}</p>}
