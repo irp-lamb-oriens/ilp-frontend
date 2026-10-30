@@ -5,9 +5,6 @@
 // the one light-blue accent on the primary button and the progress fill.
 // No blur, no heavy shadow. Motion is opacity only.
 
-// Overlay fade-out after Start; kept in step with LEAVE_MS in Narrator.tsx.
-$narrator-leave: 280ms;
-
 @keyframes narrator-fade {
   from {
     opacity: 0;
@@ -26,12 +23,19 @@ $narrator-leave: 280ms;
   display: grid;
   place-items: center;
   padding: $space-6 $space-4;
-  background: $color-canvas;
   overscroll-behavior: contain;
   animation: narrator-fade $duration-drawer $ease-out-strong both;
 }
 
+// The overlay's white page; fades away at the end of the start sequence.
+.overlayBackdrop {
+  position: absolute;
+  inset: 0;
+  background: $color-canvas;
+}
+
 .overlayInner {
+  position: relative;
   display: grid;
   justify-items: center;
   gap: $space-6;
@@ -67,9 +71,7 @@ $narrator-leave: 280ms;
   background: $color-surface;
   color: $color-accent;
   cursor: pointer;
-  transition:
-    transform $duration-fast $ease-out-strong,
-    opacity $narrator-leave $ease-out-strong;
+  transition: transform $duration-fast $ease-out-strong;
 
   // The ring fills to a light accent tint on hover and focus (opacity only).
   &::before {
@@ -82,10 +84,9 @@ $narrator-leave: 280ms;
     transition: opacity $duration-fast $ease-out-strong;
   }
 
+  // The glyph's optical centre is set in Isotype.tsx; layers stack above the fill.
   svg {
     position: relative;
-    // Optical centre: the triangle sits a little right of the circle's centre.
-    transform: translateX(2px);
   }
 
   &:focus-visible {
@@ -147,16 +148,6 @@ $narrator-leave: 280ms;
   }
 }
 
-@keyframes narrator-drift {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(3px);
-  }
-}
-
 .isoAnimated {
   .isoArc1,
   .isoArc2 {
@@ -168,32 +159,14 @@ $narrator-leave: 280ms;
   .isoArc2 {
     animation-delay: 0.22s;
   }
-
-  .isoChevron {
-    animation: narrator-drift 1.8s ease-in-out infinite;
-  }
 }
 
 @include reduced-motion {
   .isoAnimated {
     .isoArc1,
-    .isoArc2,
-    .isoChevron {
+    .isoArc2 {
       animation: none;
     }
-  }
-}
-
-// After Start: the button grows and fades while the overlay fades out.
-.overlayLeaving {
-  animation: none;
-  opacity: 0;
-  transition: opacity $narrator-leave $ease-out-strong;
-  pointer-events: none;
-
-  .start {
-    opacity: 0;
-    transform: scale(1.15);
   }
 }
 
@@ -498,3 +471,77 @@ $narrator-leave: 280ms;
   transform-origin: left center;
 }
 
+
+/* ── Start sequence (lib/narration/intro.ts) ──────────────────────
+ * Each element gets --intro-at (delay) and --intro-dur from the timeline;
+ * .overlayIntro on the overlay runs it. Transform and opacity only. */
+
+.startFill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: $color-accent;
+  opacity: 0;
+}
+
+.startWhite {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: $color-surface;
+}
+
+.isoWhite path {
+  opacity: 0;
+}
+
+.overlayIntro {
+  pointer-events: none;
+
+  .startFill {
+    opacity: 1;
+    transition: opacity var(--intro-dur) $ease-intro-shine var(--intro-at);
+  }
+
+  .isoWhite path {
+    opacity: 1;
+    transition: opacity var(--intro-dur) $ease-intro-shine var(--intro-at);
+  }
+
+  .start {
+    opacity: 0;
+    transform: scale(1.08);
+    transition:
+      opacity var(--intro-dur) $ease-intro-exit var(--intro-at),
+      transform var(--intro-dur) $ease-intro-exit var(--intro-at);
+
+    &::before {
+      opacity: 0;
+    }
+  }
+
+  .clearLeft,
+  .clearRight {
+    opacity: 0;
+  }
+
+  .clearLeft {
+    transform: translateX(-32px);
+    transition:
+      opacity var(--intro-dur) $ease-intro-left var(--intro-at),
+      transform var(--intro-dur) $ease-intro-left var(--intro-at);
+  }
+
+  .clearRight {
+    transform: translateX(32px);
+    transition:
+      opacity var(--intro-dur) $ease-intro-right var(--intro-at),
+      transform var(--intro-dur) $ease-intro-right var(--intro-at);
+  }
+
+  .overlayBackdrop {
+    opacity: 0;
+    transition: opacity var(--intro-dur) $ease-intro-reveal var(--intro-at);
+  }
+}

@@ -548,9 +548,15 @@ test("wave: the AudioContext is created only by the click on Start, once per ele
   const src = read("src/components/narration/Narrator.tsx");
   const uses = [...src.matchAll(/voiceGraph\(/g)].map((m) => m.index);
   assert.equal(uses.length, 1);
+  // unlock() runs only from the click handlers (Start and "Play narration").
+  const unlockAt = src.indexOf("const unlock = () => {");
+  const unlockEnd = src.indexOf("const startNarration = () => {");
+  assert.ok(uses[0] > unlockAt && uses[0] < unlockEnd, "created in unlock()");
+  const callers = [...src.matchAll(/\bunlock\(\);/g)].map((m) => m.index);
   const beginAt = src.indexOf("const begin = () => {");
-  const beginEnd = src.indexOf("const start = () => {");
-  assert.ok(uses[0] > beginAt && uses[0] < beginEnd, "created in the click handler");
+  const startAt = src.indexOf("const start = () => {");
+  assert.equal(callers.length, 2);
+  assert.ok(callers[0] > beginAt && callers[0] < startAt && callers[1] > startAt, "called from begin() and start() only");
   assert.ok(!/new (?:window\.)?(?:webkit)?AudioContext/.test(src), "no AudioContext anywhere else in the narrator");
 });
 
@@ -857,7 +863,9 @@ test("word timing: the caption line is visual only; screen readers get the whole
 
 test("overlay: a round play button with the isotype, labelled with what happens", async () => {
   const n = read("src/components/narration/Narrator.tsx");
-  assert.match(n, /<button ref=\{startRef\} type="button" className=\{s\.start\} aria-label=\{C\.startLabel\(about, !timedNote\)\} onClick=\{start\}>\s*<Isotype size=\{46\} animated \/>/);
+  assert.match(n, /<button ref=\{startRef\} type="button" className=\{s\.start\} style=\{iv\("fade"\)\} aria-label=\{C\.startLabel\(about, !timedNote\)\} aria-disabled=\{intro \|\| undefined\} onClick=\{start\}>/);
+  assert.match(n, /<Isotype size=\{46\} animated \/>/);
+  assert.match(n, /<span className=\{s\.startWhite\} aria-hidden="true">\s*<Isotype size=\{46\} white \/>/);
   assert.match(n, /if \(offer\) startRef\.current\?\.focus\(\)/, "focus lands on the play button");
   assert.match(n, /<Isotype size=\{24\} \/>/, "the small Play narration button uses the same glyph");
   const iso = read("src/components/narration/Isotype.tsx");
@@ -874,9 +882,9 @@ test("overlay: a round play button with the isotype, labelled with what happens"
 
 test("overlay: the isotype loop stops with reduced motion; motion is transform and opacity only", () => {
   const scss = read("src/components/narration/Narrator.module.scss");
-  assert.match(scss, /@include reduced-motion \{\s*\.isoAnimated \{\s*\.isoArc1,\s*\.isoArc2,\s*\.isoChevron \{\s*animation: none;/);
+  assert.match(scss, /@include reduced-motion \{\s*\.isoAnimated \{\s*\.isoArc1,\s*\.isoArc2 \{\s*animation: none;/);
   const keyframes = [...scss.matchAll(/@keyframes [\w-]+ \{([\s\S]*?)\n\}/g)].map((m) => m[1]);
-  assert.ok(keyframes.length >= 3);
+  assert.ok(keyframes.length >= 2);
   for (const k of keyframes) {
     const props = [...k.matchAll(/^\s*([a-z-]+):/gm)].map((m) => m[1]);
     assert.ok(props.every((p) => p === "opacity" || p === "transform"), props.join(","));
@@ -884,6 +892,113 @@ test("overlay: the isotype loop stops with reduced motion; motion is transform a
   assert.match(scss, /\.start \{[\s\S]*?width: 112px;[\s\S]*?border: 1px solid \$color-accent;[\s\S]*?border-radius: 50%;/);
   assert.match(scss, /width: 96px;/, "phone size");
   assert.match(scss, /outline-offset: 4px;/, "offset focus ring");
-  assert.match(scss, /\$narrator-leave: 280ms;/);
-  assert.match(read("src/components/narration/Narrator.tsx"), /const LEAVE_MS = 280;/);
+});
+
+/* ── Start sequence ──────────────────────────────────────────── */
+
+const intro = await import("../src/lib/narration/intro.ts");
+
+test("isotype: the chevron is gone; play triangle and two arcs, one centred group", () => {
+  const iso = read("src/components/narration/Isotype.tsx");
+  const paths = [...iso.matchAll(/<path /g)];
+  assert.equal(paths.length, 3, "triangle, arc 1, arc 2");
+  assert.ok(!/isoChevron|L21\.5 40\.5/.test(iso), "no chevron");
+  assert.match(iso, /<g transform="translate\(-3 3\)">/);
+  assert.ok(!/isoChevron|narrator-drift/.test(read("src/components/narration/Narrator.module.scss")));
+  // Optical centre: between the bounding-box centre and the ink centre of the group, moved to the middle.
+  const bboxX = (15 + 42.3) / 2;
+  const inkX = (20.2 * 57.7 + 36 * 8 + 41 * 16.4) / (57.7 + 8 + 16.4);
+  assert.ok(27 > inkX && 27 < bboxX);
+  assert.equal(27 - 3, 24);
+  assert.equal(21 + 3, 24);
+  // The small Play narration glyph is the same component.
+  assert.match(read("src/components/narration/Narrator.tsx"), /<Isotype size=\{24\} \/>/);
+});
+
+test("start sequence: shine, fade, clear the stage, reveal; about a second", () => {
+  const ids = intro.INTRO_STEPS.map((s) => s.id);
+  assert.deepEqual(ids, ["fill", "tri", "arc1", "arc2", "fade", "title", "name", "detail", "read", "reveal"]);
+  const at = Object.fromEntries(intro.INTRO_STEPS.map((s) => [s.id, s]));
+  assert.equal(at.fill.dur, 140);
+  for (const [a, b] of [["tri", "arc1"], ["arc1", "arc2"]]) {
+    const gap = at[b].at - at[a].at;
+    assert.ok(gap >= 60 && gap <= 70, `${a} to ${b}: ${gap} ms`);
+  }
+  for (const p of ["tri", "arc1", "arc2"]) assert.equal(at[p].dur, 160);
+  assert.ok(at.fade.at >= at.arc2.at + at.arc2.dur, "the button fades after the shine");
+  assert.equal(at.fade.dur, 220);
+  const clear = ["title", "name", "detail", "read"].map((k) => at[k]);
+  assert.ok(clear[0].at > at.fade.at);
+  for (let i = 1; i < clear.length; i++) {
+    const gap = clear[i].at - clear[i - 1].at;
+    assert.ok(gap >= 40 && gap <= 60, `stagger ${gap} ms`);
+  }
+  assert.ok(at.reveal.at > clear[0].at, "the background goes last");
+  assert.equal(intro.INTRO_TOTAL, at.reveal.at + at.reveal.dur);
+  assert.ok(intro.INTRO_TOTAL >= 900 && intro.INTRO_TOTAL <= 1100, `${intro.INTRO_TOTAL} ms`);
+  assert.deepEqual(intro.introVars("fade"), { "--intro-at": "360ms", "--intro-dur": "220ms" });
+  // Easing tokens exist, and the sequence uses only transform and opacity.
+  const vars = read("src/styles/_variables.scss");
+  for (const t of ["shine", "exit", "left", "right", "reveal"]) assert.match(vars, new RegExp(`\\$ease-intro-${t}: cubic-bezier\\(`));
+  const scss = read("src/components/narration/Narrator.module.scss");
+  const block = scss.slice(scss.indexOf(".overlayIntro {"));
+  const props = [...block.matchAll(/^\s+(transition|opacity|transform|pointer-events):/gm)].length;
+  const all = [...block.matchAll(/^\s+([a-z-]+):/gm)].map((m) => m[1]);
+  assert.ok(all.every((p) => ["transition", "opacity", "transform", "pointer-events"].includes(p)), all.join(","));
+  assert.ok(props > 0);
+  assert.match(scss, /\.clearLeft \{\s*transform: translateX\(-32px\);/);
+  assert.match(scss, /\.clearRight \{\s*transform: translateX\(32px\);/);
+});
+
+test("start sequence: the narration waits for the end; repeat clicks and Escape do nothing", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let started = 0;
+  const run = intro.createIntro(() => started++);
+  assert.equal(run.start(), true);
+  assert.equal(run.start(), false, "a second click is ignored");
+  t.mock.timers.tick(intro.INTRO_TOTAL - 1);
+  assert.equal(started, 0, "not before the sequence ends");
+  t.mock.timers.tick(intro.INTRO_GRACE + 1);
+  assert.equal(started, 1, "the timeout fallback finishes it");
+  run.finish();
+  assert.equal(started, 1, "finish runs once");
+  // The transition end usually comes first; the timer then does nothing.
+  const run2 = intro.createIntro(() => started++);
+  run2.start();
+  t.mock.timers.tick(intro.INTRO_TOTAL);
+  run2.finish();
+  assert.equal(started, 2);
+  t.mock.timers.tick(1000);
+  assert.equal(started, 2);
+  assert.equal(run2.state, "done");
+  // In the component: guards on the click, Escape and Read the page instead.
+  const n = read("src/components/narration/Narrator.tsx");
+  assert.match(n, /const start = \(\) => \{\s*if \(introRef\.current\) return;/);
+  assert.match(n, /if \(!introRef\.current\) readInstead\(\);/);
+  assert.match(n, /const readInstead = \(\) => \{\s*if \(introRef\.current\) return;/);
+  assert.match(n, /onTransitionEnd=\{onRevealEnd\}/);
+});
+
+test("start sequence: audio is unlocked inside the click, played later; reduced motion skips the sequence", () => {
+  const calls = [];
+  const audio = {
+    src: "",
+    getAttribute: (k) => (k === "src" && audio.src ? audio.src : null),
+    play: () => {
+      calls.push("play");
+      return Promise.reject(new Error("AbortError"));
+    },
+    pause: () => calls.push("pause"),
+  };
+  intro.unlockAudio(audio, "/narration/home.mp3", () => calls.push("graph"));
+  assert.equal(audio.src, "/narration/home.mp3");
+  assert.deepEqual(calls, ["graph", "play", "pause"], "graph resumed, then play and pause, all synchronously");
+  const n = read("src/components/narration/Narrator.tsx");
+  const startFn = n.slice(n.indexOf("const start = () => {"), n.indexOf("const onRevealEnd"));
+  assert.ok(startFn.indexOf("unlock();") < startFn.indexOf("createIntro("), "unlock inside the click, before the sequence");
+  assert.ok(startFn.indexOf("startNarration()") > startFn.indexOf("createIntro("), "the narration starts from the sequence's end");
+  assert.match(startFn, /if \(reducedMotion\(\)\) \{\s*run\.start\(\);\s*run\.finish\(\);/, "reduced motion: at once");
+  const unlockFn = n.slice(n.indexOf("const unlock = () => {"), n.indexOf("const startNarration"));
+  assert.match(unlockFn, /voiceGraph\(a\)/);
+  assert.match(unlockFn, /resumeGraph\(/);
 });

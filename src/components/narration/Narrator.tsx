@@ -10,6 +10,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
+  type TransitionEvent,
   type MutableRefObject,
   type ReactNode,
 } from "react";
@@ -36,6 +37,7 @@ import { resumeGraph, voiceGraph, type VoiceGraph } from "@/lib/narration/audioG
 import { speechLevel } from "@/lib/narration/wave";
 import VoiceWave from "./VoiceWave";
 import Isotype from "./Isotype";
+import { createIntro, introVars, unlockAudio, type IntroStepId } from "@/lib/narration/intro";
 import { markOfferSeen, offerSeen } from "@/lib/narration/session";
 import { NARRATOR_COPY as C, NARRATOR_TITLE } from "./content";
 import s from "./Narrator.module.scss";
@@ -79,8 +81,8 @@ import s from "./Narrator.module.scss";
 
 type AudioState = "unknown" | "available" | "missing";
 
-/** Overlay fade-out after Start (ms); kept in step with $narrator-leave in the scss. */
-const LEAVE_MS = 280;
+/** Custom properties of an intro step, as a style object. */
+const iv = (id: IntroStepId) => introVars(id) as CSSProperties;
 
 /** Timed clock: seconds banked before the last start, and when it started (0: stopped). */
 type Clock = MutableRefObject<{ banked: number; since: number }>;
@@ -461,42 +463,73 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   }, [state.status]);
 
   /* ── Actions ───────────────────────────────────────────────── */
-  const begin = () => {
-    track.click(`narration.start.${page}`);
+  /**
+   * Inside a click: load the timeline and unlock audio (source set, analyser
+   * graph created and resumed, play() and pause() at once), so playback can
+   * start later from script, on Safari for iOS too. Never before a click.
+   */
+  const unlock = () => {
     void load();
+    const a = audioRef.current;
+    if (audioStateRef.current !== "missing" && a) {
+      unlockAudio(a, script.audio, () => {
+        if (!graphRef.current) graphRef.current = voiceGraph(a);
+        resumeGraph(graphRef.current);
+      });
+    }
+  };
+  /** Start the narration from the beginning (the status effect plays the audio). */
+  const startNarration = () => {
     modeRef.current = audioStateRef.current === "missing" ? "timed" : "audio";
     setTimed(modeRef.current === "timed");
     const a = audioRef.current;
     if (modeRef.current === "audio" && a) {
-      // Start the audio inside the click, so the browser allows sound. The
-      // analyser graph is created here too, never before a click.
       if (!a.getAttribute("src")) a.src = script.audio;
-      if (!graphRef.current) graphRef.current = voiceGraph(a);
-      resumeGraph(graphRef.current);
       a.currentTime = 0;
-      a.play().catch(() => fallBackToTimed());
     } else {
       clockRef.current = { banked: 0, since: 0 };
     }
     dispatch({ type: "start" });
   };
-  /** Start: the narration begins inside the click; the overlay fades out (the button grows and fades) and then unmounts. */
-  const [leaving, setLeaving] = useState(false);
+  /** "Play narration" (after the overlay): unlock and start in the same click. */
+  const begin = () => {
+    track.click(`narration.start.${page}`);
+    unlock();
+    startNarration();
+  };
+
+  /*
+   * Overlay play button: the click unlocks audio at once, then the start
+   * sequence runs (lib/narration/intro.ts) and only when it ends does the
+   * overlay unmount and the narration start. Repeat clicks and Escape during
+   * the sequence do nothing. Reduced motion: no sequence.
+   */
+  const [intro, setIntro] = useState(false);
+  const introRef = useRef<ReturnType<typeof createIntro> | null>(null);
   const start = () => {
-    if (leaving) return;
+    if (introRef.current) return;
     markOfferSeen(page);
-    begin();
-    if (reducedMotion()) {
+    track.click(`narration.start.${page}`);
+    unlock();
+    const run = createIntro(() => {
       setOffer(false);
+      setIntro(false);
+      startNarration();
+    });
+    introRef.current = run;
+    if (reducedMotion()) {
+      run.start();
+      run.finish();
       return;
     }
-    setLeaving(true);
-    window.setTimeout(() => {
-      setOffer(false);
-      setLeaving(false);
-    }, LEAVE_MS);
+    run.start();
+    setIntro(true);
+  };
+  const onRevealEnd = (e: TransitionEvent<HTMLSpanElement>) => {
+    if (e.target === e.currentTarget && e.propertyName === "opacity") introRef.current?.finish();
   };
   const readInstead = () => {
+    if (introRef.current) return;
     markOfferSeen(page);
     setOffer(false);
     track.click(`narration.read.${page}`);
@@ -553,7 +586,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   const onOverlayKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      readInstead();
+      if (!introRef.current) readInstead();
       return;
     }
     if (e.key !== "Tab") return;
@@ -580,21 +613,28 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   return (
     <>
       {offer && (
-        <div className={leaving ? `${s.overlay} ${s.overlayLeaving}` : s.overlay} role="dialog" aria-modal="true" aria-labelledby={`narrator-title-${page}`} onKeyDown={onOverlayKey}>
+        <div className={intro ? `${s.overlay} ${s.overlayIntro}` : s.overlay} role="dialog" aria-modal="true" aria-labelledby={`narrator-title-${page}`} aria-busy={intro || undefined} onKeyDown={onOverlayKey}>
+          <span className={s.overlayBackdrop} style={iv("reveal")} onTransitionEnd={onRevealEnd} aria-hidden="true" />
           <div className={s.overlayInner}>
-            <h2 id={`narrator-title-${page}`} className={s.overlayTitle}>
+            <h2 id={`narrator-title-${page}`} className={`${s.overlayTitle} ${s.clearLeft}`} style={iv("title")}>
               {NARRATOR_TITLE[page]}
             </h2>
-            <button ref={startRef} type="button" className={s.start} aria-label={C.startLabel(about, !timedNote)} onClick={start}>
+            <button ref={startRef} type="button" className={s.start} style={iv("fade")} aria-label={C.startLabel(about, !timedNote)} aria-disabled={intro || undefined} onClick={start}>
+              <span className={s.startFill} style={iv("fill")} aria-hidden="true" />
               <Isotype size={46} animated />
+              <span className={s.startWhite} aria-hidden="true">
+                <Isotype size={46} white />
+              </span>
             </button>
             <div className={s.startText} aria-hidden="true">
-              <p className={s.startName}>{C.start}</p>
-              <p id={`narrator-line-${page}`} className={s.overlayLine}>
+              <p className={`${s.startName} ${s.clearRight}`} style={iv("name")}>
+                {C.start}
+              </p>
+              <p id={`narrator-line-${page}`} className={`${s.overlayLine} ${s.clearLeft}`} style={iv("detail")}>
                 {timedNote ? C.withCaptions(about) : C.withSound(about)}
               </p>
             </div>
-            <button type="button" className={s.readInstead} onClick={readInstead}>
+            <button type="button" className={`${s.readInstead} ${s.clearRight}`} style={iv("read")} onClick={readInstead}>
               {C.read}
             </button>
           </div>

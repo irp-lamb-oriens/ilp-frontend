@@ -85,6 +85,12 @@ $ease-in-exit: cubic-bezier(0.4, 0, 1, 1);
 $duration-press: 160ms;
 $duration-fast: 200ms;
 $duration-drawer: 280ms;
+// Narrator overlay start sequence (lib/narration/intro.ts holds the timeline).
+$ease-intro-shine: cubic-bezier(0.2, 0.8, 0.2, 1); // fill and white glyph coming in
+$ease-intro-exit: cubic-bezier(0.5, 0, 0.75, 0.3); // the button leaving (ease-in)
+$ease-intro-left: cubic-bezier(0.55, 0, 0.8, 0.35); // content leaving to the left
+$ease-intro-right: cubic-bezier(0.4, 0, 0.7, 0.45); // content leaving to the right
+$ease-intro-reveal: cubic-bezier(0.65, 0, 0.35, 1); // the background fading away
 
 // Loading states (UX_LOADING.md). Skeletons wait $skeleton-delay before they
 // show and stay at least $skeleton-min once shown (timing lives in
