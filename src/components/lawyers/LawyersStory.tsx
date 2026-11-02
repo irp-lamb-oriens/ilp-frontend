@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from "framer-motion";
 import { BeatStory } from "@/components/motion/BeatStory";
+import HeroLedger from "@/components/landing/HeroLedger";
+import { lawyerLedger } from "@/components/landing/ledgers";
 import { Eyebrow, RevealText, Stage, StageItem, useStoryLayout } from "@/components/motion/Story";
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 import { track } from "@/lib/journey";
@@ -52,6 +54,7 @@ export function LawyersHero() {
   const visibility = useTransform(opacity, (o) => (o > 0 ? "visible" : "hidden"));
   const pinned = layout === "pinned";
   const words = LAWYERS_INTRO.titleKey.split(" ");
+  const ledger = useMemo(() => lawyerLedger(), []);
 
   return (
     <section ref={ref} id="lawyers-hero" className={s.hero} aria-labelledby="lawyers-hero-title">
@@ -102,6 +105,7 @@ export function LawyersHero() {
             </a>
           </StageItem>
         </Stage>
+        <HeroLedger data={ledger} className={s.heroLedger} />
       </motion.div>
     </section>
   );

@@ -17,12 +17,65 @@
   }
 }
 
+// Wide: words 7, ledger 5 (asymmetric split, rules.md 7). Phones: one column.
 .inner {
   @include container;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: $space-12;
+
+  @include lg {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: $space-16;
+  }
+}
+
+.copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: $space-6;
+  min-width: 0;
+}
+
+.ledger {
+  min-width: 0;
+}
+
+// The three facts of the offer, in one hairline-separated line under the actions.
+.facts {
+  list-style: none;
+  margin: $space-4 0 0;
+  padding: $space-4 0 0;
+  border-top: 1px solid $color-hairline;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-3;
+  width: 100%;
+
+  @include md {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-6;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.factValue {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: $color-navy;
+}
+
+.factLabel {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: $color-steel;
 }
 
 .eyebrow {
@@ -32,8 +85,8 @@
 
 .title {
   margin: 0;
-  max-width: 16ch;
-  font-size: clamp(2.5rem, 8vw, 6rem);
+  max-width: 14ch;
+  font-size: clamp(2.5rem, 6.2vw, 5.75rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.02;

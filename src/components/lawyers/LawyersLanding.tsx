@@ -77,6 +77,12 @@ export default function LawyersLanding() {
       </section>
 
       <section className={s.final} id="apply" aria-label={LAWYER_FINAL.title}>
+        <div className={l.wrap}>
+          <div className={s.finalRule} aria-hidden="true">
+            <span>Next step</span>
+            <i />
+          </div>
+        </div>
         <div className={`${l.wrap} ${s.finalInner}`}>
           <div>
             <h2 className={s.finalTitle}>{LAWYER_FINAL.title}</h2>

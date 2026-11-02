@@ -23,7 +23,6 @@ import {
 import { SectionHead } from "./SectionHead";
 import s from "./landing.module.scss";
 
-const ALIGN = ["alignStart", "alignEnd", "alignCenter"] as const;
 const COUNTRY_PAGES: Record<string, string> = {
   CO: "/colombia",
   CR: "/costa-rica",
@@ -34,33 +33,48 @@ const COUNTRY_PAGES: Record<string, string> = {
 };
 
 /**
- * Coverage: each country row takes the justification opposite to the row
- * above it (Gutenberg zig-zag). Each row stages in: the country code as an
- * eyebrow, the name, the status, then the note.
+ * Coverage, as an index: one row per country (code, name, what the check
+ * covers there, status), each row a link to the country page. It replaced a
+ * zig-zag of six full-width rows that took about 2,200px of scroll for six
+ * facts; the index reads in one screen. Each row stages in: code, name, note,
+ * status. On pointer devices the hovered row tints and its arrow moves 4px.
  */
 export function CoverageGutenberg() {
   return (
     <section id="countries" className={`${s.wrap} ${s.section}`} aria-labelledby="coverage-title">
       <SectionHead id="coverage-title" title={COVERAGE_HEAD.title} why={COVERAGE_HEAD.why} mark={COVERAGE_HEAD.mark} icon="globe" />
-      <ul className={s.coverage}>
+      <ul className={s.coverageIndex}>
         {COUNTRIES.map((c, i) => {
-          const align = ALIGN[i % ALIGN.length];
           const href = COUNTRY_PAGES[c.code];
+          const inner = (
+            <>
+              <Eyebrow className={s.idxCode}>{c.code}</Eyebrow>
+              <StageItem level="title" className={s.idxName}>
+                {c.name}
+              </StageItem>
+              <StageItem level="body" className={s.idxNote}>
+                {c.note}
+              </StageItem>
+              <StageItem level="eyebrow" className={s.idxEnd}>
+                <span className={cx(s.coverageStatus, c.live && s.coverageOpen)}>{c.status}</span>
+                {href && (
+                  <svg className={s.idxArrow} width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M4 10h11M11 5.5 15.5 10 11 14.5" />
+                  </svg>
+                )}
+              </StageItem>
+            </>
+          );
           return (
-            <li key={c.code} className={cx(s.coverageRow, s[align], !c.live && s.coverageLater)}>
-              <Stage className={s.coverageBody} amount={0.5} stagger={0.1}>
-                <Eyebrow className={s.coverageCode}>{c.code}</Eyebrow>
-                <StageItem level="title">
-                  {href ? (
-                    <Link href={href} className={s.coverageName}>{c.name}</Link>
-                  ) : (
-                    <span className={s.coverageName}>{c.name}</span>
-                  )}
-                </StageItem>
-                <StageItem level="eyebrow">
-                  <span className={c.live ? `${s.coverageStatus} ${s.coverageOpen}` : s.coverageStatus}>{c.status}</span>
-                </StageItem>
-                <RevealText text={c.note} className={s.coverageNote} />
+            <li key={c.code} className={cx(!c.live && s.coverageLater)}>
+              <Stage className={s.idxStage} amount={0.6} stagger={0.06} delay={i * 0.04}>
+                {href ? (
+                  <Link href={href} className={s.idxRow} aria-label={`${c.name}: ${c.status}. ${c.note}`}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className={s.idxRow}>{inner}</div>
+                )}
               </Stage>
             </li>
           );
@@ -224,31 +238,21 @@ export function FaqSplit() {
   );
 }
 
-/** Final call to action: the free check, with the countries that are open. */
+/**
+ * Final call to action, as a split: the ask on the left (title, why, the one
+ * button, the price line), and on the right the country picker built like
+ * the hero ledger (HeroLedger.tsx): a mono label, hairline rows, one link per
+ * country. The page opens and closes on the same object.
+ */
 export function FinalCta() {
   return (
     <section id="free-deadline-check" className={s.finalCta} aria-labelledby="final-title">
-      <div className={s.wrap}>
-        <Stage className={s.finalGlass} enter="visual" stagger={0.1} amount={0.4}>
+      <div className={cx(s.wrap, s.finalSplit)}>
+        <Stage className={s.finalAsk} enter="visual" stagger={0.1} amount={0.4}>
           <StageItem as="h2" level="title" id="final-title" className={s.finalTitle}>
             {FINAL.title}
           </StageItem>
           <RevealText text={FINAL.sub} mark={FINAL.mark} className={s.finalSub} />
-          <Eyebrow className={s.finalPick}>{FINAL.pick}</Eyebrow>
-          <StageItem level="body" className={s.finalChips}>
-            {COUNTRIES.map((c) =>
-              c.live ? (
-                <Link key={c.code} href={`/check?country=${c.code}`} className={s.chip}>
-                  {c.name}
-                </Link>
-              ) : (
-                <span key={c.code} className={`${s.chip} ${s.chipSoon}`} aria-disabled="true">
-                  {c.name}
-                  <span className={s.chipSoonTag}>{FINAL.soon}</span>
-                </span>
-              ),
-            )}
-          </StageItem>
           <StageItem level="body">
             <Link href="/check" className={s.primary}>
               {CHECK_CTA}
@@ -257,6 +261,33 @@ export function FinalCta() {
           <StageItem as="p" level="body" className={s.finalHint}>
             {FINAL.hint}
           </StageItem>
+        </Stage>
+        <Stage className={s.finalPicker} enter="visual" stagger={0.06} amount={0.3} delay={0.15}>
+          <StageItem level="eyebrow" className={s.pickerHead}>
+            <h3 className={s.pickerLabel}>{FINAL.pick}</h3>
+            <span className={s.pickerContext}>{COUNTRIES.filter((c) => c.live).length} open</span>
+          </StageItem>
+          <ul className={s.pickerRows}>
+            {COUNTRIES.map((c) => (
+              <StageItem as="li" level="body" key={c.code}>
+                {c.live ? (
+                  <Link href={`/check?country=${c.code}`} className={s.pickerRow}>
+                    <span className={s.pickerCode}>{c.code}</span>
+                    <span className={s.pickerName}>{c.name}</span>
+                    <svg className={s.idxArrow} width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 10h11M11 5.5 15.5 10 11 14.5" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <span className={cx(s.pickerRow, s.pickerSoon)} aria-disabled="true">
+                    <span className={s.pickerCode}>{c.code}</span>
+                    <span className={s.pickerName}>{c.name}</span>
+                    <span className={s.coverageStatus}>{FINAL.soon}</span>
+                  </span>
+                )}
+              </StageItem>
+            ))}
+          </ul>
         </Stage>
       </div>
     </section>

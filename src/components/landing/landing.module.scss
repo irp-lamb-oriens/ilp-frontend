@@ -90,33 +90,58 @@ $ease: cubic-bezier(0.16, 1, 0.3, 1);
 .stepNum { font-size: clamp(3rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; color: $color-navy; line-height: 1; transform-origin: left bottom; }
 
 /* ── Coverage: Gutenberg zig-zag ───────────────── */
-.coverage { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.coverageRow { display: flex; padding-block: $space-8; border-top: 1px solid $color-hairline; }
-.coverageRow:last-child { border-bottom: 1px solid $color-hairline; }
-.alignStart { justify-content: flex-start; text-align: left; }
-.alignEnd { justify-content: flex-end; text-align: right; }
-.alignCenter { justify-content: center; text-align: center; }
-.alignEnd .coverageNote { margin-inline-start: auto; }
-.alignEnd .coverageCode { flex-direction: row-reverse; }
-.alignCenter .coverageNote { margin-inline: auto; }
-.coverageBody { min-width: 0; }
-.coverageRow .coverageCode { margin-bottom: $space-2; }
-.coverageName {
-  display: inline-block; font-size: clamp(2.5rem, 7vw, 5.5rem); font-weight: 700;
-  letter-spacing: -0.045em; line-height: 1; color: $color-ink;
-  transition: color 300ms $ease, transform 500ms $ease;
-}
-a.coverageName:hover { color: $color-navy; text-decoration: underline; text-underline-offset: 6px; }
-.coverageLater .coverageName { color: $color-muted; }
 .coverageStatus {
   display: block; width: fit-content; margin-top: $space-3; padding: 2px $space-3;
   border-radius: $radius-pill; border: 1px solid $color-hairline-strong;
   font-size: 0.8rem; font-weight: 600; color: $color-steel;
 }
-.alignEnd .coverageStatus { margin-inline-start: auto; }
-.alignCenter .coverageStatus { margin-inline: auto; }
 .coverageOpen { border-color: $color-accent; background: $color-accent-soft; color: $color-navy; }
-.coverageRow .coverageNote { color: $color-steel; margin: $space-3 0 0; max-width: 40ch; font-size: 1rem; }
+
+/* Coverage index: code | name | what the check covers | status + arrow. */
+.coverageIndex { list-style: none; margin: 0; padding: 0; border-top: 1px solid $color-hairline; }
+.coverageIndex > li { border-bottom: 1px solid $color-hairline; }
+.idxStage { display: block; }
+.idxRow {
+  @include focus-ring;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "code" "name" "note" "end";
+  align-items: baseline;
+  column-gap: $space-4;
+  row-gap: $space-2;
+  padding: $space-6 $space-2;
+  color: inherit;
+  text-decoration: none;
+  border-radius: $radius-sm;
+  transition: background-color 250ms $ease;
+
+  @include lg {
+    grid-template-columns: 5.5rem minmax(0, 5fr) minmax(0, 6fr) auto;
+    grid-template-areas: "code name note end";
+    column-gap: $space-8;
+    padding: $space-6 $space-4;
+  }
+}
+.idxCode { grid-area: code; margin: 0; }
+.idxName {
+  grid-area: name;
+  font-size: clamp(1.75rem, 3.6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: $color-navy;
+}
+.idxNote { grid-area: note; color: $color-steel; font-size: 0.9375rem; line-height: 1.5; max-width: 52ch; }
+.idxEnd { grid-area: end; display: flex; align-items: center; gap: $space-3; align-self: center; }
+.idxEnd .coverageStatus { margin-top: 0; }
+.idxArrow { color: $color-navy; transition: transform 250ms $ease; }
+@include hover-only {
+  a.idxRow:hover { background: $color-mist; }
+  a.idxRow:hover .idxArrow { transform: translateX(4px); }
+  a.idxRow:hover .idxName { text-decoration: underline; text-decoration-color: $color-accent; text-decoration-thickness: 3px; text-underline-offset: 8px; }
+}
+.coverageLater .idxName { color: $color-muted; }
 
 /* ── Quotes: offset wall ───────────────────────── */
 .quoteWall {
@@ -210,8 +235,14 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
   padding: $space-6 $space-1; background: transparent; border: none; cursor: pointer; text-align: left;
   font-family: inherit; font-size: 1.15rem; font-weight: 600; color: $color-ink;
 }
-.faqIcon { font-size: 1.6rem; color: $color-steel; line-height: 1; transition: transform 300ms $ease; flex-shrink: 0; }
-.faqIconOpen { transform: rotate(45deg); color: $color-accent; }
+// Same ringed toggle as the lawyers and customer success FAQs (lawyers.module.scss).
+.faqIcon {
+  display: grid; place-items: center; flex-shrink: 0; width: 32px; height: 32px;
+  border-radius: $radius-pill; border: 1px solid $color-hairline-strong;
+  font-size: 1.25rem; line-height: 1; color: $color-accent-ink;
+  transition: transform 200ms $ease, background-color 200ms $ease, border-color 200ms $ease;
+}
+.faqIconOpen { transform: rotate(45deg); background: $color-accent-soft; border-color: $color-accent; }
 .faqAnswer { padding: 0 $space-1 $space-6; color: $color-steel; margin: 0; max-width: 60ch; }
 
 /* ── Final CTA: calm, light close ──────────────── */
@@ -219,36 +250,51 @@ a.coverageName:hover { color: $color-navy; text-decoration: underline; text-unde
   background: $color-mist;
   padding-block: clamp(5rem, 12vh, 8rem);
 }
-.finalGlass {
-  max-width: 760px; margin-inline: auto; text-align: center;
-  padding: clamp(2rem, 5vw, 3.5rem); border-radius: $radius-lg;
-  background: $color-surface; border: 1px solid $color-hairline;
+// Split close: ask left (7), picker right (5); one column on phones.
+.finalSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $space-12;
+  align-items: center;
+  @include lg { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: $space-16; }
 }
-.finalKicker { @include eyebrow; margin: 0 auto $space-6; }
-.finalTitle { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.05; color: $color-navy; margin: 0 0 $space-6; }
-.finalGlass .finalSub { color: $color-steel; margin: 0 auto $space-8; }
-.finalGlass .finalPick { margin: 0 0 $space-3; }
-.finalGlass .primary { margin-bottom: $space-6; }
-.finalChips { display: flex; flex-wrap: wrap; justify-content: center; gap: $space-3; margin-bottom: $space-6; }
-.chip {
-  @include press; @include focus-ring; display: inline-flex; align-items: center; min-height: $touch-target; text-decoration: none; padding: $space-3 $space-6; border-radius: $radius-pill; cursor: pointer;
-  border: 1px solid $color-hairline; background: $color-surface;
-  color: $color-navy; font-weight: 600; font-size: 0.95rem;
-  transition: background 300ms $ease, border-color 300ms $ease, transform 160ms $ease;
-  &:hover { background: $color-accent; border-color: $color-accent; color: $color-navy; }
+.finalAsk { display: flex; flex-direction: column; align-items: flex-start; gap: $space-6; }
+.finalTitle { font-size: clamp(2.25rem, 5.4vw, 4.5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.02; color: $color-navy; margin: 0; max-width: 14ch; }
+.finalAsk .finalSub { color: $color-steel; margin: 0; max-width: 44ch; }
+.finalHint { color: $color-steel; font-size: 0.875rem; margin: 0; max-width: 52ch; }
+
+// The picker: the hero ledger's card, one row per country.
+.finalPicker {
+  background: $color-canvas; border: 1px solid $color-hairline; border-radius: $radius-lg;
+  box-shadow: $shadow-card; padding: $space-6;
+  @include below-md { padding: $space-4; }
 }
-.chipSoon {
-  cursor: default; color: $color-muted; background: $color-mist;
-  &:hover { background: $color-mist; border-color: $color-hairline; color: $color-muted; }
+.pickerHead { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: $space-4; border-bottom: 1px solid $color-hairline; }
+.pickerLabel { margin: 0; font-family: $font-mono; font-size: 0.75rem; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: $color-navy; }
+.pickerContext { font-size: 0.8125rem; color: $color-steel; }
+.pickerRows { list-style: none; margin: 0; padding: 0; }
+.pickerRows > li { border-bottom: 1px solid $color-hairline; }
+.pickerRows > li:last-child { border-bottom: 0; }
+.pickerRow {
+  @include focus-ring;
+  display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; align-items: center; gap: $space-3;
+  min-height: $touch-target; padding: $space-3 $space-2; border-radius: $radius-sm;
+  color: inherit; text-decoration: none; transition: background-color 250ms $ease;
 }
-.chipSoonTag {
-  margin-inline-start: $space-2; font-size: 0.7rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.06em; color: $color-accent;
+.pickerCode { font-family: $font-mono; font-size: 0.8125rem; color: $color-steel; }
+.pickerName { font-weight: 600; font-size: 1.0625rem; color: $color-navy; }
+.pickerSoon .pickerName { color: $color-muted; }
+@include hover-only {
+  a.pickerRow:hover { background: $color-accent-soft; }
+  a.pickerRow:hover .idxArrow { transform: translateX(4px); }
 }
-.finalHint { color: $color-steel; font-size: 0.85rem; margin: 0 auto; }
 
 /* ── Footer ────────────────────────────────────── */
 .footer {
   background: $color-navy; color: rgba(255, 255, 255, 0.8); padding-block: $space-8;
   p { font-size: 0.85rem; margin: 0; }
+}
+.wordmark {
+  display: block; width: 100%; height: auto; margin-top: $space-12;
+  text { font-family: $font-sans; font-weight: 700; font-size: 120px; letter-spacing: -0.04em; fill: $color-on-navy-hairline; }
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from "framer-motion";
 import { BeatStory } from "@/components/motion/BeatStory";
+import HeroLedger from "@/components/landing/HeroLedger";
+import { csmLedger } from "@/components/landing/ledgers";
 import { Eyebrow, RevealText, Stage, StageItem, useStoryLayout } from "@/components/motion/Story";
 import { EASE_OUT_STRONG } from "@/components/ui/loadingTiming";
 import { track } from "@/lib/journey";
@@ -56,6 +58,7 @@ export function CsmHero() {
   const visibility = useTransform(opacity, (o) => (o > 0 ? "visible" : "hidden"));
   const pinned = layout === "pinned";
   const words = CSM_INTRO.titleKey.split(" ");
+  const ledger = useMemo(() => csmLedger(), []);
 
   return (
     <section ref={ref} id="csm-hero" className={s.hero} aria-labelledby="csm-hero-title">
@@ -109,6 +112,7 @@ export function CsmHero() {
             </Link>
           </StageItem>
         </Stage>
+        <HeroLedger data={ledger} className={s.heroLedger} />
       </motion.div>
     </section>
   );

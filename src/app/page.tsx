@@ -81,6 +81,12 @@ export default function HomePage() {
         <footer className={s.footer}>
           <div className={s.wrap}>
             <p>{FOOTER}</p>
+            {/* Edge-to-edge wordmark: decoration, fitted by the SVG's textLength. */}
+            <svg className={s.wordmark} viewBox="0 0 1000 120" preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false">
+              <text x="0" y="98" textLength="1000" lengthAdjust="spacingAndGlyphs">
+                International Legal Partner
+              </text>
+            </svg>
           </div>
         </footer>
       </main>

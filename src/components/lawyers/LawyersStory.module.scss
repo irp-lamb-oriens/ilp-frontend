@@ -14,17 +14,28 @@ $nav: 64px;
   border-bottom: 1px solid $color-hairline;
 }
 
+// Wide: the words and the hero ledger side by side, 7/5 (rules.md 7: no
+// centered hero). Phones and tablets: one column, ledger under the actions.
 .heroInner {
   @include container;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
   align-items: center;
+  gap: $space-12;
   min-height: 88dvh;
   padding-block: calc(#{$nav} + #{$space-16}) $space-16;
 
   @include lg {
     min-height: 100dvh;
     padding-block: calc(#{$nav} + #{$space-16}) $space-24;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: $space-16;
   }
+}
+
+.heroLedger {
+  min-width: 0;
 }
 
 .heroStage {
@@ -47,7 +58,7 @@ $nav: 64px;
 .h1 {
   margin: 0;
   max-width: 20ch;
-  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-size: clamp(2.4rem, 5.2vw, 4.5rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.04;

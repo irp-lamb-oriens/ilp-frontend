@@ -1,0 +1,200 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+// The hero ledger (HeroLedger.tsx): a flat card, hairline rows, a mono date
+// column and one accent rule for "today". One accent, no glass, no glow
+// (rules.md 2, 4). The "next" row is the only tinted surface on the card.
+
+.wrap {
+  width: 100%;
+  max-width: 520px;
+  justify-self: end;
+
+  @include below-md {
+    max-width: none;
+    justify-self: stretch;
+  }
+}
+
+.card {
+  margin: 0;
+  background: $color-canvas;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  padding: $space-6;
+  overflow: hidden;
+
+  @include below-md {
+    padding: $space-4;
+  }
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: $space-4;
+  padding-bottom: $space-4;
+  border-bottom: 1px solid $color-hairline;
+}
+
+.label {
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $color-navy;
+}
+
+.context {
+  font-size: 0.8125rem;
+  color: $color-steel;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-2;
+  border-bottom: 1px solid $color-hairline;
+  border-radius: $radius-sm;
+
+  @include below-md {
+    grid-template-columns: 4rem minmax(0, 1fr);
+    .pill {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+.past {
+  .when,
+  .title,
+  .meta {
+    color: $color-muted;
+  }
+}
+
+// The one to act on: tinted, with a short accent rule on its left edge.
+.next {
+  position: relative;
+  background: $color-accent-soft;
+  border-bottom-color: transparent;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: $space-3;
+    bottom: $space-3;
+    width: 2px;
+    border-radius: 2px;
+    background: $color-accent;
+  }
+}
+
+.when {
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+  color: $color-navy;
+  white-space: nowrap;
+}
+
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: $color-navy;
+}
+
+.meta {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: $color-steel;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 2px $space-3;
+  border-radius: $radius-pill;
+  border: 1px solid $color-hairline-strong;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $color-steel;
+}
+
+.tone_accent {
+  border-color: $color-accent;
+  background: $color-accent-soft;
+  color: $color-navy;
+}
+.tone_success {
+  border-color: $color-success;
+  color: $color-success;
+}
+.tone_warning {
+  border-color: $notice-warning;
+  color: $notice-warning;
+}
+.tone_danger {
+  border-color: $color-error;
+  color: $color-error;
+}
+
+// The today rule: a mono label and one accent hairline across the list.
+.today {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding-block: $space-2;
+}
+
+.todayLabel {
+  font-family: $font-mono;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $color-navy;
+  padding: 1px $space-2;
+  border: 1px solid $color-accent;
+  border-radius: $radius-pill;
+  background: $color-canvas;
+}
+
+.todayLine {
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: $color-accent;
+}
+
+.note {
+  margin: $space-4 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: $color-steel;
+}
+
+.caption {
+  margin: $space-3 0 0;
+  font-size: 0.8125rem;
+  color: $color-muted;
+}
