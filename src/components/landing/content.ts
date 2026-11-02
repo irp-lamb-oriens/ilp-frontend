@@ -7,7 +7,7 @@
 
 /** One claim shared with the country landings (CountryPage). */
 export const CLAIM = "A legal membership for North Americans abroad, open in Colombia, Costa Rica, Mexico, Panama, Portugal and Spain.";
-export const CHECK_CTA = "Check your deadlines free";
+export const CHECK_CTA = "Receive legal notifications abroad.";
 
 export const IMG = {
   // Real people in decision-making moments and clean workspaces (no gavels/scales).
