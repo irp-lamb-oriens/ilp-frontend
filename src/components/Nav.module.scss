@@ -230,6 +230,125 @@
     outline: 2px solid $color-accent;
     outline-offset: 3px;
   }
+
+  [data-cta="short"] {
+    display: none;
+  }
+
+  @media (max-width: 639px) {
+    padding: $space-2 $space-4;
+    font-size: 0.875rem;
+    white-space: nowrap;
+
+    [data-cta="long"] {
+      display: none;
+    }
+    [data-cta="short"] {
+      display: inline;
+    }
+  }
+}
+
+// ── Visually hidden country names (desktop flags) ───────────────────────────
+.srOnly {
+  @include visually-hidden;
+}
+
+// ── CTA + menu button group ─────────────────────────────────────────────────
+.end {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-shrink: 0;
+}
+
+// ── Mobile menu (below lg) ──────────────────────────────────────────────────
+// QA round 1: phones had the logo and the CTA but no way to reach the country
+// pages, pricing or sign in. Flat panel, hairline border, no glass (rules.md).
+.menuButton {
+  @include touch-target;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-3;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-navy;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+
+  @media (min-width: $bp-lg) {
+    display: none;
+  }
+
+  // Very narrow phones: icon only; the accessible name stays.
+  @media (max-width: 380px) {
+    span {
+      @include visually-hidden;
+    }
+  }
+}
+
+.panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  padding: $space-4;
+  background: $color-surface;
+  border-bottom: 1px solid $color-hairline;
+
+  @media (min-width: $bp-lg) {
+    display: none;
+  }
+}
+
+.panelList {
+  list-style: none;
+  margin: 0 0 $space-4;
+  padding: 0;
+  display: grid;
+  gap: $space-1;
+}
+
+.panelCountries {
+  grid-template-columns: 1fr 1fr;
+}
+
+.panelHeading {
+  @include eyebrow;
+  margin: $space-2 0 $space-2;
+}
+
+.panelLink {
+  @include touch-target;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3;
+  border-radius: $radius-md;
+  color: $color-navy;
+  font-weight: 600;
+  font-size: 1rem;
+
+  &[aria-current="page"] {
+    background-color: rgba($color-accent, 0.16);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
 }
 
 // ── Reduced motion ──────────────────────────────────────────────────────────

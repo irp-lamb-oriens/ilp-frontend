@@ -39,7 +39,7 @@ import { speechLevel } from "@/lib/narration/wave";
 import VoiceWave from "./VoiceWave";
 import Isotype from "./Isotype";
 import { createIntro, introVars, unlockAudio, type IntroStepId } from "@/lib/narration/intro";
-import { markOfferSeen, offerSeen } from "@/lib/narration/session";
+import { currentOfferEnv, markOfferSeen, offerSeen, overlayAllowed } from "@/lib/narration/session";
 import { NARRATOR_COPY as C, NARRATOR_TITLE } from "./content";
 import s from "./Narrator.module.scss";
 
@@ -74,7 +74,9 @@ import s from "./Narrator.module.scss";
  * published as --narrator-reserve so pinned stories keep their text above it.
  *
  * The overlay renders only after mount (the server HTML and crawlers get the
- * plain page) and is answered once per session per landing. Nothing plays
+ * plain page), only on wide screens for a person (lib/narration/session.ts:
+ * phones and automated browsers get the launcher), and is answered once per
+ * browser per landing. Nothing plays
  * until the visitor presses Start. Without the audio, the narrator runs
  * caption-only, timed from the script (lib/narration/timing.ts); with the
  * audio but no transcript, cue times are shared out over the audio's length.
@@ -246,12 +248,12 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     else clockRef.current = { banked: from, since: 0 };
   }, [cues, retime, timedEnds]);
 
-  /* ── Mount: offer the overlay once per session ─────────────── */
+  /* ── Mount: offer the overlay once, wide screens only ──────── */
   useEffect(() => {
     endsRef.current = timedEnds();
     retime();
     setMounted(true);
-    if (!offerSeen(page)) setOffer(true);
+    if (!offerSeen(page) && overlayAllowed(currentOfferEnv())) setOffer(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 

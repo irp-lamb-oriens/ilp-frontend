@@ -22,7 +22,10 @@ export function pageMetadata(path: string, opts: { ownOgImage?: boolean } = {}):
   return {
     title: { absolute: r.title },
     description: r.description,
-    alternates: { canonical: path },
+    // English only for the pilot (build plan v2: Spanish deferred). hreflang
+    // still names the language, and x-default tells search engines this is
+    // the page for every other locale until a Spanish version ships.
+    alternates: { canonical: path, languages: { en: path, "x-default": path } },
     openGraph: {
       type: "website",
       url: path,

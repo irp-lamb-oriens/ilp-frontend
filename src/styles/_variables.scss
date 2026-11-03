@@ -13,7 +13,7 @@ $color-cool-gray: #d9e1e6; // Cool Gray — supporting neutral
 $color-surface: #ffffff;
 $color-ink: $color-charcoal;
 $color-steel: #4a5a66; // readable secondary text on white
-$color-muted: #7a8a96;
+$color-muted: #5e6d79; // tertiary text: 5.3:1 on white, 4.9:1 on mist and accent-soft (was #7a8a96, 3.3-3.6:1, failed WCAG AA)
 $color-hairline: rgba(18, 59, 93, 0.14);
 
 // Accent ink: navy reads best on the light-blue field

@@ -10,9 +10,10 @@
 
 .row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
-  gap: $space-3;
+  gap: $space-1 $space-3;
 }
 
 .label {
@@ -25,7 +26,10 @@
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   color: $color-steel;
-  white-space: nowrap;
+  // A long value ("64% · below 70%, confirm the gaps on the call") wraps
+  // under the label instead of widening the page (QA round 3, 433px at 390px).
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .track {

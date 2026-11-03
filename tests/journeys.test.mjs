@@ -217,7 +217,8 @@ test("useExperiment and the hero: control while loading, 300 ms limit, B copy fr
   assert.match(hook, /EXPERIMENT_TIMEOUT_MS = 300/);
   const hero = readFileSync(new URL("../src/components/HeroCTA.tsx", import.meta.url), "utf8");
   assert.match(hero, /useExperiment\("hero-headline"\)/);
-  assert.match(hero, /titlePending/, "the slot keeps its size while loading");
+  assert.doesNotMatch(hero, /titlePending/, "QA round 1 (LCP): the control title paints from the server HTML, never hidden while loading");
+  assert.match(hero, /headline\.ready && !headline\.isControl \? HERO\.titleB : HERO\.title/, "B swaps in only once the variant is known");
   const check = readFileSync(new URL("../src/app/check/page.tsx", import.meta.url), "utf8");
   assert.match(check, /useExperiment\("check-length"/);
   assert.match(check, /!q\.optional/, "variant B skips optional questions");

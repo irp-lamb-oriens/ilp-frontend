@@ -12,7 +12,7 @@ export const color = {
   mist: "#eff7fb",
   coolGray: "#d9e1e6",
   steel: "#4a5a66",
-  muted: "#7a8a96",
+  muted: "#5e6d79",
   hairline: "rgba(18, 59, 93, 0.14)",
   error: "#c0392b",
   warning: "#b7791f",
@@ -33,7 +33,7 @@ export const chartSeries = [
 export const chart = {
   series: chartSeries,
   grid: "#d9e1e6",
-  axis: "#7a8a96",
+  axis: "#5e6d79",
   label: "#4a5a66",
   tooltipBg: "#ffffff",
   tooltipBorder: "rgba(18, 59, 93, 0.14)",

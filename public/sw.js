@@ -17,8 +17,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "International Legal Partner";
   const options = {
     body: data.body || "",
-    icon: "/logo.png",
-    badge: "/logo.png",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
     data: { url: data.url || "/" },
   };
 

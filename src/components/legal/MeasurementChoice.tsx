@@ -80,8 +80,6 @@ export default function MeasurementChoice({ compact = false }: { compact?: boole
             "No thanks stores nothing. The site works the same either way.",
             "You can change your answer any time on the cookie notice page.",
           ],
-          learnMoreHref: "/legal/cookies",
-          learnMoreLabel: "Cookie notice",
         }}
       >
         No advertising, no tracking on other sites. <Link href="/legal/cookies">Cookie notice</Link>

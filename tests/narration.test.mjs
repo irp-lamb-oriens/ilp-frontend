@@ -1048,3 +1048,12 @@ test("start sequence: audio is unlocked inside the click, played later; reduced 
   assert.match(unlockFn, /voiceGraph\(a\)/);
   assert.match(unlockFn, /resumeGraph\(/);
 });
+
+test("narration overlay: only on wide screens for a person (QA round 1)", () => {
+  const ok = { width: 1280, automated: false, saveData: false };
+  assert.equal(session.overlayAllowed(ok), true);
+  assert.equal(session.overlayAllowed({ ...ok, width: 390 }), false, "phones get the launcher, not a full-screen gate");
+  assert.equal(session.overlayAllowed({ ...ok, width: 768 }), false, "tablet portrait counts as a phone");
+  assert.equal(session.overlayAllowed({ ...ok, automated: true }), false, "Lighthouse and crawlers see the page");
+  assert.equal(session.overlayAllowed({ ...ok, saveData: true }), false, "Data Saver skips it");
+});

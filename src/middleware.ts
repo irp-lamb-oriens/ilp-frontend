@@ -81,6 +81,29 @@ function buildCsp(nonce: string): string {
   return parts.join("; ");
 }
 
+/**
+ * Hosts allowed in search. Every other host that serves this deploy (the
+ * site's *.netlify.app alias, deploy previews, branch deploys) answers with
+ * X-Robots-Tag: noindex (QA round 1: the netlify.app alias was crawlable as
+ * a duplicate of production). The main alias also redirects to the canonical
+ * host in next.config.mjs; this header covers the rest. robots.txt stays
+ * open on those hosts on purpose: a Disallow would stop crawlers from ever
+ * fetching the page and seeing the noindex.
+ */
+const CANONICAL_HOST = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://internationallegalpartner.com").host;
+  } catch {
+    return "internationallegalpartner.com";
+  }
+})();
+
+function isIndexableHost(host: string | null): boolean {
+  if (!host) return false;
+  const h = host.toLowerCase().split(":")[0];
+  return h === CANONICAL_HOST || h === "localhost" || h === "127.0.0.1";
+}
+
 export function middleware(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID());
   const csp = buildCsp(nonce);
@@ -94,6 +117,7 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(mode === "enforce" ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only", csp);
   if (API_ORIGIN) response.headers.set("Reporting-Endpoints", `csp-endpoint="${API_ORIGIN}/api/csp-report"`);
+  if (!isIndexableHost(request.headers.get("host"))) response.headers.set("X-Robots-Tag", "noindex, nofollow");
   return response;
 }
 
@@ -101,7 +125,8 @@ export const config = {
   matcher: [
     {
       // Pages only: not static files, images, the service worker or prefetches.
-      source: "/((?!_next/static|_next/image|favicon.ico|logo.png|sw.js|robots.txt|sitemap.xml).*)",
+      // Static files (icons, narration audio, the web manifest) skip it too.
+      source: "/((?!_next/static|_next/image|favicon.ico|sw.js|robots.txt|sitemap.xml|manifest.webmanifest|narration/|.*\\.(?:png|ico|jpg|jpeg|webp|svg|mp3)$).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

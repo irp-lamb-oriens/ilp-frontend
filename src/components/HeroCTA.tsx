@@ -24,10 +24,13 @@ import styles from "./HeroCTA.module.scss";
 export default function HeroCTA() {
   const reduce = useReducedMotion();
   // JOURNEYS experiment "hero-headline": A is HERO.title, B is HERO.titleB.
-  // Until the variant is known (at most 300 ms) the control holds the slot,
-  // invisible, so nothing below it moves.
+  // The control is painted from the server HTML at once and swapped for B
+  // only when the variant says so (QA round 1, LCP 4.0 s: the title used to
+  // stay invisible until hydration and then fade in word by word, so the
+  // largest paint waited for JavaScript). Only visitors who allowed the
+  // measurement id are in the experiment; the rest never swap.
   const headline = useExperiment("hero-headline");
-  const title = headline.isControl ? HERO.title : HERO.titleB;
+  const title = headline.ready && !headline.isControl ? HERO.titleB : HERO.title;
   const ledger = useMemo(() => memberLedger(), []);
 
   useEffect(() => {
@@ -46,16 +49,13 @@ export default function HeroCTA() {
     <section id="hero" className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.inner}>
         <div className={styles.copy}>
-        <motion.p className={styles.eyebrow} {...enter(0)}>
-          {HERO.eyebrow}
-        </motion.p>
-        <div id="hero-title" className={headline.ready ? undefined : styles.titlePending}>
-          <RevealTitle key={headline.ready ? title : "pending"} as="h1" text={headline.ready ? title : HERO.title} className={styles.title} immediate={!!reduce} />
+        {/* Eyebrow, title and lead are the largest paint: no entrance fade. */}
+        <p className={styles.eyebrow}>{HERO.eyebrow}</p>
+        <div id="hero-title">
+          <RevealTitle key={title} as="h1" text={title} className={styles.title} immediate />
         </div>
-        <motion.p className={styles.lead} {...enter(0.35)}>
-          {HERO.lead}
-        </motion.p>
-        <motion.div className={styles.actions} {...enter(0.5)}>
+        <p className={styles.lead}>{HERO.lead}</p>
+        <motion.div className={styles.actions} {...enter(0.15)}>
           <Link href="/check" className={styles.primary} onClick={() => track.click("home.hero.check")}>
             {CHECK_CTA}
           </Link>
@@ -63,7 +63,7 @@ export default function HeroCTA() {
             {HERO.secondary}
           </a>
         </motion.div>
-        <motion.ul className={styles.facts} {...enter(0.65)}>
+        <motion.ul className={styles.facts} {...enter(0.3)}>
           {TRUST.map((f) => (
             <li key={f.value} className={styles.fact}>
               <span className={styles.factValue}>{f.value}</span>

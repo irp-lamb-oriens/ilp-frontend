@@ -5,6 +5,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  // Blocks enter from the side (Reveal x: ±48px); before they settle they sit
+  // past the edge. clip (not hidden) keeps sticky and scroll intact while the
+  // page stops scrolling sideways on phones (QA round 1: /costa-rica 422px at 390px).
+  overflow-x: clip;
   display: flex;
   flex-direction: column;
   gap: clamp(2.5rem, 6vw, 5rem);

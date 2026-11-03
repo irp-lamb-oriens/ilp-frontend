@@ -228,3 +228,46 @@ test("seo: site-wide metadata has a base URL, verification hooks and English", (
   assert.match(layout, /<html lang="en">/);
   assert.equal(site.SITE_URL, "https://internationallegalpartner.com");
 });
+
+/* ── QA round 1 (2026-11-02) ─────────────────────────────────── */
+
+test("seo: the netlify.app alias, /cookies and language prefixes redirect instead of duplicating or 404ing", async () => {
+  const { default: config } = await import("../next.config.mjs");
+  const redirects = await config.redirects();
+  const alias = redirects.find((r) => r.has?.some((h) => h.type === "host" && h.value === "internationallegalpartner.netlify.app"));
+  assert.ok(alias, "the netlify.app alias redirects to the canonical host");
+  assert.equal(alias.destination, "https://internationallegalpartner.com/:path*");
+  assert.equal(alias.permanent, true);
+  const to = (source) => redirects.find((r) => r.source === source && !r.has)?.destination;
+  assert.equal(to("/cookies"), "/legal/cookies");
+  for (const p of ["/es", "/en"]) assert.equal(to(p), "/", `${p} goes to the English home page`);
+  for (const r of redirects.filter((r) => /^\/(es|en)/.test(r.source))) assert.equal(r.permanent, false, "language redirects stay temporary until a Spanish site ships");
+  const pages = appRoutes().filter((r) => !isRedirect(r.file)).map((r) => r.route);
+  for (const r of redirects.filter((r) => !r.has)) assert.ok(!pages.includes(r.source), `${r.source} is a real page; a redirect would hide it`);
+});
+
+test("seo: public pages declare hreflang en and x-default", async () => {
+  const { pageMetadata } = await import("../src/lib/seo/metadata.ts");
+  const m = pageMetadata("/costa-rica", { ownOgImage: true });
+  assert.deepEqual(m.alternates.languages, { en: "/costa-rica", "x-default": "/costa-rica" });
+});
+
+test("seo: icons and manifest exist at the sizes they declare (favicon.ico, iOS Home Screen for web push)", async () => {
+  const pub = path.join(ROOT, "public");
+  for (const f of ["favicon.ico", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"]) {
+    assert.ok(existsSync(path.join(pub, f)), `public/${f}`);
+  }
+  const pngSize = (f) => {
+    const b = readFileSync(path.join(pub, f));
+    return [b.readUInt32BE(16), b.readUInt32BE(20)];
+  };
+  assert.deepEqual(pngSize("apple-touch-icon.png"), [180, 180]);
+  assert.deepEqual(pngSize("icon-192.png"), [192, 192]);
+  assert.deepEqual(pngSize("icon-512.png"), [512, 512]);
+  assert.deepEqual(pngSize("logo.png"), [408, 408], "logo.png matches the 408x408 in the JSON-LD");
+  assert.ok(statSync(path.join(pub, "logo.png")).size < 160_000, "logo.png stays small");
+  const { default: manifest } = await import("../src/app/manifest.ts");
+  const m = manifest();
+  assert.equal(m.display, "standalone");
+  assert.ok(m.icons.some((i) => i.sizes === "512x512" && i.purpose === "maskable"));
+});

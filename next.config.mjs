@@ -18,6 +18,13 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Metadata (title, description, canonical, Open Graph, hreflang) in <head>
+  // for every client. Next 15 streams it into the end of <body> for anything
+  // not on its bot list, so Lighthouse reported "no meta description" and
+  // link-preview fetchers outside that list could miss the tags (QA round 1).
+  // Pages already render per request (CSP nonce), so there is nothing to
+  // stream ahead of.
+  htmlLimitedBots: /.*/,
   sassOptions: {
     includePaths: ["./src/styles"],
   },
@@ -44,7 +51,26 @@ const nextConfig = {
         destination: "https://internationallegalpartner.com/:path*",
         permanent: true,
       },
+      // QA round 1: the site's netlify.app alias served the same deploy as a
+      // second, crawlable copy of production. Send it to the canonical host.
+      // Deploy previews and branch deploys (other *.netlify.app hosts) stay
+      // reachable and get X-Robots-Tag: noindex from src/middleware.ts.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "internationallegalpartner.netlify.app" }],
+        destination: "https://internationallegalpartner.com/:path*",
+        permanent: true,
+      },
       { source: "/lawyers", destination: "/attorneys", permanent: true },
+      // Paths people and the QA crawl tried that had no page.
+      { source: "/cookies", destination: "/legal/cookies", permanent: true },
+      { source: "/privacy-policy", destination: "/privacy", permanent: true },
+      // English only for the pilot: language prefixes go to the English page
+      // instead of a 404 (temporary, so a Spanish site can take them later).
+      { source: "/en", destination: "/", permanent: false },
+      { source: "/en/:path*", destination: "/:path*", permanent: false },
+      { source: "/es", destination: "/", permanent: false },
+      { source: "/es/:path*", destination: "/:path*", permanent: false },
       { source: "/attorneys/apply", destination: "/lawyers/apply", permanent: true },
     ];
   },

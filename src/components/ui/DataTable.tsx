@@ -9,6 +9,22 @@ import s from "./DataTable.module.scss";
 
 export type SortDir = "asc" | "desc";
 
+/** True while the element is wider inside than it is on screen. */
+function useHorizontalScroll(ref: RefObject<HTMLElement | null>): boolean {
+  const [scrolls, setScrolls] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const check = () => setScrolls(el.scrollWidth > el.clientWidth + 1);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, [ref]);
+  return scrolls;
+}
+
 export interface Column<T> {
   key: string;
   header: string;
@@ -211,8 +227,17 @@ export function DataTable<T>({
   activateRef.current = onRowActivate;
   const onActivate = useCallback((row: T) => activateRef.current?.(row), []);
 
+  // Phones: a wide table scrolls inside its frame; then the frame is a
+  // labelled, focusable region so keyboard users can scroll it too (WCAG 2.1.1).
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const scrolls = useHorizontalScroll(wrapRef);
+
   return (
-    <div className={cx(s.wrap, className)}>
+    <div
+      ref={wrapRef}
+      className={cx(s.wrap, className)}
+      {...(scrolls ? { tabIndex: 0, role: "region", "aria-label": `${caption} (scrolls sideways)` } : {})}
+    >
       <table
         className={cx(s.table, stale && s.stale)}
         aria-busy={showSkeleton || stale || loadingMore || undefined}

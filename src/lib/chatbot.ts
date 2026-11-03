@@ -17,8 +17,19 @@ export interface ChatbotReply {
 
 let SESSION_ID: string | null = null;
 
+/**
+ * The thread id is the only key to GET /api/chatbot/history/:id, so it must
+ * not be guessable (QA round 1: it was a timestamp plus ~41 bits of
+ * Math.random). 122 random bits from crypto.randomUUID where available.
+ */
 function newSessionId(): string {
-  return `fe-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const c = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
+  if (c?.randomUUID) return `fe-${c.randomUUID()}`;
+  if (c?.getRandomValues) {
+    const b = c.getRandomValues(new Uint8Array(16));
+    return `fe-${Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("")}`;
+  }
+  return `fe-${Date.now()}-${Math.random().toString(36).slice(2, 10)}${Math.random().toString(36).slice(2, 10)}`;
 }
 
 export function getChatbotSessionId(): string {

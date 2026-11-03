@@ -598,7 +598,10 @@
   z-index: $z-nav;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  // minmax(0, 1fr), not 1fr: a 1fr column never shrinks below its widest
+  // label, so a bold active "Onboarding" made all five columns 103px and the
+  // bar 513px on a 390px phone (QA round 3). Labels ellipsize instead.
+  grid-auto-columns: minmax(0, 1fr);
   min-height: $shell-bottombar-height;
   padding-bottom: env(safe-area-inset-bottom);
   background: $color-canvas;
@@ -616,6 +619,7 @@
   justify-content: center;
   gap: 2px;
   min-height: $shell-bottombar-height;
+  min-width: 0;
   padding: $space-1;
   border: none;
   background: transparent;

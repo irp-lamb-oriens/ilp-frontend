@@ -27,7 +27,7 @@ component; import the token.
 | `$color-mist` | `#eff7fb` | Mist — secondary background tint |
 | `$color-cool-gray` | `#d9e1e6` | Cool Gray — supporting neutral |
 | `$color-steel` | `#4a5a66` | readable secondary text on white |
-| `$color-muted` | `#7a8a96` | tertiary text |
+| `$color-muted` | `#5e6d79` | tertiary text (≥ 4.5:1 on white, mist and accent-soft) |
 | `$color-hairline` | `rgba(18,59,93,0.14)` | 1px borders / dividers |
 | `$color-accent-ink` | `#123b5d` | text on the light-blue field |
 | `$color-accent-soft` | `#eaf7fd` | light-blue tinted surface |

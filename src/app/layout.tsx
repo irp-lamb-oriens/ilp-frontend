@@ -26,10 +26,19 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   openGraph: { type: "website", siteName: SITE_NAME, locale: "en_US", images: [DEFAULT_OG_IMAGE] },
   twitter: { card: "summary_large_image" },
+  // QA round 1: /favicon.ico was a 404 and the 1255px logo was the only icon.
+  // Small, sized files instead; apple-touch-icon plus the manifest
+  // (app/manifest.ts) let iPhone members add ILP to the Home Screen, which
+  // iOS requires before it delivers web push (deadline reminders).
   icons: {
-    icon: [{ url: "/logo.png", type: "image/png", sizes: "408x408" }],
-    apple: [{ url: "/logo.png", sizes: "408x408" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
+  appleWebApp: { capable: true, title: "ILP", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   ...(verification || bingVerification
     ? {
