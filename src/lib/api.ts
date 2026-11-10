@@ -47,7 +47,7 @@ export class ApiError extends Error {
   }
 }
 
-export type ApiRole = "staff" | "lawyer" | "client" | "customer" | "csm";
+export type ApiRole = "staff" | "lawyer" | "client" | "customer" | "csm" | "partner";
 
 interface RoleConfig {
   /** Where a 401 sends the user. */
@@ -98,6 +98,12 @@ export const ROLE_CONFIG: Record<ApiRole, RoleConfig> = {
     logoutPath: "/api/dashboard/auth/logout",
     logoutAllPath: "/api/dashboard/auth/logout-all",
     fallbackRoles: ["staff"],
+  },
+  // REFERRALS: the partner portal (/partners): influencers, media, experts, teachers.
+  partner: {
+    loginPath: "/partners",
+    tokenKey: "ilp_partner_token",
+    logoutPath: "/api/partner/auth/logout",
   },
 };
 

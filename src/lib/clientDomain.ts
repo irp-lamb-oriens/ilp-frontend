@@ -4,6 +4,7 @@
  * client (`apiFetch`, no portal session token).
  */
 import { apiFetch } from "./api";
+import { readRef } from "./referralCookie";
 
 export function submitLead(input: {
   name?: string;
@@ -14,7 +15,7 @@ export function submitLead(input: {
 }): Promise<{ id: string }> {
   return apiFetch<{ id: string }>("/api/leads", {
     method: "POST",
-    body: JSON.stringify(input),
+    body: JSON.stringify({ ...input, ...readRef() }),
   });
 }
 

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { REF_CODE_RE, REF_COOKIE, REF_DAYS, refCookieValue } from "@/lib/referralCookie";
 
 /**
  * Strict, nonce-based Content-Security-Policy for every page (P6).
@@ -118,6 +119,17 @@ export function middleware(request: NextRequest) {
   response.headers.set(mode === "enforce" ? "Content-Security-Policy" : "Content-Security-Policy-Report-Only", csp);
   if (API_ORIGIN) response.headers.set("Reporting-Endpoints", `csp-endpoint="${API_ORIGIN}/api/csp-report"`);
   if (!isIndexableHost(request.headers.get("host"))) response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  // REFERRALS: a partner link (?ref=<code>) is remembered for 90 days in a
+  // first-party cookie; public forms send it so the partner gets the customer.
+  const ref = request.nextUrl.searchParams.get("ref")?.trim().toLowerCase();
+  if (ref && REF_CODE_RE.test(ref)) {
+    response.cookies.set(REF_COOKIE, refCookieValue(ref, new Date().toISOString()), {
+      path: "/",
+      maxAge: REF_DAYS * 86400,
+      sameSite: "lax",
+      secure: !isDev,
+    });
+  }
   return response;
 }
 

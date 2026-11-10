@@ -114,3 +114,11 @@ export const IconNavShield = (p: IconProps) => (
     <path d="M5.75 8l1.5 1.5 3-3" />
   </Svg>
 );
+
+/** REFERRALS: partners and their links: two chain links. */
+export const IconNavLink = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6.75 9.25a2.75 2.75 0 0 0 3.9 0l2-2a2.75 2.75 0 0 0-3.9-3.9l-.75.75" />
+    <path d="M9.25 6.75a2.75 2.75 0 0 0-3.9 0l-2 2a2.75 2.75 0 0 0 3.9 3.9l.75-.75" />
+  </Svg>
+);

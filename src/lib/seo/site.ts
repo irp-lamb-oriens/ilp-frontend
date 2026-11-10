@@ -233,7 +233,7 @@ export const PUBLIC_ROUTES: PublicRoute[] = [
  * routes. robots.txt disallows them, their layouts set noindex, and the
  * sitemap leaves them out.
  */
-export const PRIVATE_PREFIXES = ["/dashboard", "/lawyer", "/status", "/csm", "/app", "/ui", "/api", "/alerts", "/join/welcome"] as const;
+export const PRIVATE_PREFIXES = ["/dashboard", "/lawyer", "/status", "/csm", "/partners", "/r", "/app", "/ui", "/api", "/alerts", "/join/welcome"] as const;
 
 /** Public pages kept out of the index on purpose (thin or not ready), with the reason. */
 export const NOINDEX_PUBLIC: Record<string, string> = {

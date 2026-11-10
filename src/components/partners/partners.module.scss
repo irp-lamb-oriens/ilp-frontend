@@ -1,0 +1,150 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins" as *;
+
+.page {
+  @include container;
+  padding-top: $space-12;
+  padding-bottom: $space-16;
+  max-width: 60rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $space-8;
+}
+
+.headActions {
+  display: flex;
+  gap: $space-3;
+  align-items: center;
+}
+
+.eyebrow {
+  @include eyebrow;
+  margin: 0 0 $space-2;
+}
+
+.title {
+  @include heading-lg;
+  margin: 0 0 $space-3;
+}
+
+.lead {
+  margin: 0;
+  font-size: 1.125rem;
+  color: $color-charcoal;
+  max-width: 50ch;
+}
+
+.tiles {
+  display: grid;
+  gap: $space-4;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @include md {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.section {
+  margin-top: $space-12;
+
+  h2 {
+    margin: 0 0 $space-2;
+    color: $color-navy;
+    font-size: 1.25rem;
+  }
+}
+
+.sectionHead {
+  display: flex;
+  gap: $space-4;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-3;
+}
+
+.muted {
+  color: $color-muted;
+  margin: 0 0 $space-4;
+  max-width: 65ch;
+}
+
+.status {
+  color: $color-steel;
+  margin: 0 0 $space-4;
+}
+
+.error {
+  color: $color-error;
+  margin: 0 0 $space-4;
+}
+
+.links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: $space-3;
+}
+
+.link {
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+  padding: $space-4;
+  display: grid;
+  gap: $space-2;
+}
+
+.linkHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code {
+  font-family: $font-mono;
+  color: $color-navy;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.url {
+  margin: 0;
+  font-family: $font-mono;
+  font-size: 0.75rem;
+  color: $color-muted;
+  overflow-wrap: anywhere;
+}
+
+.row {
+  display: flex;
+  gap: $space-2;
+}
+
+.dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: $space-2 $space-6;
+  margin: 0;
+
+  dt {
+    color: $color-steel;
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.form {
+  display: grid;
+  gap: $space-4;
+  max-width: 32rem;
+}

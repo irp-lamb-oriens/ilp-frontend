@@ -17,6 +17,7 @@ const ENDPOINTS: Record<PortalRole, string> = {
   lawyer: "/api/provider/auth",
   client: "/api/client-status/auth",
   csm: "/api/dashboard/auth",
+  partner: "/api/partner/auth",
 };
 
 const COPY: Record<PortalRole, { title: string; sub: string }> = {
@@ -24,6 +25,7 @@ const COPY: Record<PortalRole, { title: string; sub: string }> = {
   lawyer: { title: "Lawyer sign in", sub: "Enter the email ILP has on file for you to receive a sign-in code." },
   client: { title: "Sign in to ILP", sub: "Enter your email to receive a secure sign-in code." },
   csm: { title: "Customer success sign in", sub: "Enter your ILP work email to receive a sign-in code." },
+  partner: { title: "Partner portal", sub: "Ingrese su correo de socio y le enviamos un código. Enter your partner email to receive a sign-in code." },
 };
 
 export interface PortalLoginResult {
