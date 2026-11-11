@@ -1057,3 +1057,14 @@ test("narration overlay: only on wide screens for a person (QA round 1)", () => 
   assert.equal(session.overlayAllowed({ ...ok, automated: true }), false, "Lighthouse and crawlers see the page");
   assert.equal(session.overlayAllowed({ ...ok, saveData: true }), false, "Data Saver skips it");
 });
+
+/* ── Phone launcher stays off the hero (QA 11 Nov 2026) ───────── */
+
+test("launcher: on phones it waits until the first screen is scrolled past", () => {
+  const n = read("src/components/narration/Narrator.tsx");
+  assert.match(n, /const LAUNCHER_AFTER_SCREEN = 0\.6;/);
+  assert.match(n, /window\.matchMedia\("\(min-width: 768px\)"\)/, "wide screens show it at once");
+  assert.match(n, /window\.scrollY > window\.innerHeight \* LAUNCHER_AFTER_SCREEN/);
+  assert.match(n, /addEventListener\("scroll", check, \{ passive: true \}\)/);
+  assert.match(n, /\{!offer && !active && launcherReady && \(/, "the floating button is not rendered over the hero on phones");
+});

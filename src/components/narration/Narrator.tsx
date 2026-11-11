@@ -101,6 +101,8 @@ function stopClock(clock: Clock) {
 
 const clockTime = (clock: Clock) => clock.current.banked + (clock.current.since ? (performance.now() - clock.current.since) / 1000 : 0);
 
+/** Phones: share of the first screen to scroll before the floating launcher appears. */
+const LAUNCHER_AFTER_SCREEN = 0.6;
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Visible height: the visual viewport on phones (address bar), else the window. */
@@ -149,6 +151,10 @@ export default function Narrator({ page }: { page: NarrationPage }) {
   const [total, setTotal] = useState(estimateTotal);
   const [now, setNow] = useState(0);
   const [timed, setTimed] = useState(false);
+  // Phones: the floating "Play narration" button sat over the hero copy on
+  // first paint (QA 11 Nov, 390x844). Below 768px it waits until the visitor
+  // has scrolled past most of the first screen; wider screens show it at once.
+  const [launcherReady, setLauncherReady] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
@@ -624,6 +630,21 @@ export default function Narrator({ page }: { page: NarrationPage }) {
     }
   };
 
+  useEffect(() => {
+    if (!mounted) return;
+    const wide = window.matchMedia("(min-width: 768px)");
+    const check = () => setLauncherReady(wide.matches || window.scrollY > window.innerHeight * LAUNCHER_AFTER_SCREEN);
+    check();
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    wide.addEventListener("change", check);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+      wide.removeEventListener("change", check);
+    };
+  }, [mounted]);
+
   if (!mounted) return null;
 
   const cue = cues[state.index];
@@ -662,7 +683,7 @@ export default function Narrator({ page }: { page: NarrationPage }) {
         </div>
       )}
 
-      {!offer && !active && (
+      {!offer && !active && launcherReady && (
         <button type="button" className={s.launcher} onClick={begin}>
           <Isotype size={24} />
           <span>{C.launcher}</span>
