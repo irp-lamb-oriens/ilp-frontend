@@ -54,12 +54,21 @@ export interface PortalLoginProps {
 
 export type Step = "email" | "code";
 
+/** True when verify-otp refused because the code hit its attempt cap (server helper/auth/otp.ts), not the rate limiter. */
+function isCodeLockout(err: ApiError): boolean {
+  return err.status === 429 && /attempts/i.test(err.message ?? "");
+}
+
 function describe(err: unknown, step: Step): string {
   if (err instanceof ApiError) {
     if (err.status === 429) {
-      return step === "email"
-        ? "Please wait a moment before requesting another code."
-        : "Too many attempts. Request a new code to try again.";
+      if (step === "email") return "Please wait a moment before requesting another code.";
+      // A 429 is either the code's own 5-try cap or the API's per-minute
+      // limit. Only the first means the code is gone (2026-11-10: a single try
+      // was shown as "Too many attempts" after page beacons used up the limit).
+      return isCodeLockout(err)
+        ? "Too many attempts. Request a new code to try again."
+        : "Too many requests from your connection. Wait a minute, then enter the same code again.";
     }
     if (err.status === 401) return err.message || "That code is not right. Check it and try again.";
     if (err.status >= 500) return "Something went wrong on our side. Try again in a minute.";
@@ -162,11 +171,13 @@ export default function PortalLogin({ role, onSuccess, title, sub, initialEmail 
       });
     } catch (err) {
       setError(describe(err, "code"));
-      if (err instanceof ApiError && err.status === 429) {
+      const lockedOut = err instanceof ApiError && isCodeLockout(err);
+      if (lockedOut) {
         setLocked(true);
         setNotice(null);
       }
-      setCode("");
+      // Keep the typed code after a rate-limit 429: it is still valid.
+      if (lockedOut || !(err instanceof ApiError && err.status === 429)) setCode("");
       codeRef.current?.focus();
     } finally {
       setBusy(false);
