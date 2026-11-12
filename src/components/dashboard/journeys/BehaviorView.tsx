@@ -45,7 +45,15 @@ export default function BehaviorView() {
   const r = rangeOf(filters);
   const [pages, setPages] = useState<BehaviorPages | null>(null);
   const [pagesError, setPagesError] = useState<string | null>(null);
-  const [path, setPath] = useState<string>("");
+  // ?page=/pricing opens that page's heat map (the link on the Time screen).
+  const [path, setPath] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return new URLSearchParams(window.location.search).get("page") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [device, setDevice] = useState<BehaviorDevice | "">("");
   const [layer, setLayer] = useState<HeatLayer>("clicks");
   const [heat, setHeat] = useState<BehaviorHeat | null>(null);

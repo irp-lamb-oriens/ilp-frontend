@@ -145,7 +145,7 @@ function StuckPeople({ source, country }: { source?: string; country?: string })
       <p className={s.panelSub}>Leads and members who have not moved past a step, longest first. A follow-up task goes to their CSM, or to you when they have none.</p>
       <div className={s.peopleTools}>
         <SearchInput label="Search" placeholder="Name, CSM or country" value={list.query} onValueChange={list.setQuery} />
-        <Select label="Stuck at" value={step} onChange={(e) => setStep(e.target.value)} options={[{ value: "", label: "Any step" }, ...FUNNEL_STEPS.map((x) => ({ value: x.id, label: x.label }))]} />
+        <Select label="Stuck at" value={step} onChange={(e) => setStep(e.target.value)} options={[{ value: "", label: "Any step" }, ...FUNNEL_STEPS.slice(0, -1).map((x) => ({ value: x.id, label: x.label }))]} />
         <Select label="For" value={days} onChange={(e) => setDays(e.target.value)} options={DAY_OPTIONS} />
       </div>
       <DataTable

@@ -1,5 +1,7 @@
 "use client";
 
+import { behaviorPath } from "@/lib/journey/behavior";
+import Link from "next/link";
 import { useMemo } from "react";
 import type { PageTime } from "@/lib/contracts";
 import { DataTable, SkeletonTable, type Column, useSkeleton } from "@/components/ui";
@@ -27,6 +29,8 @@ export default function TimeView() {
   const columns = useMemo<Column<PageTime>[]>(
     () => [
       { key: "path", header: "Page", width: "wide", render: (r) => <span className={s.who}>{pageName(r.path)}<span className={s.whoSub}>{r.path}</span></span>, sortValue: (r) => r.path },
+      // Heat maps exist for public pages only (lib/journey/behavior.ts).
+      { key: "heat", header: "Heat map", render: (r) => (behaviorPath(r.path) ? <Link href={`/dashboard/journeys/behavior?page=${encodeURIComponent(behaviorPath(r.path) ?? "")}`} aria-label={`Open the heat map of ${pageName(r.path)}`}>Open heat map</Link> : "Not measured") },
       { key: "views", header: "Views", align: "end", render: (r) => count(r.views), sortValue: (r) => r.views },
       { key: "median", header: "Median time", align: "end", render: (r) => formatMs(r.medianMs), sortValue: (r) => r.medianMs ?? -1 },
       { key: "p75", header: "Slowest quarter from", align: "end", render: (r) => formatMs(r.p75Ms), sortValue: (r) => r.p75Ms ?? -1, hideOnMobile: true },
