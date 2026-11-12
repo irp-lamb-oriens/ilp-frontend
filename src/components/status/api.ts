@@ -8,6 +8,7 @@
  * server.
  */
 
+import { sendOrQueue } from "@/lib/sync";
 import { downloadFile } from "@/lib/api";
 import { clientApi } from "@/lib/status";
 import type { AccountType, Membership, Obligation, ProfileSection } from "@/lib/contracts";
@@ -169,7 +170,8 @@ export interface MemberApi {
   slots(matterId?: string): Promise<SlotsPayload>;
   book(input: { scheduledAt: string; question: string; matterId?: string }): Promise<{ capacity: Capacity }>;
   askLawyer(obligationId: string): Promise<{ addedTo: "call" | "list"; callAt: string | null }>;
-  saveProfile(values: Record<string, unknown>): Promise<{ completeness: MemberHome["completeness"]; newObligations?: number }>;
+  /** `queued`: the server could not be reached; the change waits on this device and is sent later (lib/sync). */
+  saveProfile(values: Record<string, unknown>): Promise<{ completeness?: MemberHome["completeness"]; newObligations?: number; queued?: boolean }>;
   documents(): Promise<{ items: MemberDocument[]; categories: string[] }>;
   upload(input: { matterId?: string; category: string; fileName: string; contentType: string; dataBase64: string }): Promise<MemberDocument>;
   /** Fetch a document with the member's Bearer token and save it (AUTH). */
@@ -190,7 +192,11 @@ const liveApi: MemberApi = {
   slots: (matterId) => clientApi.get<SlotsPayload>(`${BASE}/slots`, { query: { matterId } }),
   book: (input) => clientApi.post(`${BASE}/consultations`, input),
   askLawyer: (id) => clientApi.post(`${BASE}/obligations/${encodeURIComponent(id)}/ask`),
-  saveProfile: (values) => clientApi.patch(`${BASE}/profile`, { values }),
+  saveProfile: async (values) => {
+    type Saved = { completeness: MemberHome["completeness"]; newObligations?: number };
+    const out = await sendOrQueue<Saved>("client", "PATCH", `${BASE}/profile`, { values }, "Your details");
+    return out.queued ? { queued: true } : out.data;
+  },
   documents: () => clientApi.get(`${BASE}/documents`),
   upload: (input) => clientApi.post(`${BASE}/documents`, input),
   downloadDocument: (id, fileName) => downloadFile("client", `${BASE}/documents/${encodeURIComponent(id)}/file`, fileName),

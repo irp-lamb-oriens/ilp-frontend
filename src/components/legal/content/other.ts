@@ -69,6 +69,7 @@ export const COOKIES_SECTIONS: LegalSection[] = [
     body: ["These are set only when you use the feature, and they are not used for advertising."],
     rows: [
       ["ilp_client_token, ilp_lawyer_token, ilp_staff_token, ilp_partner_token (browser storage)", "Keep you signed in. A random sign-in token kept in your browser's local storage and sent only to ILP's server over HTTPS. Member sessions last 7 days from your last visit (up to 30 days); lawyer and staff sessions 12 hours. Signing out deletes it from your browser and ends the session on our server."],
+      ["ilp_sync (browser storage, only while you are signed in)", "A copy of what your portal last showed you (for example your details, dates and messages) and any change you saved that is still waiting to be sent. It lets pages open faster, use less mobile data and still show when your connection drops. It is kept apart for each sign-in, sent nowhere except ILP's server, removed when you sign out or your session ends, and never kept longer than 7 days. On a computer you share, sign out when you finish. [Counsel: confirm this is covered as storage needed for the service.]"],
       ["ilp_check (this tab only)", "Carries your free-check answers into the join form. Cleared when you close the tab."],
       ["ilp_status_matter, ilp_rating_later (this tab only)", "Remember which matter you were viewing and that you chose to rate a call later."],
       ["ilp_shell_nav_collapsed, ilp_lawyer_board_view", "Remember how you like the menu and the lawyer board laid out."],

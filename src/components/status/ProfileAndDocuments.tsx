@@ -90,7 +90,9 @@ function SectionForm({ section }: { section: ProfileSection }) {
   const counted = countedFields(section);
   const filled = counted.filter((k) => isFilled(home.profile[k])).length;
   const copy = SECTION_COPY[section];
-  useUnsavedChanges(dirty, `Your ${copy.title.toLowerCase()} changes are not saved yet. If you leave now, they will be lost.`);
+  // A change waiting in the outbox is safe on this device: leaving loses nothing.
+  const [waitingToSend, setWaitingToSend] = useState(false);
+  useUnsavedChanges(dirty && !waitingToSend, `Your ${copy.title.toLowerCase()} changes are not saved yet. If you leave now, they will be lost.`);
 
   async function save() {
     setBusy(true);
@@ -102,7 +104,13 @@ function SectionForm({ section }: { section: ProfileSection }) {
         if (!meta || meta.readOnly) continue;
         payload[k] = fromInput(values[k] ?? "", meta.kind);
       }
-      await memberApi.saveProfile(payload);
+      const out = await memberApi.saveProfile(payload);
+      if (out.queued) {
+        setWaitingToSend(true);
+        setMsg({ ok: true, text: "Saved on this device. We could not reach the server, so we will send it as soon as the connection is back." });
+        return;
+      }
+      setWaitingToSend(false);
       await refresh();
       setMsg({ ok: true, text: "Saved." });
     } catch (err) {
@@ -211,13 +219,20 @@ function CountrySituation() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const dirty = JSON.stringify(answers) !== JSON.stringify(saved);
-  useUnsavedChanges(dirty, `Your answers about ${name} are not saved yet. If you leave now, they will be lost.`);
+  const [waitingToSend, setWaitingToSend] = useState(false);
+  useUnsavedChanges(dirty && !waitingToSend, `Your answers about ${name} are not saved yet. If you leave now, they will be lost.`);
 
   async function save() {
     setBusy(true);
     setMsg(null);
     try {
       const out = await memberApi.saveProfile({ [COUNTRY_ANSWERS_FIELD]: answers });
+      if (out.queued) {
+        setWaitingToSend(true);
+        setMsg({ ok: true, text: "Saved on this device. We could not reach the server, so we will send it as soon as the connection is back." });
+        return;
+      }
+      setWaitingToSend(false);
       await refresh();
       const n = out.newObligations ?? 0;
       setMsg({ ok: true, text: n ? `Saved. ${n} new ${n === 1 ? "date was" : "dates were"} added to your list on the Overview page.` : "Saved." });

@@ -1,0 +1,20 @@
+@use "../../styles/variables" as *;
+
+// Bottom-left stack, above page content and below drawers and dialogs.
+.wrap {
+  position: fixed;
+  left: $space-4;
+  bottom: $space-4;
+  z-index: $z-popover;
+  display: grid;
+  gap: $space-2;
+  width: min(26rem, calc(100vw - #{$space-8}));
+  background: $color-surface;
+  border-radius: $radius-md;
+}
+
+@media print {
+  .wrap {
+    display: none;
+  }
+}

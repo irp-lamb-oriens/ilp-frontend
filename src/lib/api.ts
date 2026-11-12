@@ -31,7 +31,26 @@
  *     server without a token.
  * Files the API streams (documents, data export, contract PDFs) are fetched as
  * blobs with the same header: see `downloadFile`.
+ *
+ * Local copy and safe writes (SYNC, 2026-11; lib/sync/*), for every portal:
+ *   - a signed-in GET keeps its answer on the device, in a compartment that
+ *     belongs to that sign-in. Asked again within the fresh window
+ *     (lib/sync/policy.ts) it is answered from the device; two callers asking
+ *     at the same moment share one request; when the server cannot be reached
+ *     the last answer is shown and a "stale" event says so;
+ *   - any change sent with a session empties that sign-in's saved answers, in
+ *     every tab, so a screen never shows what it has just changed;
+ *   - a change carries an Idempotency-Key once the server has announced
+ *     receipts, and is retried on a lost connection: it runs once;
+ *   - signing out, a 401 or an expired token empties the compartment;
+ *   - `cache: "no-store"` on a call skips the local copy for that call.
  */
+
+import { emitSync } from "./sync/events";
+import { sessionSpace } from "./sync/localStore";
+import { newChangeKey } from "./sync/outbox";
+import { freshFor, isUnreachable, STALE_OK_MS, SYNC_ENABLED } from "./sync/policy";
+import { localStore, noteServerHeaders, serverHasReceipts } from "./sync/runtime";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -151,6 +170,7 @@ function isExpired(iso: string | null | undefined): boolean {
 /** Remove a concrete role's token and expiry (no resolveRole). Never throws. */
 function dropToken(role: ApiRole): void {
   const key = ROLE_CONFIG[role].tokenKey;
+  forgetLocalCopy(role);
   delete memoryTokens[role];
   delete memoryExpiry[role];
   if (!key || typeof window === "undefined") return;
@@ -160,6 +180,49 @@ function dropToken(role: ApiRole): void {
   } catch {
     // storage unavailable
   }
+}
+
+/** The stored token of a concrete role, expired or not (storage first, then memory). */
+function rawToken(role: ApiRole): string | null {
+  const key = ROLE_CONFIG[role].tokenKey;
+  if (!key) return null;
+  let token: string | null = null;
+  if (typeof window !== "undefined") {
+    try {
+      token = window.localStorage.getItem(key);
+    } catch {
+      // storage unavailable
+    }
+  }
+  return token || memoryTokens[role] || null;
+}
+
+/** SYNC: empty the device copy that belongs to a role's sign-in (sign-out, 401, expiry). */
+function forgetLocalCopy(role: ApiRole): void {
+  try {
+    const token = rawToken(role);
+    if (!token) return;
+    const lost = localStore.dropSession(sessionSpace(role, token));
+    if (lost > 0) emitSync({ type: "lost", count: lost });
+  } catch {
+    // never block a sign-out
+  }
+}
+
+/** SYNC: the device compartment of the session a role's requests use, or null when signed out. */
+export function sessionSpaceFor(asked: ApiRole): string | null {
+  const used = getSessionToken(asked);
+  return used ? sessionSpace(used.role, used.token) : null;
+}
+
+/** SYNC: the compartments of every current sign-in in this browser. */
+export function liveSessionSpaces(): string[] {
+  const out: string[] = [];
+  for (const role of Object.keys(ROLE_CONFIG) as ApiRole[]) {
+    const t = ownToken(role);
+    if (t) out.push(sessionSpace(role, t));
+  }
+  return out;
 }
 
 /** A concrete role's own live token (no resolveRole, no fallbacks). Clears it when expired. */
@@ -308,6 +371,13 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
    * send a session token.
    */
   auth?: "required" | "optional" | "none";
+  /**
+   * SYNC, GET only. "default": a fresh saved answer is reused. "revalidate":
+   * always ask the server, and use the saved answer only when it cannot be
+   * reached (session checks). "off": never read or keep a copy (same as
+   * `cache: "no-store"`).
+   */
+  local?: "default" | "revalidate" | "off";
 }
 
 /** What a portal's session check found. */
@@ -430,13 +500,27 @@ function redirectToLogin(loginPath: string) {
   window.location.assign(`${loginPath}?next=${next}`);
 }
 
+/** SYNC: GETs in flight, shared by every client in this tab. */
+const inFlight = new Map<string, Promise<string>>();
+/** SYNC: true while some screen shows a saved answer because the server could not be reached. */
+let staleShown = false;
+/** SYNC: waits before a keyed change is sent again after a lost connection. */
+const RETRY_WAITS_MS = [400, 1200];
+
+/** SYNC: work to finish before a sign-out forgets the session (the outbox sends what is waiting). */
+let beforeLogout: ((role: ApiRole) => Promise<void>) | null = null;
+export function onBeforeLogout(fn: (role: ApiRole) => Promise<void>): void {
+  beforeLogout = fn;
+}
+
 /** One fetch client per role. Cheap to create; module-level instances below. */
 export function createApiClient(role: ApiRole): ApiClient {
   const cfg = ROLE_CONFIG[role];
 
   /** fetch with the role's Bearer token; throws ApiError (after 401 handling) on a non-2xx. */
   async function send(path: string, options: RequestOptions = {}): Promise<Response> {
-    const { body, query, on401 = "redirect", auth, headers: rawHeaders, ...init } = options;
+    const { body, query, on401 = "redirect", auth, headers: rawHeaders, local: _local, ...init } = options;
+    void _local;
     const headers = new Headers(rawHeaders);
     const mode = auth ?? (cfg.tokenKey ? "required" : "none");
     const session = mode === "none" ? null : getSessionToken(role);
@@ -455,6 +539,7 @@ export function createApiClient(role: ApiRole): ApiClient {
       body: encoded,
       credentials: "omit",
     });
+    noteServerHeaders(res.headers);
 
     if (!res.ok) {
       let message = `Request failed (${res.status})`;
@@ -477,16 +562,123 @@ export function createApiClient(role: ApiRole): ApiClient {
     return res;
   }
 
+  /** SYNC: the device compartment this call may use, or null (signed out, public call, own Authorization header, engine off). */
+  function syncSpace(path: string, options: RequestOptions): string | null {
+    if (!SYNC_ENABLED || typeof window === "undefined") return null;
+    const mode = options.auth ?? (cfg.tokenKey ? "required" : "none");
+    if (mode === "none" || isAuthPath(path) || new Headers(options.headers).has("Authorization")) return null;
+    return sessionSpaceFor(role);
+  }
+
+  async function readJson<T>(res: Response): Promise<{ text: string; value: T }> {
+    if (res.status === 204) return { text: "", value: undefined as T };
+    const text = await res.text();
+    return { text, value: (text ? JSON.parse(text) : undefined) as T };
+  }
+
+  /** GET through the device copy: fresh answers are reused, the last answer covers an unreachable server. */
+  async function localGet<T>(path: string, options: RequestOptions, space: string | null): Promise<T> {
+    const full = withQuery(path, options.query);
+    const keep = (options.cache ?? "default") === "default" && options.local !== "off";
+    const window_ = space && keep ? freshFor(full) : null;
+    const fresh = window_ !== null && options.local === "revalidate" ? 0 : window_;
+    if (!space || fresh === null) return (await readJson<T>(await send(path, options))).value;
+
+    const saved = localStore.read(space, full);
+    if (saved && !saved.expired && Date.now() - saved.at < fresh) {
+      try {
+        return (saved.body ? JSON.parse(saved.body) : undefined) as T;
+      } catch {
+        localStore.remove(space, full);
+      }
+    }
+
+    const load = async (): Promise<string> => {
+      const res = await send(path, options);
+      const { text } = await readJson<unknown>(res); // throws on a body that is not JSON: never saved
+      localStore.write(space, full, text);
+      if (staleShown) {
+        staleShown = false;
+        emitSync({ type: "live" });
+      }
+      return text;
+    };
+    // Two callers asking the same thing at once share one request (not when a caller can abort it).
+    const flightKey = `${space} ${full}`;
+    let flight = options.signal ? null : inFlight.get(flightKey) ?? null;
+    if (!flight) {
+      flight = load();
+      if (!options.signal) {
+        inFlight.set(flightKey, flight);
+        const done = () => {
+          if (inFlight.get(flightKey) === flight) inFlight.delete(flightKey);
+        };
+        flight.then(done, done);
+      }
+    }
+    try {
+      const text = await flight;
+      return (text ? JSON.parse(text) : undefined) as T;
+    } catch (err) {
+      const aborted = (err as { name?: string } | null)?.name === "AbortError";
+      const status = err instanceof ApiError ? err.status : err instanceof SyntaxError ? -1 : null;
+      if (!aborted && saved && isUnreachable(status) && Date.now() - saved.at < STALE_OK_MS) {
+        try {
+          const value = (saved.body ? JSON.parse(saved.body) : undefined) as T;
+          staleShown = true;
+          emitSync({ type: "stale", path: full, at: saved.at });
+          return value;
+        } catch {
+          // fall through to the error
+        }
+      }
+      if (status === 401 || status === 403 || status === 404) localStore.remove(space, full);
+      throw err;
+    }
+  }
+
+  /** A change: sent once (receipt key + retry on a lost connection), then the saved answers are emptied. */
+  async function change<T>(path: string, options: RequestOptions, space: string | null): Promise<T> {
+    const headers = new Headers(options.headers);
+    const keyed = !!space && (serverHasReceipts() || headers.has("Idempotency-Key"));
+    if (keyed && !headers.has("Idempotency-Key")) headers.set("Idempotency-Key", newChangeKey());
+    // "yes": the server ran it. "no": it changed nothing (a 4xx). "maybe": no answer we can trust.
+    let reached: "yes" | "no" | "maybe" = "no";
+    try {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const res = await send(path, { ...options, headers });
+          reached = "yes";
+          return (await readJson<T>(res)).value;
+        } catch (err) {
+          const aborted = (err as { name?: string } | null)?.name === "AbortError";
+          const status = err instanceof ApiError ? err.status : null;
+          const busy = status === 409 && (err as ApiError).body !== undefined &&
+            ((err as ApiError).body as { code?: unknown } | null)?.code === "request_in_progress";
+          if (status === null || status >= 500) reached = "maybe";
+          const again = keyed && !aborted && attempt < RETRY_WAITS_MS.length && (status === null || status === 502 || status === 504 || busy);
+          if (!again) throw err;
+          await new Promise((r) => setTimeout(r, RETRY_WAITS_MS[attempt]));
+        }
+      }
+    } finally {
+      // Arrived: the saved answers are out of date. Unsure: ask again next time, but keep
+      // them as cover while the server cannot be reached.
+      if (space && reached === "yes") localStore.invalidate(space);
+      else if (space && reached === "maybe") localStore.expire(space);
+    }
+  }
+
   const client: ApiClient = {
     role,
     loginPath: cfg.loginPath,
     url: (path, query) => `${API_URL}${withQuery(path, query)}`,
 
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-      const res = await send(path, options);
-      if (res.status === 204) return undefined as T;
-      const text = await res.text();
-      return (text ? JSON.parse(text) : undefined) as T;
+      const method = (options.method ?? "GET").toUpperCase();
+      const space = syncSpace(path, options);
+      if (method === "GET" || method === "HEAD") return localGet<T>(path, options, method === "GET" ? space : null);
+      return change<T>(path, options, space);
     },
 
     open: (path, options = {}) => send(path, options),
@@ -508,6 +700,7 @@ export function createApiClient(role: ApiRole): ApiClient {
     async logout() {
       const used = getSessionToken(role);
       try {
+        if (used && beforeLogout) await beforeLogout(role).catch(() => {});
         const logoutPath = used ? ROLE_CONFIG[used.role].logoutPath : undefined;
         if (logoutPath) await client.request(logoutPath, { method: "POST", on401: "throw" });
       } catch {
@@ -531,7 +724,8 @@ export function createApiClient(role: ApiRole): ApiClient {
     hasSession: () => hasRoleSession(role),
 
     session: <T,>(mePath: string, options: RequestOptions = {}) =>
-      checkSession<T>(role, () => client.get<T>(mePath, { ...options, on401: "throw" })),
+      // Always asked (a revoked session must show at once); the saved answer only covers an unreachable server.
+      checkSession<T>(role, () => client.get<T>(mePath, { local: "revalidate", ...options, on401: "throw" })),
   };
 
   return client;
