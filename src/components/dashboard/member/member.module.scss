@@ -139,6 +139,11 @@
   }
 }
 
+// A long value (the email address) takes the full row instead of breaking mid-word in half a column.
+.factWide {
+  grid-column: 1 / -1;
+}
+
 .sections {
   display: grid;
   gap: $space-2;
@@ -156,7 +161,8 @@
 }
 
 .missing {
-  color: $color-warning;
+  // $notice-warning, not $color-warning: readable as text (4.8:1 on white).
+  color: $notice-warning;
   font-weight: 600;
 }
 

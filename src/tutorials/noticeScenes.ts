@@ -6,7 +6,7 @@
 import type { Scene } from "../components/tutorial/types";
 import { MEMBERS as M, btn, card, click, grid, hover, list, mockShell, p, row, say, scene, set, stack, stat, text, toggle } from "./presets";
 
-/** Staff Today: the placeholder-data notice and its "Exclude" switch. */
+/** Every staff page: the placeholder-data notice and its "Exclude" switch (shown here on Today). */
 export const placeholderData: Scene = scene(
   mockShell(
     "staff",
@@ -15,7 +15,7 @@ export const placeholderData: Scene = scene(
       card(
         "Placeholder data is loaded",
         [
-          text("38 example members are in the database. Run scripts/removePlaceholders.ts to clear them."),
+          text("38 example members are in the database and counted in the figures. Rows marked Placeholder are not real people."),
           row([toggle("Exclude placeholder data", false, "exclude", "checkbox")], "start"),
         ],
         { tone: "mist", id: "notice" },
@@ -35,11 +35,11 @@ export const placeholderData: Scene = scene(
     { title: "Today" },
   ),
   [
-    say(hover("notice"), "Placeholder data is loaded", "This box appears while made-up example members are in the system. It is only shown to ILP staff.", ["placeholderData"]),
+    say(hover("notice"), "Placeholder data is loaded", "This box sits at the top of every staff page while made-up example members are in the system. It is only shown to ILP staff.", ["placeholderData"]),
     say(
       click("exclude", [set("exclude", { on: true }), set("mrr", { value: "US$0.00" }), set("t1", { hidden: true })]),
       "Exclude placeholder data",
-      "Hides the example members from your figures and your queue, so you see only real members.",
+      "Hides the example members on every page: figures, charts, boards and lists then show only real members.",
     ),
     say(hover("mrr"), "Figures update", "The numbers now count real members only. Turn the switch off to see the examples again."),
   ],

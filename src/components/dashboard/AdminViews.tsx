@@ -202,6 +202,19 @@ const money = (v: number) =>
     maximumFractionDigits: 0,
   }).format(v);
 
+/** "real_estate" → "Real estate": stored keys are never shown as they are. */
+const plainLabel = (v: string) => {
+  const t = String(v ?? "").replace(/[_-]+/g, " ").trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : "Not set";
+};
+
+/** "2026-07" → "Jul 2026". Anything else is shown unchanged. */
+const monthLabel = (v: string) => {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(v ?? ""));
+  if (!m) return v;
+  return new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, 1)).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+};
+
 export function FinanceView() {
   const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -236,9 +249,9 @@ export function FinanceView() {
     { label: "All", revenue: totals.all.revenue, cost: totals.all.cost, margin: totals.all.margin },
   ];
 
-  const monthData = metrics.byMonth.map((m) => ({ label: m.month, value: m.revenue }));
+  const monthData = metrics.byMonth.map((m) => ({ label: monthLabel(m.month), value: m.revenue }));
   const routeData = metrics.byRoute.map((r) => ({ label: r.label, value: r.revenue }));
-  const serviceData = metrics.byService.map((s) => ({ label: s.label, value: s.revenue }));
+  const serviceData = metrics.byService.map((s) => ({ label: plainLabel(s.label), value: s.revenue }));
   const providerData = metrics.byProvider.map((p) => ({ label: p.label, value: p.revenue }));
   const stageData = metrics.byStage.map((s) => ({ label: s.label, value: s.revenue }));
 

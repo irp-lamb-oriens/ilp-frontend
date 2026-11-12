@@ -21,6 +21,7 @@ import {
 import { ApiError, clearRoleToken, staffApi } from "@/lib/api";
 import { Button, Notice, SkeletonRegion, useSkeleton } from "@/components/ui";
 import StaffRouteSkeleton from "./StaffRouteSkeleton";
+import { PlaceholderDataNotice, PlaceholderScope } from "./PlaceholderData";
 import type { StaffRole } from "./types";
 import { StaffBell } from "../routing/StaffBell"; // ROUTING
 import s from "./staff.module.scss";
@@ -214,7 +215,14 @@ export function StaffFrame({ children }: { children: ReactNode }) {
     );
   }
 
-  return shell(session, children);
+  // Placeholder data: the notice with its switch on every page; the page is read again when the choice changes.
+  return shell(
+    session,
+    <>
+      <PlaceholderDataNotice />
+      <PlaceholderScope>{children}</PlaceholderScope>
+    </>,
+  );
 }
 
 /** True for the server's role gate (403 "Your role does not allow this action."). */

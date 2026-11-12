@@ -113,7 +113,20 @@ function Capacity() {
   const unassignedMatters = Number(list.meta.unassignedMatters ?? 0);
 
   const columns = useMemo<Column<LawyerCapacity>[]>(() => [
-    { key: "name", header: "Lawyer", render: (l) => l.name, sortable: true, width: "wide" },
+    {
+      key: "name",
+      header: "Lawyer",
+      render: (l) =>
+        l.placeholder ? (
+          <>
+            {l.name} <StatusPill size="sm" label="Placeholder" tone="neutral" />
+          </>
+        ) : (
+          l.name
+        ),
+      sortable: true,
+      width: "wide",
+    },
     { key: "email", header: "Email", render: (l) => l.email, hideOnMobile: true },
     {
       key: "specialties",

@@ -44,8 +44,14 @@
  *     receipts, and is retried on a lost connection: it runs once;
  *   - signing out, a 401 or an expired token empties the compartment;
  *   - `cache: "no-store"` on a call skips the local copy for that call.
+ *
+ * Placeholder data (lib/placeholderPref.ts): while "Exclude placeholder data"
+ * is on, every GET of the staff and CSM clients carries `excludePlaceholder=1`,
+ * so each screen reads real records only without saying so itself. The
+ * parameter is part of the path, so the two views never share a saved answer.
  */
 
+import { withPlaceholderScope } from "./placeholderPref";
 import { emitSync } from "./sync/events";
 import { sessionSpace } from "./sync/localStore";
 import { newChangeKey } from "./sync/outbox";
@@ -669,6 +675,16 @@ export function createApiClient(role: ApiRole): ApiClient {
     }
   }
 
+  /** Staff and CSM reads follow the "Exclude placeholder data" choice. */
+  const scopesPlaceholder = role === "staff" || role === "csm";
+  function scoped(path: string, options: RequestOptions): string {
+    if (!scopesPlaceholder) return path;
+    const method = (options.method ?? "GET").toUpperCase();
+    if (method !== "GET") return path;
+    if (options.query && Object.prototype.hasOwnProperty.call(options.query, "excludePlaceholder")) return path;
+    return withPlaceholderScope(path);
+  }
+
   const client: ApiClient = {
     role,
     loginPath: cfg.loginPath,
@@ -677,14 +693,14 @@ export function createApiClient(role: ApiRole): ApiClient {
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
       const method = (options.method ?? "GET").toUpperCase();
       const space = syncSpace(path, options);
-      if (method === "GET" || method === "HEAD") return localGet<T>(path, options, method === "GET" ? space : null);
+      if (method === "GET" || method === "HEAD") return localGet<T>(scoped(path, options), options, method === "GET" ? space : null);
       return change<T>(path, options, space);
     },
 
-    open: (path, options = {}) => send(path, options),
+    open: (path, options = {}) => send(scoped(path, options), options),
 
     async blob(path, options = {}) {
-      const res = await send(path, { ...options, method: "GET" });
+      const res = await send(scoped(path, { ...options, method: "GET" }), { ...options, method: "GET" });
       return { blob: await res.blob(), fileName: dispositionName(res.headers.get("Content-Disposition")) };
     },
 

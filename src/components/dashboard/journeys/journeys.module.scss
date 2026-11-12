@@ -7,6 +7,8 @@
 
 .stack {
   display: grid;
+  // minmax(0, …): a wide table or long label scrolls inside its own frame instead of widening the page.
+  grid-template-columns: minmax(0, 1fr);
   gap: $space-8;
 }
 
@@ -58,7 +60,7 @@
   background: $color-canvas;
 
   @include below-md {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: $space-3;
   }
 }
@@ -83,7 +85,7 @@
   gap: $space-3;
 
   @include below-md {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     > :first-child {
       grid-column: 1 / -1;
@@ -99,7 +101,7 @@
   align-items: start;
 
   @include below-md {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -278,11 +280,11 @@
 // ─── Inbound vs outbound ────────────────────────────────────────────────────
 .compare {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $space-4;
 
   @include below-md {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -413,7 +415,7 @@
   border-radius: $radius-md;
 
   @include below-md {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -431,7 +433,7 @@
   margin-bottom: $space-3;
 
   @include below-md {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

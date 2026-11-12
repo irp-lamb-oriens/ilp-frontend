@@ -39,7 +39,7 @@ export function UserMenu({ user, roleLabel, onLogout, onLogoutAll, links, onOpen
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={`Account menu for ${user?.name ?? user?.email ?? roleLabel}`}
+        aria-label={`${initials(user)}: account menu for ${user?.name ?? user?.email ?? roleLabel}`}
         onClick={toggle}
       >
         <span className={s.avatar} aria-hidden="true">

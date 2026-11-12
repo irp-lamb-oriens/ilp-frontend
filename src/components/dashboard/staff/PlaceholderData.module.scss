@@ -1,0 +1,11 @@
+@use "../../../styles/variables" as *;
+
+// Staff-only notice while seed data is in the database (every staff and CSM page).
+.notice {
+  margin: 0 0 $space-4;
+}
+
+// A plain wrapper: it must not change the page's own layout.
+.scope {
+  display: contents;
+}

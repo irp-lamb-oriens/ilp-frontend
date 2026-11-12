@@ -143,6 +143,8 @@ export interface LawyerCapacity {
   id: string;
   name: string;
   email: string;
+  /** Placeholder (seed) lawyer. */
+  placeholder?: boolean;
   legalAreas: string[];
   openMatters: number;
   agingMatters: number;

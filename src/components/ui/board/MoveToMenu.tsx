@@ -70,7 +70,7 @@ export default function MoveToMenu({ current, stages, onMove, disabled, subject 
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={`Move ${subject} to another stage`}
+        aria-label={`Move to… ${subject}: choose another stage`}
         disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();

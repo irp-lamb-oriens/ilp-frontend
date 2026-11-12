@@ -7,7 +7,7 @@ import { apiListSource } from "@/lib/listSource";
 import { LIST_SCHEMAS } from "@/lib/listSchemas";
 import { useSchemaList } from "@/lib/useSchemaList";
 import type { CsmTask } from "@/lib/contracts";
-import { AgingBadge, Checkbox, EmptyState, FilterBar, ListFooter, Loadable, Notice, Skeleton, SkeletonList, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
+import { AgingBadge, EmptyState, FilterBar, ListFooter, Loadable, Notice, Skeleton, SkeletonList, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText, SectionHead } from "../staff/PageHeader";
 import { useStaff } from "../staff/StaffSession";
@@ -30,23 +30,6 @@ interface QueueCounts {
   dueToday: number;
 }
 
-/** Per-viewer convenience: remember the "Exclude placeholder data" choice. */
-const EXCLUDE_KEY = "ilp_staff_exclude_placeholder";
-function readExclude(): boolean {
-  try {
-    return window.localStorage.getItem(EXCLUDE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-function writeExclude(v: boolean): void {
-  try {
-    window.localStorage.setItem(EXCLUDE_KEY, v ? "1" : "0");
-  } catch {
-    // storage blocked: the choice lasts for this page only
-  }
-}
-
 /**
  * Staff Today: "what needs me today?". KPI strip on top (MRR large), a wide
  * queue of my CSM tasks by due date, and a narrow Needs-attention rail.
@@ -58,18 +41,17 @@ export default function TodayView() {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<QueueTask | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  // Read once on mount (the toggle only renders after the summary loads, so no hydration mismatch).
-  const [exclude, setExclude] = useState(readExclude);
 
+  // "Exclude placeholder data" is the shell's switch (staff/PlaceholderData.tsx): every read here follows it.
   const loadSummary = useCallback(() => {
     staffApi
-      .get<StaffSummary>("/api/dashboard/staff/summary", { query: exclude ? { excludePlaceholder: "1" } : {} })
+      .get<StaffSummary>("/api/dashboard/staff/summary")
       .then(setSummary)
       .catch((e) => setError(e instanceof Error ? e.message : "Today could not be loaded."));
-  }, [exclude]);
+  }, []);
 
-  // FILTERS: the queue's own toggles (whose tasks, placeholder data) are base params; the schema adds type, due date, overdue, owner.
-  const baseFilters = useMemo(() => ({ owner: scope, excludePlaceholder: exclude ? "1" : "" }), [scope, exclude]);
+  // FILTERS: whose tasks is a base param; the schema adds type, due date, overdue, owner.
+  const baseFilters = useMemo(() => ({ owner: scope }), [scope]);
   const sl = useSchemaList<QueueTask>({
     schema: LIST_SCHEMAS.staffQueue,
     key: "staff-queue",
@@ -89,11 +71,6 @@ export default function TodayView() {
   useEffect(() => {
     loadSummary();
   }, [loadSummary]);
-
-  function toggleExclude(v: boolean) {
-    setExclude(v);
-    writeExclude(v);
-  }
 
   function onClosed(t: CsmTask) {
     queue.update((items) => items.filter((x) => x.id !== t.id));
@@ -129,29 +106,6 @@ export default function TodayView() {
         <StaggerItem>
           <ErrorText>{error}</ErrorText>
         </StaggerItem>
-      )}
-      {summary?.placeholder && summary.placeholder.members > 0 && (
-        <Notice
-          tone="warning"
-          variant="banner"
-          headingLevel={2}
-          className={s.placeholderNotice}
-          title="Placeholder data is loaded"
-          terms={["placeholderData"]}
-          actions={<Checkbox label="Exclude placeholder data" checked={exclude} onChange={(e) => toggleExclude(e.target.checked)} />}
-          fix={{
-            summary: "Only ILP staff see this. Members never see example data.",
-            steps: [
-              "To hide the examples from your figures and queue for now, tick Exclude placeholder data. Your choice is kept in this browser.",
-              "Before real members join, ask an admin to remove the examples for good.",
-              "The admin first runs scripts/removePlaceholders.ts with --dry-run in the server folder to see what will go, then runs it again with --confirm-project set to the project id.",
-              "Reload this page. This notice disappears once no examples are left.",
-            ],
-            scene: () => import("@/tutorials/noticeScenes").then((m) => m.placeholderData),
-          }}
-        >
-          {summary.placeholder.members} example members are in the database. Rows marked Placeholder are not real people.
-        </Notice>
       )}
 
       <SectionHead

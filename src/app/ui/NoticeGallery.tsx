@@ -83,7 +83,7 @@ export default function NoticeGallery() {
           headingLevel={4}
           terms={["placeholderData"]}
           fix={{
-            steps: ["Tick Exclude placeholder data to hide the example members from your figures.", "Ask an admin to run scripts/removePlaceholders.ts before real members join."],
+            steps: ["Turn on Exclude placeholder data to hide the example members on every page.", "Ask an admin to run scripts/removePlaceholders.ts before real members join."],
             scene: () => import("@/tutorials/noticeScenes").then((m) => m.placeholderData),
           }}
         >

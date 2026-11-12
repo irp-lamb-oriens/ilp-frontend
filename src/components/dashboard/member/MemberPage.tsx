@@ -235,7 +235,7 @@ export default function MemberPage({ clientId, portal = "staff" }: { clientId: s
             </ul>
             <dl className={s.facts}>
               {PROFILE_SECTIONS.flatMap((sec) => PROFILE_FIELDS[sec]).map((f) => (
-                <div key={f}>
+                <div key={f} className={f === "email" ? s.factWide : undefined}>
                   <dt>{FIELD_LABEL[f] ?? f}</dt>
                   <dd className={show(profile[f]) === "Missing" ? s.missing : undefined}>{show(profile[f])}</dd>
                 </div>
@@ -279,6 +279,17 @@ export default function MemberPage({ clientId, portal = "staff" }: { clientId: s
             )}
             <ListFooter list={timeline} audience="staff" auto={false} loadMoreLabel="Show older events" endLabel={null} skeleton={<SkeletonTimeline />} />
           </StaggerItem>
+          {/* The record sits in the wide column: calls, dated obligations and paid-work opportunities.
+              The right column keeps only what the viewer does next, so the three columns end near each other. */}
+          <StaggerItem index={3}>
+            <CallsPanel calls={bundle.consultations} lawyerName={nameOf} onChanged={load} />
+          </StaggerItem>
+          <StaggerItem index={4}>
+            <MemberDeadlines obligations={bundle.obligations} onChanged={load} />
+          </StaggerItem>
+          <StaggerItem index={4}>
+            <MemberOpportunities bundle={bundle} />
+          </StaggerItem>
         </div>
 
         <div className={s.col}>
@@ -292,15 +303,6 @@ export default function MemberPage({ clientId, portal = "staff" }: { clientId: s
               onOpenTask={(t) => setTask({ ...t, memberName: name, membershipStatus: m?.status ?? null })}
               onChanged={load}
             />
-          </StaggerItem>
-          <StaggerItem index={3}>
-            <CallsPanel calls={bundle.consultations} lawyerName={nameOf} onChanged={load} />
-          </StaggerItem>
-          <StaggerItem index={4}>
-            <MemberDeadlines obligations={bundle.obligations} onChanged={load} />
-          </StaggerItem>
-          <StaggerItem index={4}>
-            <MemberOpportunities bundle={bundle} />
           </StaggerItem>
         </div>
       </div>

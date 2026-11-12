@@ -686,7 +686,7 @@ function Column<T>({ index, col, props, collapsed, onCollapse, report, setCount,
         </ErrorNotice>
       )}
       {list.hasMore && !list.error && (
-        <Button size="sm" variant="ghost" className={s.more} onClick={list.loadMore} disabled={list.loadingMore} aria-label={`Load more in ${col.label}`}>
+        <Button size="sm" variant="ghost" className={s.more} onClick={list.loadMore} disabled={list.loadingMore} aria-label={list.loadingMore ? `Loading more… ${col.label}` : `Load more in this column: ${col.label}`}>
           {list.loadingMore ? "Loading more…" : "Load more in this column"}
         </Button>
       )}

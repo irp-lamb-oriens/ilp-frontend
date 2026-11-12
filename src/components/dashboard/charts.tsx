@@ -50,6 +50,9 @@ const tooltipStyle = {
   boxShadow: "none",
 };
 
+/** Room for a five-figure money tick ("$60,000") on the value axis, so its first character is never cut off. */
+const MONEY_AXIS = 64;
+
 function EmptyState({ message }: { message: string }) {
   return <p className={styles.empty}>{message}</p>;
 }
@@ -86,7 +89,7 @@ export function SimpleBarChart({
             tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            width={40}
+            width={MONEY_AXIS}
             tickFormatter={valueFormatter}
           />
           <Tooltip
@@ -240,7 +243,7 @@ export function TrendChart({
             tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            width={40}
+            width={MONEY_AXIS}
             tickFormatter={valueFormatter}
           />
           <Tooltip
@@ -290,14 +293,19 @@ export function GroupedBarChart({
             tick={{ fill: chart.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            width={48}
+            width={MONEY_AXIS}
             tickFormatter={valueFormatter}
           />
           <Tooltip
             contentStyle={tooltipStyle}
             formatter={(v) => (valueFormatter ? valueFormatter(Number(v)) : String(v))}
           />
-          <Legend wrapperStyle={{ fontSize: "0.8rem" }} />
+          {/* Series order (not alphabetical), and label text in the normal text color: the swatch carries the hue. */}
+          <Legend
+            wrapperStyle={{ fontSize: "0.8rem" }}
+            itemSorter={null}
+            formatter={(value) => <span style={{ color: chart.label }}>{value}</span>}
+          />
           {series.map((s, i) => (
             <Bar
               key={s.key}

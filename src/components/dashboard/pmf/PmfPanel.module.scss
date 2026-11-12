@@ -22,6 +22,11 @@
     grid-row: span 2;
   }
 
+  // One large tile and three small ones: the last fills its row instead of leaving an empty cell.
+  > :nth-child(4):last-child {
+    grid-column: span 2;
+  }
+
   @include below-md {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -29,6 +34,8 @@
 
 .block {
   display: grid;
+  // Rows keep their own height: a short block next to a tall one starts at the top, with no gap under its title.
+  align-content: start;
   gap: $space-3;
   min-width: 0;
 }
@@ -62,6 +69,7 @@
 
 .split {
   display: grid;
+  align-items: start;
   gap: $space-8;
 
   @include lg {

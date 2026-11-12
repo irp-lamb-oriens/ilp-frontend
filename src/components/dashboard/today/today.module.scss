@@ -120,11 +120,6 @@
 }
 
 
-// Staff-only notice while seed data is in the database.
-.placeholderNotice {
-  margin: 0 0 $space-4;
-}
-
 .taskList {
   display: grid;
   margin: 0;
@@ -236,7 +231,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: $space-2;
+  // In the narrow rail the badge moves under the text instead of squeezing it to one word a line.
+  flex-wrap: wrap;
+  gap: $space-1 $space-2;
   min-height: $touch-target;
   padding: $space-2 $space-3;
   border-radius: $radius-sm;
@@ -254,6 +251,7 @@
 
 .railText {
   display: grid;
+  flex: 1 1 11rem;
   min-width: 0;
 }
 
@@ -266,7 +264,7 @@
 .railTitle {
   font-size: 0.75rem;
   color: $color-steel;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .linkBtn {

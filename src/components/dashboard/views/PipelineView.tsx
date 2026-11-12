@@ -28,6 +28,7 @@ import ClientsPanel from "@/components/dashboard/ClientsPanel";
 import ImportExportModal from "@/components/dashboard/ImportExportModal";
 import { PageHeader, SectionHead, TabNote } from "../staff/PageHeader";
 import { dueLabel } from "../staff/format";
+import { areaLabel } from "../opportunities/oppApi";
 import { useLawyers } from "../staff/useLawyers";
 import { useStaff } from "../staff/StaffSession";
 import s from "./views.module.scss";
@@ -152,7 +153,7 @@ function MattersTable() {
       },
       sortable: true,
     },
-    { key: "area", header: "Area", render: (m) => m.area, hideOnMobile: true },
+    { key: "area", header: "Area", render: (m) => areaLabel(m.area), hideOnMobile: true },
     { key: "country", header: "Country", render: (m) => countryNameOf(m.country ?? "CR"), hideOnMobile: true },
     {
       key: "next",
@@ -176,7 +177,7 @@ function MattersTable() {
     return {
       title: m.title,
       subtitle: m.memberName ?? null,
-      meta: [m.area, m.country ?? "CR"],
+      meta: [areaLabel(m.area), m.country ?? "CR"],
       person: lawyer ? { name: lawyer, role: "Lawyer" } : null,
       pills: (
         <>

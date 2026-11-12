@@ -12,6 +12,11 @@
     grid-row: span 2;
   }
 
+  // One large tile and three small ones: the third small tile fills the row instead of leaving an empty cell.
+  > :nth-child(4):last-child {
+    grid-column: span 2;
+  }
+
   @include below-md {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

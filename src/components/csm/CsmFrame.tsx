@@ -21,6 +21,7 @@ import { scopeQuery, type CsmMe } from "@/lib/csm";
 import { bellSource } from "@/lib/notifications";
 import { Button, Notice, Select, SkeletonRegion, useSkeleton } from "@/components/ui";
 import { StaffSessionProvider } from "../dashboard/staff/StaffSession";
+import { PlaceholderDataNotice, PlaceholderScope } from "../dashboard/staff/PlaceholderData";
 import CsmRouteSkeleton from "./CsmSkeletons";
 import s from "./csm.module.scss";
 
@@ -227,7 +228,13 @@ export function CsmFrame({ children }: { children: ReactNode }) {
     );
   }
 
-  return shell(children);
+  // Placeholder data: the same notice and switch as the staff dashboard (the choice is shared).
+  return shell(
+    <>
+      <PlaceholderDataNotice />
+      <PlaceholderScope>{children}</PlaceholderScope>
+    </>,
+  );
 }
 
 /** True when an error is the server's "another CSM's member" answer. */
