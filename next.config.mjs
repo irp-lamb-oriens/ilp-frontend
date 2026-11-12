@@ -4,15 +4,28 @@
  * a fresh nonce, which static headers cannot carry). The `frame-ancestors 'none'`
  * policy below stays as a static backstop: it also covers files the middleware
  * skips (static assets) and still blocks framing when CSP_MODE=report-only.
+ *
+ * BEHAVIOR: one exception. A PUBLIC page opened with ?ilp_heat=1 may be framed
+ * by this same site, so the staff heat map (/dashboard/journeys/behavior) can
+ * show the page behind the map. No other site can frame anything, and the
+ * signed-in portals can never be framed, with or without the parameter.
  */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
 ];
+const frameDeny = [
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+];
+const frameSelf = [
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+];
+const heat = [{ type: "query", key: "ilp_heat" }];
+const PRIVATE = ["dashboard", "lawyer", "status", "csm", "partners", "app", "ui", "api"];
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -75,7 +88,16 @@ const nextConfig = {
     ];
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/:path*", missing: heat, headers: frameDeny },
+      { source: `/:first((?!${PRIVATE.join("|")})[^/]*)/:path*`, has: heat, headers: frameSelf },
+      { source: "/", has: heat, headers: frameSelf },
+      ...PRIVATE.flatMap((p) => [
+        { source: `/${p}`, has: heat, headers: frameDeny },
+        { source: `/${p}/:path*`, has: heat, headers: frameDeny },
+      ]),
+    ];
   },
 };
 

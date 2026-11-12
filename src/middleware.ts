@@ -57,7 +57,7 @@ function cspMode(): "enforce" | "report-only" {
   return isDev ? "report-only" : "enforce";
 }
 
-function buildCsp(nonce: string): string {
+function buildCsp(nonce: string, frameSelf = false): string {
   const api = API_ORIGIN ? [API_ORIGIN] : [];
   const report = API_ORIGIN ? `${API_ORIGIN}/api/csp-report` : null;
   const directives: Array<[string, string[]]> = [
@@ -73,7 +73,7 @@ function buildCsp(nonce: string): string {
     ["frame-src", ["'self'"]],
     ["object-src", ["'none'"]],
     ["base-uri", ["'self'"]],
-    ["frame-ancestors", ["'none'"]],
+    ["frame-ancestors", [frameSelf ? "'self'" : "'none'"]],
     ["form-action", ["'self'", "https://checkout.stripe.com", "https://billing.stripe.com"]],
   ];
   const parts = directives.map(([k, v]) => `${k} ${v.join(" ")}`);
@@ -105,9 +105,15 @@ function isIndexableHost(host: string | null): boolean {
   return h === CANONICAL_HOST || h === "localhost" || h === "127.0.0.1";
 }
 
+const HEAT_NEVER = ["/dashboard", "/lawyer", "/status", "/csm", "/partners", "/app", "/ui", "/api"];
+
 export function middleware(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID());
-  const csp = buildCsp(nonce);
+  // BEHAVIOR: a public page opened with ?ilp_heat=1 may be framed by this site
+  // only (the staff heat map preview). Portals are never framable.
+  const p = request.nextUrl.pathname;
+  const heat = request.nextUrl.searchParams.has("ilp_heat") && !HEAT_NEVER.some((x) => p === x || p.startsWith(`${x}/`));
+  const csp = buildCsp(nonce, heat);
   const mode = cspMode();
 
   const requestHeaders = new Headers(request.headers);

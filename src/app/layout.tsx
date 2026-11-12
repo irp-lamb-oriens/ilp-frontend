@@ -6,6 +6,7 @@ import SiteLegal from "@/components/legal/SiteLegal";
 import { UnsavedChangesGuard } from "@/components/ui/UnsavedChanges";
 import TutorialRoot from "@/tutorials/TutorialRoot";
 import JourneyTracker from "@/lib/journey/JourneyTracker";
+import BehaviorTracker from "@/lib/journey/BehaviorTracker";
 import { SITE_NAME, SITE_URL } from "@/lib/seo/site";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo/metadata";
 import "@/styles/global.scss";
@@ -72,6 +73,7 @@ export default async function RootLayout({
           <SiteLegal />
           <UnsavedChangesGuard />
           <JourneyTracker />
+          <BehaviorTracker />
         </TutorialRoot>
       </body>
     </html>

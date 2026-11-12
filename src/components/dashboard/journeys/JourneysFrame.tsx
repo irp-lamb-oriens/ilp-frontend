@@ -12,6 +12,7 @@ import s from "./journeys.module.scss";
 
 const SECTIONS = [
   { href: "/dashboard/journeys", label: "Overview", exact: true },
+  { href: "/dashboard/journeys/behavior", label: "Behavior" },
   { href: "/dashboard/journeys/paths", label: "Paths" },
   { href: "/dashboard/journeys/stuck", label: "Stuck" },
   { href: "/dashboard/journeys/time", label: "Time" },
@@ -147,7 +148,8 @@ export function Panel({ title, sub, children, id }: { title: ReactNode; sub?: Re
 /** Section links, then the filter bar (not on the experiment pages, which have their own dates). */
 export function JourneysChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
-  const experiments = pathname.startsWith("/dashboard/journeys/experiments");
+  // Experiments and Behavior have their own filters (Behavior: page, device and dates).
+  const experiments = pathname.startsWith("/dashboard/journeys/experiments") || pathname.startsWith("/dashboard/journeys/behavior");
   return (
     <>
       <JourneysNav />
