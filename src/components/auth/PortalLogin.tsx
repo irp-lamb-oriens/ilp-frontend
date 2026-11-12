@@ -71,6 +71,12 @@ function describe(err: unknown, step: Step): string {
         : "Too many requests from your connection. Wait a minute, then enter the same code again.";
     }
     if (err.status === 401) return err.message || "That code is not right. Check it and try again.";
+    // The API says its database is not answering (server helper/errorReporter.ts, code database_*).
+    if (err.status === 503 && /^database_/.test(String((err.body as { code?: unknown } | undefined)?.code ?? ""))) {
+      return step === "code"
+        ? "ILP's database is not answering right now. Your code is not used up: wait a few minutes and enter it again, or ask for a new one."
+        : "ILP's database is not answering right now. Wait a few minutes and try again.";
+    }
     if (err.status >= 500) return "Something went wrong on our side. Try again in a minute.";
     return err.message;
   }
