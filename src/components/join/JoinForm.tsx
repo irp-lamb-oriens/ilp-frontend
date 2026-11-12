@@ -66,6 +66,7 @@ import {
   validateStep,
   YES_NO,
 } from "./joinModel";
+import AgreementSign from "./AgreementSign";
 import s from "./join.module.scss";
 
 interface StepCopy {
@@ -137,6 +138,7 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
   const [errors, setErrors] = useState<Errors>({});
   const [restored, setRestored] = useState<string | null>(null);
   const [fromCheck, setFromCheck] = useState(false);
+  const agreementVersion = useRef("");
   const [send, setSend] = useState<SendState>({ kind: "idle" });
   const ready = useRef(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -245,6 +247,8 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
         leadId,
         acceptTerms: true,
         consents: joinConsents(d.marketing),
+        signature: d.signature.trim(),
+        ...(agreementVersion.current ? { agreementVersion: agreementVersion.current } : {}),
         anonId: funnelAnonId(),
         source: funnelSource(),
       });
@@ -624,6 +628,15 @@ export default function JoinForm({ mode, check }: { mode: PaymentsMode; check: S
               <div data-field="marketing">
                 <Checkbox label="Optional: email me ILP news and offers. I can stop them at any time." checked={d.marketing} onChange={(e) => set("marketing", e.target.checked)} />
               </div>
+
+              <AgreementSign
+                value={d.signature}
+                onChange={(v) => set("signature", v)}
+                error={err("signature")}
+                onVersion={(v) => {
+                  agreementVersion.current = v;
+                }}
+              />
 
               <p className={s.payNote}>
                 {mode === "stripe"

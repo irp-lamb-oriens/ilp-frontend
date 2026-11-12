@@ -366,3 +366,40 @@
   padding-top: $space-4;
   border-top: 1px solid $color-hairline;
 }
+
+// AGREEMENT: read and sign the membership agreement on the last step.
+.agreement {
+  display: grid;
+  gap: $space-3;
+  padding: $space-4;
+  border: 1px solid $color-hairline;
+  border-radius: $radius-md;
+}
+
+.agreementTitle {
+  margin: 0;
+  color: $color-navy;
+  font-size: 1.125rem;
+}
+
+.signature {
+  font-size: 1.25rem;
+  font-style: italic;
+  color: $color-navy;
+}
+
+.agreementText {
+  display: grid;
+  gap: $space-4;
+
+  h4 {
+    margin: 0 0 $space-2;
+    color: $color-navy;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 0 0 $space-2;
+    max-width: 65ch;
+  }
+}

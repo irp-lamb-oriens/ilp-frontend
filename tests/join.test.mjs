@@ -36,6 +36,7 @@ const full = {
   documents: ["passport", "property_title"],
   acceptTerms: true,
   acceptPrivacy: true,
+  signature: "Mary Hayes",
 };
 
 function memory() {
@@ -53,7 +54,7 @@ test("join: empty steps list each required field", () => {
   assert.deepEqual(Object.keys(M.validateStep("household", e, TODAY)).sort(), ["livesWithPartner", "maritalStatus"]);
   assert.deepEqual(Object.keys(M.validateStep("situation", e, TODAY)).sort(), ["legalCountry"]);
   assert.deepEqual(Object.keys(M.validateStep("first", e, TODAY)).sort(), ["documents", "question", "urgency"]);
-  assert.deepEqual(Object.keys(M.validateStep("plan", e, TODAY)).sort(), ["acceptPrivacy", "acceptTerms"]);
+  assert.deepEqual(Object.keys(M.validateStep("plan", e, TODAY)).sort(), ["acceptPrivacy", "acceptTerms", "signature"]);
   // optional fields stay optional
   assert.equal(M.validateStep("you", { ...full, preferredName: "", residenceTown: "" }, TODAY).preferredName, undefined);
   assert.deepEqual(M.validateStep("household", { ...full, pets: "" }, TODAY), {});
@@ -131,7 +132,7 @@ test("join: the draft never stores consents", () => {
   const store = memory();
   M.saveDraft(store, { ...full, marketing: true }, 4);
   const raw = store.m.get(M.DRAFT_KEY);
-  for (const k of ["acceptTerms", "acceptPrivacy", "marketing"]) assert.equal(raw.includes(`"${k}"`), false, k);
+  for (const k of ["acceptTerms", "acceptPrivacy", "marketing", "signature"]) assert.equal(raw.includes(`"${k}"`), false, k);
   const back = M.loadDraft(store);
   assert.equal(back.step, 4);
   assert.equal(back.data.acceptTerms, false);

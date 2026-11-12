@@ -218,6 +218,8 @@ export interface Draft {
   acceptTerms: boolean;
   acceptPrivacy: boolean;
   marketing: boolean;
+  /** AGREEMENT: the full name typed to sign the Membership Agreement. */
+  signature: string;
 }
 
 export const EMPTY_DRAFT: Draft = {
@@ -261,6 +263,7 @@ export const EMPTY_DRAFT: Draft = {
   acceptTerms: false,
   acceptPrivacy: false,
   marketing: false,
+  signature: "",
 };
 
 export type Errors = Partial<Record<string, string>>;
@@ -308,6 +311,7 @@ export const FIELD_STEP: Record<string, StepId> = {
   documents: "first",
   acceptTerms: "plan",
   acceptPrivacy: "plan",
+  signature: "plan",
 };
 
 /** The step that shows a field (country answers are "countryAnswers.<key>"). */
@@ -379,6 +383,7 @@ export function validateStep(step: StepId, d: Draft, now = today(), questions?: 
   if (step === "plan") {
     if (!d.acceptTerms) e.acceptTerms = "Please agree to the Terms of Membership, including the monthly renewal.";
     if (!d.acceptPrivacy) e.acceptPrivacy = "Please agree to the Privacy Policy.";
+    if (!/\p{L}/u.test(d.signature ?? "") || (d.signature ?? "").trim().length < 3) e.signature = "Type your full name to sign the membership agreement.";
   }
   return e;
 }
@@ -485,6 +490,7 @@ export function saveDraft(store: StorageLike | null | undefined, d: Draft, step:
     delete rest.acceptTerms;
     delete rest.acceptPrivacy;
     delete rest.marketing;
+    delete rest.signature;
     store.setItem(DRAFT_KEY, JSON.stringify({ v: 1, step, savedAt: new Date().toISOString(), data: rest }));
   } catch {
     // Storage full or blocked: the form still works without a draft.
@@ -497,7 +503,7 @@ export function loadDraft(store: StorageLike | null | undefined): { data: Draft;
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { v?: number; step?: number; savedAt?: string; data?: Partial<Draft> };
     if (parsed.v !== 1 || !parsed.data || typeof parsed.data !== "object") return null;
-    const data = { ...EMPTY_DRAFT, ...parsed.data, acceptTerms: false, acceptPrivacy: false, marketing: false };
+    const data = { ...EMPTY_DRAFT, ...parsed.data, acceptTerms: false, acceptPrivacy: false, marketing: false, signature: "" };
     const step = Math.min(Math.max(0, Number(parsed.step) || 0), STEP_IDS.length - 1);
     return { data, step, savedAt: String(parsed.savedAt ?? "") };
   } catch {

@@ -81,6 +81,18 @@ export function claimDeadlines(body: ClaimBody) {
   return call<ClaimResponse>("/api/leads/claim", { method: "POST", body: JSON.stringify({ ...body, visitorId: journeyVisitorId(), ...readRef() }) });
 }
 
+/** AGREEMENT: the Membership Agreement the member signs (server/API/agreements). */
+export interface AgreementText {
+  title: string;
+  version: string;
+  draft: boolean;
+  sections: Array<{ heading: string; body: string[] }>;
+}
+
+export function getAgreement() {
+  return call<AgreementText>("/api/agreements/membership");
+}
+
 export async function getPlan(): Promise<{ mode: PaymentsMode }> {
   try {
     return await call<{ mode: PaymentsMode }>("/api/payments/plan");
@@ -103,6 +115,9 @@ export interface JoinBody {
   /** T3 guided form: profile fields and "what you need first" (components/join/joinModel.ts toJoinDetails). */
   profile?: Record<string, unknown>;
   intake?: Record<string, unknown>;
+  /** AGREEMENT: the typed signature and the agreement version that was shown. */
+  signature?: string;
+  agreementVersion?: string;
 }
 
 /** Field errors from a 400 on the join (T3), keyed like the form's fields. */
