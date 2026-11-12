@@ -53,7 +53,8 @@ export function NotificationCenter({ source, portal, emptyText }: NotificationCe
 
   useEffect(() => {
     load();
-    const t = window.setInterval(load, POLL_MS);
+    // A hidden tab does not poll; it reloads the moment it is shown again (below).
+    const t = window.setInterval(() => document.visibilityState === "visible" && load(), POLL_MS);
     const onVisible = () => document.visibilityState === "visible" && load();
     document.addEventListener("visibilitychange", onVisible);
     return () => {
