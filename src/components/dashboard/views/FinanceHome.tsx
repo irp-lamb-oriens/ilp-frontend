@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { Loadable, SkeletonStatStrip, StatTile } from "@/components/ui";
 import { FinanceView } from "@/components/dashboard/AdminViews";
 import { PageHeader, SectionHead } from "../staff/PageHeader";
+import { AsOf } from "../staff/AsOf";
 import { usd } from "../staff/format";
 import type { StaffSummary } from "../staff/types";
 import s from "./views.module.scss";
@@ -12,14 +13,23 @@ import s from "./views.module.scss";
 /** Platform revenue and legal fees side by side, never summed; then the quote finance charts. */
 export default function FinanceHome() {
   const [k, setK] = useState<StaffSummary["kpis"] | null>(null);
+  const [asOf, setAsOf] = useState<string | undefined>();
   const [failed, setFailed] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback((refresh = false) => {
+    if (refresh) setRefreshing(true);
     staffApi
-      .get<StaffSummary>("/api/dashboard/staff/summary")
-      .then((r) => setK(r.kpis))
-      .catch(() => setFailed(true));
+      .get<StaffSummary>("/api/dashboard/staff/summary", refresh ? { query: { refresh: 1 } } : undefined)
+      .then((r) => {
+        setK(r.kpis);
+        setAsOf(r.asOf);
+      })
+      .catch(() => setFailed(true))
+      .finally(() => setRefreshing(false));
   }, []);
+
+  useEffect(() => load(), [load]);
 
   return (
     <>
@@ -29,6 +39,7 @@ export default function FinanceHome() {
         <SectionHead
           title="Membership revenue and legal fees"
           sub="The first three figures are ILP's own income from memberships. The last is legal fees from accepted quotes, which is never added to it."
+          actions={<AsOf asOf={asOf} onRefresh={() => load(true)} busy={refreshing} />}
         />
         <Loadable loading={!k && !failed} label="Loading revenue figures" skeleton={<SkeletonStatStrip className={s.tiles} small={3} />}>
         {() => k && (

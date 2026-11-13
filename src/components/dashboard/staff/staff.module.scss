@@ -115,3 +115,13 @@
   margin-top: 0.125rem;
   color: $color-navy;
 }
+
+// How fresh the page's company-wide figures are (AsOf.tsx).
+.asOf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  font-size: 0.875rem;
+  color: $color-steel;
+}

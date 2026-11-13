@@ -17,6 +17,7 @@ import {
 import styles from "./adminViews.module.scss";
 import { DataTable, EmptyState, ErrorNotice, FilterBar, ListFooter, Notice, Select, SkeletonList, SkeletonRegion, StatusPill, useSkeleton, type Column } from "@/components/ui";
 import { AdminListSkeleton, AssignmentSkeleton, FinanceChartsSkeleton, SalesSkeleton } from "./AdminSkeletons";
+import { AsOf } from "./staff/AsOf";
 
 interface Provider {
   id: string;
@@ -169,6 +170,8 @@ interface FinanceBucket extends MoneyStats {
 }
 
 interface FinanceMetrics {
+  /** When the server worked these figures out (kept up to 10 minutes). */
+  asOf?: string;
   baseCurrency: string;
   generatedAt: string;
   totals: {
@@ -219,14 +222,22 @@ export function FinanceView() {
   const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    dashboardFetch<FinanceMetrics>("/api/dashboard/finance/metrics")
+  // Worked out on the server at most every 10 minutes; `refresh` recomputes now.
+  function load(refresh = false) {
+    if (refresh) setRefreshing(true);
+    return dashboardFetch<FinanceMetrics>(`/api/dashboard/finance/metrics${refresh ? "?refresh=1" : ""}`)
       .then(setMetrics)
       .catch((e) => {
         if (isRoleDenied(e)) setDenied(true);
         else setError(e instanceof Error ? e.message : "The finance figures did not load.");
-      });
+      })
+      .finally(() => setRefreshing(false));
+  }
+
+  useEffect(() => {
+    void load();
   }, []);
 
   const sk = useSkeleton(metrics === null && !error && !denied);
@@ -261,6 +272,7 @@ export function FinanceView() {
         <span>Base currency: {metrics.baseCurrency}</span>
         <span>{metrics.quotesRead} quotes · {metrics.clientsRead} clients</span>
       </div>
+      <AsOf asOf={metrics.asOf} onRefresh={() => void load(true)} busy={refreshing} />
 
       <div className={styles.financeGrid}>
         <div className={styles.financeCard}>
@@ -360,14 +372,26 @@ export function SalesView() {
   const [rows, setRows] = useState<SalesProject[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+  const [asOf, setAsOf] = useState<string | undefined>();
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    dashboardFetch<{ projects?: SalesProject[]; rows?: SalesProject[] }>("/api/dashboard/sales-report")
-      .then((r) => setRows(r.projects ?? r.rows ?? []))
+  // Worked out on the server at most every 10 minutes; `refresh` recomputes now.
+  function load(refresh = false) {
+    if (refresh) setRefreshing(true);
+    return dashboardFetch<{ projects?: SalesProject[]; rows?: SalesProject[]; asOf?: string }>(`/api/dashboard/sales-report${refresh ? "?refresh=1" : ""}`)
+      .then((r) => {
+        setRows(r.projects ?? r.rows ?? []);
+        setAsOf(r.asOf);
+      })
       .catch((e) => {
         if (isRoleDenied(e)) setDenied(true);
         else setError(e instanceof Error ? e.message : "The sales report did not load.");
-      });
+      })
+      .finally(() => setRefreshing(false));
+  }
+
+  useEffect(() => {
+    void load();
   }, []);
 
   // FILTERS: the report's project rows, searched, filtered, sorted and paged in the browser.
@@ -407,6 +431,7 @@ export function SalesView() {
 
   return (
     <div className={styles.listStack}>
+      <AsOf asOf={asOf} onRefresh={() => void load(true)} busy={refreshing} />
       <FilterBar list={sl} noun="projects" searchLabel="Search sales" placeholder="Project or completion signal" columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
       <DataTable
         caption="Sales by project"

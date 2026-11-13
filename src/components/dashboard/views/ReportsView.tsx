@@ -1,5 +1,6 @@
 "use client";
 
+import { AsOf } from "../staff/AsOf";
 import { useEffect, useState } from "react";
 import { staffApi } from "@/lib/api";
 import { Loadable, Skeleton, SkeletonStatStrip, Stagger, StaggerItem, StatTile, Tabs, type TabItem } from "@/components/ui";
@@ -21,6 +22,8 @@ interface FunnelMetrics {
 }
 
 interface DashboardMetrics {
+  /** When the server worked these figures out (kept up to 10 minutes). */
+  asOf?: string;
   pipeline: { stageCounts: Record<string, number>; stageLabels: Array<{ id: string; label: string }>; total: number };
   emailQueue: { pending: number; sent: number; dead: number; total: number };
   llmCosts: { totalCostUSD: number; totalCalls: number };
@@ -42,6 +45,9 @@ const TAB_NOTES: Record<string, string> = {
   sales: "Sales from accepted quotes. Only admins see this tab.",
 };
 
+/** Tabs drawn from /api/dashboard/metrics (one kept snapshot on the server). */
+const METRICS_TABS = new Set(["pipeline", "satisfaction", "activity", "sources", "jurisdictions"]);
+
 /**
  * The pre-W6 analytics tabs (funnel, satisfaction, activity, sources,
  * jurisdictions) for every staff role, plus the sales report for admins only
@@ -54,6 +60,17 @@ export default function ReportsView() {
   const [dash, setDash] = useState<DashboardMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // The chart tabs read company-wide figures the server keeps up to 10 minutes; this works them out again.
+  function refreshMetrics() {
+    setRefreshing(true);
+    staffApi
+      .get<DashboardMetrics>("/api/dashboard/metrics", { query: { refresh: 1 } })
+      .then(setDash)
+      .catch(() => setError("Reports could not be updated."))
+      .finally(() => setRefreshing(false));
+  }
 
   useEffect(() => {
     Promise.allSettled([
@@ -192,6 +209,7 @@ export default function ReportsView() {
     content: () => (
       <>
         {TAB_NOTES[t.id] && <TabNote>{TAB_NOTES[t.id]}</TabNote>}
+        {METRICS_TABS.has(t.id) && <AsOf asOf={dash?.asOf} onRefresh={refreshMetrics} busy={refreshing} />}
         {typeof t.content === "function" ? t.content() : t.content}
       </>
     ),

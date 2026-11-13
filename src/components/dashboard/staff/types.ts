@@ -51,6 +51,8 @@ export interface StaffSummary {
   attention: Attention;
   /** Placeholder (seed) data: members loaded, and whether the figures above leave it out. */
   placeholder?: { members: number; excluded: boolean };
+  /** When the server worked these figures out (they are kept up to 10 minutes). */
+  asOf?: string;
 }
 
 export type QueueTask = CsmTask & {

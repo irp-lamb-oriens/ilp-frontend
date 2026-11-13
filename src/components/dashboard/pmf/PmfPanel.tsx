@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { staffApi } from "@/lib/api";
 import type { FunnelStep } from "@/lib/contracts";
 import { DataTable, FilterBar, ListFooter, ProgressBar, Skeleton, SkeletonRegion, SkeletonStatTile, SkeletonText, StaggerItem, StatTile, useSkeleton, ErrorNotice } from "@/components/ui";
 import { LOCAL_SCHEMAS } from "@/lib/localListSchemas";
 import { useSchemaList } from "@/lib/useSchemaList";
 import type { Column } from "@/components/ui";
+import { AsOf } from "../staff/AsOf";
 import s from "./PmfPanel.module.scss";
 
 /** Server: GET /api/analytics/pmf (server/API/analytics/funnel.ts). */
@@ -18,6 +19,8 @@ export interface PmfSummary {
   postCall: { average: number | null; count: number; low: number };
   nps: { score: number | null; count: number; promoters: number; passives: number; detractors: number; average: number | null };
   cancels: { count: number; reasons: Array<{ reason: string; count: number }> };
+  /** When the server worked these figures out (kept up to 10 minutes). */
+  asOf?: string;
 }
 
 export const STEP_LABEL: Record<FunnelStep, string> = {
@@ -34,18 +37,22 @@ const pct = (x: number | null) => (x === null ? "No data yet" : `${(x * 100).toF
 export function usePmf(days = 30) {
   const [data, setData] = useState<PmfSummary | null>(null);
   const [failed, setFailed] = useState(false);
-  useEffect(() => {
+  const [refreshing, setRefreshing] = useState(false);
+  const load = useCallback((refresh = false) => {
+    if (refresh) setRefreshing(true);
     staffApi
-      .get<PmfSummary>("/api/analytics/pmf", { query: { days } })
+      .get<PmfSummary>("/api/analytics/pmf", { query: refresh ? { days, refresh: 1 } : { days } })
       .then(setData)
-      .catch(() => setFailed(true));
+      .catch(() => setFailed(true))
+      .finally(() => setRefreshing(false));
   }, [days]);
-  return { data, failed };
+  useEffect(() => load(), [load]);
+  return { data, failed, refresh: () => load(true), refreshing };
 }
 
 /** Reports → Member funnel: last 30 days of the loop, call ratings, NPS and why people cancel. */
 export default function PmfPanel() {
-  const { data, failed } = usePmf(30);
+  const { data, failed, refresh, refreshing } = usePmf(30);
   const { showSkeleton, skeletonVisible } = useSkeleton(!data && !failed);
   if (failed) {
     return (
@@ -68,6 +75,7 @@ export default function PmfPanel() {
 
   return (
     <div className={s.wrap}>
+      <AsOf asOf={data.asOf} onRefresh={refresh} busy={refreshing} />
       <StaggerItem index={0} className={s.tiles}>
         <StatTile
           size="lg"

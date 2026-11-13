@@ -10,6 +10,7 @@ import type { CsmTask } from "@/lib/contracts";
 import { AgingBadge, EmptyState, FilterBar, ListFooter, Loadable, Notice, Skeleton, SkeletonList, Stagger, StaggerItem, StatTile, StatusPill } from "@/components/ui";
 import CountUp from "@/components/motion/CountUp";
 import { PageHeader, ErrorText, SectionHead } from "../staff/PageHeader";
+import { AsOf } from "../staff/AsOf";
 import { useStaff } from "../staff/StaffSession";
 import { dueLabel, pct, shortDate, TASK_TYPE_LABEL, TASK_TYPE_TONE, usd } from "../staff/format";
 import { isLawyerTask, lawyerTaskLabel, type AttentionItem, type QueueTask, type StaffSummary } from "../staff/types";
@@ -41,13 +42,17 @@ export default function TodayView() {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<QueueTask | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // "Exclude placeholder data" is the shell's switch (staff/PlaceholderData.tsx): every read here follows it.
-  const loadSummary = useCallback(() => {
+  // The figures are kept by the server for up to 10 minutes; `refresh` asks it to work them out again.
+  const loadSummary = useCallback((refresh = false) => {
+    if (refresh) setRefreshing(true);
     staffApi
-      .get<StaffSummary>("/api/dashboard/staff/summary")
+      .get<StaffSummary>("/api/dashboard/staff/summary", refresh ? { query: { refresh: 1 } } : undefined)
       .then(setSummary)
-      .catch((e) => setError(e instanceof Error ? e.message : "Today could not be loaded."));
+      .catch((e) => setError(e instanceof Error ? e.message : "Today could not be loaded."))
+      .finally(() => setRefreshing(false));
   }, []);
 
   // FILTERS: whose tasks is a base param; the schema adds type, due date, overdue, owner.
@@ -112,6 +117,7 @@ export default function TodayView() {
         id="kpis-title"
         title="How the business is doing"
         sub="The figures the team checks every morning. The line under each one gives its target or how it is counted."
+        actions={<AsOf asOf={summary?.asOf} onRefresh={() => loadSummary(true)} busy={refreshing} />}
       />
       <Loadable loading={!summary && !error} label="Loading key figures" skeleton={<TodayKpisSkeleton />}>
         {() => (

@@ -15,6 +15,7 @@ import { LawyerAvailabilitySkeleton } from "@/components/lawyer/LawyerSkeletons"
 import type { AvailabilitySettings } from "@/components/lawyer/callsApi";
 import { useLawyers } from "../staff/useLawyers";
 import { PageHeader, TabNote } from "../staff/PageHeader";
+import { AsOf } from "../staff/AsOf";
 import type { LawyerCapacity } from "../staff/types";
 import { LawyerApplications, type LawyerApplication } from "./LawyerApplications";
 import s from "./views.module.scss";
@@ -111,6 +112,17 @@ function Capacity() {
   const [open, setOpen] = useState<LawyerCapacity | null>(null);
   const reload = list.refresh;
   const unassignedMatters = Number(list.meta.unassignedMatters ?? 0);
+  const asOf = typeof list.meta.asOf === "string" ? list.meta.asOf : undefined;
+  // Capacity is worked out on the server at most every 10 minutes: recompute it, then reload the list.
+  const [refreshing, setRefreshing] = useState(false);
+  function refreshCapacity() {
+    setRefreshing(true);
+    staffApi
+      .get("/api/dashboard/staff/lawyers", { query: { refresh: 1 } })
+      .then(() => reload())
+      .catch(() => undefined)
+      .finally(() => setRefreshing(false));
+  }
 
   const columns = useMemo<Column<LawyerCapacity>[]>(() => [
     {
@@ -191,6 +203,7 @@ function Capacity() {
           These members are waiting for a lawyer and cannot book a call yet.
         </Notice>
       )}
+      <AsOf asOf={asOf} onRefresh={refreshCapacity} busy={refreshing} />
       <FilterBar list={sl} noun="lawyers" placeholder="Name, email or legal area" options={areaOptions} columns={columns.map((c) => ({ key: c.key, header: c.header }))} />
       <DataTable
         caption="Lawyer capacity"
